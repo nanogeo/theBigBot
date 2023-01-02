@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <queue>
+#include <fstream>
 
 
 
@@ -293,6 +294,74 @@ int NavMesh::FindNextLeftPoint(std::vector<Portal> portals, int indexL)
 		new_left = portals[indexL + i].left;
 	}
 	return indexL + i;
+}
+
+void NavMesh::SaveNavMeshToFile(std::string filename)
+{
+	std::ofstream file;
+	file.open(filename);
+	for (const auto &triangle : triangles)
+	{
+		file << "T: ";
+		file << triangle->center.x << ' ' << triangle->center.y << ' ';
+		file << triangle->verticies[0].x << ' ' << triangle->verticies[0].y << ' ';
+		file << triangle->verticies[1].x << ' ' << triangle->verticies[1].y << ' ';
+		file << triangle->verticies[2].x << ' ' << triangle->verticies[2].y << '\n';
+	}
+
+	file << "###########\n";
+
+	for (int i = 0; i < triangles.size(); i++)
+	{
+		file << "C: " << i << ' ';
+		for (const auto &connection : triangles[i]->connections)
+		{
+			file << std::find(triangles.begin(), triangles.end(), connection) - triangles.begin() << ' ';
+		}
+		file << '\n';
+	}
+	file << "end";
+	file.close();
+}
+
+void NavMesh::BuildNavMeshFromFile(std::string filename)
+{
+	std::ifstream file;
+	file.open(filename);
+	std::string next;
+	file >> next;
+	while (next == "T:")
+	{
+		float cX, cY, v1x, v1y, v2x, v2y, v3x, v3y;
+		file >> cX;
+		file >> cY;
+		file >> v1x;
+		file >> v1y;
+		file >> v2x;
+		file >> v2y;
+		file >> v3x;
+		file >> v3y;
+		Triangle* triangle = new Triangle();
+		triangle->center = Point2D(cX, cY);
+		triangle->verticies.push_back(Point2D(v1x, v1y));
+		triangle->verticies.push_back(Point2D(v2x, v2y));
+		triangle->verticies.push_back(Point2D(v3x, v3y));
+		triangles.push_back(triangle);
+		file >> next;
+	}
+	file >> next;
+	while (next == "C:")
+	{
+		int index;
+		file >> index;
+		file >> next;
+		while (next != "C:" && next != "end")
+		{
+			triangles[index]->connections.push_back(triangles[std::stoi(next)]);
+			file >> next;
+		}
+	}
+
 }
 
 }

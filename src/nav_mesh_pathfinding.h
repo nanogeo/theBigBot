@@ -59,6 +59,8 @@ public:
     static float Cross(Point2D, Point2D, Point2D);
     static int FindNextRightPoint(std::vector<Portal>, int);
     static int FindNextLeftPoint(std::vector<Portal>, int);
+	void SaveNavMeshToFile(std::string);
+	void BuildNavMeshFromFile(std::string);
 };
 
 }

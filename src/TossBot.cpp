@@ -10,6 +10,7 @@
 #include <random>
 #include <iterator>
 #include <typeinfo>
+#include <ctime>
 
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit_filters.h"
@@ -51,6 +52,44 @@ namespace sc2 {
                     break;
                 case UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR:
                     Debug()->DebugSphereOut(unit->pos, 4, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, 0, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, -1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 0, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(1, -2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(1, -3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(2, -2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(2, -3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(3, -4, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(1, 0, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(1, -1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(2, -1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(3, -2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(3, -3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(4, -3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, -2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, -3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(1, -4, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(2, -4, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(2, -5, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-4, 3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, 1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 4, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-2, -1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 0, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 0, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-4, 1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-4, 2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-5, 2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
                     break;
                 case UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER:
                     Debug()->DebugSphereOut(unit->pos, 2, Color(0, 255, 0));
@@ -67,9 +106,45 @@ namespace sc2 {
                     break;
                 case UNIT_TYPEID::DESTRUCTIBLEDEBRIS4X4:
                     Debug()->DebugSphereOut(unit->pos, 4, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(1, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(1, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-2, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
                     break;
                 case UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRIS6X6:
                     Debug()->DebugSphereOut(unit->pos, 4, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(1, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(1, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(2, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(2, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-2, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-3, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, 2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(0, -3, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -3, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(1, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(1, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-2, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
+					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
                     break;
                 case UNIT_TYPEID::DESTRUCTIBLEROCKEX16X6:
                     Debug()->DebugSphereOut(unit->pos, 4, Color(128, 0, 255));
@@ -103,7 +178,7 @@ namespace sc2 {
                 case UNIT_TYPEID::PROTOSS_NEXUS:
                     break;
                 default:
-                    std::cout << "ah";
+                    //std::cout << "ah";
                     break;
 
                 }
@@ -111,11 +186,10 @@ namespace sc2 {
 
             if (Observation()->GetGameLoop() == 1)
             {
-                grid_map = SetUpMap();
                 Debug()->DebugFastBuild();
                 Debug()->DebugGiveAllResources();
                 SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
-                Debug()->DebugCreateUnit(UNIT_TYPEID::DESTRUCTIBLEROCKEX16X6, Point2D(66, 71));
+                Debug()->DebugCreateUnit(UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR, Point2D(66, 71));
             }
             if (Observation()->GetGameLoop() > 1)
             {
@@ -132,8 +206,12 @@ namespace sc2 {
                 }*/
                 if (nav_mesh.triangles.size() == 0)
                 {
+					std::cout << "start" << std::time(nullptr) << '\n';
+					grid_map = SetUpMap();
+					std::cout << "set up map done" << std::time(nullptr) << '\n';
                     Units units = Observation()->GetUnits();
                     std::vector<Vec2D> isolines = FindIsolines(grid_map);
+					std::cout << "find isolines done" << std::time(nullptr) << '\n';
 
                     /*for (const auto &vec : isolines)
                     {
@@ -142,6 +220,7 @@ namespace sc2 {
                         Debug()->DebugLineOut(start, end);
                     }*/
                     std::vector<Polygon> polygons = MakePolygons(isolines);
+					std::cout << "make polygons done" << std::time(nullptr) << '\n';
 
                     /*for (const auto &polygon : polygons)
                     {
@@ -158,9 +237,19 @@ namespace sc2 {
                         }
                     }*/
                     std::vector<Point2D> vertices = GetAllVerticies(polygons);
+					std::cout << "get verticies done" << std::time(nullptr) << '\n';
                     std::vector<Polygon*> polys = RemoveOutsideTriangles(MakeTriangles(vertices));
+					std::cout << "make triangles and remove outside triangles done" << std::time(nullptr) << '\n';
                     nav_mesh = NavMesh(ConvertToTriangles(polys));
+					std::cout << "convert to triangles done" << std::time(nullptr) << '\n';
                     probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
+					nav_mesh.SaveNavMeshToFile("navmesh.txt");
+					std::cout << "save navmesh to file" << std::time(nullptr) << '\n';
+					NavMesh new_mesh;
+					new_mesh.BuildNavMeshFromFile("navmesh.txt");
+					std::cout << "load navmesh from file" << std::time(nullptr) << '\n';
+					new_mesh.SaveNavMeshToFile("navmesh2.txt");
+					std::cout << "hi";
                 }
                 
                 for (const auto &triangle : nav_mesh.triangles)
@@ -2413,6 +2502,44 @@ for (const auto &field : far_oversaturated_patches)
                 blockers.push_back(unit->pos - Point2D(1, .5));
                 break;
             case UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR:
+				blockers.push_back(unit->pos + Point2D(0, 0));
+				blockers.push_back(unit->pos + Point2D(0, -1));
+				blockers.push_back(unit->pos + Point2D(-1, -1));
+				blockers.push_back(unit->pos + Point2D(-1, 0));
+				blockers.push_back(unit->pos + Point2D(1, -2));
+				blockers.push_back(unit->pos + Point2D(1, -3));
+				blockers.push_back(unit->pos + Point2D(2, -2));
+				blockers.push_back(unit->pos + Point2D(2, -3));
+				blockers.push_back(unit->pos + Point2D(3, -4));
+				blockers.push_back(unit->pos + Point2D(1, 0));
+				blockers.push_back(unit->pos + Point2D(1, -1));
+				blockers.push_back(unit->pos + Point2D(2, -1));
+				blockers.push_back(unit->pos + Point2D(3, -2));
+				blockers.push_back(unit->pos + Point2D(3, -3));
+				blockers.push_back(unit->pos + Point2D(4, -3));
+				blockers.push_back(unit->pos + Point2D(-1, -2));
+				blockers.push_back(unit->pos + Point2D(0, -2));
+				blockers.push_back(unit->pos + Point2D(0, -3));
+				blockers.push_back(unit->pos + Point2D(1, -4));
+				blockers.push_back(unit->pos + Point2D(2, -4));
+				blockers.push_back(unit->pos + Point2D(2, -5));
+				blockers.push_back(unit->pos + Point2D(-2, 1));
+				blockers.push_back(unit->pos + Point2D(-2, 2));
+				blockers.push_back(unit->pos + Point2D(-3, 1));
+				blockers.push_back(unit->pos + Point2D(-3, 2));
+				blockers.push_back(unit->pos + Point2D(-4, 3));
+				blockers.push_back(unit->pos + Point2D(0, 1));
+				blockers.push_back(unit->pos + Point2D(-1, 1));
+				blockers.push_back(unit->pos + Point2D(-1, 2));
+				blockers.push_back(unit->pos + Point2D(-2, 3));
+				blockers.push_back(unit->pos + Point2D(-3, 3));
+				blockers.push_back(unit->pos + Point2D(-3, 4));
+				blockers.push_back(unit->pos + Point2D(-2, -1));
+				blockers.push_back(unit->pos + Point2D(-2, 0));
+				blockers.push_back(unit->pos + Point2D(-3, 0));
+				blockers.push_back(unit->pos + Point2D(-4, 1));
+				blockers.push_back(unit->pos + Point2D(-4, 2));
+				blockers.push_back(unit->pos + Point2D(-5, 2));
                 break;
             case UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER:
                 blockers.push_back(unit->pos - Point2D(1, -1));
@@ -2443,8 +2570,44 @@ for (const auto &field : far_oversaturated_patches)
             case UNIT_TYPEID::NEUTRAL_UNBUILDABLEPLATESDESTRUCTIBLE:
                 break;
             case UNIT_TYPEID::DESTRUCTIBLEDEBRIS4X4:
+				blockers.push_back(unit->pos + Point2D(0, 0));
+				blockers.push_back(unit->pos + Point2D(0, -1));
+				blockers.push_back(unit->pos + Point2D(-1, 0));
+				blockers.push_back(unit->pos + Point2D(-1, -1));
+				blockers.push_back(unit->pos + Point2D(1, 0));
+				blockers.push_back(unit->pos + Point2D(1, -1));
+				blockers.push_back(unit->pos + Point2D(-2, 0));
+				blockers.push_back(unit->pos + Point2D(-2, -1));
+				blockers.push_back(unit->pos + Point2D(0, 1));
+				blockers.push_back(unit->pos + Point2D(-1, 1));
+				blockers.push_back(unit->pos + Point2D(0, -2));
+				blockers.push_back(unit->pos + Point2D(-1, -2));
                 break;
             case UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRIS6X6:
+				blockers.push_back(unit->pos + Point2D(0, 0));
+				blockers.push_back(unit->pos + Point2D(0, -1));
+				blockers.push_back(unit->pos + Point2D(-1, 0));
+				blockers.push_back(unit->pos + Point2D(-1, -1));
+				blockers.push_back(unit->pos + Point2D(1, 0));
+				blockers.push_back(unit->pos + Point2D(1, -1));
+				blockers.push_back(unit->pos + Point2D(2, 0));
+				blockers.push_back(unit->pos + Point2D(2, -1));
+				blockers.push_back(unit->pos + Point2D(-2, 0));
+				blockers.push_back(unit->pos + Point2D(-2, -1));
+				blockers.push_back(unit->pos + Point2D(-3, 0));
+				blockers.push_back(unit->pos + Point2D(-3, -1));
+				blockers.push_back(unit->pos + Point2D(0, 1));
+				blockers.push_back(unit->pos + Point2D(0, 2));
+				blockers.push_back(unit->pos + Point2D(-1, 1));
+				blockers.push_back(unit->pos + Point2D(-1, 2));
+				blockers.push_back(unit->pos + Point2D(0, -2));
+				blockers.push_back(unit->pos + Point2D(0, -3));
+				blockers.push_back(unit->pos + Point2D(-1, -2));
+				blockers.push_back(unit->pos + Point2D(-1, -3));
+				blockers.push_back(unit->pos + Point2D(1, 1));
+				blockers.push_back(unit->pos + Point2D(1, -2));
+				blockers.push_back(unit->pos + Point2D(-2, -2));
+				blockers.push_back(unit->pos + Point2D(-2, 1));
                 break;
             case UNIT_TYPEID::DESTRUCTIBLEROCKEX16X6:
                 blockers.push_back(unit->pos + Point2D(0, 0));
