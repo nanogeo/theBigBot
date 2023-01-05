@@ -184,12 +184,28 @@ namespace sc2 {
                 }
             }
 
+			for (const auto &polygon : blockers)
+			{
+				for (int i = 0; i < polygon.points.size(); i++)
+				{
+					Point3D start = Point3D(polygon.points[i].x, polygon.points[i].y, Observation()->TerrainHeight(polygon.points[i]) + .1);
+					Point3D end;
+					if (i + 1 < polygon.points.size())
+						end = Point3D(polygon.points[i + 1].x, polygon.points[i + 1].y, Observation()->TerrainHeight(polygon.points[i + 1]) + .1);
+					else
+						end = Point3D(polygon.points[0].x, polygon.points[0].y, Observation()->TerrainHeight(polygon.points[0]) + .1);
+					Debug()->DebugLineOut(start, end, Color(255, 0, 0));
+					Debug()->DebugSphereOut(start, .1, Color(0, 0, 255));
+				}
+			}
+
             if (Observation()->GetGameLoop() == 1)
             {
                 Debug()->DebugFastBuild();
                 Debug()->DebugGiveAllResources();
                 SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
                 Debug()->DebugCreateUnit(UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR, Point2D(66, 71));
+				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
             }
             if (Observation()->GetGameLoop() > 1)
             {
@@ -206,66 +222,27 @@ namespace sc2 {
                 }*/
                 if (nav_mesh.triangles.size() == 0)
                 {
-					std::cout << "start" << std::time(nullptr) << '\n';
-					grid_map = SetUpMap();
-					std::cout << "set up map done" << std::time(nullptr) << '\n';
-                    Units units = Observation()->GetUnits();
-                    std::vector<Vec2D> isolines = FindIsolines(grid_map);
-					std::cout << "find isolines done" << std::time(nullptr) << '\n';
-
-                    /*for (const auto &vec : isolines)
-                    {
-                        Point3D start = Point3D(vec.start.x, vec.start.y, Observation()->TerrainHeight(Point2D(vec.start.x, vec.start.y)));
-                        Point3D end = Point3D(vec.end.x, vec.end.y, Observation()->TerrainHeight(Point2D(vec.end.x, vec.end.y)));
-                        Debug()->DebugLineOut(start, end);
-                    }*/
-                    std::vector<Polygon> polygons = MakePolygons(isolines);
-					std::cout << "make polygons done" << std::time(nullptr) << '\n';
-
-                    /*for (const auto &polygon : polygons)
-                    {
-                        for (int i = 0; i < polygon.points.size(); i++)
-                        {
-                            Point3D start = Point3D(polygon.points[i].x, polygon.points[i].y, Observation()->TerrainHeight(polygon.points[i]) + .1);
-                            Point3D end;
-                            if (i + 1 < polygon.points.size())
-                                end = Point3D(polygon.points[i + 1].x, polygon.points[i + 1].y, Observation()->TerrainHeight(polygon.points[i + 1]) + .1);
-                            else
-                                end = Point3D(polygon.points[0].x, polygon.points[0].y, Observation()->TerrainHeight(polygon.points[0]) + .1);
-                            Debug()->DebugLineOut(start, end, Color(255, 0, 0));
-                            Debug()->DebugSphereOut(start, .1, Color(0, 0, 255));
-                        }
-                    }*/
-                    std::vector<Point2D> vertices = GetAllVerticies(polygons);
-					std::cout << "get verticies done" << std::time(nullptr) << '\n';
-                    std::vector<Polygon*> polys = RemoveOutsideTriangles(MakeTriangles(vertices));
-					std::cout << "make triangles and remove outside triangles done" << std::time(nullptr) << '\n';
-                    nav_mesh = NavMesh(ConvertToTriangles(polys));
-					std::cout << "convert to triangles done" << std::time(nullptr) << '\n';
-                    probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
-					nav_mesh.SaveNavMeshToFile("navmesh.txt");
-					std::cout << "save navmesh to file" << std::time(nullptr) << '\n';
-					NavMesh new_mesh;
-					new_mesh.BuildNavMeshFromFile("navmesh.txt");
-					std::cout << "load navmesh from file" << std::time(nullptr) << '\n';
-					new_mesh.SaveNavMeshToFile("navmesh2.txt");
-					std::cout << "hi";
+					nav_mesh.LoadOrBuildNavmesh(Observation()->GetGameInfo().pathing_grid, Observation()->GetGameInfo().map_name);
+					
                 }
                 
                 for (const auto &triangle : nav_mesh.triangles)
                 {
                     for (int i = 0; i < triangle->verticies.size(); i++)
                     {
-                        Point3D start = Point3D(triangle->verticies[i].x, triangle->verticies[i].y, Observation()->TerrainHeight(triangle->verticies[i]) + .1);
+                        Point3D start = Point3D(triangle->verticies[i].x, triangle->verticies[i].y, Observation()->GetStartLocation().z + .1);
                         Point3D end;
                         if (i + 1 < triangle->verticies.size())
-                            end = Point3D(triangle->verticies[i + 1].x, triangle->verticies[i + 1].y, Observation()->TerrainHeight(triangle->verticies[i + 1]) + .1);
+                            end = Point3D(triangle->verticies[i + 1].x, triangle->verticies[i + 1].y, Observation()->GetStartLocation().z + .1);
                         else
-                            end = Point3D(triangle->verticies[0].x, triangle->verticies[0].y, Observation()->TerrainHeight(triangle->verticies[0]) + .1);
+                            end = Point3D(triangle->verticies[0].x, triangle->verticies[0].y, Observation()->GetStartLocation().z + .1);
                         Debug()->DebugLineOut(start, end, Color(255, 0, 128));
                         Debug()->DebugSphereOut(start, .1, Color(0, 0, 255));
-                        Point3D center = Point3D(triangle->center.x, triangle->center.y, Observation()->TerrainHeight(triangle->center) + .1);
-                        Debug()->DebugSphereOut(center, .1, Color(0, 255, 255));
+                        Point3D center = Point3D(triangle->center.x, triangle->center.y, Observation()->GetStartLocation().z + .1);
+						if (triangle->pathable)
+	                        Debug()->DebugSphereOut(center, .1, Color(0, 255, 255));
+						else
+							Debug()->DebugSphereOut(center, .1, Color(255, 0, 0));
                     }
                     /*for (const auto &connection : triangle->connections)
                     {
@@ -275,9 +252,18 @@ namespace sc2 {
                     }*/
                 }
 
-                std::vector<Point2D> path = nav_mesh.FindPath(probe->pos, Observation()->GetGameInfo().enemy_start_locations[0]);
+				for (const auto &triangle : overlaps)
+				{
+					for (int i = 0; i < triangle->verticies.size(); i++)
+					{
+						Point3D center = Point3D(triangle->center.x, triangle->center.y, Observation()->GetStartLocation().z + .1);
+						Debug()->DebugSphereOut(center, .3, Color(255, 255, 255));
+					}
+				}
 
-                /*for (int i = 0; i < path.size() - 1; i++)
+                /*std::vector<Point2D> path = nav_mesh.FindPath(probe->pos, Observation()->GetGameInfo().enemy_start_locations[0]);
+
+                for (int i = 0; i < path.size() - 1; i++)
                 {
                     Point3D start = Point3D(path[i].x, path[i].y, Observation()->TerrainHeight(path[i]) + .1);
                     Point3D end = Point3D(path[i+1].x, path[i+1].y, Observation()->TerrainHeight(path[i+1]) + .1);
@@ -391,6 +377,9 @@ namespace sc2 {
         if (debug_mode)
         {
             std::cout << UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
+			Polygon poly = CreateNewBlocker(building);
+			blockers.push_back(poly);
+			nav_mesh.AddNewBlocker(building);
             return;
         }
         if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
@@ -2425,565 +2414,41 @@ for (const auto &field : far_oversaturated_patches)
 
 #pragma endregion
 
-#pragma region Pathing
 
-    std::vector<std::vector<bool>> TossBot::SetUpMap()
-    {
-        std::vector<std::vector<bool>> map;
-        std::vector<bool> x;
-        map.push_back(x);
-        ImageData test = Observation()->GetGameInfo().pathing_grid;
-        int position = 0;
-        int byte = 0;
-        int row = 0;
-        for (int i = 0; i < test.data.size() * 8; i++)
-        {
-            if (((test.data[byte] >> (7 - position)) & 0x1))
-            {
-                map[row].push_back(true);
-            }
-            else
-            {
-                map[row].push_back(false);
-            }
-            position++;
-            if (position == 8)
-            {
-                position = 0;
-                byte++;
-            }
-            if (i != 0 && i % test.width == 0)
-            {
-                row++;
-                std::vector<bool> x;
-                map.push_back(x);
-                map[row].push_back(false);
-            }
-        }
-        map[row].push_back(false);
-
-
-        std::vector<std::vector<bool>> flipped_map;
-        for (int i = 0; i < map[0].size(); i++)
-        {
-            std::vector<bool> x;
-            flipped_map.push_back(x);
-        }
-        for (int i = 0; i < map.size(); i++)
-        {
-            for (int j = 0; j < map[i].size(); j++)
-            {
-                flipped_map[j].push_back(map[i][j]);
-            }
-        }
-
-        flipped_map = AddNeutralUnitsToMap(flipped_map);
-
-        return flipped_map;
-    }
-
-    std::vector<std::vector<bool>> TossBot::AddNeutralUnitsToMap(std::vector<std::vector<bool>> map)
-    {
-        std::vector<Point2D> blockers;
-        for (const auto *unit : Observation()->GetUnits())
-        {
-            switch (unit->unit_type.ToType())
-            {
-            case UNIT_TYPEID::NEUTRAL_MINERALFIELD750:
-                blockers.push_back(unit->pos - Point2D(0, .5));
-                blockers.push_back(unit->pos - Point2D(1, .5));
-                break;
-            case UNIT_TYPEID::NEUTRAL_LABMINERALFIELD750:
-                blockers.push_back(unit->pos - Point2D(0, .5));
-                blockers.push_back(unit->pos - Point2D(1, .5));
-                break;
-            case UNIT_TYPEID::NEUTRAL_LABMINERALFIELD:
-                blockers.push_back(unit->pos - Point2D(0, .5));
-                blockers.push_back(unit->pos - Point2D(1, .5));
-                break;
-            case UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR:
-				blockers.push_back(unit->pos + Point2D(0, 0));
-				blockers.push_back(unit->pos + Point2D(0, -1));
-				blockers.push_back(unit->pos + Point2D(-1, -1));
-				blockers.push_back(unit->pos + Point2D(-1, 0));
-				blockers.push_back(unit->pos + Point2D(1, -2));
-				blockers.push_back(unit->pos + Point2D(1, -3));
-				blockers.push_back(unit->pos + Point2D(2, -2));
-				blockers.push_back(unit->pos + Point2D(2, -3));
-				blockers.push_back(unit->pos + Point2D(3, -4));
-				blockers.push_back(unit->pos + Point2D(1, 0));
-				blockers.push_back(unit->pos + Point2D(1, -1));
-				blockers.push_back(unit->pos + Point2D(2, -1));
-				blockers.push_back(unit->pos + Point2D(3, -2));
-				blockers.push_back(unit->pos + Point2D(3, -3));
-				blockers.push_back(unit->pos + Point2D(4, -3));
-				blockers.push_back(unit->pos + Point2D(-1, -2));
-				blockers.push_back(unit->pos + Point2D(0, -2));
-				blockers.push_back(unit->pos + Point2D(0, -3));
-				blockers.push_back(unit->pos + Point2D(1, -4));
-				blockers.push_back(unit->pos + Point2D(2, -4));
-				blockers.push_back(unit->pos + Point2D(2, -5));
-				blockers.push_back(unit->pos + Point2D(-2, 1));
-				blockers.push_back(unit->pos + Point2D(-2, 2));
-				blockers.push_back(unit->pos + Point2D(-3, 1));
-				blockers.push_back(unit->pos + Point2D(-3, 2));
-				blockers.push_back(unit->pos + Point2D(-4, 3));
-				blockers.push_back(unit->pos + Point2D(0, 1));
-				blockers.push_back(unit->pos + Point2D(-1, 1));
-				blockers.push_back(unit->pos + Point2D(-1, 2));
-				blockers.push_back(unit->pos + Point2D(-2, 3));
-				blockers.push_back(unit->pos + Point2D(-3, 3));
-				blockers.push_back(unit->pos + Point2D(-3, 4));
-				blockers.push_back(unit->pos + Point2D(-2, -1));
-				blockers.push_back(unit->pos + Point2D(-2, 0));
-				blockers.push_back(unit->pos + Point2D(-3, 0));
-				blockers.push_back(unit->pos + Point2D(-4, 1));
-				blockers.push_back(unit->pos + Point2D(-4, 2));
-				blockers.push_back(unit->pos + Point2D(-5, 2));
-                break;
-            case UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER:
-                blockers.push_back(unit->pos - Point2D(1, -1));
-                blockers.push_back(unit->pos - Point2D(0, -1));
-                blockers.push_back(unit->pos - Point2D(-1, -1));
-                blockers.push_back(unit->pos - Point2D(1, 0));
-                blockers.push_back(unit->pos - Point2D(0, 0));
-                blockers.push_back(unit->pos - Point2D(-1, 0));
-                blockers.push_back(unit->pos - Point2D(1, 1));
-                blockers.push_back(unit->pos - Point2D(0, 1));
-                blockers.push_back(unit->pos - Point2D(-1, 1));
-                break;
-            case UNIT_TYPEID::NEUTRAL_MINERALFIELD:
-                blockers.push_back(unit->pos - Point2D(0, .5));
-                blockers.push_back(unit->pos - Point2D(1, .5));
-                break;
-            case UNIT_TYPEID::NEUTRAL_VESPENEGEYSER:
-                blockers.push_back(unit->pos - Point2D(1, -1));
-                blockers.push_back(unit->pos - Point2D(0, -1));
-                blockers.push_back(unit->pos - Point2D(-1, -1));
-                blockers.push_back(unit->pos - Point2D(1, 0));
-                blockers.push_back(unit->pos - Point2D(0, 0));
-                blockers.push_back(unit->pos - Point2D(-1, 0));
-                blockers.push_back(unit->pos - Point2D(1, 1));
-                blockers.push_back(unit->pos - Point2D(0, 1));
-                blockers.push_back(unit->pos - Point2D(-1, 1));
-                break;
-            case UNIT_TYPEID::NEUTRAL_UNBUILDABLEPLATESDESTRUCTIBLE:
-                break;
-            case UNIT_TYPEID::DESTRUCTIBLEDEBRIS4X4:
-				blockers.push_back(unit->pos + Point2D(0, 0));
-				blockers.push_back(unit->pos + Point2D(0, -1));
-				blockers.push_back(unit->pos + Point2D(-1, 0));
-				blockers.push_back(unit->pos + Point2D(-1, -1));
-				blockers.push_back(unit->pos + Point2D(1, 0));
-				blockers.push_back(unit->pos + Point2D(1, -1));
-				blockers.push_back(unit->pos + Point2D(-2, 0));
-				blockers.push_back(unit->pos + Point2D(-2, -1));
-				blockers.push_back(unit->pos + Point2D(0, 1));
-				blockers.push_back(unit->pos + Point2D(-1, 1));
-				blockers.push_back(unit->pos + Point2D(0, -2));
-				blockers.push_back(unit->pos + Point2D(-1, -2));
-                break;
-            case UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRIS6X6:
-				blockers.push_back(unit->pos + Point2D(0, 0));
-				blockers.push_back(unit->pos + Point2D(0, -1));
-				blockers.push_back(unit->pos + Point2D(-1, 0));
-				blockers.push_back(unit->pos + Point2D(-1, -1));
-				blockers.push_back(unit->pos + Point2D(1, 0));
-				blockers.push_back(unit->pos + Point2D(1, -1));
-				blockers.push_back(unit->pos + Point2D(2, 0));
-				blockers.push_back(unit->pos + Point2D(2, -1));
-				blockers.push_back(unit->pos + Point2D(-2, 0));
-				blockers.push_back(unit->pos + Point2D(-2, -1));
-				blockers.push_back(unit->pos + Point2D(-3, 0));
-				blockers.push_back(unit->pos + Point2D(-3, -1));
-				blockers.push_back(unit->pos + Point2D(0, 1));
-				blockers.push_back(unit->pos + Point2D(0, 2));
-				blockers.push_back(unit->pos + Point2D(-1, 1));
-				blockers.push_back(unit->pos + Point2D(-1, 2));
-				blockers.push_back(unit->pos + Point2D(0, -2));
-				blockers.push_back(unit->pos + Point2D(0, -3));
-				blockers.push_back(unit->pos + Point2D(-1, -2));
-				blockers.push_back(unit->pos + Point2D(-1, -3));
-				blockers.push_back(unit->pos + Point2D(1, 1));
-				blockers.push_back(unit->pos + Point2D(1, -2));
-				blockers.push_back(unit->pos + Point2D(-2, -2));
-				blockers.push_back(unit->pos + Point2D(-2, 1));
-                break;
-            case UNIT_TYPEID::DESTRUCTIBLEROCKEX16X6:
-                blockers.push_back(unit->pos + Point2D(0, 0));
-                blockers.push_back(unit->pos + Point2D(-1, 0));
-                blockers.push_back(unit->pos + Point2D(0, -1));
-                blockers.push_back(unit->pos + Point2D(-1, -1));
-                blockers.push_back(unit->pos + Point2D(1, 0));
-                blockers.push_back(unit->pos + Point2D(2, 0));
-                blockers.push_back(unit->pos + Point2D(1, -1));
-                blockers.push_back(unit->pos + Point2D(2, -1));
-                blockers.push_back(unit->pos + Point2D(-2, 0));
-                blockers.push_back(unit->pos + Point2D(-3, 0));
-                blockers.push_back(unit->pos + Point2D(-2, -1));
-                blockers.push_back(unit->pos + Point2D(-3, -1));
-                blockers.push_back(unit->pos + Point2D(0, 1));
-                blockers.push_back(unit->pos + Point2D(0, 2));
-                blockers.push_back(unit->pos + Point2D(-1, 1));
-                blockers.push_back(unit->pos + Point2D(-1, 2));
-                blockers.push_back(unit->pos + Point2D(0, -2));
-                blockers.push_back(unit->pos + Point2D(0, -3));
-                blockers.push_back(unit->pos + Point2D(-1, -2));
-                blockers.push_back(unit->pos + Point2D(-1, -3));
-                blockers.push_back(unit->pos + Point2D(1, 1));
-                blockers.push_back(unit->pos + Point2D(1, -2));
-                blockers.push_back(unit->pos + Point2D(-2, 1));
-                blockers.push_back(unit->pos + Point2D(-2, -2));
-                break;
-            default:
-                std::cout << "Error unknown unit type in AddNeutralUnitsToMap\n";
-                break;
-
-            }
-        }
-        for (const auto &pos : blockers)
-        {
-            map[pos.x][pos.y] = false;
-        }
-        return map;
-    }
-
-    std::vector<Vec2D> TossBot::FindIsolines(std::vector<std::vector<bool>> map)
-    {
-        std::vector<Vec2D> all_isolines;
-        for (int i = 0; i < map.size() - 1; i++)
-        {
-            for (int j = 0; j < map[i].size() - 1; j++)
-            {
-                Point2D t = Point2D(i + .5, j);
-                Point2D b = Point2D(i + .5, j + 1);
-                Point2D l = Point2D(i, j + .5);
-                Point2D r = Point2D(i + 1, j + .5);
-
-                Point3D posT = Point3D(t.x + .5, t.y + .5, Observation()->TerrainHeight(Point2D(t.x + .5, t.y + .5)));
-                Point3D posB = Point3D(b.x + .5, b.y + .5, Observation()->TerrainHeight(Point2D(b.x + .5, b.y + .5)));
-                Point3D posL = Point3D(l.x + .5, l.y + .5, Observation()->TerrainHeight(Point2D(l.x + .5, l.y + .5)));
-                Point3D posR = Point3D(r.x + .5, r.y + .5, Observation()->TerrainHeight(Point2D(r.x + .5, r.y + .5)));
-
-                std::vector<Vec2D> isolines = GetIsolineConfiguration(map[i][j], map[i + 1][j], map[i + 1][j + 1], map[i][j + 1], t, b, l, r);
-
-                for (const auto &vec : isolines)
-                {
-                    all_isolines.push_back(vec);
-                }
-            }
-        }
-        return all_isolines;
-    }
-
-    std::vector<Vec2D> TossBot::GetIsolineConfiguration(bool w, bool x, bool y, bool z, Point2D t, Point2D b, Point2D l, Point2D r)
-    {
-        std::vector<Vec2D> lines;
-        int state = w * 8 + x * 4 + y * 2 + z * 1;
-        t += Point2D(.5, .5);
-        b += Point2D(.5, .5);
-        l += Point2D(.5, .5);
-        r += Point2D(.5, .5);
-        switch (state)
-        {
-        case 0:
-            break;
-        case 1:
-            lines.push_back(Vec2D(b, l));
-            break;
-        case 2:
-            lines.push_back(Vec2D(b, r));
-            break;
-        case 3:
-            lines.push_back(Vec2D(l, r));
-            break;
-        case 4:
-            lines.push_back(Vec2D(t, r));
-            break;
-        case 5:
-            lines.push_back(Vec2D(l, t));
-            lines.push_back(Vec2D(b, r));
-            break;
-        case 6:
-            lines.push_back(Vec2D(t, b));
-            break;
-        case 7:
-            lines.push_back(Vec2D(l, t));
-            break;
-        case 8:
-            lines.push_back(Vec2D(l, t));
-            break;
-        case 9:
-            lines.push_back(Vec2D(t, b));
-            break;
-        case 10:
-            lines.push_back(Vec2D(l, b));
-            lines.push_back(Vec2D(t, r));
-            break;
-        case 11:
-            lines.push_back(Vec2D(t, r));
-            break;
-        case 12:
-            lines.push_back(Vec2D(l, r));
-            break;
-        case 13:
-            lines.push_back(Vec2D(b, r));
-            break;
-        case 14:
-            lines.push_back(Vec2D(l, b));
-            break;
-        case 15:
-            break;
-        default:
-            std::cout << "Error invalid input in GetIsolineConfiguration";
-            break;
-        }
-        return lines;
-    }
-
-    std::vector<Polygon> TossBot::MakePolygons(std::vector<Vec2D> isolines)
-    {
-        std::vector<Polygon> polygons;
-        // loop through isolines
-        while (isolines.size() > 0)
-        {
-            Point2D start = isolines[0].start;
-            Point2D current_end = isolines[0].end;
-            Polygon polygon;
-            isolines.erase(isolines.begin());
-            // start is saved
-            polygon.points.push_back(start);
-            // loop through isolines again and look for start == end
-            for (int j = 0; j < isolines.size(); j++)
-            {
-                if (isolines[j].start == current_end)
-                {
-                    polygon.points.push_back(current_end);
-                    current_end = isolines[j].end;
-                    isolines.erase(isolines.begin() + j);
-                    j = -1;
-                }
-                else if (isolines[j].end == current_end)
-                {
-                    polygon.points.push_back(current_end);
-                    current_end = isolines[j].start;
-                    isolines.erase(isolines.begin() + j);
-                    j = -1;
-                }
-                if (start == current_end)
-                {
-                    j = -1;
-                    break;
-                }
-            }
-            Polygon newpoly = SimplifyPolygon(polygon);
-            polygons.push_back(newpoly);
-        }
-        return polygons;
-    }
-
-    Polygon TossBot::SimplifyPolygon(Polygon original)
-    {
-        std::vector<Point2D> points = original.points;
-        for (int i = 0; i < points.size();)
-        {
-            Point2D start = points[i];
-            Point2D next;
-            Point2D nextnext;
-            if (i + 1 < points.size())
-                next = points[i + 1];
-            else
-                next = points[i + 1 - points.size()];
-            if (i + 2 < points.size())
-                nextnext = points[i + 2];
-            else
-                nextnext = points[i + 2 - points.size()];
-
-            Point2D vec1 = next - start;
-            Point2D vec2 = nextnext - next;
-
-            if (vec1.x * vec2.y - vec1.y * vec2.x == 0)
-                points.erase(points.begin() + i + 1);
-            else
-                i++;
-        }
-        return Polygon(points);
-    }
-
-    std::vector<Point2D> TossBot::GetAllVerticies(std::vector<Polygon> polygons)
-    {
-        std::vector<Point2D> points;
-        for (const auto &polygon : polygons)
-        {
-            for (const auto &point : polygon.points)
-            {
-                points.push_back(point);
-            }
-        }
-        return points;
-    }
-
-    std::vector<Polygon*> TossBot::MakeTriangles(std::vector<Point2D> verticies)
-    {
-        // make supra-triangle
-        Polygon* supra_triangle = new Polygon();
-        supra_triangle->points.push_back(Point2D(0, 0));
-        supra_triangle->points.push_back(Point2D(0, Observation()->GetGameInfo().pathing_grid.height * 2));
-        supra_triangle->points.push_back(Point2D(Observation()->GetGameInfo().pathing_grid.width * 2, 0));
-
-        std::vector<Polygon*> triangles;
-        triangles.push_back(supra_triangle);
-
-        // loop through points
-        for (const auto &point : verticies)
-        {
-            std::vector<Polygon*> bad_triangles;
-            //   loop through triangles
-            for (auto &triangle : triangles)
-            {
-                //      compute circumcircle
-                Circle circumcircle = ComputeCircumcircle(*triangle);
-
-                //      if point is within circle
-                if (Distance2D(point, circumcircle.center) <= circumcircle.radius)
-                {
-                    //          add triangle to bad triangles
-                    bad_triangles.push_back(triangle);
-                }
-            }
-            std::vector<Vec2D> edges;
-            //   for each triangle in bad triangles
-            for (const auto &triangle : bad_triangles)
-            {
-                edges.push_back(Vec2D(triangle->points[0], triangle->points[1]));
-                edges.push_back(Vec2D(triangle->points[1], triangle->points[2]));
-                edges.push_back(Vec2D(triangle->points[2], triangle->points[0]));
-                //      remove bad triangle from triangles
-                triangles.erase(std::remove(triangles.begin(), triangles.end(), triangle), triangles.end());
-            }
-            // remove common edges
-            for (int i = edges.size() - 1; i > 0; i--)
-            {
-                bool common = false;
-                for (int j = i - 1; j >= 0; j--)
-                {
-                    if (edges[i] == edges[j])
-                    {
-                        common = true;
-                        edges.erase(edges.begin() + j);
-                        i--;
-                    }
-                }
-                if (common)
-                    edges.erase(edges.begin() + i);
-            }
-            // make new triangles with edges
-            for (const auto &edge : edges)
-            {
-                triangles.push_back(new Polygon({ point, edge.start, edge.end }));
-            }
-        }
-        // delete any triangle with 2+ verticies the same as the supra triangle
-        for (int i = triangles.size() - 1; i >= 0; i--)
-        {
-            if (DoesShareVertex(*triangles[i], *supra_triangle))
-                triangles.erase(triangles.begin() + i);
-        }
-        return triangles;
-    }
-
-    Circle TossBot::ComputeCircumcircle(Polygon triangle)
-    {
-        if (triangle.points.size() != 3)
-        {
-            std::cout << "Error non-triangle passed into ComputerCircumcircle";
-            return Circle();
-        }
-        Point2D a = triangle.points[0];
-        Point2D b = triangle.points[1];
-        Point2D c = triangle.points[2];
-        float d = (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 2;
-        float x = ((pow(a.x, 2) + pow(a.y, 2)) * (b.y - c.y) + (pow(b.x, 2) + pow(b.y, 2)) * (c.y - a.y) + (pow(c.x, 2) + pow(c.y, 2)) * (a.y - b.y)) / d;
-        float y = ((pow(a.x, 2) + pow(a.y, 2)) * (c.x - b.x) + (pow(b.x, 2) + pow(b.y, 2)) * (a.x - c.x) + (pow(c.x, 2) + pow(c.y, 2)) * (b.x - a.x)) / d;
-
-        Circle circle;
-        circle.center = Point2D(x, y);
-        circle.radius = Distance2D(a, circle.center);
-        return circle;
-    }
-
-    bool TossBot::DoesShareVertex(Polygon poly1, Polygon poly2)
-    {
-        int similar_verticies = 0;
-        for (const auto &point1 : poly1.points)
-        {
-            for (const auto &point2 : poly2.points)
-            {
-                if (point1 == point2)
-                    similar_verticies++;
-            }
-        }
-        return similar_verticies > 0;
-    }
-
-    bool TossBot::DoesShareSide(Triangle tri1, Triangle tri2)
-    {
-        int similar_verticies = 0;
-        for (const auto &point1 : tri1.verticies)
-        {
-            for (const auto &point2 : tri2.verticies)
-            {
-                if (point1 == point2)
-                    similar_verticies++;
-            }
-        }
-        return similar_verticies >= 2;
-    }
-
-    bool TossBot::IsPathableTriangle(Polygon triangle)
-    {
-        Point2D center = Point2D((triangle.points[0].x + triangle.points[1].x + triangle.points[2].x) / 3, (triangle.points[0].y + triangle.points[1].y + triangle.points[2].y) / 3);
-        return Observation()->IsPathable(center);
-    }
-
-    std::vector<Polygon*> TossBot::RemoveOutsideTriangles(std::vector<Polygon*> triangles)
-    {
-        for (int i = triangles.size() - 1; i >= 0; i--)
-        {
-            Point2D center = Point2D((triangles[i]->points[0].x + triangles[i]->points[1].x + triangles[i]->points[2].x) / 3, (triangles[i]->points[0].y + triangles[i]->points[1].y + triangles[i]->points[2].y) / 3);
-            if (!grid_map[floor(center.x)][floor(center.y)])
-                triangles.erase(triangles.begin() + i);
-        }
-        return triangles;
-    }
-
-    std::vector<Triangle*> TossBot::ConvertToTriangles(std::vector<Polygon*> polygons)
-    {
-        std::vector<Triangle*> triangles;
-        for (const auto *poly : polygons)
-        {
-            triangles.push_back(new Triangle(poly->points));
-        }
-
-        for (int i = 0; i < triangles.size() - 1; i++)
-        {
-            Triangle* tri1 = triangles[i];
-            if (tri1->connections.size() == 3)
-                continue;
-            for (int j = i + 1; j < triangles.size(); j++)
-            {
-                Triangle* tri2 = triangles[j];
-                if (DoesShareSide(*tri1, *tri2))
-                {
-                    tri1->connections.push_back(tri2);
-                    tri2->connections.push_back(tri1);
-                    if (tri1->connections.size() == 3)
-                        break;
-                }
-            }
-        }
-        return triangles;
-    }
+	Polygon TossBot::CreateNewBlocker(const Unit* unit)
+	{
+		Polygon polygon;
+		switch (unit->unit_type.ToType())
+		{
+		case UNIT_TYPEID::PROTOSS_PYLON:
+			polygon.points.push_back(unit->pos + Point2D(3, 3));
+			polygon.points.push_back(unit->pos + Point2D(3, -3));
+			polygon.points.push_back(unit->pos + Point2D(-3, -3));
+			polygon.points.push_back(unit->pos + Point2D(-3, 3));
+			break;
+		case UNIT_TYPEID::TERRAN_MISSILETURRET:
+			polygon.points.push_back(unit->pos + Point2D(12, 3));
+			polygon.points.push_back(unit->pos + Point2D(10, 7));
+			polygon.points.push_back(unit->pos + Point2D(7, 10));
+			polygon.points.push_back(unit->pos + Point2D(3, 12));
+			polygon.points.push_back(unit->pos + Point2D(-4, 12));
+			polygon.points.push_back(unit->pos + Point2D(-8, 10));
+			polygon.points.push_back(unit->pos + Point2D(-11, 7));
+			polygon.points.push_back(unit->pos + Point2D(-13, 3));
+			polygon.points.push_back(unit->pos + Point2D(-13, -4));
+			polygon.points.push_back(unit->pos + Point2D(-11, -8));
+			polygon.points.push_back(unit->pos + Point2D(-8, -11));
+			polygon.points.push_back(unit->pos + Point2D(-4, -13));
+			polygon.points.push_back(unit->pos + Point2D(3, -13));
+			polygon.points.push_back(unit->pos + Point2D(7, -11));
+			polygon.points.push_back(unit->pos + Point2D(10, -8));
+			polygon.points.push_back(unit->pos + Point2D(12, -4));
+			break;
+		default:
+			break;
+		}
+		return polygon;
+	}
 
 #pragma endregion
 

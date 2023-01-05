@@ -16,41 +16,6 @@ class StateMachine;
 class Locations;
 class TossBot;
 
-struct Vec2D
-{
-    Point2D start;
-    Point2D end;
-    Vec2D(Point2D s, Point2D e)
-    {
-        start = s;
-        end = e;
-    }
-    bool operator==(const Vec2D& rhs)
-    {
-        if ((this->start == rhs.end && this->end == rhs.start) || (this->start == rhs.start && this->end == rhs.end))
-            return true;
-        return false;
-    }
-};
-
-struct Polygon
-{
-    std::vector<Point2D> points;
-    Polygon() {};
-    Polygon(std::vector<Point2D> p)
-    {
-        points = p;
-    }
-};
-
-
-struct Circle
-{
-    Point2D center;
-    float radius;
-    Circle() {};
-};
-
 struct OnUnitDamagedEvent
 {
     std::vector<std::function<void(const Unit*, float, float)>> listeners;
@@ -354,6 +319,9 @@ public:
     std::vector<std::vector<bool>> grid_map;
     NavMesh nav_mesh;
     const Unit* probe;
+	std::vector<Triangle*> overlaps;
+
+	std::vector<Polygon> blockers;
 
     const Unit *new_base = NULL;
     std::vector<BuildOrderData> build_order;
@@ -444,20 +412,7 @@ public:
 
 
     // Pathing
-    std::vector<std::vector<bool>> SetUpMap();
-    std::vector<std::vector<bool>> AddNeutralUnitsToMap(std::vector<std::vector<bool>>);
-    std::vector<Vec2D> FindIsolines(std::vector<std::vector<bool>>);
-    std::vector<Vec2D> GetIsolineConfiguration(bool, bool, bool, bool, Point2D, Point2D, Point2D, Point2D);
-    std::vector<Polygon> MakePolygons(std::vector<Vec2D>);
-    Polygon SimplifyPolygon(Polygon);
-    std::vector<Point2D> GetAllVerticies(std::vector<Polygon>);
-    std::vector<Polygon*> MakeTriangles(std::vector<Point2D>);
-    Circle ComputeCircumcircle(Polygon);
-    bool DoesShareVertex(Polygon, Polygon);
-    bool DoesShareSide(Triangle, Triangle);
-    bool IsPathableTriangle(Polygon);
-    std::vector<Polygon*> RemoveOutsideTriangles(std::vector<Polygon*>);
-    std::vector<Triangle*> ConvertToTriangles(std::vector<Polygon*>);
+	Polygon CreateNewBlocker(const Unit*);
 
     void ProcessActions();
     // Actions
