@@ -220,46 +220,66 @@ namespace sc2 {
                             Debug()->DebugSphereOut(pos, .5, Color(255, 0, 0));
                     }
                 }*/
-                if (nav_mesh.triangles.size() == 0)
+                if (!nav_mesh.nav_mesh_populated)
                 {
 					nav_mesh.LoadOrBuildNavmesh(Observation()->GetGameInfo().pathing_grid, Observation()->GetGameInfo().map_name);
 					
                 }
-                
-                for (const auto &triangle : nav_mesh.triangles)
-                {
-                    for (int i = 0; i < triangle->verticies.size(); i++)
-                    {
-                        Point3D start = Point3D(triangle->verticies[i].x, triangle->verticies[i].y, Observation()->GetStartLocation().z + .1);
-                        Point3D end;
-                        if (i + 1 < triangle->verticies.size())
-                            end = Point3D(triangle->verticies[i + 1].x, triangle->verticies[i + 1].y, Observation()->GetStartLocation().z + .1);
-                        else
-                            end = Point3D(triangle->verticies[0].x, triangle->verticies[0].y, Observation()->GetStartLocation().z + .1);
-                        Debug()->DebugLineOut(start, end, Color(255, 0, 128));
-                        Debug()->DebugSphereOut(start, .1, Color(0, 0, 255));
-                        Point3D center = Point3D(triangle->center.x, triangle->center.y, Observation()->GetStartLocation().z + .1);
-						if (triangle->pathable)
-	                        Debug()->DebugSphereOut(center, .1, Color(0, 255, 255));
-						else
-							Debug()->DebugSphereOut(center, .1, Color(255, 0, 0));
-                    }
-                    /*for (const auto &connection : triangle->connections)
-                    {
-                        Point3D start = Point3D(triangle->center.x, triangle->center.y, Observation()->TerrainHeight(triangle->center) + .1);
-                        Point3D end = Point3D(connection->center.x, connection->center.y, Observation()->TerrainHeight(connection->center) + .1);
-                        Debug()->DebugLineOut(start, end, Color(255, 255, 0));
-                    }*/
-                }
 
-				for (const auto &triangle : overlaps)
+				float section_width = Observation()->GetGameInfo().pathing_grid.width / nav_mesh.sections;
+				float section_height = Observation()->GetGameInfo().pathing_grid.height / nav_mesh.sections;
+				std::vector<Vec2D> divisions;
+
+				for (int i = 0; i < nav_mesh.sections; i++)
 				{
-					for (int i = 0; i < triangle->verticies.size(); i++)
-					{
-						Point3D center = Point3D(triangle->center.x, triangle->center.y, Observation()->GetStartLocation().z + .1);
-						Debug()->DebugSphereOut(center, .3, Color(255, 255, 255));
-					}
+					divisions.push_back(Vec2D(Point2D(0, section_height * i), Point2D(Observation()->GetGameInfo().pathing_grid.width, section_height * i)));
+					divisions.push_back(Vec2D(Point2D(section_width * i, 0), Point2D(section_width * i, Observation()->GetGameInfo().pathing_grid.height)));
 				}
+
+				for (const auto &vec : divisions)
+				{
+					Point3D start = Point3D(vec.start.x, vec.start.y, Observation()->GetStartLocation().z + .1);
+					Point3D end = Point3D(vec.end.x, vec.end.y, Observation()->GetStartLocation().z + .1);
+					Debug()->DebugLineOut(start, end, Color(255, 0, 128));
+				}
+
+				for (const auto &point : nav_mesh.all_vertices)
+				{
+					Point3D start = Point3D(point.x, point.y, Observation()->TerrainHeight(point) + .1);
+					Debug()->DebugSphereOut(start, .1, Color(0, 255, 0));
+				}
+                
+                for (int j = 0; j < nav_mesh.sections; j++)
+                {
+					for (int k = 0; k < nav_mesh.sections; k++)
+					{
+						for (const auto &triangle : nav_mesh.separated_triangles[j][k])
+						{
+							for (int i = 0; i < triangle->verticies.size(); i++)
+							{
+								Point3D start = Point3D(triangle->verticies[i].x, triangle->verticies[i].y, Observation()->TerrainHeight(triangle->verticies[i]) + .1);
+								Point3D end;
+								if (i + 1 < triangle->verticies.size())
+									end = Point3D(triangle->verticies[i + 1].x, triangle->verticies[i + 1].y, Observation()->TerrainHeight(triangle->verticies[i + 1]) + .1);
+								else
+									end = Point3D(triangle->verticies[0].x, triangle->verticies[0].y, Observation()->TerrainHeight(triangle->verticies[0]) + .1);
+								Debug()->DebugLineOut(start, end, Color(255, 0, 128));
+								Debug()->DebugSphereOut(start, .1, Color(0, 0, 255));
+								Point3D center = Point3D(triangle->center.x, triangle->center.y, Observation()->TerrainHeight(triangle->center) + .1);
+								if (triangle->pathable)
+									Debug()->DebugSphereOut(center, .1, Color(0, 255, 255));
+								else
+									Debug()->DebugSphereOut(center, .1, Color(255, 0, 0));
+							}
+							/*for (const auto &connection : triangle->connections)
+							{
+								Point3D start = Point3D(triangle->center.x, triangle->center.y, Observation()->TerrainHeight(triangle->center) + .1);
+								Point3D end = Point3D(connection->center.x, connection->center.y, Observation()->TerrainHeight(connection->center) + .1);
+								Debug()->DebugLineOut(start, end, Color(255, 255, 0));
+							}*/
+						}
+					}
+                }
 
                 /*std::vector<Point2D> path = nav_mesh.FindPath(probe->pos, Observation()->GetGameInfo().enemy_start_locations[0]);
 

@@ -85,8 +85,12 @@ struct OverlapInfo
 class NavMesh
 {
 public:
+	bool nav_mesh_populated = false;
     std::vector<Triangle*> triangles;
-	std::vector<Polygon> blockers;
+	std::map<const Unit*, std::vector<Point2D>> blockers;
+	static const int sections = 4;
+	std::vector<Triangle*> separated_triangles[sections][sections];
+	std::vector<Point2D> all_vertices;
 
     NavMesh() {};
     NavMesh(std::vector<Triangle*> triangles)
@@ -136,6 +140,10 @@ public:
 	static float Cross(Point2D, Point2D);
     static int FindNextRightPoint(std::vector<Portal>, int);
     static int FindNextLeftPoint(std::vector<Portal>, int);
+
+
+	void MakeSeparateTriangles(std::vector<Point2D>, ImageData);
+	std::vector<Point2D> GetAllVerticiesWithIntersections(std::vector<Polygon>, ImageData);
 };
 
 }
