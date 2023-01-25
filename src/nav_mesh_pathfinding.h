@@ -113,7 +113,6 @@ public:
 	bool DoesShareVertex(Triangle*, Triangle*);
 	bool DoesShareSide(Triangle, Triangle);
 	std::vector<Triangle*> ConvertToTriangles(std::vector<Polygon*>);
-	std::vector<Triangle*> MarkOutsideTriangles(std::vector<Triangle*>, std::vector<std::vector<bool>>);
 	void SaveNavMeshToFile(std::string);
 	bool BuildNavMeshFromFile(std::string);
 
@@ -144,6 +143,13 @@ public:
 
 	void MakeSeparateTriangles(std::vector<Point2D>, ImageData);
 	std::vector<Point2D> GetAllVerticiesWithIntersections(std::vector<Polygon>, ImageData);
+	void RemoveArealessTriangles();
+	void ConnectTriangles();
+	void ConnectChunk(std::vector<Triangle*>);
+	void LinkChunk(std::vector<Triangle*>);
+	bool IsTriangleArealess(Triangle*);
+	bool AreCollinear(Point2D, Point2D, Point2D);
+	std::vector<Triangle*> MarkOutsideTriangles(std::vector<std::vector<bool>>);
 };
 
 }

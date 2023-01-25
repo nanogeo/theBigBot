@@ -19,7 +19,7 @@ namespace sc2 {
 
 void NavMesh::LoadOrBuildNavmesh(ImageData map, std::string map_name)
 {
-	if (BuildNavMeshFromFile(map_name + "_navmesh.txt"))
+	if (BuildNavMeshFromFile(map_name + "_navmesh.txt") && false)
 		std::cout << "Navmesh found!\n";
 	else
 	{
@@ -33,12 +33,12 @@ void NavMesh::LoadOrBuildNavmesh(ImageData map, std::string map_name)
 		all_vertices = vertices;
 
 		MakeSeparateTriangles(vertices, map);
+		RemoveArealessTriangles();
+		ConnectTriangles();
 
-		/*std::vector<Polygon*> all_triangles = MakeTriangles(vertices, map);
-		triangles = ConvertToTriangles(all_triangles);
-		triangles = MarkOutsideTriangles(triangles, grid_map);
+		MarkOutsideTriangles(grid_map);
 
-		SaveNavMeshToFile(map_name + "_navmesh.txt");*/
+		//SaveNavMeshToFile(map_name + "_navmesh.txt");
 	}
 	nav_mesh_populated = true;
 }
@@ -584,17 +584,6 @@ bool NavMesh::DoesShareSide(Triangle tri1, Triangle tri2)
 	return similar_verticies >= 2;
 }
 
-std::vector<Triangle*> NavMesh::MarkOutsideTriangles(std::vector<Triangle*> triangles, std::vector<std::vector<bool>> grid_map)
-{
-	for (int i = triangles.size() - 1; i >= 0; i--)
-	{
-		Point2D center = Point2D((triangles[i]->verticies[0].x + triangles[i]->verticies[1].x + triangles[i]->verticies[2].x) / 3, (triangles[i]->verticies[0].y + triangles[i]->verticies[1].y + triangles[i]->verticies[2].y) / 3);
-		if (!grid_map[floor(center.x)][floor(center.y)])
-			triangles[i]->pathable = false;
-	}
-	return triangles;
-}
-
 std::vector<Triangle*> NavMesh::ConvertToTriangles(std::vector<Polygon*> polygons)
 {
 	std::vector<Triangle*> triangles;
@@ -1072,19 +1061,31 @@ std::vector<Triangle*> NavMesh::ReconstructPath(std::map<Triangle*, Triangle*> c
 
 Triangle* NavMesh::FindClosestTriangle(Point2D pos)
 {
-	for (const auto &triangle : triangles)
+	for (int i = 0; i < sections; i++)
 	{
-		if (PointInTriangle(triangle, pos))
-			return triangle;
+		for (int j = 0; j < sections; j++)
+		{
+			for (const auto &triangle : separated_triangles[i][j])
+			{
+				if (PointInTriangle(triangle, pos))
+					return triangle;
+			}
+		}
 	}
 	Triangle* closest = NULL;
 	float dist = INFINITY;
-	for (const auto &triangle : triangles)
+	for (int i = 0; i < sections; i++)
 	{
-		if (Distance2D(pos, triangle->center) < dist)
+		for (int j = 0; j < sections; j++)
 		{
-			closest = triangle;
-			dist = Distance2D(pos, triangle->center);
+			for (const auto &triangle : separated_triangles[i][j])
+			{
+				if (Distance2D(pos, triangle->center) < dist)
+				{
+					closest = triangle;
+					dist = Distance2D(pos, triangle->center);
+				}
+			}
 		}
 	}
 	if (closest == NULL)
@@ -1356,14 +1357,20 @@ void NavMesh::SaveNavMeshToFile(std::string filename)
 {
 	std::ofstream file;
 	file.open(filename);
-	for (const auto &triangle : triangles)
+	for (int i = 0; i < sections; i++)
 	{
-		file << "T: ";
-		file << triangle->center.x << ' ' << triangle->center.y << ' ';
-		file << triangle->verticies[0].x << ' ' << triangle->verticies[0].y << ' ';
-		file << triangle->verticies[1].x << ' ' << triangle->verticies[1].y << ' ';
-		file << triangle->verticies[2].x << ' ' << triangle->verticies[2].y << ' ';
-		file << triangle->pathable << '\n';
+		for (int j = 0; j < sections; j++)
+		{
+			for (const auto &triangle : separated_triangles[i][j])
+			{
+				file << "T: ";
+				file << triangle->center.x << ' ' << triangle->center.y << ' ';
+				file << triangle->verticies[0].x << ' ' << triangle->verticies[0].y << ' ';
+				file << triangle->verticies[1].x << ' ' << triangle->verticies[1].y << ' ';
+				file << triangle->verticies[2].x << ' ' << triangle->verticies[2].y << ' ';
+				file << triangle->pathable << '\n';
+			}
+		}
 	}
 
 	file << "###########\n";
@@ -1544,6 +1551,123 @@ std::vector<Point2D> NavMesh::GetAllVerticiesWithIntersections(std::vector<Polyg
 		}
 	}
 	return points;
+}
+
+void NavMesh::RemoveArealessTriangles()
+{
+	for (int i = 0; i < sections; i++)
+	{
+		for (int j = 0; j < sections; j++)
+		{
+			for (int k = 0; k < separated_triangles[i][j].size();)
+			{
+				Triangle* current = separated_triangles[i][j][k];
+				if (IsTriangleArealess(current))
+					separated_triangles[i][j].erase(separated_triangles[i][j].begin() + k);
+				else
+					k++;
+			}
+		}
+	}
+	
+}
+
+void NavMesh::ConnectTriangles()
+{
+	for (int i = 0; i < sections; i++)
+	{
+		for (int j = 0; j < sections; j++)
+		{
+			ConnectChunk(separated_triangles[i][j]);
+		}
+	}
+	for (int i = 0; i < sections; i++)
+	{
+		for (int j = 0; j < sections; j++)
+		{
+			LinkChunk(separated_triangles[i][j]);
+		}
+	}
+}
+
+void NavMesh::ConnectChunk(std::vector<Triangle*> chunk_triangles)
+{
+	for (int i = 0; i < chunk_triangles.size(); i++)
+	{
+		Triangle* tri1 = chunk_triangles[i];
+		if (tri1->connections.size() == 3)
+			continue;
+		for (int j = i + 1; j < chunk_triangles.size(); j++)
+		{
+			Triangle* tri2 = chunk_triangles[j];
+			if (DoesShareSide(*tri1, *tri2))
+			{
+				tri1->connections.push_back(tri2);
+				tri2->connections.push_back(tri1);
+				if (tri1->connections.size() == 3)
+					break;
+			}
+		}
+	}
+}
+
+void NavMesh::LinkChunk(std::vector<Triangle*> chunk_triangles)
+{
+	for (auto &tri1 : chunk_triangles)
+	{
+		if (tri1->connections.size() < 3)
+		{
+			for (int i = 0; i < sections; i++)
+			{
+				for (int j = 0; j < sections; j++)
+				{
+					for (auto &tri2 : separated_triangles[i][j])
+					{
+						if (DoesShareSide(*tri1, *tri2))
+						{
+							tri1->connections.push_back(tri2);
+							tri2->connections.push_back(tri1);
+							if (tri1->connections.size() == 3)
+								break;
+						}
+					}
+					if (tri1->connections.size() == 3)
+						break;
+				}
+				if (tri1->connections.size() == 3)
+					break;
+			}
+		}
+	}
+}
+
+bool NavMesh::IsTriangleArealess(Triangle* triangle)
+{
+	return AreCollinear(triangle->verticies[0], triangle->verticies[1], triangle->verticies[2]);
+}
+
+bool NavMesh::AreCollinear(Point2D a, Point2D b, Point2D c)
+{
+	if (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y) == 0)
+		return true;
+	return false;
+}
+
+std::vector<Triangle*> NavMesh::MarkOutsideTriangles(std::vector<std::vector<bool>> grid_map)
+{
+	for (int i = 0; i < sections; i++)
+	{
+		for (int j = 0; j < sections; j++)
+		{
+			for (auto &triangle : separated_triangles[i][j])
+			{
+				Point2D center = Point2D((triangle->verticies[0].x + triangle->verticies[1].x + triangle->verticies[2].x) / 3, (triangle->verticies[0].y + triangle->verticies[1].y + triangle->verticies[2].y) / 3);
+				if (!grid_map[floor(center.x)][floor(center.y)])
+					triangle->pathable = false;
+			}
+		}
+	}
+	return triangles;
 }
 
 }

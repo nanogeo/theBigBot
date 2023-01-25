@@ -271,17 +271,17 @@ namespace sc2 {
 								else
 									Debug()->DebugSphereOut(center, .1, Color(255, 0, 0));
 							}
-							/*for (const auto &connection : triangle->connections)
+							for (const auto &connection : triangle->connections)
 							{
 								Point3D start = Point3D(triangle->center.x, triangle->center.y, Observation()->TerrainHeight(triangle->center) + .1);
 								Point3D end = Point3D(connection->center.x, connection->center.y, Observation()->TerrainHeight(connection->center) + .1);
 								Debug()->DebugLineOut(start, end, Color(255, 255, 0));
-							}*/
+							}
 						}
 					}
                 }
 
-                /*std::vector<Point2D> path = nav_mesh.FindPath(probe->pos, Observation()->GetGameInfo().enemy_start_locations[0]);
+                std::vector<Point2D> path = nav_mesh.FindPath(probe->pos, Observation()->GetGameInfo().enemy_start_locations[0]);
 
                 for (int i = 0; i < path.size() - 1; i++)
                 {
@@ -291,7 +291,7 @@ namespace sc2 {
                 }
                 Point3D start = Point3D(probe->pos.x, probe->pos.y, Observation()->TerrainHeight(probe->pos) + .1);
                 Point3D end = Point3D(path[0].x, path[0].y, Observation()->TerrainHeight(path[0]) + .1);
-                Debug()->DebugLineOut(start, end, Color(0, 255, 0));*/
+                Debug()->DebugLineOut(start, end, Color(0, 255, 0));
 
 
                 /*Triangle* start_tri = nav_mesh.FindClosestTriangle(probe->pos);
