@@ -223,8 +223,7 @@ enum BuildOrder {
     chargelot_allin,
     chargelot_allin_old,
     four_gate_adept_pressure,
-    fastest_dts,
-	proxy_double_robo
+    fastest_dts
 };
 
 struct ActionArgData
