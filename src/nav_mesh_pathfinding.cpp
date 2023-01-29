@@ -27,20 +27,35 @@ void NavMesh::LoadOrBuildNavmesh(ImageData map, std::string map_name)
 		std::vector<std::vector<bool>> grid_map = SetUpMap(map);
 		std::vector<Vec2D> isolines = FindIsolines(grid_map);
 
+		/*for (const auto &vec : isolines)
+		{
+			Point3D start = Point3D(vec.start.x, vec.start.y, Observation()->TerrainHeight(Point2D(vec.start.x, vec.start.y)));
+			Point3D end = Point3D(vec.end.x, vec.end.y, Observation()->TerrainHeight(Point2D(vec.end.x, vec.end.y)));
+			Debug()->DebugLineOut(start, end);
+		}*/
 		std::vector<Polygon> polygons = MakePolygons(isolines);
 
-		std::vector<Point2D> vertices = GetAllVerticiesWithIntersections(polygons, map);
-		all_vertices = vertices;
-
-		MakeSeparateTriangles(vertices, map);
-
-		/*std::vector<Polygon*> all_triangles = MakeTriangles(vertices, map);
+		/*for (const auto &polygon : polygons)
+		{
+			for (int i = 0; i < polygon.points.size(); i++)
+			{
+				Point3D start = Point3D(polygon.points[i].x, polygon.points[i].y, Observation()->TerrainHeight(polygon.points[i]) + .1);
+				Point3D end;
+				if (i + 1 < polygon.points.size())
+					end = Point3D(polygon.points[i + 1].x, polygon.points[i + 1].y, Observation()->TerrainHeight(polygon.points[i + 1]) + .1);
+				else
+					end = Point3D(polygon.points[0].x, polygon.points[0].y, Observation()->TerrainHeight(polygon.points[0]) + .1);
+				Debug()->DebugLineOut(start, end, Color(255, 0, 0));
+				Debug()->DebugSphereOut(start, .1, Color(0, 0, 255));
+			}
+		}*/
+		std::vector<Point2D> vertices = GetAllVerticies(polygons);
+		std::vector<Polygon*> all_triangles = MakeTriangles(vertices, map);
 		triangles = ConvertToTriangles(all_triangles);
 		triangles = MarkOutsideTriangles(triangles, grid_map);
 
-		SaveNavMeshToFile(map_name + "_navmesh.txt");*/
+		SaveNavMeshToFile(map_name + "_navmesh.txt");
 	}
-	nav_mesh_populated = true;
 }
 
 std::vector<std::vector<bool>> NavMesh::SetUpMap(ImageData raw_map)
@@ -1426,124 +1441,6 @@ bool NavMesh::BuildNavMeshFromFile(std::string filename)
 	}
 	return true;
 
-}
-
-
-void NavMesh::MakeSeparateTriangles(std::vector<Point2D> verticies, ImageData map)
-{
-	float section_width = map.width / sections;
-	float section_height = map.height / sections;
-
-	for (int i = 0; i < sections; i++)
-	{
-		for (int j = 0; j < sections; j++)
-		{
-			float left = section_width * i;
-			float right = section_width * (i + 1);
-			float bottom = section_height * j;
-			float top = section_height * (j + 1);
-			Triangle* tri1 = new Triangle({ Point2D(left, bottom), Point2D(right, bottom),  Point2D(left, top) });
-			Triangle* tri2 = new Triangle({ Point2D(right, top), Point2D(right, bottom),  Point2D(left, top) });
-			std::vector<Triangle*> *section_triangles = &separated_triangles[i][j];
-			section_triangles->push_back(tri1);
-			section_triangles->push_back(tri2);
-			
-			std::vector<Point2D> section_verticies;
-			for (const auto &vertex : verticies)
-			{
-				if (vertex.x < left || vertex.x > right || vertex.y < bottom || vertex.y > top)
-					continue;
-				section_verticies.push_back(vertex);
-				// TODO remove vertex from main list
-			}
-			for (const auto &point : section_verticies)
-			{
-				std::vector<Triangle*> bad_triangles;
-				//   loop through triangles
-				for (const auto &triangle : *section_triangles)
-				{
-					//      compute circumcircle
-					Circle circumcircle = ComputeCircumcircle(triangle);
-
-					//      if point is within circle
-					if (Distance2D(point, circumcircle.center) <= circumcircle.radius)
-					{
-						//          add triangle to bad triangles
-						bad_triangles.push_back(triangle);
-					}
-				}
-				std::vector<Vec2D> edges;
-				//   for each triangle in bad triangles
-				for (const auto &triangle : bad_triangles)
-				{
-					edges.push_back(Vec2D(triangle->verticies[0], triangle->verticies[1]));
-					edges.push_back(Vec2D(triangle->verticies[1], triangle->verticies[2]));
-					edges.push_back(Vec2D(triangle->verticies[2], triangle->verticies[0]));
-					//      remove bad triangle from section_triangles
-					section_triangles->erase(std::remove(section_triangles->begin(), section_triangles->end(), triangle), section_triangles->end());
-				}
-				// remove common edges
-				for (int i = edges.size() - 1; i > 0; i--)
-				{
-					bool common = false;
-					for (int j = i - 1; j >= 0; j--)
-					{
-						if (edges[i] == edges[j])
-						{
-							common = true;
-							edges.erase(edges.begin() + j);
-							i--;
-						}
-					}
-					if (common)
-						edges.erase(edges.begin() + i);
-				}
-				// make new triangles with edges
-				for (const auto &edge : edges)
-				{
-					section_triangles->push_back(new Triangle({ point, edge.start, edge.end }));
-				}
-			}
-
-		}
-	}
-	
-}
-
-std::vector<Point2D> NavMesh::GetAllVerticiesWithIntersections(std::vector<Polygon> polygons, ImageData map)
-{
-	float section_width = map.width / sections;
-	float section_height = map.height / sections;
-	std::vector<Vec2D> divisions;
-
-	for (int i = 0; i < sections; i++)
-	{
-		divisions.push_back(Vec2D(Point2D(0, section_height * i), Point2D(map.width, section_height * i)));
-		divisions.push_back(Vec2D(Point2D(section_width * i, 0), Point2D(section_width * i, map.height)));
-	}
-	std::vector<Point2D> points;
-	for (const auto &polygon : polygons)
-	{
-		for (int i = 0; i < polygon.points.size(); i++)
-		{
-			Point2D current_point = polygon.points[i];
-			Point2D next_point;
-			if (i + 1 >= polygon.points.size())
-				next_point = polygon.points[0];
-			else
-				next_point = polygon.points[i + 1];
-
-			points.push_back(current_point);
-			for (const auto &division : divisions)
-			{
-				Point2D intersection = FindLineSegmentIntersection(current_point, next_point, division.start, division.end);
-				if (intersection != Point2D(0, 0))
-					points.push_back(intersection);
-			}
-
-		}
-	}
-	return points;
 }
 
 }
