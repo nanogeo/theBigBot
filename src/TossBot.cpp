@@ -230,26 +230,26 @@ namespace sc2 {
                 {
                     for (int i = 0; i < triangle->verticies.size(); i++)
                     {
-                        Point3D start = Point3D(triangle->verticies[i].x, triangle->verticies[i].y, Observation()->GetStartLocation().z + .1);
+                        Point3D start = Point3D(triangle->verticies[i].x, triangle->verticies[i].y, Observation()->TerrainHeight(triangle->verticies[i]) + .1);
                         Point3D end;
                         if (i + 1 < triangle->verticies.size())
-                            end = Point3D(triangle->verticies[i + 1].x, triangle->verticies[i + 1].y, Observation()->GetStartLocation().z + .1);
+                            end = Point3D(triangle->verticies[i + 1].x, triangle->verticies[i + 1].y, Observation()->TerrainHeight(triangle->verticies[i]) + .1);
                         else
-                            end = Point3D(triangle->verticies[0].x, triangle->verticies[0].y, Observation()->GetStartLocation().z + .1);
+                            end = Point3D(triangle->verticies[0].x, triangle->verticies[0].y, Observation()->TerrainHeight(triangle->verticies[i]) + .1);
                         Debug()->DebugLineOut(start, end, Color(255, 0, 128));
                         Debug()->DebugSphereOut(start, .1, Color(0, 0, 255));
-                        Point3D center = Point3D(triangle->center.x, triangle->center.y, Observation()->GetStartLocation().z + .1);
+                        Point3D center = Point3D(triangle->center.x, triangle->center.y, Observation()->TerrainHeight(triangle->verticies[i]) + .1);
 						if (triangle->pathable)
 	                        Debug()->DebugSphereOut(center, .1, Color(0, 255, 255));
 						else
 							Debug()->DebugSphereOut(center, .1, Color(255, 0, 0));
                     }
-                    /*for (const auto &connection : triangle->connections)
+                    for (const auto &connection : triangle->connections)
                     {
                         Point3D start = Point3D(triangle->center.x, triangle->center.y, Observation()->TerrainHeight(triangle->center) + .1);
                         Point3D end = Point3D(connection->center.x, connection->center.y, Observation()->TerrainHeight(connection->center) + .1);
                         Debug()->DebugLineOut(start, end, Color(255, 255, 0));
-                    }*/
+                    }
                 }
 
 				for (const auto &triangle : overlaps)
@@ -261,7 +261,7 @@ namespace sc2 {
 					}
 				}
 
-                /*std::vector<Point2D> path = nav_mesh.FindPath(probe->pos, Observation()->GetGameInfo().enemy_start_locations[0]);
+               /* std::vector<Point2D> path = nav_mesh.FindPath(probe->pos, Observation()->GetGameInfo().enemy_start_locations[0]);
 
                 for (int i = 0; i < path.size() - 1; i++)
                 {
@@ -274,34 +274,6 @@ namespace sc2 {
                 Debug()->DebugLineOut(start, end, Color(0, 255, 0));*/
 
 
-                /*Triangle* start_tri = nav_mesh.FindClosestTriangle(probe->pos);
-                Triangle* end_tri = nav_mesh.FindClosestTriangle(Observation()->GetGameInfo().enemy_start_locations[0]);
-
-                std::vector<Triangle*> tri_path = nav_mesh.FindTrianglePath(start_tri, end_tri);
-                for (int i = 0; i < tri_path.size() - 1; i++)
-                {
-                    Portal portal = NavMesh::FindPortal(tri_path[i], tri_path[i + 1]);
-                    Point3D left = Point3D(portal.left.x, portal.left.y, Observation()->TerrainHeight(portal.left) + .2);
-                    Point3D right = Point3D(portal.right.x, portal.right.y, Observation()->TerrainHeight(portal.right) + .2);
-                    Debug()->DebugLineOut(left, right, Color(255, 165, 0));
-                    Debug()->DebugSphereOut(left, .2, Color(255, 165, 0));
-                    Debug()->DebugSphereOut(right, .2, Color(255, 255, 255));
-                }*/
-
-
-                /*
-                for (int i = 0; i < locations->pylon_locations.size(); i++)
-                {
-                    Point3D pos = Point3D(locations->pylon_locations[i].x, locations->pylon_locations[i].y, Observation()->TerrainHeight(locations->pylon_locations[i]));
-                    Debug()->DebugSphereOut(pos, 1, Color(255, 0, 255));
-                    Debug()->DebugTextOut(std::to_string(i), pos, Color(255, 0, 255), 20);
-                }
-                for (int i = 0; i < locations->gateway_locations.size(); i++)
-                {
-                    Point3D pos = Point3D(locations->gateway_locations[i].x, locations->gateway_locations[i].y, Observation()->TerrainHeight(locations->gateway_locations[i]));
-                    Debug()->DebugSphereOut(pos, 1.5, Color(255, 255, 0));
-                    Debug()->DebugTextOut(std::to_string(i), pos, Color(255, 255, 0), 20);
-                }*/
                 Debug()->SendDebug();
             }
             if (Observation()->GetGameLoop() == 3000)
@@ -379,7 +351,7 @@ namespace sc2 {
             std::cout << UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
 			Polygon poly = CreateNewBlocker(building);
 			blockers.push_back(poly);
-			nav_mesh.AddNewBlocker(building);
+			nav_mesh.AddNewObstacle(building);
             return;
         }
         if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
@@ -469,6 +441,7 @@ namespace sc2 {
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
         CallOnUnitDestroyedEvent(unit);
+		nav_mesh.RemoveObstacle(unit);
     }
 
 

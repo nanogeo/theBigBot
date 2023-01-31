@@ -5,9 +5,10 @@
 #include <string>
 #include <queue>
 #include <fstream>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #include "sc2api/sc2_map_info.h"
-
 
 
 
@@ -27,28 +28,8 @@ void NavMesh::LoadOrBuildNavmesh(ImageData map, std::string map_name)
 		std::vector<std::vector<bool>> grid_map = SetUpMap(map);
 		std::vector<Vec2D> isolines = FindIsolines(grid_map);
 
-		/*for (const auto &vec : isolines)
-		{
-			Point3D start = Point3D(vec.start.x, vec.start.y, Observation()->TerrainHeight(Point2D(vec.start.x, vec.start.y)));
-			Point3D end = Point3D(vec.end.x, vec.end.y, Observation()->TerrainHeight(Point2D(vec.end.x, vec.end.y)));
-			Debug()->DebugLineOut(start, end);
-		}*/
 		std::vector<Polygon> polygons = MakePolygons(isolines);
 
-		/*for (const auto &polygon : polygons)
-		{
-			for (int i = 0; i < polygon.points.size(); i++)
-			{
-				Point3D start = Point3D(polygon.points[i].x, polygon.points[i].y, Observation()->TerrainHeight(polygon.points[i]) + .1);
-				Point3D end;
-				if (i + 1 < polygon.points.size())
-					end = Point3D(polygon.points[i + 1].x, polygon.points[i + 1].y, Observation()->TerrainHeight(polygon.points[i + 1]) + .1);
-				else
-					end = Point3D(polygon.points[0].x, polygon.points[0].y, Observation()->TerrainHeight(polygon.points[0]) + .1);
-				Debug()->DebugLineOut(start, end, Color(255, 0, 0));
-				Debug()->DebugSphereOut(start, .1, Color(0, 0, 255));
-			}
-		}*/
 		std::vector<Point2D> vertices = GetAllVerticies(polygons);
 		std::vector<Polygon*> all_triangles = MakeTriangles(vertices, map);
 		triangles = ConvertToTriangles(all_triangles);
@@ -539,14 +520,21 @@ Circle NavMesh::ComputeCircumcircle(Polygon triangle)
 
 Circle NavMesh::ComputeCircumcircle(Triangle* triangle)
 {
-	if (triangle->verticies.size() != 3)
-	{
-		std::cout << "Error non-triangle passed into ComputerCircumcircle";
-		return Circle();
-	}
 	Point2D a = triangle->verticies[0];
 	Point2D b = triangle->verticies[1];
 	Point2D c = triangle->verticies[2];
+	float d = (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 2;
+	float x = ((pow(a.x, 2) + pow(a.y, 2)) * (b.y - c.y) + (pow(b.x, 2) + pow(b.y, 2)) * (c.y - a.y) + (pow(c.x, 2) + pow(c.y, 2)) * (a.y - b.y)) / d;
+	float y = ((pow(a.x, 2) + pow(a.y, 2)) * (c.x - b.x) + (pow(b.x, 2) + pow(b.y, 2)) * (a.x - c.x) + (pow(c.x, 2) + pow(c.y, 2)) * (b.x - a.x)) / d;
+
+	Circle circle;
+	circle.center = Point2D(x, y);
+	circle.radius = Distance2D(a, circle.center);
+	return circle;
+}
+
+Circle NavMesh::ComputeCircumcircle(Point2D a, Point2D b, Point2D c)
+{
 	float d = (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 2;
 	float x = ((pow(a.x, 2) + pow(a.y, 2)) * (b.y - c.y) + (pow(b.x, 2) + pow(b.y, 2)) * (c.y - a.y) + (pow(c.x, 2) + pow(c.y, 2)) * (a.y - b.y)) / d;
 	float y = ((pow(a.x, 2) + pow(a.y, 2)) * (c.x - b.x) + (pow(b.x, 2) + pow(b.y, 2)) * (a.x - c.x) + (pow(c.x, 2) + pow(c.y, 2)) * (b.x - a.x)) / d;
@@ -641,17 +629,23 @@ std::vector<Triangle*> NavMesh::ConvertToTriangles(std::vector<Polygon*> polygon
 
 
 
-void NavMesh::AddNewBlocker(const Unit* unit)
+void NavMesh::AddNewObstacle(const Unit* unit)
 {
-	Polygon polygon = CreateBlockerPolygon(unit);
+	Polygon polygon = CreateObstaclePolygon(unit);
 	std::vector<Triangle*> overlapping_triangles = FindOverlappingTriangles(polygon);
 	std::vector<Point2D> intersection_points = FindIntersectionPoints(polygon, overlapping_triangles);
-	std::vector<Point2D> removed_verticies = SaveVerticies(overlapping_triangles);
+	//std::vector<Point2D> removed_verticies = SaveVerticies(overlapping_triangles);
+
+	std::vector<Point2D> all_verticies = intersection_points;
+	all_verticies.insert(all_verticies.end(), polygon.points.begin(), polygon.points.end());
+
 	//RemoveTriangles(overlapping_triangles);
-	AddVerticies(intersection_points, polygon.points);
+	AddVerticies(all_verticies);
+
+	obstacles[unit] = all_verticies;
 }
 
-Polygon NavMesh::CreateBlockerPolygon(const Unit* unit)
+Polygon NavMesh::CreateObstaclePolygon(const Unit* unit)
 {
 	Polygon polygon;
 	switch (unit->unit_type.ToType())
@@ -1007,10 +1001,8 @@ void NavMesh::ReAddVerticies(std::vector<Point2D> removed_verticies, std::vector
 	}
 }
 
-void NavMesh::AddVerticies(std::vector<Point2D> removed_verticies, std::vector<Point2D> new_polygon)
+void NavMesh::AddVerticies(std::vector<Point2D> verticies)
 {
-	std::vector<Point2D> verticies = removed_verticies;
-	verticies.insert(verticies.end(), new_polygon.begin(), new_polygon.end());
 
 
 	// loop through points
@@ -1038,7 +1030,7 @@ void NavMesh::AddVerticies(std::vector<Point2D> removed_verticies, std::vector<P
 			edges.push_back(Vec2D(triangle->verticies[1], triangle->verticies[2]));
 			edges.push_back(Vec2D(triangle->verticies[2], triangle->verticies[0]));
 			//      remove bad triangle from triangles
-			triangles.erase(std::remove(triangles.begin(), triangles.end(), triangle), triangles.end());
+			RemoveTriangle(triangle);
 		}
 		// remove common edges
 		for (int i = edges.size() - 1; i > 0; i--)
@@ -1059,9 +1051,199 @@ void NavMesh::AddVerticies(std::vector<Point2D> removed_verticies, std::vector<P
 		// make new triangles with edges
 		for (const auto &edge : edges)
 		{
-			triangles.push_back(new Triangle({ point, edge.start, edge.end }));
+			Triangle* new_triangle = new Triangle({ point, edge.start, edge.end });
+			AddTriangle(new_triangle);
 		}
 	}
+}
+
+void NavMesh::RemoveObstacle(const Unit* unit)
+{
+	for (const auto &vertex : obstacles[unit])
+	{
+		RemoveVertex(vertex);
+	}
+}
+
+void NavMesh::RemoveVertex(Point2D vertex)
+{
+	std::vector<Point2D> connected_verticies = FindConnectedVerticies(vertex);
+	sort(connected_verticies.begin(), connected_verticies.end(),
+		[vertex](const Point2D & a, const Point2D & b) -> bool
+	{
+		return atan2(a.x - vertex.x, a.y - vertex.y) > atan2(b.x - vertex.x, b.y - vertex.y);
+	});
+
+	for (int i = 0; i < connected_verticies.size(); i++)
+	{
+		if (connected_verticies.size() == 3)
+			break;
+		Point2D v1, v2, v3;
+		v1 = connected_verticies[i];
+		if (i + 1 >= connected_verticies.size())
+		{
+			v2 = connected_verticies[0];
+			v3 = connected_verticies[1];
+		}
+		else {
+			v2 = connected_verticies[i + 1];
+			if (i + 2 >= connected_verticies.size())
+			{
+				v3 = connected_verticies[0];
+			}
+			else
+			{
+				v3 = connected_verticies[i + 2];
+			}
+		}
+		if (Determinant(v1, v2, v3) < 0)
+			continue;
+		if (Determinant(v1, v3, vertex) < 0)
+			continue;
+
+		Circle circumcircle = ComputeCircumcircle(v1, v2, v3);
+		bool delauny = true;
+		for (int j = 0; j < connected_verticies.size(); j++)
+		{
+			if (j >= i && j <= (i + 2) % connected_verticies.size())
+				continue;
+			if (Distance2D(connected_verticies[j], circumcircle.center) < circumcircle.radius)
+			{
+				delauny = false;
+				break;
+			}
+		}
+		if (delauny)
+		{
+			FlipEdge(v1, v2, v3, vertex);
+			connected_verticies.erase(std::remove(connected_verticies.begin(), connected_verticies.end(), v2), connected_verticies.end());
+		}
+	}
+}
+
+std::vector<Point2D> NavMesh::FindConnectedVerticies(Point2D vertex)
+{
+	std::vector<Point2D> verticies;
+	for (const auto &triangle : triangles)
+	{
+		for (const auto &point : triangle->verticies)
+		{
+			if (point == vertex)
+			{
+				for (const auto &v : triangle->verticies)
+				{
+					if (std::find(verticies.begin(), verticies.end(), v) == verticies.end())
+						verticies.push_back(v);
+				}
+			}
+		}
+	}
+	verticies.erase(std::remove(verticies.begin(), verticies.end(), vertex), verticies.end());
+	return verticies;
+}
+
+void NavMesh::FlipEdge(Point2D a, Point2D b, Point2D c, Point2D p)
+{
+	Triangle* t1 = FindTriangle(a, b, p);
+	Triangle* t2 = FindTriangle(b, c, p);
+	Triangle* n1 = new Triangle({ a, c, p });
+	Triangle* n2 = new Triangle({ a, b, c });
+	RemoveTriangle(t1);
+	RemoveTriangle(t2);
+	AddTriangle(n1);
+	AddTriangle(n2);
+	/*Triangle* AP;
+	Triangle* AB;
+	for (const auto &triangle : t1->connections)
+	{
+		if (std::count(triangle->verticies.begin(), triangle->verticies.end(), a) &&
+			std::count(triangle->verticies.begin(), triangle->verticies.end(), p))
+		{
+			AP = triangle;
+		}
+		if (std::count(triangle->verticies.begin(), triangle->verticies.end(), a) &&
+			std::count(triangle->verticies.begin(), triangle->verticies.end(), b))
+		{
+			AB = triangle;
+		}
+	}
+	Triangle* BC;
+	Triangle* PC;
+	for (const auto &triangle : t2->connections)
+	{
+		if (std::count(triangle->verticies.begin(), triangle->verticies.end(), b) &&
+			std::count(triangle->verticies.begin(), triangle->verticies.end(), c))
+		{
+			BC = triangle;
+		}
+		if (std::count(triangle->verticies.begin(), triangle->verticies.end(), p) &&
+			std::count(triangle->verticies.begin(), triangle->verticies.end(), c))
+		{
+			PC = triangle;
+		}
+	}
+	AB->connections.erase(std::remove(AB->connections.begin(), AB->connections.end(), t1), AB->connections.end());
+	AP->connections.erase(std::remove(AP->connections.begin(), AP->connections.end(), t1), AP->connections.end());
+
+	BC->connections.erase(std::remove(BC->connections.begin(), BC->connections.end(), t2), BC->connections.end());
+	PC->connections.erase(std::remove(PC->connections.begin(), PC->connections.end(), t2), PC->connections.end());
+
+	triangles.erase(std::remove(triangles.begin(), triangles.end(), t1), triangles.end());
+	triangles.erase(std::remove(triangles.begin(), triangles.end(), t2), triangles.end());
+
+	AP->connections.push_back(n1);
+	PC->connections.push_back(n1);
+
+	n1->connections.push_back(AP);
+	n1->connections.push_back(PC);
+	n1->connections.push_back(n2);
+
+	AB->connections.push_back(n2);
+	BC->connections.push_back(n2);
+
+	n2->connections.push_back(AB);
+	n2->connections.push_back(BC);
+	n2->connections.push_back(n1);
+
+	triangles.push_back(n1);
+	triangles.push_back(n2);*/
+}
+
+Triangle* NavMesh::FindTriangle(Point2D v1, Point2D v2, Point2D v3)
+{
+	for (const auto &triangle : triangles)
+	{
+		if (std::count(triangle->verticies.begin(), triangle->verticies.end(), v1) &&
+			std::count(triangle->verticies.begin(), triangle->verticies.end(), v2) &&
+			std::count(triangle->verticies.begin(), triangle->verticies.end(), v3))
+		{
+			return triangle;
+		}
+	}
+}
+
+void NavMesh::RemoveTriangle(Triangle* triangle)
+{
+	for (const auto &connection : triangle->connections)
+	{
+		connection->connections.erase(std::remove(connection->connections.begin(), connection->connections.end(), triangle), connection->connections.end());
+	}
+	triangles.erase(std::remove(triangles.begin(), triangles.end(), triangle), triangles.end());
+}
+
+void NavMesh::AddTriangle(Triangle* triangle)
+{
+	for (const auto &tri : triangles)
+	{
+		if (DoesShareSide(*tri, *triangle) && tri != triangle)
+		{
+			tri->connections.push_back(triangle);
+			triangle->connections.push_back(tri);
+			if (triangle->connections.size() == 3)
+				break;
+		}
+	}
+	triangles.push_back(triangle);
 }
 
 #pragma endregion
@@ -1365,6 +1547,12 @@ int NavMesh::FindNextLeftPoint(std::vector<Portal> portals, int indexL)
 		new_left = portals[indexL + i].left;
 	}
 	return indexL + i;
+}
+
+
+float NavMesh::Determinant(Point2D a, Point2D b, Point2D c)
+{
+	return a.x * (b.y - c.y) - a.y * (b.x - c.x) + (b.x * c.y - b.y * c.x);
 }
 
 void NavMesh::SaveNavMeshToFile(std::string filename)

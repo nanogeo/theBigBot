@@ -86,7 +86,7 @@ class NavMesh
 {
 public:
     std::vector<Triangle*> triangles;
-	std::vector<Polygon> blockers;
+	std::map<const Unit*, std::vector<Point2D>> obstacles;
 
     NavMesh() {};
     NavMesh(std::vector<Triangle*> triangles)
@@ -105,6 +105,7 @@ public:
 	std::vector<Polygon*> MakeTriangles(std::vector<Point2D>, ImageData);
 	Circle ComputeCircumcircle(Polygon);
 	Circle ComputeCircumcircle(Triangle*);
+	Circle ComputeCircumcircle(Point2D, Point2D, Point2D);
 	bool DoesShareVertex(Polygon, Polygon);
 	bool DoesShareVertex(Triangle*, Triangle*);
 	bool DoesShareSide(Triangle, Triangle);
@@ -113,15 +114,23 @@ public:
 	void SaveNavMeshToFile(std::string);
 	bool BuildNavMeshFromFile(std::string);
 
-	void AddNewBlocker(const Unit*);
-	Polygon CreateBlockerPolygon(const Unit*);
+	void AddNewObstacle(const Unit*);
+	Polygon CreateObstaclePolygon(const Unit*);
 	std::vector<Triangle*> FindOverlappingTriangles(Polygon);
 	std::vector<Point2D> FindIntersectionPoints(Polygon, std::vector<Triangle*>);
 	Point2D FindLineSegmentIntersection(Point2D, Point2D, Point2D, Point2D);
 	std::vector<Point2D> SaveVerticies(std::vector<Triangle*>);
 	void RemoveTriangles(std::vector<Triangle*>);
 	void ReAddVerticies(std::vector<Point2D>, std::vector<Point2D>);
-	void AddVerticies(std::vector<Point2D>, std::vector<Point2D>);
+	void AddVerticies(std::vector<Point2D>);
+
+	void RemoveObstacle(const Unit*);
+	void RemoveVertex(Point2D);
+	std::vector<Point2D> FindConnectedVerticies(Point2D);
+	void FlipEdge(Point2D, Point2D, Point2D, Point2D);
+	Triangle* FindTriangle(Point2D, Point2D, Point2D);
+	void RemoveTriangle(Triangle*);
+	void AddTriangle(Triangle*);
 
 
     std::vector<Triangle*> ReconstructPath(std::map<Triangle*, Triangle*>, Triangle*);
@@ -136,6 +145,7 @@ public:
 	static float Cross(Point2D, Point2D);
     static int FindNextRightPoint(std::vector<Portal>, int);
     static int FindNextLeftPoint(std::vector<Portal>, int);
+	static float Determinant(Point2D, Point2D, Point2D);
 };
 
 }
