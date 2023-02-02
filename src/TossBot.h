@@ -321,7 +321,6 @@ public:
     const Unit* probe;
 	std::vector<Triangle*> overlaps;
 
-	std::vector<Polygon> blockers;
 
     const Unit *new_base = NULL;
     std::vector<BuildOrderData> build_order;

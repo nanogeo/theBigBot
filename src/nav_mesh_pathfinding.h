@@ -146,6 +146,7 @@ public:
     static int FindNextRightPoint(std::vector<Portal>, int);
     static int FindNextLeftPoint(std::vector<Portal>, int);
 	static float Determinant(Point2D, Point2D, Point2D);
+	static float RoundFloat(float);
 };
 
 }

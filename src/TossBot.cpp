@@ -184,27 +184,11 @@ namespace sc2 {
                 }
             }
 
-			for (const auto &polygon : blockers)
-			{
-				for (int i = 0; i < polygon.points.size(); i++)
-				{
-					Point3D start = Point3D(polygon.points[i].x, polygon.points[i].y, Observation()->TerrainHeight(polygon.points[i]) + .1);
-					Point3D end;
-					if (i + 1 < polygon.points.size())
-						end = Point3D(polygon.points[i + 1].x, polygon.points[i + 1].y, Observation()->TerrainHeight(polygon.points[i + 1]) + .1);
-					else
-						end = Point3D(polygon.points[0].x, polygon.points[0].y, Observation()->TerrainHeight(polygon.points[0]) + .1);
-					Debug()->DebugLineOut(start, end, Color(255, 0, 0));
-					Debug()->DebugSphereOut(start, .1, Color(0, 0, 255));
-				}
-			}
-
             if (Observation()->GetGameLoop() == 1)
             {
                 Debug()->DebugFastBuild();
                 Debug()->DebugGiveAllResources();
                 SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
-                Debug()->DebugCreateUnit(UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR, Point2D(66, 71));
 				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
             }
             if (Observation()->GetGameLoop() > 1)
@@ -288,6 +272,7 @@ namespace sc2 {
                 std::cout << "1000\n";
             }
 
+			ProcessActions();
             return;
         }
 
@@ -349,8 +334,6 @@ namespace sc2 {
         if (debug_mode)
         {
             std::cout << UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
-			Polygon poly = CreateNewBlocker(building);
-			blockers.push_back(poly);
 			nav_mesh.AddNewObstacle(building);
             return;
         }
@@ -2870,34 +2853,33 @@ for (const auto &field : far_oversaturated_patches)
         return false;
     }
 
-    bool TossBot::ActionDTHarassTerran(ActionArgData* data)
-    {
-        for (const auto &unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_DARKTEMPLAR)))
-        {
-            // if outside -> move into enemy main
-            if ((unit->pos.z + .1 < Observation()->GetStartLocation().z || unit->pos.z - .1 > Observation()->GetStartLocation().z) && unit->orders.size() == 0)
-            {
-                Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, locations->initial_scout_pos);
-                Actions()->UnitCommand(unit, ABILITY_ID::EFFECT_SHADOWSTRIDE, PointBetween(locations->initial_scout_pos, Observation()->GetGameInfo().enemy_start_locations[0], 7), true);
-                continue;
-            }
-            // avoid scans
-            // avoid ravens
-            // spread out
+	bool TossBot::ActionDTHarassTerran(ActionArgData* data)
+	{
+		for (const auto &unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_DARKTEMPLAR)))
+		{
+			// if outside -> move into enemy main
+			if ((unit->pos.z + .1 < Observation()->GetStartLocation().z || unit->pos.z - .1 > Observation()->GetStartLocation().z) && unit->orders.size() == 0)
+			{
+				Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, locations->initial_scout_pos);
+				Actions()->UnitCommand(unit, ABILITY_ID::EFFECT_SHADOWSTRIDE, PointBetween(locations->initial_scout_pos, Observation()->GetGameInfo().enemy_start_locations[0], 7), true);
+				continue;
+			}
+			// avoid scans
+			// avoid ravens
+			// spread out
 
-            // target prio
-            // repairing scvs
-            // tech labs bulding on starports
-            // tech labs on idle starports
-            // active starports with tech labs
-            // main orbital
-            // mules
-            // scvs
-            // army units
-        }
-        return false;
-    }
-
+			// target prio
+			// repairing scvs
+			// tech labs bulding on starports
+			// tech labs on idle starports
+			// active starports with tech labs
+			// main orbital
+			// mules
+			// scvs
+			// army units
+		}
+		return false;
+	}
 
 
 
