@@ -312,7 +312,7 @@ namespace sc2 {
                 //SaturateGas(building->tag);
             }
             
-            SetBuildOrder(BuildOrder::fastest_dts);
+            SetBuildOrder(BuildOrder::proxy_double_robo);
         }
 
         
@@ -334,7 +334,7 @@ namespace sc2 {
         if (debug_mode)
         {
             std::cout << UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
-			nav_mesh.AddNewObstacle(building);
+			//nav_mesh.AddNewObstacle(building);
             return;
         }
         if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
@@ -700,6 +700,62 @@ namespace sc2 {
         }*/
     }
 
+	Point2D TossBot::GetProxyLocation(UNIT_TYPEID type)
+	{
+		std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
+			UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
+			UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_DARKSHRINE, UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE };
+		std::vector<Point2D> possible_locations;
+		if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
+		{
+			possible_locations = locations->proxy_tech_locations;
+		}
+		else
+		{
+			switch (type)
+			{
+			case UNIT_TYPEID::PROTOSS_PYLON:
+				possible_locations = locations->proxy_pylon_locations;
+				break;
+			case UNIT_TYPEID::PROTOSS_NEXUS:
+				possible_locations = locations->nexi_locations;
+				break;
+			case UNIT_TYPEID::PROTOSS_GATEWAY:
+				possible_locations = locations->proxy_gateway_locations;
+				break;
+			default:
+				std::cout << "Error invalid type id in GetLocation" << std::endl;
+				return Point2D(0, 0);
+			}
+		}
+
+		for (const auto &point : possible_locations)
+		{
+			bool blocked = false;
+			bool in_energy_field = (type == UNIT_TYPEID::PROTOSS_PYLON || type == UNIT_TYPEID::PROTOSS_ASSIMILATOR || type == UNIT_TYPEID::PROTOSS_NEXUS);
+			for (const auto &building : Observation()->GetUnits(IsBuilding()))
+			{
+				if (Point2D(building->pos) == point)
+				{
+					blocked = true;
+					break;
+				}
+				if (!in_energy_field && building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
+				{
+					if (Distance2D(Point2D(building->pos), point) < 6.5)
+					{
+						in_energy_field = true;
+					}
+				}
+			}
+			if (!blocked && in_energy_field)
+				return point;
+
+		}
+		std::cout << "Error no viable point found in GetLocation" << std::endl;
+		return Point2D(0, 0);
+	}
+
     std::vector<Point2D> TossBot::GetProxyLocations(UNIT_TYPEID type)
     {
         switch (type)
@@ -709,9 +765,6 @@ namespace sc2 {
             break;
         case UNIT_TYPEID::PROTOSS_GATEWAY:
             return locations->proxy_gateway_locations;
-            break;
-        case UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
-            return locations->proxy_robo_locations;
             break;
         default:
             std::cout << "Error invalid type id in GetProxyLocations" << std::endl;
@@ -790,6 +843,52 @@ namespace sc2 {
             return ABILITY_ID::BUILD_CANCEL;
         }
     }
+
+	ABILITY_ID TossBot::GetTrainAbility(UNIT_TYPEID unitId)
+	{
+		switch (unitId)
+		{
+		case UNIT_TYPEID::PROTOSS_PROBE:
+			return ABILITY_ID::TRAIN_PROBE;
+		case UNIT_TYPEID::PROTOSS_ZEALOT:
+			return ABILITY_ID::TRAIN_ZEALOT;
+		case UNIT_TYPEID::PROTOSS_ADEPT:
+			return ABILITY_ID::TRAIN_ADEPT;
+		case UNIT_TYPEID::PROTOSS_STALKER:
+			return ABILITY_ID::TRAIN_STALKER;
+		case UNIT_TYPEID::PROTOSS_SENTRY:
+			return ABILITY_ID::TRAIN_SENTRY;
+		case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+			return ABILITY_ID::TRAIN_HIGHTEMPLAR;
+		case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+			return ABILITY_ID::TRAIN_DARKTEMPLAR;
+		case UNIT_TYPEID::PROTOSS_IMMORTAL:
+			return ABILITY_ID::TRAIN_IMMORTAL;
+		case UNIT_TYPEID::PROTOSS_COLOSSUS:
+			return ABILITY_ID::TRAIN_COLOSSUS;
+		case UNIT_TYPEID::PROTOSS_DISRUPTOR:
+			return ABILITY_ID::TRAIN_DISRUPTOR;
+		case UNIT_TYPEID::PROTOSS_OBSERVER:
+			return ABILITY_ID::TRAIN_OBSERVER;
+		case UNIT_TYPEID::PROTOSS_WARPPRISM:
+			return ABILITY_ID::TRAIN_WARPPRISM;
+		case UNIT_TYPEID::PROTOSS_PHOENIX:
+			return ABILITY_ID::TRAIN_PHOENIX;
+		case UNIT_TYPEID::PROTOSS_VOIDRAY:
+			return ABILITY_ID::TRAIN_VOIDRAY;
+		case UNIT_TYPEID::PROTOSS_ORACLE:
+			return ABILITY_ID::TRAIN_ORACLE;
+		case UNIT_TYPEID::PROTOSS_CARRIER:
+			return ABILITY_ID::TRAIN_CARRIER;
+		case UNIT_TYPEID::PROTOSS_TEMPEST:
+			return ABILITY_ID::TRAIN_TEMPEST;
+		case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+			return ABILITY_ID::TRAIN_MOTHERSHIP;
+		default:
+			std::cout << "Error invalid unit id in GetTrainAbility";
+			return ABILITY_ID::BUILD_CANCEL;
+		}
+	}
 
     bool TossBot::CanAfford(UNIT_TYPEID unit, int amount)
     {
@@ -2501,6 +2600,49 @@ for (const auto &field : far_oversaturated_patches)
         return false;
     }
 
+	bool TossBot::ActionBuildProxyMulti(ActionArgData* data)
+	{
+		UNIT_TYPEID buildingId = data->unitIds[data->index];
+		Point2D pos = data->position;
+		const Unit *builder = data->unit;
+		for (const auto &building : Observation()->GetUnits(IsUnit(buildingId)))
+		{
+			if (Point2D(building->pos) == pos && building->display_type != Unit::DisplayType::Placeholder)
+			{
+				// finished buildings.remove building.tag
+				data->index++;
+				if (data->index < data->unitIds.size())
+				{
+					data->position = GetProxyLocation(data->unitIds[data->index]);
+					active_actions.push_back(new ActionData(&TossBot::ActionBuildProxyMulti, data));
+				}
+				else
+				{
+					PlaceWorker(builder);
+				}
+				return true;
+			}
+		}
+		if (Distance2D(builder->pos, pos) < BuildingSize(buildingId) + 1 && CanBuildBuilding(buildingId))
+		{
+			if (buildingId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
+			{
+				std::vector<UNIT_TYPEID> gas_types = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
+				const Unit *gas = ClosestTo(Observation()->GetUnits(IsUnits(gas_types)), pos);
+				Actions()->UnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas);
+			}
+			else
+			{
+				Actions()->UnitCommand(builder, GetBuildAbility(buildingId), pos);
+			}
+		}
+		else if (Distance2D(builder->pos, pos) > BuildingSize(buildingId))
+		{
+			Actions()->UnitCommand(builder, ABILITY_ID::GENERAL_MOVE, pos);
+		}
+		return false;
+	}
+
     bool TossBot::ActionScoutZerg(ActionArgData* data)
     {
         return true;
@@ -2881,6 +3023,45 @@ for (const auto &field : far_oversaturated_patches)
 		return false;
 	}
 
+	bool TossBot::ActionUseProxyDoubleRobo(ActionArgData* data)
+	{
+		for (const auto &robo : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
+		{
+			if (robo->build_progress < 1)
+				continue;
+			if (robo->orders.size() == 0)
+			{
+				if (data->unitIds.size() == 0)
+				{
+					if (CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1))
+						Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL);
+				}
+				else if (CanAfford(data->unitIds[0], 1))
+				{
+					Actions()->UnitCommand(robo, GetTrainAbility(data->unitIds[0]));
+					data->unitIds.erase(data->unitIds.begin());
+				}
+			}
+			else if (robo->orders[0].ability_id == ABILITY_ID::TRAIN_IMMORTAL)
+			{
+				if (HasBuff(robo, BUFF_ID::CHRONOBOOSTENERGYCOST))
+					continue;
+
+				for (const auto &nexus : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+				{
+					for (const auto &ability : Query()->GetAbilitiesForUnit(nexus).abilities)
+					{
+						if (ability.ability_id == ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST)
+						{
+							Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, robo);
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 
 
 #pragma endregion
@@ -2998,6 +3179,20 @@ for (const auto &field : far_oversaturated_patches)
         active_actions.push_back(new ActionData(&TossBot::ActionBuildBuildingMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
         return true;
     }
+
+	bool TossBot::BuildProxyMulti(BuildOrderResultArgData data)
+	{
+		Point2D pos = GetProxyLocation(data.unitIds[0]);
+		const Unit* builder = GetBuilder(pos);
+		if (builder == NULL)
+		{
+			std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+			return false;
+		}
+		RemoveWorker(builder);
+		active_actions.push_back(new ActionData(&TossBot::ActionBuildProxyMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
+		return true;
+	}
 
     bool TossBot::Scout(BuildOrderResultArgData data)
     {
@@ -3481,6 +3676,12 @@ for (const auto &field : far_oversaturated_patches)
         return true;
     }
 
+	bool TossBot::UseProxyDoubleRobo(BuildOrderResultArgData data)
+	{
+		active_actions.push_back(new ActionData(&TossBot::ActionUseProxyDoubleRobo, new ActionArgData({ UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_WARPPRISM, UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_OBSERVER })));
+		return true;
+	}
+
 
 #pragma endregion
 
@@ -3513,6 +3714,9 @@ for (const auto &field : far_oversaturated_patches)
         case BuildOrder::fastest_dts:
             SetFastestDTsPvT();
             break;
+		case BuildOrder::proxy_double_robo:
+			SetProxyDoubleRobo();
+			break;
         default:
             std::cout << "Error invalid build order in SetBuildOrder" << std::endl;
         }
@@ -3523,223 +3727,271 @@ for (const auto &field : far_oversaturated_patches)
         build_order = {};
     }
 
-    void TossBot::SetBlinkProxyRoboPressureBuild()
-    {
-        build_order = { BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(6.5f),                                      &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(17.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(40.5f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(60.5f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(70.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(82.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(85.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::NumWorkers,        BuildOrderConditionArgData(21),                                        &TossBot::CutWorkers,               BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),      &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),      &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),      &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),      &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(117.0f),                                    &TossBot::ResearchWarpgate,         BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(117.0f),                                    &TossBot::Contain,                  BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(136.0f),                                    &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(136.0f),                                    &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(137.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(152.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(159.0f),                                    &TossBot::BuildProxy,               BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)) ,
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(166.0f),                                    &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(171.0f),                                    &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(176.5f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),      &TossBot::ResearchBlink,            BuildOrderResultArgData(UPGRADE_ID::BLINKTECH)),
-                        BuildOrderData(&TossBot::IsResearching,     BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),      &TossBot::ChronoTillFinished,       BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(185.0f),                                    &TossBot::UncutWorkers,             BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(185.0f),                                    &TossBot::WarpInAtProxy,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(205.0f),                                    &TossBot::BuildProxy,               BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(205.0f),                                    &TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(205.0f),                                    &TossBot::ContinueMakingWorkers,    BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),     &TossBot::TrainFromProxy,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),     &TossBot::ContinueChronoProxyRobo,  BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY))
-        };
-    }
+	void TossBot::SetBlinkProxyRoboPressureBuild()
+	{
+		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(17.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(40.5f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(60.5f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(70.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(82.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(85.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::NumWorkers,		BuildOrderConditionArgData(21),											&TossBot::CutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(117.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(117.0f),										&TossBot::Contain,					BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(137.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(152.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(159.0f),										&TossBot::BuildProxy,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)) ,
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(166.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(171.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(176.5f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchBlink,			BuildOrderResultArgData(UPGRADE_ID::BLINKTECH)),
+						BuildOrderData(&TossBot::IsResearching,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(185.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(185.0f),										&TossBot::WarpInAtProxy,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildProxy,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::ContinueMakingWorkers,	BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),		&TossBot::TrainFromProxy,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),		&TossBot::ContinueChronoProxyRobo,  BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY))
+		};
+	}
 
-    void TossBot::SetOracleGatewaymanPvZ()
-    {
-        build_order = { BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(6.5f),                                      &TossBot::BuildBuildingMulti,       BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON, UNIT_TYPEID::PROTOSS_GATEWAY})),
-                        //BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(30.0f),                                     &TossBot::Scout,                    BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(39.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(68.0f),                                     &TossBot::BuildBuildingMulti,       BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(94.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(102.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(102.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(123.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),      &TossBot::TrainAdept,               BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(130.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(134.0f),                                    &TossBot::ResearchWarpgate,         BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(149.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(150.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(156.0f),                                    &TossBot::TrainAdept,               BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STARGATE),             &TossBot::TrainOracle,              BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(173.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(186.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(191.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(202.0f),                                    &TossBot::TrainOracle,              BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(203.0f),                                    &TossBot::MicroOracles,             BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(203.0f),                                    &TossBot::StalkerOraclePressure,    BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(205.0f),                                    &TossBot::BuildBuildingMulti,       BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_PYLON})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(236.0f),                                    &TossBot::TrainOracle,              BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(240.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(240.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(240.0f),                                    &TossBot::BuildBuildingMulti,       BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL, UNIT_TYPEID::PROTOSS_FORGE})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(250.0f),                                    &TossBot::BuildBuildingMulti,       BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),      &TossBot::ResearchBlink,            BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),      &TossBot::ChronoTillFinished,       BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),                &TossBot::ResearchAttackOne,        BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),                &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_FORGE)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(270.0f),                                    &TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(270.0f),                                    &TossBot::ContinueMakingWorkers,    BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(270.0f),                                    &TossBot::ContinueWarpingInStalkers,BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(300.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        //BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(325.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),      &TossBot::ResearchCharge,           BuildOrderResultArgData()),
-        };
-    }
+	void TossBot::SetOracleGatewaymanPvZ()
+	{
+		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON, UNIT_TYPEID::PROTOSS_GATEWAY})),
+						//BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(30.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(68.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(94.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(102.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(102.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(123.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainAdept,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(130.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(134.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(149.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(150.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(156.0f),										&TossBot::TrainAdept,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STARGATE),				&TossBot::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(173.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(186.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(191.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(202.0f),										&TossBot::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(203.0f),										&TossBot::MicroOracles,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(203.0f),										&TossBot::StalkerOraclePressure,	BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_PYLON})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(236.0f),										&TossBot::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL, UNIT_TYPEID::PROTOSS_FORGE})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchBlink,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoTillFinished,		BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&TossBot::ResearchAttackOne,		BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_FORGE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::ContinueMakingWorkers,	BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::ContinueWarpingInStalkers,BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(300.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						//BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(325.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchCharge,			BuildOrderResultArgData()),
+		};
+	}
 
-    void TossBot::SetChargelotAllin()
-    {
-        build_order = { BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(6.5f),                                      &TossBot::BuildFirstPylon,          BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(16.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(30.0f),                                     &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(34.0f),                                     &TossBot::Scout,                    BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(39.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(63.0f),                                     &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(69.0f),                                     &TossBot::BuildBuildingMulti,       BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(97.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(101.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(124.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(128.0f),                                    &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(135.0f),                                    &TossBot::ResearchWarpgate,         BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(158.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(160.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(172.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::HasGas,            BuildOrderConditionArgData(100),                                       &TossBot::PullOutOfGas,             BuildOrderResultArgData(6)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),      &TossBot::ResearchCharge,           BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),      &TossBot::ChronoTillFinished,       BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-                        BuildOrderData(&TossBot::NumWorkers,        BuildOrderConditionArgData(30),                                        &TossBot::CutWorkers,               BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(189.0f),                                    &TossBot::BuildBuildingMulti,       BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(215.0f),                                    &TossBot::TrainPrism,               BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_WARPPRISM)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(215.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-                        //BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(220.0f),                                    &TossBot::IncreaseExtraPylons,      BuildOrderResultArgData(1)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(220.0f),                                    &TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(235.0f),                                    &TossBot::WarpInUnits,              BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(255.0f),                                    &TossBot::WarpInUnits,              BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(255.0f),                                    &TossBot::MicroChargelotAllin,      BuildOrderResultArgData()),
-        };
-    }
+	void TossBot::SetChargelotAllin()
+	{
+		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(16.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(30.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(63.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(69.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(97.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(101.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(124.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(128.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(135.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(158.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(160.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(172.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::HasGas,			BuildOrderConditionArgData(100),										&TossBot::PullOutOfGas,				BuildOrderResultArgData(6)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchCharge,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+						BuildOrderData(&TossBot::NumWorkers,		BuildOrderConditionArgData(30),											&TossBot::CutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(189.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(215.0f),										&TossBot::TrainPrism,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_WARPPRISM)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(215.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
+						//BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(220.0f),										&TossBot::IncreaseExtraPylons,		BuildOrderResultArgData(1)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(220.0f),										&TossBot::ContinueBuildingPylons,	BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(235.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(255.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(255.0f),										&TossBot::MicroChargelotAllin,		BuildOrderResultArgData()),
+		};
+	}
 
-    void TossBot::SetChargelotAllinOld()
-    {
-        build_order = { BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(6.5f),                                      &TossBot::BuildFirstPylon,          BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(16.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(34.0f),                                     &TossBot::Scout,                    BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(39.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(39.0f),                                     &TossBot::ImmediatelySaturateGasses,BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(68.0f),                                     &TossBot::BuildBuildingMulti,       BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(97.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(102.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(110.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),      &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),      &TossBot::ResearchWarpgate,         BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(130.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(133.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(149.0f),                                    &TossBot::PullOutOfGas,             BuildOrderResultArgData(2)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(155.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(165.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(172.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::HasGas,            BuildOrderConditionArgData(100),                                       &TossBot::PullOutOfGas,             BuildOrderResultArgData(4)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),      &TossBot::ResearchCharge,           BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),      &TossBot::ChronoTillFinished,       BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-                        BuildOrderData(&TossBot::NumWorkers,        BuildOrderConditionArgData(30),                                        &TossBot::CutWorkers,               BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(189.0f),                                    &TossBot::BuildBuildingMulti,       BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(215.0f),                                    &TossBot::TrainPrism,               BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_WARPPRISM)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(215.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-                        //BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(220.0f),                                    &TossBot::IncreaseExtraPylons,      BuildOrderResultArgData(1)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(220.0f),                                    &TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(235.0f),                                    &TossBot::WarpInUnits,              BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(255.0f),                                    &TossBot::WarpInUnits,              BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(255.0f),                                    &TossBot::MicroChargelotAllin,      BuildOrderResultArgData()),
-        };
-    }
+	void TossBot::SetChargelotAllinOld()
+	{
+		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(16.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::ImmediatelySaturateGasses,BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(68.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(97.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(102.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(110.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(130.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(133.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(149.0f),										&TossBot::PullOutOfGas,				BuildOrderResultArgData(2)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(155.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(165.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(172.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::HasGas,			BuildOrderConditionArgData(100),										&TossBot::PullOutOfGas,				BuildOrderResultArgData(4)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchCharge,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+						BuildOrderData(&TossBot::NumWorkers,		BuildOrderConditionArgData(30),											&TossBot::CutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(189.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(215.0f),										&TossBot::TrainPrism,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_WARPPRISM)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(215.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
+						//BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(220.0f),										&TossBot::IncreaseExtraPylons,		BuildOrderResultArgData(1)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(220.0f),										&TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(235.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(255.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(255.0f),										&TossBot::MicroChargelotAllin,		BuildOrderResultArgData()),
+		};
+	}
 
-    void TossBot::Set4GateAdept()
-    {
-        build_order = { BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(6.5f),                                      &TossBot::BuildFirstPylon,          BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(16.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(34.0f),                                     &TossBot::Scout,                    BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(39.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(68.0f),                                     &TossBot::BuildBuildingMulti,       BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(94.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(102.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(102.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),      &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),      &TossBot::ResearchWarpgate,         BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(130.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(130.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),      &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(158.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(170.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::NumWorkers,        BuildOrderConditionArgData(30),                                        &TossBot::CutWorkers,               BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),      &TossBot::ResearchGlaives,          BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),      &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),      &TossBot::TrainAdept,               BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(191.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(198.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),     &TossBot::TrainPrism,               BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_WARPPRISM)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),     &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(211.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(205.0f),                                    &TossBot::UncutWorkers,             BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(230.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        //(&TossBot::TimePassed, 230, self.continue_warping_in_adepts, None),
-                        BuildOrderData(&TossBot::NumWorkers,        BuildOrderConditionArgData(30),                                        &TossBot::CutWorkers,               BuildOrderResultArgData()),
-                        //(self.has_unit, UnitTypeId.WARPPRISM, self.adept_pressure, None),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(250.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(250.0f),                                    &TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(250.0f),                                    &TossBot::ContinueMakingWorkers,    BuildOrderResultArgData()),
-        };
-    }
+	void TossBot::Set4GateAdept()
+	{
+		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(16.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(68.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(94.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(102.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(102.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(130.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(130.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(158.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(170.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::NumWorkers,		BuildOrderConditionArgData(30),											&TossBot::CutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchGlaives,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainAdept,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(191.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(198.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),		&TossBot::TrainPrism,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_WARPPRISM)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),		&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(211.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(230.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						//(&TossBot::TimePassed, 230, self.continue_warping_in_adepts, None),
+						BuildOrderData(&TossBot::NumWorkers,		BuildOrderConditionArgData(30),											&TossBot::CutWorkers,				BuildOrderResultArgData()),
+						//(self.has_unit, UnitTypeId.WARPPRISM, self.adept_pressure, None),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::ContinueMakingWorkers,	BuildOrderResultArgData()),
+		};
+	}
 
-    void TossBot::SetFastestDTsPvT()
-    {
-        build_order = { BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(10.0f),                                     &TossBot::BuildFirstPylon,          BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(27.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(34.0f),                                     &TossBot::Scout,                    BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(34.0f),                                     &TossBot::SafeRallyPoint,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(39.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(39.0f),                                     &TossBot::ImmediatelySaturateGasses,BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(39.0f),                                     &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(47.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(73.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(85.0f),                                     &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(105.0f),                                    &TossBot::RemoveScoutToProxy,       BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY, 151)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(110.0f),                                    &TossBot::CutWorkers,               BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(112.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(115.0f),                                    &TossBot::ResearchWarpgate,         BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(116.0f),                                    &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(116.0f),                                    &TossBot::ChronoBuilding,           BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(126.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(136.0f),                                    &TossBot::Contain,                  BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(136.0f),                                    &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(149.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(166.0f),                                    &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(177.0f),                                    &TossBot::TrainStalker,             BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(190.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE),           &TossBot::ResearchDTBlink,          BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::HasBuilding,       BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE),           &TossBot::ChronoTillFinished,       BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(225.0f),                                    &TossBot::WarpInUnits,              BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER, 3)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(227.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(240.0f),                                    &TossBot::BuildBuilding,            BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(245.0f),                                    &TossBot::WarpInUnits,              BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER, 2)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(270.0f),                                    &TossBot::UncutWorkers,             BuildOrderResultArgData()),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(298.0f),                                    &TossBot::WarpInUnits,              BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKTEMPLAR, 3)),
-                        BuildOrderData(&TossBot::TimePassed,        BuildOrderConditionArgData(298.0f),                                    &TossBot::DTHarass,                 BuildOrderResultArgData()),
-        };
-    }
+	void TossBot::SetFastestDTsPvT()
+	{
+		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(10.0f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(27.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::SafeRallyPoint,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::ImmediatelySaturateGasses,BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(47.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(73.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(85.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(105.0f),										&TossBot::RemoveScoutToProxy,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY, 151)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(110.0f),										&TossBot::CutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(112.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(115.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(116.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(116.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(126.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::Contain,					BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(149.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(166.0f),										&TossBot::TrainStalker,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(177.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(190.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE),			&TossBot::ResearchDTBlink,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE),			&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(225.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER, 3)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(227.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(245.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER, 2)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(298.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKTEMPLAR, 3)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(298.0f),										&TossBot::DTHarass,					BuildOrderResultArgData()),
+		};
+	}
+
+	void TossBot::SetProxyDoubleRobo()
+	{
+		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(10.0f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(25.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(30.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(35.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(45.0f),										&TossBot::SafeRallyPoint,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(68.0f),										&TossBot::BuildProxyMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_PYLON, UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(82.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(93.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainAdept,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(146.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(155.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(155.0f),										&TossBot::CutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(155.0f),										&TossBot::UseProxyDoubleRobo,		BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(185.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(200.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(210.0f),										&TossBot::CutWorkers,				BuildOrderResultArgData()),
+
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(400.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(85.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(105.0f),										&TossBot::RemoveScoutToProxy,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY, 151)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(110.0f),										&TossBot::CutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(112.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(115.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(116.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(116.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(126.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::Contain,					BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(149.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(166.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(177.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(190.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE),			&TossBot::ResearchDTBlink,			BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE),			&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(225.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER, 3)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(227.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(245.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER, 2)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(298.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKTEMPLAR, 3)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(298.0f),										&TossBot::DTHarass,					BuildOrderResultArgData()),
+		};
+	}
     
 
 #pragma endregion

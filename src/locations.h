@@ -25,7 +25,7 @@ public:
 
     std::vector<Point2D> proxy_pylon_locations;
     std::vector<Point2D> proxy_gateway_locations;
-    std::vector<Point2D> proxy_robo_locations;
+    std::vector<Point2D> proxy_tech_locations;
 
     std::vector<Point2D> attack_path;
     int high_ground_index;

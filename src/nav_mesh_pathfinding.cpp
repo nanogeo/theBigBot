@@ -637,11 +637,13 @@ void NavMesh::AddNewObstacle(const Unit* unit)
 {
 	Polygon polygon = CreateObstaclePolygon(unit);
 	std::vector<Triangle*> overlapping_triangles = FindOverlappingTriangles(polygon);
-	std::vector<Point2D> intersection_points = FindIntersectionPoints(polygon, overlapping_triangles);
-	//std::vector<Point2D> removed_verticies = SaveVerticies(overlapping_triangles);
+	//std::vector<Point2D> intersection_points = FindIntersectionPoints(polygon, overlapping_triangles);
+	////std::vector<Point2D> removed_verticies = SaveVerticies(overlapping_triangles);
 
-	std::vector<Point2D> all_verticies = intersection_points;
-	all_verticies.insert(all_verticies.end(), polygon.points.begin(), polygon.points.end());
+	//std::vector<Point2D> all_verticies = intersection_points;
+	//all_verticies.insert(all_verticies.end(), polygon.points.begin(), polygon.points.end());
+	std::vector<Point2D> all_verticies = polygon.points;
+
 
 	//RemoveTriangles(overlapping_triangles);
 	AddVerticies(all_verticies);

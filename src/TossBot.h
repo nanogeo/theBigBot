@@ -223,7 +223,8 @@ enum BuildOrder {
     chargelot_allin,
     chargelot_allin_old,
     four_gate_adept_pressure,
-    fastest_dts
+    fastest_dts,
+	proxy_double_robo
 };
 
 struct ActionArgData
@@ -269,6 +270,10 @@ struct ActionArgData
         position = z;
         index = time;
     }
+	ActionArgData(std::vector<UNIT_TYPEID> x)
+	{
+		unitIds = x;
+	}
 };
 
 struct ActionData;
@@ -301,7 +306,7 @@ class TossBot : public sc2::Agent
 {
 public:
     TossBot() : Agent() {};
-    bool debug_mode = true;
+    bool debug_mode = false;
     std::map<Tag, const Unit*> tag_to_unit;
     std::map<const Unit*, mineral_patch_data> mineral_patches;
     std::map<const Unit*, mineral_patch_reversed_data> mineral_patches_reversed;
@@ -347,10 +352,12 @@ public:
     bool HasBuff(const Unit*, BUFF_ID);
     std::vector<Point2D> GetLocations(UNIT_TYPEID);
     Point2D GetLocation(UNIT_TYPEID);
+	Point2D GetProxyLocation(UNIT_TYPEID);
     std::vector<Point2D> GetProxyLocations(UNIT_TYPEID);
     float BuildingSize(UNIT_TYPEID);
     bool CanBuildBuilding(UNIT_TYPEID);
     ABILITY_ID GetBuildAbility(UNIT_TYPEID);
+	ABILITY_ID GetTrainAbility(UNIT_TYPEID);
     bool CanAfford(UNIT_TYPEID, int);
     bool CanAffordUpgrade(UPGRADE_ID);
     int BuildingsReady(UNIT_TYPEID);
@@ -417,6 +424,7 @@ public:
     // Actions
     bool ActionBuildBuilding(ActionArgData*);
     bool ActionBuildBuildingMulti(ActionArgData*);
+	bool ActionBuildProxyMulti(ActionArgData*);
     bool ActionScoutZerg(ActionArgData*);
     bool ActionContinueMakingWorkers(ActionArgData*);
     bool ActionContinueBuildingPylons(ActionArgData*);
@@ -431,6 +439,7 @@ public:
     bool ActionPullOutOfGas(ActionArgData*);
     bool ActionRemoveScoutToProxy(ActionArgData*);
     bool ActionDTHarassTerran(ActionArgData*);
+	bool ActionUseProxyDoubleRobo(ActionArgData*);
 
     void CheckBuildOrder();
     // Build order condition functions
@@ -455,6 +464,7 @@ public:
     bool ChronoBuilding(BuildOrderResultArgData);
     bool ResearchWarpgate(BuildOrderResultArgData);
     bool BuildProxy(BuildOrderResultArgData);
+	bool BuildProxyMulti(BuildOrderResultArgData);
     bool ResearchBlink(BuildOrderResultArgData);
     bool ResearchCharge(BuildOrderResultArgData);
     bool ResearchGlaives(BuildOrderResultArgData);
@@ -479,6 +489,7 @@ public:
     bool RemoveScoutToProxy(BuildOrderResultArgData);
     bool SafeRallyPoint(BuildOrderResultArgData);
     bool DTHarass(BuildOrderResultArgData);
+	bool UseProxyDoubleRobo(BuildOrderResultArgData);
 
     // Bulid orders
     void SetBuildOrder(BuildOrder);
@@ -489,6 +500,7 @@ public:
     void SetChargelotAllinOld();
     void Set4GateAdept();
     void SetFastestDTsPvT();
+	void SetProxyDoubleRobo();
 
     // Debug info
     void DisplayDebugHud();
@@ -667,6 +679,17 @@ struct BuildOrderData
             str.pop_back();
             str.pop_back();
         }
+		else if (result == &TossBot::BuildProxyMulti)
+		{
+			str += "build a proxy ";
+			for (const auto &building : result_arg.unitIds)
+			{
+				str += TossBot::UnitTypeIdToString(building);
+				str += ", ";
+			}
+			str.pop_back();
+			str.pop_back();
+		}
         else if (result == &TossBot::Scout)
         {
             str += "send scout";
@@ -816,6 +839,10 @@ struct BuildOrderData
         {
             str += "start DT harass";
         }
+		else if (result == &TossBot::UseProxyDoubleRobo)
+		{
+		str += "use proxy double robo";
+		}
 
         return str;
     }
@@ -849,6 +876,17 @@ struct ActionData
             str.pop_back();
             str.pop_back();
         }
+		else if (action == &TossBot::ActionBuildProxyMulti)
+		{
+			str += "Build a proxy ";
+			for (int i = action_arg->index; i < action_arg->unitIds.size(); i++)
+			{
+				str += TossBot::UnitTypeIdToString(action_arg->unitIds[i]);
+				str += ", ";
+			}
+			str.pop_back();
+			str.pop_back();
+		}
         else if (action == &TossBot::ActionScoutZerg)
         {
             str += "Scout zerg UNUSED";
@@ -900,6 +938,23 @@ struct ActionData
         {
             str += "pull out of gas";
         }
+		else if (action == &TossBot::ActionUseProxyDoubleRobo)
+		{
+			str += "Build ";
+			if (action_arg->unitIds.size() > 0)
+			{
+				for (const auto &unit : action_arg->unitIds)
+				{
+					str += TossBot::UnitTypeIdToString(unit);
+					str += ", ";
+				}
+			}
+			else
+			{
+				str += "immortals ";
+			}
+			str += "from proxy robos";
+		}
         return str;
     }
 };
