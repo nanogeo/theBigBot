@@ -490,6 +490,7 @@ public:
     bool SafeRallyPoint(BuildOrderResultArgData);
     bool DTHarass(BuildOrderResultArgData);
 	bool UseProxyDoubleRobo(BuildOrderResultArgData);
+	bool MicroImmortalDrop(BuildOrderResultArgData);
 
     // Bulid orders
     void SetBuildOrder(BuildOrder);
@@ -842,6 +843,10 @@ struct BuildOrderData
 		else if (result == &TossBot::UseProxyDoubleRobo)
 		{
 		str += "use proxy double robo";
+		}
+		else if (result == &TossBot::MicroImmortalDrop)
+		{
+		str += "micro immortal drop";
 		}
 
         return str;

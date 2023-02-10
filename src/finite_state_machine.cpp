@@ -578,4 +578,124 @@ namespace sc2 {
 
 #pragma endregion
 
+
+#pragma region ImmortalDropWaitForImmortals
+
+	void ImmortalDropWaitForImmortals::TickState()
+	{
+		if (state_machine->prism == NULL)
+		{
+			for (const auto &prism : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)))
+			{
+				state_machine->prism = prism;
+				break;
+			}
+		}
+		if (state_machine->immortals.size() < 2)
+		{
+			for (const auto &immortal : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_IMMORTAL)))
+			{
+				if (std::find(state_machine->immortals.begin(), state_machine->immortals.end(), immortal) == state_machine->immortals.end())
+				{
+					state_machine->immortals.push_back(immortal);
+				}
+			}
+		}
+	}
+
+	void ImmortalDropWaitForImmortals::EnterState()
+	{
+		return;
+	}
+
+	void ImmortalDropWaitForImmortals::ExitState()
+	{
+		for (const auto &immortal : state_machine->immortals)
+		{
+			agent->Actions()->UnitCommand(immortal, ABILITY_ID::SMART, state_machine->prism);
+		}
+		return;
+	}
+
+	State* ImmortalDropWaitForImmortals::TestTransitions()
+	{
+		if (state_machine->prism != NULL && state_machine->immortals.size() == 2)
+			return new ImmortalDropInitialMove(agent, state_machine);
+		return NULL;
+	}
+
+	std::string ImmortalDropWaitForImmortals::toString()
+	{
+		return "wait for immortals";
+	}
+
+#pragma endregion
+
+#pragma region ImmortalDropInitialMove
+
+	void ImmortalDropInitialMove::TickState()
+	{
+		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->entry_pos);
+	}
+
+	void ImmortalDropInitialMove::EnterState()
+	{
+		return;
+	}
+
+	void ImmortalDropInitialMove::ExitState()
+	{
+		return;
+	}
+
+	State* ImmortalDropInitialMove::TestTransitions()
+	{
+		if (Distance2D(state_machine->prism->pos, state_machine->entry_pos) < 2)
+			return new ImmortalDropMicroDrop(agent, state_machine);
+		return NULL;
+	}
+
+	std::string ImmortalDropInitialMove::toString()
+	{
+		return "initial move";
+	}
+
+#pragma endregion
+
+#pragma region ImmortalDropMicroDrop
+
+	void ImmortalDropMicroDrop::TickState()
+	{
+		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALL, state_machine->prism);
+		for (const auto &immortal : state_machine->immortals)
+		{
+			if (immortal->weapon_cooldown != 0)
+				agent->Actions()->UnitCommand(immortal, ABILITY_ID::SMART, state_machine->prism);
+		}
+	}
+
+	void ImmortalDropMicroDrop::EnterState()
+	{
+		return;
+	}
+
+	void ImmortalDropMicroDrop::ExitState()
+	{
+		return;
+	}
+
+	State* ImmortalDropMicroDrop::TestTransitions()
+	{
+		if (Distance2D(state_machine->prism->pos, state_machine->entry_pos) < 2)
+			return new ImmortalDropMicroDrop(agent, state_machine);
+		return NULL;
+	}
+
+	std::string ImmortalDropMicroDrop::toString()
+	{
+		return "micro immortal drop";
+	}
+
+#pragma endregion
+
 }

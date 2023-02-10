@@ -20,6 +20,8 @@ public:
     virtual State* TestTransitions();
 };
 
+#pragma region Oracle
+
 class OracleDefend : public State {
 public:
     Units oracles;
@@ -80,6 +82,10 @@ public:
     virtual State* TestTransitions() override;
 };
 
+#pragma endregion
+
+#pragma region Chargelot Allin
+
 class ChargelotAllInStateMachine;
 
 class ChargeAllInMovingToWarpinSpot : public State {
@@ -112,8 +118,11 @@ public:
     virtual State* TestTransitions() override;
 };
 
+#pragma endregion
+
+#pragma region Scout Z
+
 class ScoutZergStateMachine;
-class ScoutTerranStateMachine;
 
 class ScoutZInitialMove : public State
 {
@@ -179,6 +188,12 @@ public:
     virtual State* TestTransitions() override;
 };
 
+#pragma endregion
+
+#pragma region Scout T
+
+class ScoutTerranStateMachine;
+
 class ScoutTInitialMove : public State
 {
 public:
@@ -226,6 +241,95 @@ public:
     virtual void ExitState() override;
     virtual State* TestTransitions() override;
 };
+
+#pragma endregion
+
+#pragma region ImmortalDrop
+
+class ImmortalDropStateMachine;
+
+class ImmortalDropWaitForImmortals : public State
+{
+public:
+	class ImmortalDropStateMachine* state_machine;
+	ImmortalDropWaitForImmortals(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class ImmortalDropInitialMove : public State
+{
+public:
+	class ImmortalDropStateMachine* state_machine;
+	ImmortalDropInitialMove(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class ImmortalDropMicroDrop : public State
+{
+public:
+	class ImmortalDropStateMachine* state_machine;
+	ImmortalDropMicroDrop(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class ImmortalDropWaitForShields : public State
+{
+public:
+	class ImmortalDropStateMachine* state_machine;
+	ImmortalDropWaitForShields(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class ImmortalDropLeave : public State
+{
+public:
+	class ImmortalDropStateMachine* state_machine;
+	ImmortalDropLeave(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+
+#pragma endregion
 
 class StateMachine
 {
@@ -435,6 +539,25 @@ public:
             }
         }
     }
+};
+
+class ImmortalDropStateMachine : public StateMachine
+{
+public:
+	Units immortals;
+	const Unit* prism;
+	std::vector<Point2D> prism_spots;
+	Point2D entry_pos;
+	ImmortalDropStateMachine(TossBot* agent, std::string name, std::vector<Point2D> prism_locations, Units immortals, const Unit* prism, Point2D pos) {
+		this->agent = agent;
+		this->name = name;
+		current_state = new ImmortalDropWaitForImmortals(agent, this);
+		prism_spots = prism_locations;
+		this->immortals = immortals;
+		this->prism = prism;
+		entry_pos = pos;
+		current_state->EnterState();
+	}
 };
 
 

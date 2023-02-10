@@ -3682,6 +3682,11 @@ for (const auto &field : far_oversaturated_patches)
 		return true;
 	}
 
+	bool TossBot::MicroImmortalDrop(BuildOrderResultArgData data)
+	{
+		return true;
+	}
+
 
 #pragma endregion
 
@@ -3965,6 +3970,8 @@ for (const auto &field : far_oversaturated_patches)
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(200.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(210.0f),										&TossBot::CutWorkers,				BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(228.0f),										&TossBot::ContinueBuildingPylons,	BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(228.0f),										&TossBot::MicroImmortalDrop,		BuildOrderResultArgData()),
 
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(400.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(85.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
