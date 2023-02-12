@@ -3684,6 +3684,17 @@ for (const auto &field : far_oversaturated_patches)
 
 	bool TossBot::MicroImmortalDrop(BuildOrderResultArgData data)
 	{
+		const Unit* immortal1 = NULL;
+		const Unit* immortal2 = NULL;
+		for (const auto &immortal : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_IMMORTAL)))
+		{
+			if (immortal1 == NULL)
+				immortal1 = immortal;
+			else if (immortal2 == NULL)
+				immortal2 = immortal;
+		}
+		ImmortalDropStateMachine* immortal_drop_fsm = new ImmortalDropStateMachine(this, "Immortal Drop", immortal1, immortal2, Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPPRISM))[0], Observation()->GetGameInfo().enemy_start_locations[0]);
+		active_FSMs.push_back(immortal_drop_fsm);
 		return true;
 	}
 
@@ -4410,6 +4421,14 @@ for (const auto &field : far_oversaturated_patches)
     {
 
     }
+
+	void TossBot::FindTargets(Units units)
+	{
+		for (const auto &unit : units)
+		{
+			Actions()->UnitCommand(unit, ABILITY_ID::ATTACK);
+		}
+	}
 
 #pragma endregion
 }

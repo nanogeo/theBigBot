@@ -284,6 +284,7 @@ class ImmortalDropMicroDrop : public State
 {
 public:
 	class ImmortalDropStateMachine* state_machine;
+	bool first_immortal_turn = true;
 	ImmortalDropMicroDrop(TossBot* agent, ImmortalDropStateMachine* state_machine)
 	{
 		this->agent = agent;
@@ -544,16 +545,16 @@ public:
 class ImmortalDropStateMachine : public StateMachine
 {
 public:
-	Units immortals;
+	const Unit* immortal1;
+	const Unit* immortal2;
 	const Unit* prism;
-	std::vector<Point2D> prism_spots;
 	Point2D entry_pos;
-	ImmortalDropStateMachine(TossBot* agent, std::string name, std::vector<Point2D> prism_locations, Units immortals, const Unit* prism, Point2D pos) {
+	ImmortalDropStateMachine(TossBot* agent, std::string name, const Unit* immortal1, const Unit* immortal2, const Unit* prism, Point2D pos) {
 		this->agent = agent;
 		this->name = name;
 		current_state = new ImmortalDropWaitForImmortals(agent, this);
-		prism_spots = prism_locations;
-		this->immortals = immortals;
+		this->immortal1 = immortal1;
+		this->immortal2 = immortal2;
 		this->prism = prism;
 		entry_pos = pos;
 		current_state->EnterState();

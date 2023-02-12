@@ -520,6 +520,9 @@ public:
     void ImmortalAttackTowards(Units, Point2D, Point2D, bool);
     void ImmortalAttackTowardsWithPrism(Units, Units, Point2D, Point2D, bool);
 
+	// Other
+	void FindTargets(Units);
+
 };
 
 

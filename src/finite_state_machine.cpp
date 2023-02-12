@@ -591,14 +591,14 @@ namespace sc2 {
 				break;
 			}
 		}
-		if (state_machine->immortals.size() < 2)
+		if (state_machine->immortal1 == NULL || state_machine->immortal2 == NULL)
 		{
 			for (const auto &immortal : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_IMMORTAL)))
 			{
-				if (std::find(state_machine->immortals.begin(), state_machine->immortals.end(), immortal) == state_machine->immortals.end())
-				{
-					state_machine->immortals.push_back(immortal);
-				}
+				if (state_machine->immortal1 == NULL && immortal != state_machine->immortal2)
+					state_machine->immortal1 = immortal;
+				else if (state_machine->immortal2 == NULL && immortal != state_machine->immortal1)
+					state_machine->immortal2 = immortal;
 			}
 		}
 	}
@@ -610,16 +610,14 @@ namespace sc2 {
 
 	void ImmortalDropWaitForImmortals::ExitState()
 	{
-		for (const auto &immortal : state_machine->immortals)
-		{
-			agent->Actions()->UnitCommand(immortal, ABILITY_ID::SMART, state_machine->prism);
-		}
+		agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::SMART, state_machine->prism);
+		agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::SMART, state_machine->prism);
 		return;
 	}
 
 	State* ImmortalDropWaitForImmortals::TestTransitions()
 	{
-		if (state_machine->prism != NULL && state_machine->immortals.size() == 2)
+		if (state_machine->prism != NULL && state_machine->immortal1 != NULL  && state_machine->immortal2 != NULL)
 			return new ImmortalDropInitialMove(agent, state_machine);
 		return NULL;
 	}
@@ -650,7 +648,7 @@ namespace sc2 {
 
 	State* ImmortalDropInitialMove::TestTransitions()
 	{
-		if (Distance2D(state_machine->prism->pos, state_machine->entry_pos) < 2)
+		if (Distance2D(state_machine->prism->pos, state_machine->entry_pos) < 15)
 			return new ImmortalDropMicroDrop(agent, state_machine);
 		return NULL;
 	}
@@ -666,12 +664,31 @@ namespace sc2 {
 
 	void ImmortalDropMicroDrop::TickState()
 	{
-		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALL, state_machine->prism);
-		for (const auto &immortal : state_machine->immortals)
+		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
+
+		if (state_machine->prism->cargo_space_taken == 0)
 		{
-			if (immortal->weapon_cooldown != 0)
-				agent->Actions()->UnitCommand(immortal, ABILITY_ID::SMART, state_machine->prism);
+			if (first_immortal_turn && state_machine->immortal1->weapon_cooldown > 0)
+			{
+				agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::SMART, state_machine->prism);
+				first_immortal_turn = !first_immortal_turn;
+			}
+			else if (!first_immortal_turn && state_machine->immortal2->weapon_cooldown > 0)
+			{
+				agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::SMART, state_machine->prism);
+				first_immortal_turn = !first_immortal_turn;
+			}
 		}
+
+		if (state_machine->immortal1->weapon_cooldown == 0)
+		{
+			if (state_machine->immortal2->weapon_cooldown == 0)
+				agent->FindTargets({ state_machine->immortal1, state_machine->immortal2 });
+			else
+				agent->FindTargets({ state_machine->immortal1 });
+		}
+		else if (state_machine->immortal2->weapon_cooldown == 0)
+			agent->FindTargets({ state_machine->immortal2 });
 	}
 
 	void ImmortalDropMicroDrop::EnterState()
@@ -686,8 +703,6 @@ namespace sc2 {
 
 	State* ImmortalDropMicroDrop::TestTransitions()
 	{
-		if (Distance2D(state_machine->prism->pos, state_machine->entry_pos) < 2)
-			return new ImmortalDropMicroDrop(agent, state_machine);
 		return NULL;
 	}
 
