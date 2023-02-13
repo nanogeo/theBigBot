@@ -410,7 +410,7 @@ public:
     Point2D MedianCenter(Units);
     Point2D PointBetween(Point2D, Point2D, float);
     int DangerLevel(const Unit *);
-    int GetDamage(const Unit*);
+    int GetDamage(const Unit*, const Unit*);
     float RealGroundRange(const Unit *, const Unit *);
     bool IsOnHighGround(Point3D, Point3D);
     float GetTimeBuilt(const Unit*);

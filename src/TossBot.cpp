@@ -3,6 +3,7 @@
 #include "finish_state_machine.h"
 #include "pathfinding.h"
 #include "locations.h"
+#include "fire_control.h"
 
 #include <iostream>
 #include <string>
@@ -313,8 +314,73 @@ namespace sc2 {
             }
             
             SetBuildOrder(BuildOrder::proxy_double_robo);
-        }
 
+			Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, Point2D(75, 75), 1, 8);
+			Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, Point2D(75, 68), 2, 40);
+			Debug()->DebugEnemyControl();
+        }
+		if (Observation()->GetGameLoop() >= 2)
+		{
+			Point2D fallback = Point2D(75, 120);
+			for (const auto &unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ZERGLING)))
+			{
+				Actions()->UnitCommand(unit, ABILITY_ID::ATTACK, fallback);
+			}
+			std::map<const Unit*, std::vector<const Unit*>> units;
+			Units Funits;
+			Units Eunits;
+			for (const auto &unit : Observation()->GetUnits())
+			{
+				if (unit->alliance == Unit::Alliance::Self && unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
+					Funits.push_back(unit);
+				else if (unit->alliance == Unit::Alliance::Enemy)
+					Eunits.push_back(unit);
+			}
+			for (const auto &unit : Funits)
+			{
+				Units units_in_range;
+				for (const auto &Eunit : Eunits)
+				{
+					if (Distance2D(unit->pos, Eunit->pos) <= RealGroundRange(unit, Eunit))
+						units_in_range.push_back(Eunit);
+				}
+				units[unit] = units_in_range;
+			}
+
+			FireControl* fire_control = new FireControl(this, units, { UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_MARINE });
+			std::map<const Unit*, const Unit*> attacks = fire_control->FindAttacks();
+
+			for (const auto &attack : attacks)
+			{
+				Debug()->DebugLineOut(attack.first->pos + Point3D(0, 0, .2), attack.second->pos + Point3D(0, 0, .2), Color(0, 0, 255));
+			}
+
+			bool all_ready = true;
+			for (const auto &unit : Funits)
+			{
+				if (unit->weapon_cooldown > 0)
+					all_ready = false;
+			}
+			if (all_ready)
+			{
+				std::cout << "fire volley\n";
+				for (const auto &attack : attacks)
+				{
+					Actions()->UnitCommand(attack.first, ABILITY_ID::ATTACK, attack.second);
+					std::cout << attack.first->tag << " " << attack.second->tag << std::endl;
+				}
+				std::cout << "\n";
+			}
+			else
+			{
+				for (const auto &unit : Funits)
+				{
+					std::cout << "move\n";
+					if (unit->weapon_cooldown > 0)
+						Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, fallback);
+				}
+			}
+		}
         
         if (Observation()->GetGameLoop() % 2 == 0)
         {
@@ -417,12 +483,14 @@ namespace sc2 {
     void TossBot::OnUnitDamaged(const Unit *unit, float health_damage, float shield_damage)
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health_damage) << " damage\n";
+        std::cout << unit->tag << " took " << std::to_string(health_damage) << " damage\n";
         CallOnUnitDamagedEvent(unit, health_damage, shield_damage);
     }
 
     void TossBot::OnUnitDestroyed(const Unit *unit)
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		std::cout << unit->tag << " destroyed\n";
         CallOnUnitDestroyedEvent(unit);
 		nav_mesh.RemoveObstacle(unit);
     }
@@ -2354,14 +2422,14 @@ for (const auto &field : far_oversaturated_patches)
         for (const auto &enemy_unit : Observation()->GetUnits(Unit::Alliance::Enemy))
         {
             if (!enemy_unit->is_building && Distance2D(unit->pos, enemy_unit->pos) <= RealGroundRange(enemy_unit, unit))
-                possible_damage += GetDamage(enemy_unit);
+                possible_damage += GetDamage(enemy_unit, unit);
         }
         return possible_damage;
     }
 
-    int TossBot::GetDamage(const Unit* unit)
+    int TossBot::GetDamage(const Unit* attacker, const Unit* target)
     {
-        switch(unit->unit_type.ToType())
+        switch(attacker->unit_type.ToType())
         {
         case UNIT_TYPEID::ZERG_ROACH:
             return 16;
@@ -2369,6 +2437,8 @@ for (const auto &field : far_oversaturated_patches)
             return 6;
         case UNIT_TYPEID::TERRAN_MARAUDER:
             return 10;
+		case UNIT_TYPEID::PROTOSS_STALKER:
+			return 13;
         default:
             std::cout << "Error invalid unit type in GetDamage\n";
             return 0;
