@@ -285,7 +285,81 @@ class ImmortalDropMicroDrop : public State
 public:
 	class ImmortalDropStateMachine* state_machine;
 	bool first_immortal_turn = true;
+	bool immortal1_has_attack_order = false;
+	bool immortal2_has_attack_order = false;
 	ImmortalDropMicroDrop(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class ImmortalDropMicroDropCarrying1 : public State
+{
+public:
+	class ImmortalDropStateMachine* state_machine;
+	int entry_frame;
+	ImmortalDropMicroDropCarrying1(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		entry_frame = agent->Observation()->GetGameLoop();
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class ImmortalDropMicroDropCarrying2 : public State
+{
+public:
+	class ImmortalDropStateMachine* state_machine;
+	int entry_frame;
+	ImmortalDropMicroDropCarrying2(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		entry_frame = agent->Observation()->GetGameLoop();
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class ImmortalDropMicroDropDropped1 : public State
+{
+public:
+	class ImmortalDropStateMachine* state_machine;
+	bool immortal1_has_attack_order = false;
+	bool immortal2_has_attack_order = false;
+	ImmortalDropMicroDropDropped1(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class ImmortalDropMicroDropDropped2 : public State
+{
+public:
+	class ImmortalDropStateMachine* state_machine;
+	bool immortal1_has_attack_order = false;
+	bool immortal2_has_attack_order = false;
+	ImmortalDropMicroDropDropped2(TossBot* agent, ImmortalDropStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -549,6 +623,8 @@ public:
 	const Unit* immortal2;
 	const Unit* prism;
 	Point2D entry_pos;
+	std::vector<UNIT_TYPEID> target_priority = { UNIT_TYPEID::TERRAN_CYCLONE, UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_SIEGETANK,
+		UNIT_TYPEID::TERRAN_MULE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_WIDOWMINE, UNIT_TYPEID::TERRAN_TECHLAB, UNIT_TYPEID::TERRAN_REACTOR };
 	ImmortalDropStateMachine(TossBot* agent, std::string name, const Unit* immortal1, const Unit* immortal2, const Unit* prism, Point2D pos) {
 		this->agent = agent;
 		this->name = name;

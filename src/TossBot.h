@@ -411,6 +411,7 @@ public:
     Point2D PointBetween(Point2D, Point2D, float);
     int DangerLevel(const Unit *);
     int GetDamage(const Unit*, const Unit*);
+	int GetArmor(const Unit*);
     float RealGroundRange(const Unit *, const Unit *);
     bool IsOnHighGround(Point3D, Point3D);
     float GetTimeBuilt(const Unit*);
@@ -521,7 +522,7 @@ public:
     void ImmortalAttackTowardsWithPrism(Units, Units, Point2D, Point2D, bool);
 
 	// Other
-	void FindTargets(Units);
+	std::map<const Unit*, const Unit*> FindTargets(Units, std::vector<UNIT_TYPEID>);
 
 };
 

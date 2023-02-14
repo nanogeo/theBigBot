@@ -9,6 +9,7 @@ namespace sc2 {
 	FireControl::FireControl(TossBot* agent, std::map<const Unit*, std::vector<const Unit*>> units, std::vector<UNIT_TYPEID> priority)
 	{
 		this->agent = agent;
+		this->priority = priority;
 		for (const auto &Funit : units)
 		{
 			FriendlyUnitInfo* new_unit = new FriendlyUnitInfo();
@@ -172,7 +173,16 @@ namespace sc2 {
 			if (current_unit->units_in_range.size() == 0)
 				RemoveFriendlyUnit(current_unit);
 			else
+			{
+				std::sort(current_unit->units_in_range.begin(), current_unit->units_in_range.end(),
+					[](const EnemyUnitInfo* a, const EnemyUnitInfo* b) -> bool
+				{
+					if (a->priority == b->priority)
+						return a->health < b->health;
+					return a->priority < b->priority;
+				});
 				ApplyAttack(current_unit, current_unit->units_in_range[0]);
+			}
 		}
 
 		return attacks;

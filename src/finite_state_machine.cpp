@@ -665,31 +665,10 @@ namespace sc2 {
 	void ImmortalDropMicroDrop::TickState()
 	{
 		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
-
-		if (state_machine->prism->cargo_space_taken == 0)
-		{
-			if (first_immortal_turn && state_machine->immortal1->weapon_cooldown > 0)
-			{
-				agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::SMART, state_machine->prism);
-				first_immortal_turn = !first_immortal_turn;
-			}
-			else if (!first_immortal_turn && state_machine->immortal2->weapon_cooldown > 0)
-			{
-				agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::SMART, state_machine->prism);
-				first_immortal_turn = !first_immortal_turn;
-			}
-		}
-
-		if (state_machine->immortal1->weapon_cooldown == 0)
-		{
-			if (state_machine->immortal2->weapon_cooldown == 0)
-				agent->FindTargets({ state_machine->immortal1, state_machine->immortal2 });
-			else
-				agent->FindTargets({ state_machine->immortal1 });
-		}
-		else if (state_machine->immortal2->weapon_cooldown == 0)
-			agent->FindTargets({ state_machine->immortal2 });
+		agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1));
+		agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1));
 	}
+
 
 	void ImmortalDropMicroDrop::EnterState()
 	{
@@ -703,12 +682,172 @@ namespace sc2 {
 
 	State* ImmortalDropMicroDrop::TestTransitions()
 	{
+		if (state_machine->prism->cargo_space_taken == 0)
+			return new ImmortalDropMicroDropDropped2(agent, state_machine);
 		return NULL;
 	}
 
 	std::string ImmortalDropMicroDrop::toString()
 	{
 		return "micro immortal drop";
+	}
+
+#pragma endregion
+
+#pragma region ImmortalDropMicroDropCarrying1
+
+	void ImmortalDropMicroDropCarrying1::TickState()
+	{
+		if (agent->Observation()->GetGameLoop() >= entry_frame + 15)
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
+		if (state_machine->immortal1->orders.size() == 0 || state_machine->immortal1->orders[0].ability_id != ABILITY_ID::SMART)
+			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1));
+		if (state_machine->immortal2->orders.size() == 0 || state_machine->immortal2->orders[0].ability_id != ABILITY_ID::SMART)
+			agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1));
+	}
+
+	void ImmortalDropMicroDropCarrying1::EnterState()
+	{
+		return;
+	}
+
+	void ImmortalDropMicroDropCarrying1::ExitState()
+	{
+		return;
+	}
+
+	State* ImmortalDropMicroDropCarrying1::TestTransitions()
+	{
+		if (state_machine->immortal1->weapon_cooldown == 0 && state_machine->immortal2->weapon_cooldown == 0 && state_machine->prism->cargo_space_taken == 0)
+			return new ImmortalDropMicroDropDropped1(agent, state_machine);
+		return NULL;
+	}
+
+	std::string ImmortalDropMicroDropCarrying1::toString()
+	{
+		return "micro immortal drop carrying 1";
+	}
+
+#pragma endregion
+
+#pragma region ImmortalDropMicroDropCarrying2
+
+	void ImmortalDropMicroDropCarrying2::TickState()
+	{
+		if (agent->Observation()->GetGameLoop() >= entry_frame + 15)
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
+		if (state_machine->immortal1->orders.size() == 0 || state_machine->immortal1->orders[0].ability_id != ABILITY_ID::SMART)
+			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1));
+		if (state_machine->immortal2->orders.size() == 0 || state_machine->immortal2->orders[0].ability_id != ABILITY_ID::SMART)
+			agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1));
+	}
+
+	void ImmortalDropMicroDropCarrying2::EnterState()
+	{
+		return;
+	}
+
+	void ImmortalDropMicroDropCarrying2::ExitState()
+	{
+		return;
+	}
+
+	State* ImmortalDropMicroDropCarrying2::TestTransitions()
+	{
+		if (state_machine->immortal1->weapon_cooldown == 0 && state_machine->immortal2->weapon_cooldown == 0 && state_machine->prism->cargo_space_taken == 0)
+			return new ImmortalDropMicroDropDropped2(agent, state_machine);
+		return NULL;
+	}
+
+	std::string ImmortalDropMicroDropCarrying2::toString()
+	{
+		return "micro immortal drop carrying 2";
+	}
+
+#pragma endregion
+
+#pragma region ImmortalDropMicroDropDropped1
+
+	void ImmortalDropMicroDropDropped1::TickState()
+	{
+		if ((!immortal1_has_attack_order || state_machine->immortal1->weapon_cooldown > 0) && (!immortal2_has_attack_order || state_machine->immortal2->weapon_cooldown > 0))
+			agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::SMART, state_machine->prism);
+	}
+
+	void ImmortalDropMicroDropDropped1::EnterState()
+	{
+		std::map<const Unit*, const Unit*> attacks = agent->FindTargets({ state_machine->immortal1, state_machine->immortal2 }, state_machine->target_priority);
+		if (attacks.count(state_machine->immortal1))
+		{
+			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::ATTACK, attacks[state_machine->immortal1]);
+			immortal1_has_attack_order = true;
+		}
+
+		if (attacks.count(state_machine->immortal2))
+		{
+			agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::ATTACK, attacks[state_machine->immortal2]);
+			immortal2_has_attack_order = true;
+		}
+	}
+
+	void ImmortalDropMicroDropDropped1::ExitState()
+	{
+		
+	}
+
+	State* ImmortalDropMicroDropDropped1::TestTransitions()
+	{
+		if (state_machine->prism->cargo_space_taken == 4)
+			return new ImmortalDropMicroDropCarrying2(agent, state_machine);
+		return NULL;
+	}
+
+	std::string ImmortalDropMicroDropDropped1::toString()
+	{
+		return "micro immortal drop dropped 1";
+	}
+
+#pragma endregion
+
+#pragma region ImmortalDropMicroDropDropped2
+
+	void ImmortalDropMicroDropDropped2::TickState()
+	{
+		if ((!immortal1_has_attack_order || state_machine->immortal1->weapon_cooldown > 0) && (!immortal2_has_attack_order || state_machine->immortal2->weapon_cooldown > 0))
+			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::SMART, state_machine->prism);
+	}
+
+	void ImmortalDropMicroDropDropped2::EnterState()
+	{
+		std::map<const Unit*, const Unit*> attacks = agent->FindTargets({ state_machine->immortal1, state_machine->immortal2 }, state_machine->target_priority);
+		if (attacks.count(state_machine->immortal1))
+		{
+			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::ATTACK, attacks[state_machine->immortal1]);
+			immortal1_has_attack_order = true;
+		}
+
+		if (attacks.count(state_machine->immortal2))
+		{
+			agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::ATTACK, attacks[state_machine->immortal2]);
+			immortal2_has_attack_order = true;
+		}
+	}
+
+	void ImmortalDropMicroDropDropped2::ExitState()
+	{
+		agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::SMART, state_machine->prism);
+	}
+
+	State* ImmortalDropMicroDropDropped2::TestTransitions()
+	{
+		if (state_machine->prism->cargo_space_taken == 4)
+			return new ImmortalDropMicroDropCarrying1(agent, state_machine);
+		return NULL;
+	}
+
+	std::string ImmortalDropMicroDropDropped2::toString()
+	{
+		return "micro immortal drop dropped 2";
 	}
 
 #pragma endregion

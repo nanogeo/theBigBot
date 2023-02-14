@@ -32,6 +32,7 @@ public:
 	std::vector<FriendlyUnitInfo*> friendly_units;
 	std::vector<EnemyUnitInfo*> enemy_units;
 	std::map<const Unit*, const Unit*> attacks;
+	std::vector<UNIT_TYPEID> priority;
 
 	FireControl(TossBot*, std::map<const Unit*, std::vector<const Unit*>>, std::vector<UNIT_TYPEID>);
 
