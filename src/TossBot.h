@@ -78,12 +78,12 @@ struct BaseInfo
 struct Army
 {
     //TODO just store units
-    std::vector<Tag> observer_ids;
-    std::vector<Tag> immortal_ids;
-    std::vector<Tag> prism_ids;
-    std::vector<Tag> stalker_ids;
-    std::vector<Tag> oracle_ids;
-    std::vector<Point2D> attack_path;
+    Units observers;
+	Units immortals;
+	Units prisms;
+	Units stalkers;
+	Units oracles;
+	std::vector<Point2D> attack_path;
     int current_attack_index;
     int high_ground_index;
     Army() {};
@@ -93,18 +93,37 @@ struct Army
         current_attack_index = 2;
         high_ground_index = index;
     }
-    Army(std::vector<Tag> obs, std::vector<Tag> immortals, std::vector<Tag> prisms, std::vector<Tag> stalkers,
-        std::vector<Tag> oracles, std::vector<Point2D> path, int index)
+    Army(Units obs, Units immortals, Units prisms, Units stalkers,
+		Units oracles, std::vector<Point2D> path, int index)
     {
-        observer_ids = obs;
-        immortal_ids = immortals;
-        prism_ids = prisms;
-        stalker_ids = stalkers;
-        oracle_ids = oracles;
+        observers = obs;
+        immortals = immortals;
+        prisms = prisms;
+        stalkers = stalkers;
+        oracles = oracles;
         attack_path = path;
         current_attack_index = 3;
         high_ground_index = index;
     }
+	Army(Units all_units, std::vector<Point2D> path, int index)
+	{
+		for (const auto &unit : all_units)
+		{
+			if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_OBSERVER)
+				observers.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_IMMORTAL)
+				immortals.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_WARPPRISM)
+				prisms.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
+				stalkers.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ORACLE)
+				oracles.push_back(unit);
+		}
+        attack_path = path;
+        current_attack_index = 3;
+        high_ground_index = index;
+	}
 };
 
 struct mineral_patch_data
@@ -410,6 +429,7 @@ public:
     Point2D MedianCenter(Units);
     Point2D PointBetween(Point2D, Point2D, float);
     int DangerLevel(const Unit *);
+	int DangerLevelAt(const Unit *, Point2D);
     int GetDamage(const Unit*, const Unit*);
 	int GetArmor(const Unit*);
     float RealGroundRange(const Unit *, const Unit *);
@@ -441,6 +461,7 @@ public:
     bool ActionRemoveScoutToProxy(ActionArgData*);
     bool ActionDTHarassTerran(ActionArgData*);
 	bool ActionUseProxyDoubleRobo(ActionArgData*);
+	bool ActionAllIn(ActionArgData*);
 
     void CheckBuildOrder();
     // Build order condition functions
@@ -492,6 +513,7 @@ public:
     bool DTHarass(BuildOrderResultArgData);
 	bool UseProxyDoubleRobo(BuildOrderResultArgData);
 	bool MicroImmortalDrop(BuildOrderResultArgData);
+	bool ProxyDoubleRoboAllIn(BuildOrderResultArgData);
 
     // Bulid orders
     void SetBuildOrder(BuildOrder);

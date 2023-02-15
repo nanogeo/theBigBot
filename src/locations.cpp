@@ -122,6 +122,19 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 					convert_location(Point2D(44, 114), swap),
 					convert_location(Point2D(43, 124), swap) };
 
+	high_ground_index = 8;
+
+	attack_path_alt = { convert_location(Point2D(77, 120), swap),
+						convert_location(Point2D(70, 111), swap),
+						convert_location(Point2D(63, 103), swap),
+						convert_location(Point2D(53, 97), swap),
+						convert_location(Point2D(44, 102), swap),
+						convert_location(Point2D(41, 111), swap),
+						convert_location(Point2D(44, 114), swap),
+						convert_location(Point2D(43, 124), swap) };
+
+	high_ground_index_alt = 5;
+
 	std::vector<Point2D> air_path = { convert_location(Point2D(26, 17), swap),
 										convert_location(Point2D(102, 147), swap),
 										convert_location(Point2D(24, 85), swap),
@@ -144,6 +157,7 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 										convert_location(Point2D(34, 39), swap),
 										convert_location(Point2D(77, 138), swap),
 										convert_location(Point2D(37, 133), swap) };
+
 
 	std::vector<std::vector<int>> links = {
 		{5, 6, 19},
@@ -172,13 +186,28 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 
 	air_graph = new Graph(air_path, links);
 
-	high_ground_index = 8;
 
 
 	warp_prism_locations = { convert_location(Point2D(50, 60), swap),
 							convert_location(Point2D(76, 86), swap),
 							convert_location(Point2D(62, 131), swap),
 							convert_location(Point2D(76, 86), swap) };
+
+	immortal_drop_prism_locations = { convert_location(Point2D(52, 137), swap),
+										convert_location(Point2D(41, 141), swap),
+										convert_location(Point2D(33, 137), swap),
+										convert_location(Point2D(31, 128), swap),
+										convert_location(Point2D(33, 120), swap),
+										convert_location(Point2D(33, 111), swap),
+										convert_location(Point2D(29, 103), swap),
+										convert_location(Point2D(32, 96), swap),
+										convert_location(Point2D(38, 91), swap),
+										convert_location(Point2D(46, 91), swap),
+										convert_location(Point2D(51, 99), swap),
+										convert_location(Point2D(50, 107), swap),
+										convert_location(Point2D(51, 114), swap),
+										convert_location(Point2D(54, 123), swap),
+										convert_location(Point2D(55, 131), swap) };
 
 	initial_scout_pos = convert_location(Point2D(44, 114), swap);
 

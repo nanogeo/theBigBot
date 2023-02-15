@@ -3,6 +3,7 @@
 
 #include "sc2api/sc2_interfaces.h"
 #include "sc2api/sc2_agent.h"
+#include "sc2api/sc2_unit_filters.h"
 
 #include "TossBot.h"
 
@@ -623,18 +624,64 @@ public:
 	const Unit* immortal2;
 	const Unit* prism;
 	Point2D entry_pos;
+	std::vector<Point2D> prism_path;
+	int path_index;
 	std::vector<UNIT_TYPEID> target_priority = { UNIT_TYPEID::TERRAN_CYCLONE, UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_SIEGETANK,
 		UNIT_TYPEID::TERRAN_MULE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_WIDOWMINE, UNIT_TYPEID::TERRAN_TECHLAB, UNIT_TYPEID::TERRAN_REACTOR };
-	ImmortalDropStateMachine(TossBot* agent, std::string name, const Unit* immortal1, const Unit* immortal2, const Unit* prism, Point2D pos) {
+	ImmortalDropStateMachine(TossBot* agent, std::string name, const Unit* immortal1, const Unit* immortal2, const Unit* prism, Point2D entry_pos, std::vector<Point2D> prism_path) {
 		this->agent = agent;
 		this->name = name;
 		current_state = new ImmortalDropWaitForImmortals(agent, this);
 		this->immortal1 = immortal1;
 		this->immortal2 = immortal2;
 		this->prism = prism;
-		entry_pos = pos;
+		this->prism_path = prism_path;
+		this->entry_pos = entry_pos;
+		path_index = 0;
 		current_state->EnterState();
 	}
+
+	Point2D UpdatePrismPathing()
+	{
+		// if theres a tank then go ontop of it
+		if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED)).size() > 0)
+		{
+			return agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED))[0]->pos;
+		}
+		if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_SIEGETANK)).size() > 0)
+		{
+			return agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_SIEGETANK))[0]->pos;
+		}
+		// if theres a cyclone then go ontop of it?
+		if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_CYCLONE)).size() > 0)
+		{
+			return agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_CYCLONE))[0]->pos;
+		}
+
+		int prev_index = path_index - 1 >= 0 ? path_index - 1 : prism_path.size() - 1;
+		int next_index = path_index + 1 < prism_path.size() ? path_index + 1 : 0;
+
+		// update path index
+		if (Distance2D(prism->pos, prism_path[prev_index]) < 2)
+		{
+			path_index = prev_index;
+			prev_index = path_index - 1 >= 0 ? path_index - 1 : prism_path.size() - 1;
+			next_index = path_index + 1 < prism_path.size() ? path_index + 1 : 0;
+		}
+		else if (Distance2D(prism->pos, prism_path[next_index]) < 2)
+		{
+			path_index = next_index;
+			prev_index = path_index - 1 >= 0 ? path_index - 1 : prism_path.size() - 1;
+			next_index = path_index + 1 < prism_path.size() ? path_index + 1 : 0;
+		}
+
+		// move away from danger?
+		if (agent->DangerLevelAt(prism, prism_path[prev_index]) < agent->DangerLevelAt(prism, prism_path[next_index]))
+			return prism_path[prev_index];
+		else
+			return prism_path[next_index];
+	}
+
 };
 
 

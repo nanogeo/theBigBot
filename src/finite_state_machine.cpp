@@ -698,6 +698,12 @@ namespace sc2 {
 
 	void ImmortalDropMicroDropCarrying1::TickState()
 	{
+		// don't leave immortals behind
+		if (Distance2D(state_machine->prism->pos, state_machine->immortal2->pos) > 4.5)
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->immortal2->pos);
+		else
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->UpdatePrismPathing());
+
 		if (agent->Observation()->GetGameLoop() >= entry_frame + 15)
 			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
 		if (state_machine->immortal1->orders.size() == 0 || state_machine->immortal1->orders[0].ability_id != ABILITY_ID::SMART)
@@ -734,6 +740,12 @@ namespace sc2 {
 
 	void ImmortalDropMicroDropCarrying2::TickState()
 	{
+		// don't leave immortals behind
+		if (Distance2D(state_machine->prism->pos, state_machine->immortal1->pos) > 4.5)
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->immortal1->pos);
+		else
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->UpdatePrismPathing());
+
 		if (agent->Observation()->GetGameLoop() >= entry_frame + 15)
 			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
 		if (state_machine->immortal1->orders.size() == 0 || state_machine->immortal1->orders[0].ability_id != ABILITY_ID::SMART)
@@ -770,6 +782,14 @@ namespace sc2 {
 
 	void ImmortalDropMicroDropDropped1::TickState()
 	{
+		// don't leave immortals behind
+		if (Distance2D(state_machine->prism->pos, state_machine->immortal1->pos) > 4.5)
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->immortal1->pos);
+		else if (Distance2D(state_machine->prism->pos, state_machine->immortal2->pos) > 4.5)
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->immortal2->pos);
+		else
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->UpdatePrismPathing());
+
 		if ((!immortal1_has_attack_order || state_machine->immortal1->weapon_cooldown > 0) && (!immortal2_has_attack_order || state_machine->immortal2->weapon_cooldown > 0))
 			agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::SMART, state_machine->prism);
 	}
@@ -813,6 +833,14 @@ namespace sc2 {
 
 	void ImmortalDropMicroDropDropped2::TickState()
 	{
+		// don't leave immortals behind
+		if (Distance2D(state_machine->prism->pos, state_machine->immortal1->pos) > 4.5)
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->immortal1->pos);
+		else if (Distance2D(state_machine->prism->pos, state_machine->immortal2->pos) > 4.5)
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->immortal2->pos);
+		else
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->UpdatePrismPathing());
+
 		if ((!immortal1_has_attack_order || state_machine->immortal1->weapon_cooldown > 0) && (!immortal2_has_attack_order || state_machine->immortal2->weapon_cooldown > 0))
 			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::SMART, state_machine->prism);
 	}

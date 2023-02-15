@@ -28,10 +28,13 @@ public:
     std::vector<Point2D> proxy_tech_locations;
 
     std::vector<Point2D> attack_path;
+	std::vector<Point2D> attack_path_alt;
     int high_ground_index;
+	int high_ground_index_alt;
     Graph* air_graph;
 
     std::vector<Point2D> warp_prism_locations;
+	std::vector<Point2D> immortal_drop_prism_locations;
 
     Point2D initial_scout_pos;
     std::vector<Point2D> main_scout_path;

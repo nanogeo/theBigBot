@@ -449,27 +449,27 @@ namespace sc2 {
         {
             if (unit->unit_type == UNIT_TYPEID::PROTOSS_STALKER)
             {
-                army_groups[0]->stalker_ids.push_back(unit->tag);
+                army_groups[0]->stalkers.push_back(unit);
                 std::cout << "add stalker\n";
             }
             else if (unit->unit_type == UNIT_TYPEID::PROTOSS_OBSERVER)
             {
-                army_groups[0]->observer_ids.push_back(unit->tag);
+                army_groups[0]->observers.push_back(unit);
                 std::cout << "add ob\n";
             }
             else if (unit->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
             {
-                army_groups[0]->prism_ids.push_back(unit->tag);
+                army_groups[0]->prisms.push_back(unit);
                 std::cout << "add prism\n";
             }
             else if (unit->unit_type == UNIT_TYPEID::PROTOSS_IMMORTAL)
             {
-                army_groups[0]->immortal_ids.push_back(unit->tag);
+                army_groups[0]->immortals.push_back(unit);
                 std::cout << "add immortal\n";
             }
             else if (unit->unit_type == UNIT_TYPEID::PROTOSS_ORACLE)
             {
-                army_groups[0]->oracle_ids.push_back(unit->tag);
+                army_groups[0]->oracles.push_back(unit);
                 std::cout << "add oracle\n";
             }
         }
@@ -2418,14 +2418,19 @@ for (const auto &field : far_oversaturated_patches)
 
     int TossBot::DangerLevel(const Unit* unit)
     {
-        int possible_damage = 0;
-        for (const auto &enemy_unit : Observation()->GetUnits(Unit::Alliance::Enemy))
-        {
-            if (!enemy_unit->is_building && Distance2D(unit->pos, enemy_unit->pos) <= RealGroundRange(enemy_unit, unit))
-                possible_damage += GetDamage(enemy_unit, unit);
-        }
-        return possible_damage;
+		return DangerLevelAt(unit, unit->pos);
     }
+
+	int TossBot::DangerLevelAt(const Unit* unit, Point2D pos)
+	{
+		int possible_damage = 0;
+		for (const auto &enemy_unit : Observation()->GetUnits(Unit::Alliance::Enemy))
+		{
+			if (!enemy_unit->is_building && Distance2D(pos, enemy_unit->pos) <= RealGroundRange(enemy_unit, unit))
+				possible_damage += GetDamage(enemy_unit, unit);
+		}
+		return possible_damage;
+	}
 
     int TossBot::GetDamage(const Unit* attacker, const Unit* target)
     {
@@ -3364,10 +3369,10 @@ for (const auto &field : far_oversaturated_patches)
 
         Point2D attack_point = army->attack_path[army->current_attack_index];
 
-        Units prisms = TagsToUnits(army->prism_ids);
-        Units stalkers = TagsToUnits(army->stalker_ids);
-        Units observers = TagsToUnits(army->observer_ids);
-        Units immortals = TagsToUnits(army->immortal_ids);
+        Units prisms = army->prisms;
+        Units stalkers = army->stalkers;
+        Units observers = army->observers;
+        Units immortals = army->immortals;
 
 
         bool obs_in_position = false;
@@ -3413,10 +3418,10 @@ for (const auto &field : far_oversaturated_patches)
 
         Point2D attack_point = army->attack_path[army->current_attack_index];
 
-        Units prisms = TagsToUnits(army->prism_ids);
-        Units stalkers = TagsToUnits(army->stalker_ids);
-        Units observers = TagsToUnits(army->observer_ids);
-        Units oracles = TagsToUnits(army->oracle_ids);
+        Units prisms = army->prisms;
+        Units stalkers = army->stalkers;
+        Units observers = army->observers;
+        Units oracles = army->oracles;
 
 
 
@@ -3646,6 +3651,54 @@ for (const auto &field : far_oversaturated_patches)
 		return false;
 	}
 
+	bool TossBot::ActionAllIn(ActionArgData* data)
+	{
+		Army* army = data->army;
+		Point2D retreat_point = army->attack_path[army->current_attack_index - 2];
+
+		Point2D attack_point = army->attack_path[army->current_attack_index];
+
+		Units prisms = army->prisms;
+		Units stalkers = army->stalkers;
+		Units observers = army->observers;
+		Units immortals = army->immortals;
+
+
+		bool obs_in_position = false;
+		if (stalkers.size() > 0)
+		{
+			if (observers.size() > 0)
+			{
+				if (DistanceToClosest(observers, attack_point) < 10)
+					obs_in_position = true;
+				ObserveAttackPath(observers, retreat_point, attack_point);
+			}
+			if (prisms.size() > 0)
+			{
+				StalkerAttackTowardsWithPrism(stalkers, prisms, retreat_point, attack_point, obs_in_position);
+				if (immortals.size() > 0)
+					ImmortalAttackTowardsWithPrism(immortals, prisms, retreat_point, attack_point, obs_in_position);
+			}
+			else
+			{
+				StalkerAttackTowards(stalkers, retreat_point, attack_point, obs_in_position);
+				if (immortals.size() > 0)
+					ImmortalAttackTowards(immortals, retreat_point, attack_point, obs_in_position);
+			}
+		}
+
+		if (army->current_attack_index > 2 && Distance2D(Center(stalkers), retreat_point) < 3)
+			army->current_attack_index--;
+		if (army->current_attack_index < army->attack_path.size() - 1 && Distance2D(MedianCenter(stalkers), attack_point) < 3)
+		{
+			if (obs_in_position)
+				army->current_attack_index++;
+			else
+				army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);
+		}
+
+		return false;
+	}
 
 
 #pragma endregion
@@ -4277,8 +4330,32 @@ for (const auto &field : far_oversaturated_patches)
 			else if (immortal2 == NULL)
 				immortal2 = immortal;
 		}
-		ImmortalDropStateMachine* immortal_drop_fsm = new ImmortalDropStateMachine(this, "Immortal Drop", immortal1, immortal2, Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPPRISM))[0], Observation()->GetGameInfo().enemy_start_locations[0]);
+		ImmortalDropStateMachine* immortal_drop_fsm = new ImmortalDropStateMachine(this, "Immortal Drop", immortal1, immortal2, Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPPRISM))[0], Observation()->GetGameInfo().enemy_start_locations[0], locations->immortal_drop_prism_locations);
 		active_FSMs.push_back(immortal_drop_fsm);
+		return true;
+	}
+
+	bool TossBot::ProxyDoubleRoboAllIn(BuildOrderResultArgData data)
+	{
+		Units already_occupied;
+		for (const auto &fsm : active_FSMs)
+		{
+			if (dynamic_cast<ImmortalDropStateMachine*>(fsm))
+			{
+				already_occupied.push_back(((ImmortalDropStateMachine*)fsm)->prism);
+				already_occupied.push_back(((ImmortalDropStateMachine*)fsm)->immortal1);
+				already_occupied.push_back(((ImmortalDropStateMachine*)fsm)->immortal2);
+			}
+		}
+		Units available_units;
+		for (const auto &unit : Observation()->GetUnits(IsUnits({ UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_OBSERVER, UNIT_TYPEID::PROTOSS_IMMORTAL })))
+		{
+			if (std::find(already_occupied.begin(), already_occupied.end(), unit) == already_occupied.end())
+				available_units.push_back(unit);
+		}
+		Army* army = new Army(available_units, locations->attack_path_alt, locations->high_ground_index_alt);
+		army_groups.push_back(army);
+		active_actions.push_back(new ActionData(&TossBot::ActionAllIn, new ActionArgData(army)));
 		return true;
 	}
 
@@ -4564,34 +4641,13 @@ for (const auto &field : far_oversaturated_patches)
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(185.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(200.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(210.0f),										&TossBot::CutWorkers,				BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(228.0f),										&TossBot::ContinueBuildingPylons,	BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(228.0f),										&TossBot::MicroImmortalDrop,		BuildOrderResultArgData()),
-
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(400.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(85.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(105.0f),										&TossBot::RemoveScoutToProxy,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY, 151)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(110.0f),										&TossBot::CutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(112.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(115.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(116.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(116.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(126.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::Contain,					BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(149.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(166.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(177.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(190.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE),			&TossBot::ResearchDTBlink,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE),			&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(225.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER, 3)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(227.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(245.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER, 2)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(298.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKTEMPLAR, 3)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(298.0f),										&TossBot::DTHarass,					BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(230.0f),										&TossBot::WarpInAtProxy,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::ContinueMakingWorkers,	BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(280.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(360.0f),										&TossBot::ProxyDoubleRoboAllIn,		BuildOrderResultArgData()),
 		};
 	}
     
@@ -4777,13 +4833,13 @@ for (const auto &field : far_oversaturated_patches)
         {
             army_info += "    Army " + std::to_string(i+1);
             army_info += ":\n";
-            army_info += "Stalkers: " + std::to_string(army_groups[i]->stalker_ids.size());
+            army_info += "Stalkers: " + std::to_string(army_groups[i]->stalkers.size());
             army_info += ", ";
-            army_info += "Observers: " + std::to_string(army_groups[i]->observer_ids.size());
+            army_info += "Observers: " + std::to_string(army_groups[i]->observers.size());
             army_info += ", \n";
-            army_info += "Prisms: " + std::to_string(army_groups[i]->prism_ids.size());
+            army_info += "Prisms: " + std::to_string(army_groups[i]->prisms.size());
             army_info += ", ";
-            army_info += "Immortals: " + std::to_string(army_groups[i]->immortal_ids.size());
+            army_info += "Immortals: " + std::to_string(army_groups[i]->immortals.size());
             army_info += "\n";
         }
         Debug()->DebugTextOut(army_info, Point2D(.8, .5), Color(255, 255, 255), 20);
@@ -4996,9 +5052,53 @@ for (const auto &field : far_oversaturated_patches)
         }
     }
 
-    void TossBot::ImmortalAttackTowards(Units stalkers, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
+    void TossBot::ImmortalAttackTowards(Units immortals, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
     {
+		for (const auto &immortal : immortals)
+		{
+			Units close_enemies;
+			for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
+			{
+				if (unit->is_building)
+					continue;
+				if (Distance2D(unit->pos, immortal->pos) < 10)
+					close_enemies.push_back(unit);
+			}
+			bool weapon_ready = immortal->weapon_cooldown == 0;
 
+			Debug()->DebugTextOut(std::to_string(immortal->weapon_cooldown), immortal->pos, Color(0, 255, 255), 20);
+			if (immortal->weapon_cooldown == 0)
+				Debug()->DebugSphereOut(immortal->pos, .7, Color(0, 255, 0));
+			else
+				Debug()->DebugSphereOut(immortal->pos, .7, Color(255, 0, 0));
+
+			if (find(immortal->buffs.begin(), immortal->buffs.end(), BUFF_ID::LOCKON) != immortal->buffs.end())
+			{
+				Actions()->UnitCommand(immortal, ABILITY_ID::MOVE_MOVE, retreat_point);
+			}
+			else if (immortal->shield == 0)
+			{
+				Actions()->UnitCommand(immortal, ABILITY_ID::MOVE_MOVE, retreat_point);
+			}
+			else if (!weapon_ready)
+			{
+				if (close_enemies.size() > 0 && DistanceToClosest(close_enemies, immortal->pos) - 2 < RealGroundRange(immortal, ClosestTo(close_enemies, immortal->pos)))
+					Actions()->UnitCommand(immortal, ABILITY_ID::MOVE_MOVE, retreat_point);
+				else
+					Actions()->UnitCommand(immortal, ABILITY_ID::ATTACK, attack_point);
+			}
+			else if (close_enemies.size() > 0)
+			{
+				if (!ob_in_position && IsOnHighGround(immortal->pos, ClosestTo(close_enemies, immortal->pos)->pos) || ClosestTo(close_enemies, immortal->pos)->display_type == Unit::DisplayType::Snapshot)
+					Actions()->UnitCommand(immortal, ABILITY_ID::MOVE_MOVE, retreat_point);
+				else
+					Actions()->UnitCommand(immortal, ABILITY_ID::ATTACK, ClosestTo(close_enemies, immortal->pos));
+			}
+			else
+			{
+				Actions()->UnitCommand(immortal, ABILITY_ID::ATTACK, attack_point);
+			}
+		}
     }
 
     void TossBot::ImmortalAttackTowardsWithPrism(Units stalkers, Units prisms, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
