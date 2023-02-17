@@ -189,8 +189,13 @@ namespace sc2 {
             {
                 Debug()->DebugFastBuild();
                 Debug()->DebugGiveAllResources();
+				Debug()->DebugShowMap();
+				//Debug()->DebugEnemyControl();
                 SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
+				Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, Point2D(75, 75), 1, 12);
+				Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, Point2D(75, 95), 2, 8);
+				Debug()->DebugGiveAllUpgrades();
             }
             if (Observation()->GetGameLoop() > 1)
             {
@@ -204,7 +209,7 @@ namespace sc2 {
                         else
                             Debug()->DebugSphereOut(pos, .5, Color(255, 0, 0));
                     }
-                }*/
+                }
                 if (nav_mesh.triangles.size() == 0)
                 {
 					nav_mesh.LoadOrBuildNavmesh(Observation()->GetGameInfo().pathing_grid, Observation()->GetGameInfo().map_name);
@@ -246,7 +251,7 @@ namespace sc2 {
 					}
 				}
 
-               /* std::vector<Point2D> path = nav_mesh.FindPath(probe->pos, Observation()->GetGameInfo().enemy_start_locations[0]);
+                std::vector<Point2D> path = nav_mesh.FindPath(probe->pos, Observation()->GetGameInfo().enemy_start_locations[0]);
 
                 for (int i = 0; i < path.size() - 1; i++)
                 {
@@ -257,9 +262,22 @@ namespace sc2 {
                 Point3D start = Point3D(probe->pos.x, probe->pos.y, Observation()->TerrainHeight(probe->pos) + .1);
                 Point3D end = Point3D(path[0].x, path[0].y, Observation()->TerrainHeight(path[0]) + .1);
                 Debug()->DebugLineOut(start, end, Color(0, 255, 0));*/
+				UpdateEnemyUnitPositions();
+				UpdateEnemyWeaponCooldowns();
 
+				DodgeShots();
+				for (const auto &unit : eneny_unit_saved_position)
+				{
+					Color col = Color(255, 255, 0);
+					if (unit.second.frames > 0)
+					{
+						col = Color(0, 255, 255);
+					}
+					Debug()->DebugSphereOut(unit.first->pos, .7, col);
+					Debug()->DebugTextOut(std::to_string(unit.second.frames), unit.first->pos, col, 20);
 
-                Debug()->SendDebug();
+				}
+
             }
             if (Observation()->GetGameLoop() == 3000)
             {
@@ -274,6 +292,9 @@ namespace sc2 {
             }
 
 			ProcessActions();
+			DisplayEnemyAttacks();
+			RemoveCompletedAtacks();
+			Debug()->SendDebug();
             return;
         }
 
@@ -845,7 +866,7 @@ namespace sc2 {
     {
         if (buildingId == UNIT_TYPEID::PROTOSS_NEXUS)
             return 2.5;
-        if (buildingId == UNIT_TYPEID::PROTOSS_PYLON || buildingId == UNIT_TYPEID::PROTOSS_SHIELDBATTERY || buildingId == UNIT_TYPEID::PHOTONCANNONWEAPON)
+        if (buildingId == UNIT_TYPEID::PROTOSS_PYLON || buildingId == UNIT_TYPEID::PROTOSS_SHIELDBATTERY || buildingId == UNIT_TYPEID::PROTOSS_PHOTONCANNON)
             return 1;
         return 1.5;
     }
@@ -886,7 +907,7 @@ namespace sc2 {
             return ABILITY_ID::BUILD_FORGE;
         case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
             return ABILITY_ID::BUILD_CYBERNETICSCORE;
-        case UNIT_TYPEID::PHOTONCANNONWEAPON:
+        case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
             return ABILITY_ID::BUILD_PHOTONCANNON;
         case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
             return ABILITY_ID::BUILD_SHIELDBATTERY;
@@ -978,7 +999,7 @@ namespace sc2 {
         case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
             cost = UnitCost(150, 0, 0);
             break;
-        case UNIT_TYPEID::PHOTONCANNONWEAPON:
+        case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
             cost = UnitCost(150, 0, 0);
             break;
         case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
@@ -1171,7 +1192,7 @@ namespace sc2 {
             return "forge";
         case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
             return "cybercore";
-        case UNIT_TYPEID::PHOTONCANNONWEAPON:
+        case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
             return "photon cannon";
         case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
             return "shield battery";
@@ -2458,7 +2479,7 @@ for (const auto &field : far_oversaturated_patches)
 		int attacks = 1;
         switch(attacker->unit_type.ToType())
         {
-		case UNIT_TYPEID::PHOTONCANNONWEAPON: // protoss
+		case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
 			damage = 20;
 			break;
 		case UNIT_TYPEID::PROTOSS_PROBE:
@@ -2695,7 +2716,7 @@ for (const auto &field : far_oversaturated_patches)
 			break;
 		case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
 			break;
-		case UNIT_TYPEID::PHOTONCANNONWEAPON:
+		case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
 			break;
 		case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
 			break;
@@ -2795,6 +2816,18 @@ for (const auto &field : far_oversaturated_patches)
 		case UNIT_TYPEID::TERRAN_TECHLAB:
 			break;
 		case UNIT_TYPEID::TERRAN_REACTOR:
+			break;
+		case UNIT_TYPEID::TERRAN_BARRACKSTECHLAB:
+			break;
+		case UNIT_TYPEID::TERRAN_BARRACKSREACTOR:
+			break;
+		case UNIT_TYPEID::TERRAN_FACTORYTECHLAB:
+			break;
+		case UNIT_TYPEID::TERRAN_FACTORYREACTOR:
+			break;
+		case UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
+			break;
+		case UNIT_TYPEID::TERRAN_STARPORTREACTOR:
 			break;
 		case UNIT_TYPEID::TERRAN_SCV:
 			break;
@@ -2956,7 +2989,7 @@ for (const auto &field : far_oversaturated_patches)
 			base_armor = 1;
 			break;
 		default:
-			std::cout << "Error invalid unit type in GetDamage\n";
+			std::cout << "Error invalid unit type in GetArmor\n";
 			return 0;
 		}
 
@@ -2969,30 +3002,531 @@ for (const auto &field : far_oversaturated_patches)
         float range = attacking_unit->radius + target->radius;
         switch (attacking_unit->unit_type.ToType())
         {
-        case UNIT_TYPEID::PROTOSS_STALKER:
-            range += 6;
-            break;
-        case UNIT_TYPEID::PROTOSS_IMMORTAL:
-            range += 6;
-            break;
-        case UNIT_TYPEID::PROTOSS_ADEPT:
-            range += 4;
-            break;
-        case UNIT_TYPEID::TERRAN_SCV:
-            range += 0;
-            break;
-        case UNIT_TYPEID::TERRAN_MARINE:
-            range += 5;
-            break;
-        case UNIT_TYPEID::TERRAN_MARAUDER:
-            range += 6;
-            break;
+		case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
+			range += 7;
+			break;
+		case UNIT_TYPEID::PROTOSS_PROBE:
+			range += 0;
+			break;
+		case UNIT_TYPEID::PROTOSS_ZEALOT:
+			range += 0;
+			break;
+		case UNIT_TYPEID::PROTOSS_SENTRY:
+			range += 5;
+			break;
+		case UNIT_TYPEID::PROTOSS_STALKER:
+			range += 6;
+			break;
+		case UNIT_TYPEID::PROTOSS_ADEPT:
+			range += 4;
+			break;
+		case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+			range += 6;
+			break;
+		case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+			range += 0;
+			break;
+		case UNIT_TYPEID::PROTOSS_ARCHON:
+			range += 3;
+			break;
+		case UNIT_TYPEID::PROTOSS_IMMORTAL:
+			range += 6;
+			break;
+		case UNIT_TYPEID::PROTOSS_COLOSSUS: // TODO extended thermal lance
+			range += 7;
+			break;
+		case UNIT_TYPEID::PROTOSS_PHOENIX: // TODO anion pulse crystals
+			range += 5;
+			break;
+		case UNIT_TYPEID::PROTOSS_VOIDRAY:
+			range += 6;
+			break;
+		case UNIT_TYPEID::PROTOSS_ORACLE:
+			range += 4;
+			break;
+		case UNIT_TYPEID::PROTOSS_CARRIER:
+			range += 14;
+			break;
+		case UNIT_TYPEID::PROTOSS_TEMPEST: // air 14
+			range += 10;
+			break;
+		case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+			range += 7;
+			break;
+		case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS: // terran hi sec auto tracking
+			range += 6;
+			break;
+		case UNIT_TYPEID::TERRAN_MISSILETURRET:
+			range += 6;
+			break;
+		case UNIT_TYPEID::TERRAN_SCV:
+			range += 0;
+			break;
+		case UNIT_TYPEID::TERRAN_MULE:
+			range += 0;
+			break;
+		case UNIT_TYPEID::TERRAN_MARINE:
+			range += 5;
+			break;
+		case UNIT_TYPEID::TERRAN_MARAUDER:
+			range += 6;
+			break;
+		case UNIT_TYPEID::TERRAN_REAPER:
+			range += 5;
+			break;
+		case UNIT_TYPEID::TERRAN_GHOST:
+			range += 6;
+			break;
+		case UNIT_TYPEID::TERRAN_HELLION:
+			range += 5;
+			break;
+		case UNIT_TYPEID::TERRAN_HELLIONTANK:
+			range += 2;
+			break;
+		case UNIT_TYPEID::TERRAN_SIEGETANK:
+			range += 7;
+			break;
+		case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+			range += 13;
+			break;
+		case UNIT_TYPEID::TERRAN_CYCLONE:
+			range += 5;
+			break;
+		case UNIT_TYPEID::TERRAN_THOR: // flying 10
+			range += 7;
+			break;
+		case UNIT_TYPEID::TERRAN_THORAP: // flying 11
+			range += 7;
+			break;
+		case UNIT_TYPEID::TERRAN_AUTOTURRET:
+			range += 6;
+			break;
+		case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+			range += 9;
+			break;
+		case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+			range += 6;
+			break;
+		case UNIT_TYPEID::TERRAN_LIBERATOR: // flying
+			range += 5;
+			break;
+		case UNIT_TYPEID::TERRAN_LIBERATORAG:
+			range += 0;
+			break;
+		case UNIT_TYPEID::TERRAN_BANSHEE:
+			range += 6;
+			break;
+		case UNIT_TYPEID::TERRAN_BATTLECRUISER:
+			range += 6;
+			break;
+		case UNIT_TYPEID::ZERG_SPINECRAWLER: // zerg
+			range += 7;
+			break;
+		case UNIT_TYPEID::ZERG_SPORECRAWLER:
+			range += 7;
+			break;
+		case UNIT_TYPEID::ZERG_DRONE:
+			range += 0;
+			break;
+		case UNIT_TYPEID::ZERG_QUEEN: // flying 7
+			range += 5;
+			break;
+		case UNIT_TYPEID::ZERG_ZERGLING:
+			range += 0;
+			break;
+		case UNIT_TYPEID::ZERG_BANELING:
+			range += 2.5;
+			break;
+		case UNIT_TYPEID::ZERG_ROACH:
+			range += 4;
+			break;
+		case UNIT_TYPEID::ZERG_RAVAGER:
+			range += 6;
+			break;
+		case UNIT_TYPEID::ZERG_HYDRALISK: // grooved spines
+			range += 6;
+			break;
+		case UNIT_TYPEID::ZERG_LURKERMP: // seismic spine
+			range += 8;
+			break;
+		case UNIT_TYPEID::ZERG_ULTRALISK:
+			range += 0;
+			break;
+		case UNIT_TYPEID::ZERG_MUTALISK:
+			range += 3;
+			break;
+		case UNIT_TYPEID::ZERG_CORRUPTOR:
+			range += 6;
+			break;
+		case UNIT_TYPEID::ZERG_BROODLORD:
+			range += 10;
+			break;
+		case UNIT_TYPEID::ZERG_LOCUSTMP:
+			range += 3;
+			break;
+		case UNIT_TYPEID::ZERG_BROODLING:
+			range += 0;
+			break;
         default:
             std::cout << "Error invalid unit type in RealGroundRange\n";
-            return 0;
+			range += 0;
         }
         return range;
     }
+
+	float TossBot::GetDamagePoint(const Unit* unit)
+	{
+		switch (unit->unit_type.ToType())
+		{
+		case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_PROBE:
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_ZEALOT:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_SENTRY:
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_STALKER:
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_ADEPT:
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+			return .2579;
+		case UNIT_TYPEID::PROTOSS_ARCHON:
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_IMMORTAL:
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_COLOSSUS:
+			return .0594;
+		case UNIT_TYPEID::PROTOSS_PHOENIX:
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_VOIDRAY:
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_ORACLE:
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_CARRIER:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_TEMPEST:
+			return .1193;
+		case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+			return 0;
+		case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
+			return .1193;
+		case UNIT_TYPEID::TERRAN_MISSILETURRET:
+			return .1193;
+		case UNIT_TYPEID::TERRAN_SCV:
+			return .1193;
+		case UNIT_TYPEID::TERRAN_MARINE:
+			return .0357;
+		case UNIT_TYPEID::TERRAN_MARAUDER:
+			return 0;
+		case UNIT_TYPEID::TERRAN_REAPER:
+			return 0;
+		case UNIT_TYPEID::TERRAN_GHOST:
+			return .0593;
+		case UNIT_TYPEID::TERRAN_HELLION:
+			return .1786;
+		case UNIT_TYPEID::TERRAN_HELLIONTANK:
+			return .1193;
+		case UNIT_TYPEID::TERRAN_SIEGETANK:
+			return .1193;
+		case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+			return .1193;
+		case UNIT_TYPEID::TERRAN_CYCLONE:
+			return .1193;
+		case UNIT_TYPEID::TERRAN_THOR:
+			return .5936;
+		case UNIT_TYPEID::TERRAN_THORAP:
+			return .5936;
+		case UNIT_TYPEID::TERRAN_AUTOTURRET:
+			return .1193;
+		case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+			return .1193;
+		case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+			return .0357;
+		case UNIT_TYPEID::TERRAN_LIBERATOR:
+			return .1193;
+		case UNIT_TYPEID::TERRAN_LIBERATORAG:
+			return .0893;
+		case UNIT_TYPEID::TERRAN_BANSHEE:
+			return .1193;
+		case UNIT_TYPEID::TERRAN_BATTLECRUISER:
+			return .1193;
+		case UNIT_TYPEID::ZERG_SPINECRAWLER:
+			return .238;
+		case UNIT_TYPEID::ZERG_SPORECRAWLER:
+			return .1193;
+		case UNIT_TYPEID::ZERG_DRONE:
+			return .1193;
+		case UNIT_TYPEID::ZERG_QUEEN:
+			return .1193;
+		case UNIT_TYPEID::ZERG_ZERGLING:
+			return .1193;
+		case UNIT_TYPEID::ZERG_BANELING:
+			return 0;
+		case UNIT_TYPEID::ZERG_ROACH:
+			return .1193;
+		case UNIT_TYPEID::ZERG_RAVAGER:
+			return .1429;
+		case UNIT_TYPEID::ZERG_HYDRALISK:
+			return .1;
+		case UNIT_TYPEID::ZERG_LURKERMP:
+			return 0;
+		case UNIT_TYPEID::ZERG_ULTRALISK:
+			return .238;
+		case UNIT_TYPEID::ZERG_MUTALISK:
+			return 0;
+		case UNIT_TYPEID::ZERG_CORRUPTOR:
+			return .0446;
+		case UNIT_TYPEID::ZERG_BROODLORD:
+			return .1193;
+		case UNIT_TYPEID::ZERG_LOCUSTMP:
+			return .1904;
+		case UNIT_TYPEID::ZERG_BROODLING:
+			return .1193;
+		default:
+			std::cout << "Error invalid unit type in GetDamagePoint\n";
+			return 0;
+		}
+	}
+
+	int TossBot::GetProjectileTime(const Unit* unit, float dist)
+	{
+		switch (unit->unit_type.ToType())
+		{
+		case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
+			return dist;
+		case UNIT_TYPEID::PROTOSS_PROBE:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_ZEALOT:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_SENTRY:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_STALKER:
+			return dist;
+		case UNIT_TYPEID::PROTOSS_ADEPT:
+			return dist;
+		case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+			return dist;
+		case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_ARCHON:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_IMMORTAL:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_COLOSSUS:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_PHOENIX:
+			return dist;
+		case UNIT_TYPEID::PROTOSS_VOIDRAY:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_ORACLE:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_CARRIER:
+			return 0;
+		case UNIT_TYPEID::PROTOSS_TEMPEST:
+			return dist;
+		case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+			return 0;
+		case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
+			return 0;
+		case UNIT_TYPEID::TERRAN_MISSILETURRET:
+			return dist;
+		case UNIT_TYPEID::TERRAN_SCV:
+			return 0;
+		case UNIT_TYPEID::TERRAN_MARINE:
+			return 0;
+		case UNIT_TYPEID::TERRAN_MARAUDER:
+			return dist;
+		case UNIT_TYPEID::TERRAN_REAPER:
+			return 0;
+		case UNIT_TYPEID::TERRAN_GHOST:
+			return 0;
+		case UNIT_TYPEID::TERRAN_HELLION:
+			return 0;
+		case UNIT_TYPEID::TERRAN_HELLIONTANK:
+			return 0;
+		case UNIT_TYPEID::TERRAN_SIEGETANK:
+			return 0;
+		case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+			return 0;
+		case UNIT_TYPEID::TERRAN_CYCLONE:
+			return dist;
+		case UNIT_TYPEID::TERRAN_THOR:
+			return 0;
+		case UNIT_TYPEID::TERRAN_THORAP:
+			return 0;
+		case UNIT_TYPEID::TERRAN_AUTOTURRET:
+			return 0;
+		case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+			return 0;
+		case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+			return dist;
+		case UNIT_TYPEID::TERRAN_LIBERATOR:
+			return dist;
+		case UNIT_TYPEID::TERRAN_LIBERATORAG:
+			return 0;
+		case UNIT_TYPEID::TERRAN_BANSHEE:
+			return dist;
+		case UNIT_TYPEID::TERRAN_BATTLECRUISER:
+			return dist;
+		case UNIT_TYPEID::ZERG_SPINECRAWLER:
+			return dist;
+		case UNIT_TYPEID::ZERG_SPORECRAWLER:
+			return dist;
+		case UNIT_TYPEID::ZERG_DRONE:
+			return 0;
+		case UNIT_TYPEID::ZERG_QUEEN:
+			return dist;
+		case UNIT_TYPEID::ZERG_ZERGLING:
+			return 0;
+		case UNIT_TYPEID::ZERG_BANELING:
+			return 0;
+		case UNIT_TYPEID::ZERG_ROACH:
+			return dist;
+		case UNIT_TYPEID::ZERG_RAVAGER:
+			return dist;
+		case UNIT_TYPEID::ZERG_HYDRALISK:
+			return dist;
+		case UNIT_TYPEID::ZERG_LURKERMP:
+			return 0;
+		case UNIT_TYPEID::ZERG_ULTRALISK:
+			return 0;
+		case UNIT_TYPEID::ZERG_MUTALISK:
+			return dist;
+		case UNIT_TYPEID::ZERG_CORRUPTOR:
+			return dist;
+		case UNIT_TYPEID::ZERG_BROODLORD:
+			return dist;
+		case UNIT_TYPEID::ZERG_LOCUSTMP:
+			return dist;
+		case UNIT_TYPEID::ZERG_BROODLING:
+			return 0;
+		default:
+			std::cout << "Error invalid unit type in GetProjectileTime\n";
+			return 0;
+		}
+	}
+
+	float TossBot::GetWeaponCooldown(const Unit* unit)
+	{
+		switch (unit->unit_type.ToType())
+		{
+		case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
+			return .89;
+		case UNIT_TYPEID::PROTOSS_PROBE:
+			return 1.07;
+		case UNIT_TYPEID::PROTOSS_ZEALOT:
+			return .86;
+		case UNIT_TYPEID::PROTOSS_SENTRY:
+			return .71;
+		case UNIT_TYPEID::PROTOSS_STALKER:
+			return 1.34;
+		case UNIT_TYPEID::PROTOSS_ADEPT: // TODO glaives
+			return 1.61;
+		case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+			return 1.25;
+		case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+			return 1.21;
+		case UNIT_TYPEID::PROTOSS_ARCHON:
+			return 1.25;
+		case UNIT_TYPEID::PROTOSS_IMMORTAL:
+			return 1.04;
+		case UNIT_TYPEID::PROTOSS_COLOSSUS:
+			return 1.07;
+		case UNIT_TYPEID::PROTOSS_PHOENIX:
+			return .79;
+		case UNIT_TYPEID::PROTOSS_VOIDRAY:
+			return .36;
+		case UNIT_TYPEID::PROTOSS_ORACLE:
+			return .61;
+		case UNIT_TYPEID::PROTOSS_CARRIER: // TODO each interceptor?
+			return 2.14;
+		case UNIT_TYPEID::PROTOSS_TEMPEST:
+			return 2.36;
+		case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+			return 1.58;
+		case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
+			return 1.43;
+		case UNIT_TYPEID::TERRAN_MISSILETURRET:
+			return .61;
+		case UNIT_TYPEID::TERRAN_SCV:
+			return 1.07;
+		case UNIT_TYPEID::TERRAN_MARINE: // TODO stim
+			return .61;
+		case UNIT_TYPEID::TERRAN_MARAUDER: // TODO stim
+			return 1.07;
+		case UNIT_TYPEID::TERRAN_REAPER:
+			return .79;
+		case UNIT_TYPEID::TERRAN_GHOST:
+			return 1.07;
+		case UNIT_TYPEID::TERRAN_HELLION:
+			return 1.79;
+		case UNIT_TYPEID::TERRAN_HELLIONTANK:
+			return 1.43;
+		case UNIT_TYPEID::TERRAN_SIEGETANK:
+			return .79;
+		case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+			return 2.14;
+		case UNIT_TYPEID::TERRAN_CYCLONE:
+			return .71;
+		case UNIT_TYPEID::TERRAN_THOR: // TODO anit air
+			return .91;
+		case UNIT_TYPEID::TERRAN_THORAP:
+			return .91;
+		case UNIT_TYPEID::TERRAN_AUTOTURRET:
+			return .57;
+		case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+			return .71;
+		case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+			return 1.43;
+		case UNIT_TYPEID::TERRAN_LIBERATOR:
+			return 1.29;
+		case UNIT_TYPEID::TERRAN_LIBERATORAG:
+			return 1.14;
+		case UNIT_TYPEID::TERRAN_BANSHEE:
+			return .89;
+		case UNIT_TYPEID::TERRAN_BATTLECRUISER:
+			return .16;
+		case UNIT_TYPEID::ZERG_SPINECRAWLER:
+			return 1.32;
+		case UNIT_TYPEID::ZERG_SPORECRAWLER:
+			return .61;
+		case UNIT_TYPEID::ZERG_DRONE:
+			return 1.07;
+		case UNIT_TYPEID::ZERG_QUEEN:
+			return .71;
+		case UNIT_TYPEID::ZERG_ZERGLING: //TODO adrenal
+			return .497;
+		case UNIT_TYPEID::ZERG_BANELING:
+			return 0;
+		case UNIT_TYPEID::ZERG_ROACH:
+			return 1.43;
+		case UNIT_TYPEID::ZERG_RAVAGER:
+			return 1.43;
+		case UNIT_TYPEID::ZERG_HYDRALISK:
+			return .59;
+		case UNIT_TYPEID::ZERG_LURKERMP:
+			return 1.43;
+		case UNIT_TYPEID::ZERG_ULTRALISK:
+			return .61;
+		case UNIT_TYPEID::ZERG_MUTALISK:
+			return 1.09;
+		case UNIT_TYPEID::ZERG_CORRUPTOR:
+			return 1.36;
+		case UNIT_TYPEID::ZERG_BROODLORD:
+			return 1.79;
+		case UNIT_TYPEID::ZERG_LOCUSTMP:
+			return .43;
+		case UNIT_TYPEID::ZERG_BROODLING:
+			return .46;
+		default:
+			std::cout << "Error invalid unit type in GetWeaponCooldown\n";
+			return 0;
+		}
+	}
 
     bool TossBot::IsOnHighGround(Point3D unit, Point3D enemy_unit)
     {
@@ -3055,6 +3589,120 @@ for (const auto &field : far_oversaturated_patches)
             return NULL;
         }
     }
+
+	bool TossBot::IsFacing(const Unit* unit, const Unit* target)
+	{
+		Point2D vec = Point2D(target->pos.x - unit->pos.x, target->pos.y - unit->pos.y);
+		float angle = atan2(vec.y, vec.x);
+		float facing = unit->facing;
+		return angle >= facing - .003 && angle <= facing + .003;
+	}
+
+	void TossBot::UpdateEnemyUnitPositions()
+	{
+		for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
+		{
+			if (eneny_unit_saved_position.count(unit) > 0)
+			{
+				if (eneny_unit_saved_position[unit].pos == unit->pos)
+				{
+					eneny_unit_saved_position[unit].frames++;
+				}
+				else
+				{
+					eneny_unit_saved_position[unit].pos = unit->pos;
+					eneny_unit_saved_position[unit].frames = 0;
+				}
+			}
+			else
+			{
+				eneny_unit_saved_position[unit] = EnemyUnitPosition(unit->pos);
+			}
+		}
+	}
+
+	void TossBot::UpdateEnemyWeaponCooldowns()
+	{
+		for (const auto &Eunit : Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)))
+		{
+			if (enemy_weapon_cooldown.count(Eunit) == 0)
+				enemy_weapon_cooldown[Eunit] = 0;
+
+			for (const auto &Funit : Observation()->GetUnits(Unit::Alliance::Self))
+			{
+				if (Distance2D(Eunit->pos, Funit->pos) < RealGroundRange(Eunit, Funit) && IsFacing(Eunit, Funit) && enemy_weapon_cooldown[Eunit] == 0 && eneny_unit_saved_position[Eunit].frames > GetDamagePoint(Eunit) * 22.4)
+				{
+					enemy_weapon_cooldown[Eunit] = GetWeaponCooldown(Eunit) - GetDamagePoint(Eunit);
+					EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + GetProjectileTime(Eunit, Distance2D(Eunit->pos, Funit->pos)));
+					if (enemy_attacks.count(Funit) == 0)
+						enemy_attacks[Funit] = { attack };
+					else
+						enemy_attacks[Funit].push_back(attack);
+				}
+			}
+			if (enemy_weapon_cooldown[Eunit] > 0)
+				enemy_weapon_cooldown[Eunit] -= 1 / 22.4;
+			if (enemy_weapon_cooldown[Eunit] < 0)
+			{
+				enemy_weapon_cooldown[Eunit] = 0;
+				eneny_unit_saved_position[Eunit].frames = 0;
+			}
+			Debug()->DebugTextOut(std::to_string(enemy_weapon_cooldown[Eunit]), Eunit->pos + Point3D(0, 0, .2), Color(255, 0, 255), 20);
+		}
+	}
+
+	void TossBot::DodgeShots()
+	{
+		for (const auto &Funit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)))
+		{
+			int danger = 0;
+			if (enemy_attacks.count(Funit) > 0)
+			{
+				for (const auto &attack : enemy_attacks[Funit])
+				{
+					danger += GetDamage(attack.unit, Funit);
+				}
+			}
+			if (danger > 0)
+			{
+				bool blink_ready = false;
+				for (const auto &abiliy : Query()->GetAbilitiesForUnit(Funit).abilities)
+				{
+					if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
+					{
+						blink_ready = true;
+						break;
+					}
+				}
+				if (blink_ready && (danger > Funit->shield || danger > (Funit->shield_max / 2)))
+				{
+					Actions()->UnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4));
+					Actions()->UnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), true);
+					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
+				}
+				else
+				{
+					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(255, 0, 0), 20);
+				}
+			}
+		}
+	}
+
+	void TossBot::RemoveCompletedAtacks()
+	{
+		for (auto &attack : enemy_attacks)
+		{
+			for (int i = attack.second.size() - 1; i >= 0; i--)
+			{
+				if (attack.second[i].impact_frame <= Observation()->GetGameLoop())
+				{
+					attack.second.erase(attack.second.begin() + i);
+				}
+			}
+		}
+	}
+
+
 
 #pragma endregion
 
@@ -4640,7 +5288,8 @@ for (const auto &field : far_oversaturated_patches)
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(155.0f),										&TossBot::UseProxyDoubleRobo,		BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(185.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(200.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						//BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(228.0f),										&TossBot::ContinueBuildingPylons,	BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(228.0f),										&TossBot::MicroImmortalDrop,		BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(230.0f),										&TossBot::WarpInAtProxy,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
@@ -4662,6 +5311,31 @@ for (const auto &field : far_oversaturated_patches)
     bool IsFinishedUnit::operator()(const Unit& unit_) const {
         return unit_.unit_type == m_type && unit_.build_progress == 1;
     }
+
+	IsFightingUnit::IsFightingUnit(Unit::Alliance alliance_) : m_type(alliance_) {
+	}
+
+	bool IsFightingUnit::operator()(const Unit& unit_) const {
+		if (unit_.alliance != m_type)
+			return false;
+		for (const auto &type : { UNIT_TYPEID::PROTOSS_PHOTONCANNON, UNIT_TYPEID::PROTOSS_PROBE, UNIT_TYPEID::PROTOSS_ZEALOT, UNIT_TYPEID::PROTOSS_SENTRY,
+			UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_HIGHTEMPLAR, UNIT_TYPEID::PROTOSS_DARKTEMPLAR, UNIT_TYPEID::PROTOSS_ARCHON,
+			UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_COLOSSUS, UNIT_TYPEID::PROTOSS_PHOENIX, UNIT_TYPEID::PROTOSS_VOIDRAY, UNIT_TYPEID::PROTOSS_ORACLE,
+			UNIT_TYPEID::PROTOSS_CARRIER, UNIT_TYPEID::PROTOSS_TEMPEST, UNIT_TYPEID::PROTOSS_MOTHERSHIP, UNIT_TYPEID::TERRAN_PLANETARYFORTRESS, UNIT_TYPEID::TERRAN_MISSILETURRET,
+			UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_MULE, UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_REAPER, UNIT_TYPEID::TERRAN_GHOST,
+			UNIT_TYPEID::TERRAN_HELLION, UNIT_TYPEID::TERRAN_HELLIONTANK, UNIT_TYPEID::TERRAN_SIEGETANK, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_CYCLONE,
+			UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_THORAP, UNIT_TYPEID::TERRAN_AUTOTURRET, UNIT_TYPEID::TERRAN_VIKINGASSAULT, UNIT_TYPEID::TERRAN_VIKINGFIGHTER,
+			UNIT_TYPEID::TERRAN_LIBERATOR, UNIT_TYPEID::TERRAN_LIBERATORAG, UNIT_TYPEID::TERRAN_BANSHEE, UNIT_TYPEID::TERRAN_BATTLECRUISER, UNIT_TYPEID::ZERG_SPINECRAWLER,
+			UNIT_TYPEID::ZERG_SPORECRAWLER, UNIT_TYPEID::ZERG_DRONE, UNIT_TYPEID::ZERG_QUEEN, UNIT_TYPEID::ZERG_ZERGLING, UNIT_TYPEID::ZERG_BANELING, UNIT_TYPEID::ZERG_ROACH,
+			UNIT_TYPEID::ZERG_RAVAGER, UNIT_TYPEID::ZERG_HYDRALISK, UNIT_TYPEID::ZERG_LURKERMP, UNIT_TYPEID::ZERG_ULTRALISK, UNIT_TYPEID::ZERG_MUTALISK, UNIT_TYPEID::ZERG_CORRUPTOR,
+			UNIT_TYPEID::ZERG_BROODLORD, UNIT_TYPEID::ZERG_LOCUSTMP, UNIT_TYPEID::ZERG_BROODLING })
+		{
+			if (unit_.unit_type.ToType() == type)
+				return true;
+		}
+		return false;
+
+	}
 
 #pragma endregion
 
@@ -4884,6 +5558,23 @@ for (const auto &field : far_oversaturated_patches)
 
         Debug()->DebugTextOut(supply_message, Point2D(.9, .05), Color(0, 255, 0), 20);
     }
+
+	void TossBot::DisplayEnemyAttacks()
+	{
+		std::string message = "Current frame: " + std::to_string(Observation()->GetGameLoop()) + "\n";
+		for (const auto &unit : enemy_attacks)
+		{
+			message += UnitTypeIdToString(unit.first->unit_type.ToType());
+			message += ":\n";
+			for (const auto &attack : unit.second)
+			{
+				message += "    ";
+				message += UnitTypeIdToString(attack.unit->unit_type.ToType());
+				message += " - " + std::to_string(attack.impact_frame) + "\n";
+			}
+		}
+		Debug()->DebugTextOut(message, Point2D(.8, .4), Color(255, 0, 0), 20);
+	}
 
     void TossBot::ObserveAttackPath(Units observers, Point2D retreat_point, Point2D attack_point)
     {

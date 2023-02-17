@@ -676,10 +676,12 @@ public:
 		}
 
 		// move away from danger?
-		if (agent->DangerLevelAt(prism, prism_path[prev_index]) < agent->DangerLevelAt(prism, prism_path[next_index]))
+		std::cout << agent->DangerLevelAt(prism, prism_path[prev_index]) << std::endl;
+		if (agent->DangerLevelAt(prism, prism_path[prev_index]) > 0 && agent->DangerLevelAt(prism, prism_path[prev_index]) < agent->DangerLevelAt(prism, prism_path[next_index]))
 			return prism_path[prev_index];
 		else
 			return prism_path[next_index];
+
 	}
 
 };

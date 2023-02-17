@@ -321,11 +321,49 @@ private:
     UNIT_TYPEID m_type;
 };
 
+struct IsFightingUnit {
+	explicit IsFightingUnit(Unit::Alliance alliance_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	Unit::Alliance m_type;
+};
+
+struct EnemyUnitPosition
+{
+	Point2D pos;
+	int frames;
+	EnemyUnitPosition()
+	{
+		pos = Point2D(0, 0);
+		frames = 0;
+	}
+	EnemyUnitPosition(Point2D pos)
+	{
+		this->pos = pos;
+		frames = 0;
+	}
+};
+
+struct EnemyAttack
+{
+	const Unit* unit;
+	int impact_frame;
+	EnemyAttack(const Unit* unit, int impact_frame)
+	{
+		this->unit = unit;
+		this->impact_frame = impact_frame;
+	}
+};
+
+class BlankBot : public sc2::Agent {};
+
 class TossBot : public sc2::Agent
 {
 public:
     TossBot() : Agent() {};
-    bool debug_mode = false;
+    bool debug_mode = true;
     std::map<Tag, const Unit*> tag_to_unit;
     std::map<const Unit*, mineral_patch_data> mineral_patches;
     std::map<const Unit*, mineral_patch_reversed_data> mineral_patches_reversed;
@@ -344,6 +382,9 @@ public:
     NavMesh nav_mesh;
     const Unit* probe;
 	std::vector<Triangle*> overlaps;
+	std::map<const Unit*, EnemyUnitPosition> eneny_unit_saved_position;
+	std::map<const Unit*, float> enemy_weapon_cooldown;
+	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
 
 
     const Unit *new_base = NULL;
@@ -433,16 +474,25 @@ public:
     int GetDamage(const Unit*, const Unit*);
 	int GetArmor(const Unit*);
     float RealGroundRange(const Unit *, const Unit *);
+	float GetDamagePoint(const Unit*);
+	int GetProjectileTime(const Unit*, float dist);
+	float GetWeaponCooldown(const Unit*);
     bool IsOnHighGround(Point3D, Point3D);
     float GetTimeBuilt(const Unit*);
     AbilityID UnitToWarpInAbility(UNIT_TYPEID);
+	bool IsFacing(const Unit*, const Unit*);
+	void UpdateEnemyUnitPositions();
+	void UpdateEnemyWeaponCooldowns();
+	void DodgeShots();
+	void RemoveCompletedAtacks();
 
 
     // Pathing
 	Polygon CreateNewBlocker(const Unit*);
 
-    void ProcessActions();
     // Actions
+	void ProcessActions();
+
     bool ActionBuildBuilding(ActionArgData*);
     bool ActionBuildBuildingMulti(ActionArgData*);
 	bool ActionBuildProxyMulti(ActionArgData*);
@@ -535,6 +585,7 @@ public:
     void DisplayBuildingStatuses();
     void DisplayArmyGroups();
     void DisplaySupplyInfo();
+	void DisplayEnemyAttacks();
 
     // Micro
     void ObserveAttackPath(Units, Point2D, Point2D);
