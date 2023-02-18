@@ -1,4 +1,3 @@
-
 #include "TossBot.h"
 #include "finish_state_machine.h"
 #include "pathfinding.h"
@@ -12,6 +11,9 @@
 #include <iterator>
 #include <typeinfo>
 #include <ctime>
+
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit_filters.h"
@@ -29,6 +31,7 @@ namespace sc2 {
 
     void TossBot::OnStep()
     {
+		frames_passed++;
         //std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
         if (debug_mode)
         {
@@ -185,17 +188,11 @@ namespace sc2 {
                 }
             }
 
-            if (Observation()->GetGameLoop() == 1)
+            if (Observation()->GetGameLoop() == 1) 
             {
-                Debug()->DebugFastBuild();
-                Debug()->DebugGiveAllResources();
-				Debug()->DebugShowMap();
-				//Debug()->DebugEnemyControl();
                 SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
-				Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, Point2D(75, 75), 1, 12);
-				Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, Point2D(75, 95), 2, 8);
-				Debug()->DebugGiveAllUpgrades();
+
             }
             if (Observation()->GetGameLoop() > 1)
             {
@@ -262,10 +259,9 @@ namespace sc2 {
                 Point3D start = Point3D(probe->pos.x, probe->pos.y, Observation()->TerrainHeight(probe->pos) + .1);
                 Point3D end = Point3D(path[0].x, path[0].y, Observation()->TerrainHeight(path[0]) + .1);
                 Debug()->DebugLineOut(start, end, Color(0, 255, 0));*/
+
 				UpdateEnemyUnitPositions();
 				UpdateEnemyWeaponCooldowns();
-
-				DodgeShots();
 				for (const auto &unit : eneny_unit_saved_position)
 				{
 					Color col = Color(255, 255, 0);
@@ -275,17 +271,22 @@ namespace sc2 {
 					}
 					Debug()->DebugSphereOut(unit.first->pos, .7, col);
 					Debug()->DebugTextOut(std::to_string(unit.second.frames), unit.first->pos, col, 20);
+				}
 
+				if (!initial_set_up)
+				{
+					RunInitialSetUp();
+				}
+				if (tests_set_up)
+				{
+					RunTests();
 				}
 
             }
-            if (Observation()->GetGameLoop() == 3000)
-            {
-                for (const auto &gate : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)))
-                {
-                    std::cout << std::to_string(gate->pos.x) << ' ' << std::to_string(gate->pos.y) << std::endl;
-                }
-            }
+			if (Observation()->GetGameLoop() > 650 && !tests_set_up)
+			{
+				SetUpArmies();
+			}
             if (Observation()->GetGameLoop() % 1000 == 0)
             {
                 std::cout << "1000\n";
@@ -504,17 +505,161 @@ namespace sc2 {
     void TossBot::OnUnitDamaged(const Unit *unit, float health_damage, float shield_damage)
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health_damage) << " damage\n";
-        std::cout << unit->tag << " took " << std::to_string(health_damage) << " damage\n";
+        //std::cout << unit->tag << " took " << std::to_string(health_damage) << " damage\n";
         CallOnUnitDamagedEvent(unit, health_damage, shield_damage);
     }
 
     void TossBot::OnUnitDestroyed(const Unit *unit)
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
-		std::cout << unit->tag << " destroyed\n";
+		//std::cout << unit->tag << " destroyed\n";
         CallOnUnitDestroyedEvent(unit);
 		nav_mesh.RemoveObstacle(unit);
+
+		if (debug_mode)
+		{
+			if (std::find(test_army.stalkers.begin(), test_army.stalkers.end(), unit) != test_army.stalkers.end())
+			{
+				test_army.stalkers.erase(std::remove(test_army.stalkers.begin(), test_army.stalkers.end(), unit), test_army.stalkers.end());
+				test_army.attack_status.erase(unit);
+			}
+		}
     }
+
+
+#pragma endregion
+
+#pragma region testing
+
+	void TossBot::RunInitialSetUp()
+	{
+		Debug()->DebugFastBuild();
+		Debug()->DebugGiveAllResources();
+		Debug()->DebugShowMap();
+		SpawnArmies();
+		initial_set_up = true;
+	}
+
+	void TossBot::RunTests()
+	{
+		ApplyPressureGrouped(test_army, enemy_army_spawn, fallback_point);
+		Units enemy_attacking_units = Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
+		for (const auto &Eunit : enemy_attacking_units)
+		{
+			Actions()->UnitCommand(Eunit, ABILITY_ID::ATTACK, fallback_point);
+		}
+	}
+
+	void TossBot::SpawnArmies()
+	{
+		Debug()->DebugEnemyControl();
+		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 8);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 4);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 20);
+
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 12);
+	}
+
+	void TossBot::ApplyPressureGrouped(ArmyGroup army, Point2D attack_point, Point2D retreat_point)
+	{
+		if (army.stalkers.size() > 0)
+		{
+			bool all_ready = true;
+			for (const auto &stalker : army.stalkers)
+			{
+				if (stalker->weapon_cooldown > 0 || army.attack_status[stalker] == true)
+				{
+					all_ready = false;
+					break;
+				}
+			}
+			if (all_ready)
+			{
+				std::map<const Unit*, const Unit*> found_targets = FindTargets(army.stalkers, {});
+				for (const auto &stalker : army.stalkers)
+				{
+					/*if (found_targets.size() == 0)
+					{
+						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army.attack_point);
+					}*/
+					if (found_targets.count(stalker) > 0)
+					{
+						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, found_targets[stalker]);
+						army.attack_status[stalker] = true;
+					}
+					else
+					{
+						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army.attack_point);
+					}
+				}
+			}
+			else
+			{
+				for (const auto &stalker : army.stalkers)
+				{
+					int danger = IncomingDanage(stalker);
+					if (danger > stalker->shield || danger > (stalker->shield_max / 2))
+					{
+						for (const auto &abiliy : Query()->GetAbilitiesForUnit(stalker).abilities)
+						{
+							if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
+							{
+								Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, PointBetween(stalker->pos, army.retreat_point, 7)); // TODO adjustable blink distance
+								Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army.attack_point, true);
+								break;
+							}
+						}
+					}
+					else if (army.attack_status[stalker] == false)
+					{
+						// no order but no danger so just move back
+						Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, army.retreat_point);
+					}
+					else if (stalker->weapon_cooldown > 0)
+					{
+						// attack has gone off so reset order status
+						army.attack_status[stalker] = false;
+					}
+				}
+			}
+		}
+	}
+
+	void TossBot::DodgeShots()
+	{
+		for (const auto &Funit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)))
+		{
+			int danger = IncomingDanage(Funit);
+			if (danger)
+			{
+				bool blink_ready = false;
+				for (const auto &abiliy : Query()->GetAbilitiesForUnit(Funit).abilities)
+				{
+					if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
+					{
+						blink_ready = true;
+						break;
+					}
+				}
+				if (blink_ready && (danger > Funit->shield || danger > (Funit->shield_max / 2)))
+				{
+					Actions()->UnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4));
+					Actions()->UnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), true);
+					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
+				}
+				else
+				{
+					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(255, 0, 0), 20);
+				}
+			}
+		}
+	}
+
+	void TossBot::SetUpArmies()
+	{
+		test_army = ArmyGroup(Observation()->GetUnits(Unit::Alliance::Self), enemy_army_spawn, fallback_point);
+		tests_set_up = true;
+	}
 
 
 #pragma endregion
@@ -2453,6 +2598,19 @@ for (const auto &field : far_oversaturated_patches)
 		return possible_damage;
 	}
 
+	int TossBot::IncomingDanage(const Unit* unit)
+	{
+		int damage = 0;
+		if (enemy_attacks.count(unit) > 0)
+		{
+			for (const auto &attack : enemy_attacks[unit])
+			{
+				damage += GetDamage(attack.unit, unit);
+			}
+		}
+		return damage;
+	}
+
     int TossBot::GetDamage(const Unit* attacker, const Unit* target)
     {
 		bool is_light = 0;
@@ -3594,8 +3752,10 @@ for (const auto &field : far_oversaturated_patches)
 	{
 		Point2D vec = Point2D(target->pos.x - unit->pos.x, target->pos.y - unit->pos.y);
 		float angle = atan2(vec.y, vec.x);
+		if (angle < 0)
+			angle += 2 * M_PI;
 		float facing = unit->facing;
-		return angle >= facing - .003 && angle <= facing + .003;
+		return angle >= facing - .005 && angle <= facing + .005;
 	}
 
 	void TossBot::UpdateEnemyUnitPositions()
@@ -3623,7 +3783,8 @@ for (const auto &field : far_oversaturated_patches)
 
 	void TossBot::UpdateEnemyWeaponCooldowns()
 	{
-		for (const auto &Eunit : Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)))
+		Units enemy_attacking_units = Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
+		for (const auto &Eunit : enemy_attacking_units)
 		{
 			if (enemy_weapon_cooldown.count(Eunit) == 0)
 				enemy_weapon_cooldown[Eunit] = 0;
@@ -3632,12 +3793,25 @@ for (const auto &field : far_oversaturated_patches)
 			{
 				if (Distance2D(Eunit->pos, Funit->pos) < RealGroundRange(Eunit, Funit) && IsFacing(Eunit, Funit) && enemy_weapon_cooldown[Eunit] == 0 && eneny_unit_saved_position[Eunit].frames > GetDamagePoint(Eunit) * 22.4)
 				{
-					enemy_weapon_cooldown[Eunit] = GetWeaponCooldown(Eunit) - GetDamagePoint(Eunit);
-					EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + GetProjectileTime(Eunit, Distance2D(Eunit->pos, Funit->pos)));
-					if (enemy_attacks.count(Funit) == 0)
-						enemy_attacks[Funit] = { attack };
+					float damage_point = GetDamagePoint(Eunit);
+					if (damage_point == 0)
+					{
+						enemy_weapon_cooldown[Eunit] = GetWeaponCooldown(Eunit) - GetDamagePoint(Eunit) - (1 / 22.4);
+						EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + GetProjectileTime(Eunit, Distance2D(Eunit->pos, Funit->pos) - Eunit->radius - Funit->radius) - 1);
+						if (enemy_attacks.count(Funit) == 0)
+							enemy_attacks[Funit] = { attack };
+						else
+							enemy_attacks[Funit].push_back(attack);
+					}
 					else
-						enemy_attacks[Funit].push_back(attack);
+					{
+						enemy_weapon_cooldown[Eunit] = GetWeaponCooldown(Eunit) - GetDamagePoint(Eunit);
+						EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + GetProjectileTime(Eunit, Distance2D(Eunit->pos, Funit->pos) - Eunit->radius - Funit->radius));
+						if (enemy_attacks.count(Funit) == 0)
+							enemy_attacks[Funit] = { attack };
+						else
+							enemy_attacks[Funit].push_back(attack);
+					}
 				}
 			}
 			if (enemy_weapon_cooldown[Eunit] > 0)
@@ -3648,43 +3822,6 @@ for (const auto &field : far_oversaturated_patches)
 				eneny_unit_saved_position[Eunit].frames = 0;
 			}
 			Debug()->DebugTextOut(std::to_string(enemy_weapon_cooldown[Eunit]), Eunit->pos + Point3D(0, 0, .2), Color(255, 0, 255), 20);
-		}
-	}
-
-	void TossBot::DodgeShots()
-	{
-		for (const auto &Funit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)))
-		{
-			int danger = 0;
-			if (enemy_attacks.count(Funit) > 0)
-			{
-				for (const auto &attack : enemy_attacks[Funit])
-				{
-					danger += GetDamage(attack.unit, Funit);
-				}
-			}
-			if (danger > 0)
-			{
-				bool blink_ready = false;
-				for (const auto &abiliy : Query()->GetAbilitiesForUnit(Funit).abilities)
-				{
-					if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
-					{
-						blink_ready = true;
-						break;
-					}
-				}
-				if (blink_ready && (danger > Funit->shield || danger > (Funit->shield_max / 2)))
-				{
-					Actions()->UnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4));
-					Actions()->UnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), true);
-					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
-				}
-				else
-				{
-					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(255, 0, 0), 20);
-				}
-			}
 		}
 	}
 
@@ -5562,6 +5699,7 @@ for (const auto &field : far_oversaturated_patches)
 	void TossBot::DisplayEnemyAttacks()
 	{
 		std::string message = "Current frame: " + std::to_string(Observation()->GetGameLoop()) + "\n";
+		message += "Current time: " + std::to_string(frames_passed / 22.4) + "\n";
 		for (const auto &unit : enemy_attacks)
 		{
 			message += UnitTypeIdToString(unit.first->unit_type.ToType());
@@ -5796,6 +5934,18 @@ for (const auto &field : far_oversaturated_patches)
     {
 
     }
+
+	bool TossBot::FireVolley(Units units, std::vector<UNIT_TYPEID> prio)
+	{
+		std::map<const Unit*, const Unit*> attacks = FindTargets(units, prio);
+		if (attacks.size() == 0)
+			return false;
+		for (const auto &attack : attacks)
+		{
+			Actions()->UnitCommand(attack.first, ABILITY_ID::ATTACK, attack.second);
+		}
+		return true;
+	}
 
 	std::map<const Unit*, const Unit*> TossBot::FindTargets(Units units, std::vector<UNIT_TYPEID> prio)
 	{

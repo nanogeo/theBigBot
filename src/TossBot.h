@@ -77,7 +77,6 @@ struct BaseInfo
 
 struct Army
 {
-    //TODO just store units
     Units observers;
 	Units immortals;
 	Units prisms;
@@ -123,6 +122,31 @@ struct Army
         attack_path = path;
         current_attack_index = 3;
         high_ground_index = index;
+	}
+};
+
+struct ArmyGroup
+{
+	Point2D attack_point;
+	Point2D retreat_point;
+
+	Units stalkers;
+	std::map<const Unit*, bool> attack_status;
+
+	ArmyGroup() {};
+	ArmyGroup(Units units, Point2D attack_pos, Point2D retreat_pos)
+	{
+		attack_point = attack_pos;
+		retreat_point = retreat_pos;
+
+		for (const auto &unit : units)
+		{
+			if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
+			{
+				stalkers.push_back(unit);
+				attack_status[unit] = false;
+			}
+		}
 	}
 };
 
@@ -357,13 +381,17 @@ struct EnemyAttack
 	}
 };
 
-class BlankBot : public sc2::Agent {};
+class BlankBot : public sc2::Agent {
+public:
+	BlankBot() : Agent() {};
+};
 
 class TossBot : public sc2::Agent
 {
 public:
     TossBot() : Agent() {};
     bool debug_mode = true;
+	int frames_passed = 0;
     std::map<Tag, const Unit*> tag_to_unit;
     std::map<const Unit*, mineral_patch_data> mineral_patches;
     std::map<const Unit*, mineral_patch_reversed_data> mineral_patches_reversed;
@@ -385,6 +413,22 @@ public:
 	std::map<const Unit*, EnemyUnitPosition> eneny_unit_saved_position;
 	std::map<const Unit*, float> enemy_weapon_cooldown;
 	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
+
+	// testing
+	Point2D enemy_army_spawn = Point2D(30, 142);
+	Point2D friendly_army_spawn = Point2D(59, 114);
+	Point2D fallback_point = Point2D(146, 30);
+	ArmyGroup test_army;
+	bool tests_set_up = false;
+	bool initial_set_up = false;
+
+	void RunInitialSetUp();
+	void RunTests();
+
+	void SpawnArmies();
+	void ApplyPressureGrouped(ArmyGroup, Point2D, Point2D);
+	void DodgeShots();
+	void SetUpArmies();
 
 
     const Unit *new_base = NULL;
@@ -471,6 +515,7 @@ public:
     Point2D PointBetween(Point2D, Point2D, float);
     int DangerLevel(const Unit *);
 	int DangerLevelAt(const Unit *, Point2D);
+	int IncomingDanage(const Unit*);
     int GetDamage(const Unit*, const Unit*);
 	int GetArmor(const Unit*);
     float RealGroundRange(const Unit *, const Unit *);
@@ -483,7 +528,6 @@ public:
 	bool IsFacing(const Unit*, const Unit*);
 	void UpdateEnemyUnitPositions();
 	void UpdateEnemyWeaponCooldowns();
-	void DodgeShots();
 	void RemoveCompletedAtacks();
 
 
@@ -595,6 +639,7 @@ public:
     void ImmortalAttackTowardsWithPrism(Units, Units, Point2D, Point2D, bool);
 
 	// Other
+	bool FireVolley(Units, std::vector<UNIT_TYPEID>);
 	std::map<const Unit*, const Unit*> FindTargets(Units, std::vector<UNIT_TYPEID>);
 
 };
