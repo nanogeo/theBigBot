@@ -115,15 +115,6 @@ namespace sc2 {
 			if (unit->units_in_range.size() == 1)
 				ApplyAttack(unit, unit->units_in_range[0]);
 		}
-		/*auto Fcmp = [](std::pair<const Unit*, FriendlyUnit> const & a, std::pair<const Unit*, FriendlyUnit> const & b)
-		{
-			return a.second.enemy_units_in_range.size() < b.second.enemy_units_in_range.size();
-		};
-
-		auto Ecmp = [](std::pair<const Unit*, EnemyUnit> const & a, std::pair<const Unit*, EnemyUnit> const & b)
-		{
-			return a.second.friendly_units_in_range.size() < b.second.friendly_units_in_range.size();
-		};*/
 
 		// order enemy units by number of friendly units that can hit them
 		EnemyMinHeap enemy_units_ordered = EnemyMinHeap(enemy_units.size());

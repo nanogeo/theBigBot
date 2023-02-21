@@ -381,6 +381,22 @@ struct EnemyAttack
 	}
 };
 
+struct UnitTypeInfo
+{
+	bool is_melee;
+	bool is_army_unit;
+	bool has_anti_ground_attack;
+	bool has_anti_air_attack;
+	UnitTypeInfo() {};
+	UnitTypeInfo(bool melee, bool army, bool anti_ground, bool anti_air)
+	{
+		is_melee = melee;
+		is_army_unit = army;
+		has_anti_ground_attack = anti_ground;
+		has_anti_air_attack = anti_air;
+	}
+};
+
 class BlankBot : public sc2::Agent {
 public:
 	BlankBot() : Agent() {};
@@ -413,6 +429,7 @@ public:
 	std::map<const Unit*, EnemyUnitPosition> eneny_unit_saved_position;
 	std::map<const Unit*, float> enemy_weapon_cooldown;
 	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
+	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
 
 	// testing
 	Point2D enemy_army_spawn = Point2D(30, 142);
@@ -426,7 +443,7 @@ public:
 	void RunTests();
 
 	void SpawnArmies();
-	void ApplyPressureGrouped(ArmyGroup, Point2D, Point2D);
+	void ApplyPressureGrouped(ArmyGroup*, Point2D, Point2D);
 	void DodgeShots();
 	void SetUpArmies();
 
@@ -515,7 +532,7 @@ public:
     Point2D PointBetween(Point2D, Point2D, float);
     int DangerLevel(const Unit *);
 	int DangerLevelAt(const Unit *, Point2D);
-	int IncomingDanage(const Unit*);
+	int IncomingDamage(const Unit*);
     int GetDamage(const Unit*, const Unit*);
 	int GetArmor(const Unit*);
     float RealGroundRange(const Unit *, const Unit *);
@@ -529,6 +546,9 @@ public:
 	void UpdateEnemyUnitPositions();
 	void UpdateEnemyWeaponCooldowns();
 	void RemoveCompletedAtacks();
+	void FindConcave(Point2D, Point2D);
+	void SetUpUnitTypeInfo();
+	void PrintAttacks(std::map<const Unit*, const Unit*>);
 
 
     // Pathing
@@ -630,6 +650,7 @@ public:
     void DisplayArmyGroups();
     void DisplaySupplyInfo();
 	void DisplayEnemyAttacks();
+	void DisplayAlliedAttackStatus();
 
     // Micro
     void ObserveAttackPath(Units, Point2D, Point2D);
