@@ -400,6 +400,12 @@ struct UnitTypeInfo
 class BlankBot : public sc2::Agent {
 public:
 	BlankBot() : Agent() {};
+
+	virtual void OnGameStart()
+	{
+		Debug()->DebugGiveAllUpgrades();
+		Debug()->SendDebug();
+	}
 };
 
 class TossBot : public sc2::Agent
@@ -426,7 +432,7 @@ public:
     NavMesh nav_mesh;
     const Unit* probe;
 	std::vector<Triangle*> overlaps;
-	std::map<const Unit*, EnemyUnitPosition> eneny_unit_saved_position;
+	std::map<const Unit*, EnemyUnitPosition> enemy_unit_saved_position;
 	std::map<const Unit*, float> enemy_weapon_cooldown;
 	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
 	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
@@ -443,9 +449,11 @@ public:
 	void RunTests();
 
 	void SpawnArmies();
-	void ApplyPressureGrouped(ArmyGroup*, Point2D, Point2D);
+	void ApplyPressureGrouped(ArmyGroup*, Point2D, Point2D, std::map<const Unit*, Point2D>);
 	void DodgeShots();
 	void SetUpArmies();
+	bool TestSwap(Point2D, Point2D, Point2D, Point2D);
+	std::map<const Unit*, Point2D> AssignUnitsToPositions(Units, std::vector<Point2D>);
 
 
     const Unit *new_base = NULL;
@@ -546,7 +554,7 @@ public:
 	void UpdateEnemyUnitPositions();
 	void UpdateEnemyWeaponCooldowns();
 	void RemoveCompletedAtacks();
-	void FindConcave(Point2D, Point2D);
+	std::vector<Point2D> FindConcave(Point2D, Point2D, int);
 	void SetUpUnitTypeInfo();
 	void PrintAttacks(std::map<const Unit*, const Unit*>);
 

@@ -27,6 +27,7 @@ namespace sc2 {
     void TossBot::OnGameStart()
     {
         std::cout << "Hello World!" << std::endl;
+		SetUpUnitTypeInfo();
     }
 
     void TossBot::OnStep()
@@ -191,7 +192,6 @@ namespace sc2 {
             if (Observation()->GetGameLoop() == 1) 
             {
                 SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
-				SetUpUnitTypeInfo();
 				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
 
             }
@@ -263,7 +263,7 @@ namespace sc2 {
 
 				UpdateEnemyUnitPositions();
 				UpdateEnemyWeaponCooldowns();
-				for (const auto &unit : eneny_unit_saved_position)
+				for (const auto &unit : enemy_unit_saved_position)
 				{
 					Color col = Color(255, 255, 0);
 					if (unit.second.frames > 0)
@@ -451,11 +451,11 @@ namespace sc2 {
 
     void TossBot::OnNeutralUnitCreated(const Unit *building)
     {
-        if (debug_mode)
+        /*if (debug_mode)
         {
             std::cout << UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
             return;
-        }
+        }*/
     }
 
     void TossBot::OnUnitCreated(const Unit *unit)
@@ -512,6 +512,10 @@ namespace sc2 {
     void TossBot::OnUnitDestroyed(const Unit *unit)
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		if (enemy_unit_saved_position.find(unit) != enemy_unit_saved_position.end())
+			enemy_unit_saved_position.erase(unit);
+		if (enemy_weapon_cooldown.find(unit) != enemy_weapon_cooldown.end())
+			enemy_weapon_cooldown.erase(unit);
 		if (unit->alliance == Unit::Alliance::Enemy)
 			std::cout << unit->tag << " destroyed\n";
         CallOnUnitDestroyedEvent(unit);
@@ -544,9 +548,18 @@ namespace sc2 {
 
 	void TossBot::RunTests()
 	{
-		ApplyPressureGrouped(&test_army, enemy_army_spawn, fallback_point);
 		const Unit* closest_enemy = ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), MedianCenter(test_army.stalkers));
-		FindConcave(closest_enemy->pos, fallback_point);
+		std::vector<Point2D> concave_positions = FindConcave(closest_enemy->pos, fallback_point, test_army.stalkers.size());
+		std::map<const Unit*, Point2D> unit_positions = AssignUnitsToPositions(test_army.stalkers, concave_positions);
+		
+		for (const auto &unit : unit_positions)
+		{
+			Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
+			//Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
+		}
+
+		ApplyPressureGrouped(&test_army, enemy_army_spawn, fallback_point, unit_positions);
+		
 
 		Units enemy_attacking_units = Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
 		Actions()->UnitCommand(enemy_attacking_units, ABILITY_ID::ATTACK, fallback_point);
@@ -555,17 +568,17 @@ namespace sc2 {
 	void TossBot::SpawnArmies()
 	{
 		Debug()->DebugEnemyControl();
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 2);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 1);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 40);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 16);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 20);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 2, 8);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 2, 2);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 2, 8);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 2, 2);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 6);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 10);
 	}
 
-	void TossBot::ApplyPressureGrouped(ArmyGroup* army, Point2D attack_point, Point2D retreat_point)
+	void TossBot::ApplyPressureGrouped(ArmyGroup* army, Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> unit_positions)
 	{
 		if (army->stalkers.size() > 0)
 		{
@@ -601,19 +614,10 @@ namespace sc2 {
 			}
 			else
 			{
-				bool all_finished_attack = true;
-				for (const auto &stalker : army->stalkers)
-				{
-					if (army->attack_status[stalker] == true)
-					{
-						all_finished_attack = false;
-						break;
-					}
-				}
 				for (const auto &stalker : army->stalkers)
 				{
 					int danger = IncomingDamage(stalker);
-					if (danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
+					if (danger > 0 || danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
 					{
 						for (const auto &abiliy : Query()->GetAbilitiesForUnit(stalker).abilities)
 						{
@@ -625,21 +629,11 @@ namespace sc2 {
 								break;
 							}
 						}
-						if (all_finished_attack)
-						{
-							// no order but no danger so just move back
-							Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, army->retreat_point);
-						}
-						else if (stalker->weapon_cooldown > 0)
-						{
-							// attack has gone off so reset order status
-							army->attack_status[stalker] = false;
-						}
 					}
-					else if (all_finished_attack)
+					if (army->attack_status[stalker] == false)
 					{
 						// no order but no danger so just move back
-						Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, army->retreat_point);
+						Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, unit_positions[stalker]);
 					}
 					else if (stalker->weapon_cooldown > 0)
 					{
@@ -685,6 +679,37 @@ namespace sc2 {
 	{
 		test_army = ArmyGroup(Observation()->GetUnits(Unit::Alliance::Self), enemy_army_spawn, fallback_point);
 		tests_set_up = true;
+	}
+
+	bool TossBot::TestSwap(Point2D pos1, Point2D target1, Point2D pos2, Point2D target2)
+	{
+		float curr_max = std::max(Distance2D(pos1, target1), Distance2D(pos2, target2));
+		float swap_max = std::max(Distance2D(pos1, target2), Distance2D(pos2, target1));
+		return swap_max < curr_max;
+	}
+
+	std::map<const Unit*, Point2D> TossBot::AssignUnitsToPositions(Units units, std::vector<Point2D> positions)
+	{
+		std::map<const Unit*, Point2D> unit_assignments;
+		for (const auto &unit : units)
+		{
+			Point2D closest = ClosestTo(positions, unit->pos);
+			unit_assignments[unit] = closest;
+			positions.erase(std::remove(positions.begin(), positions.end(), closest), positions.end());
+		}
+		for (int i = 0; i < units.size() - 1; i++)
+		{
+			for (int j = i + 1; j < units.size(); j++)
+			{
+				if (TestSwap(units[i]->pos, unit_assignments[units[i]], units[j]->pos, unit_assignments[units[j]]))
+				{
+					Point2D temp = unit_assignments[units[i]];
+					unit_assignments[units[i]] = unit_assignments[units[j]];
+					unit_assignments[units[j]] = temp;
+				}
+			}
+		}
+		return unit_assignments;
 	}
 
 
@@ -2624,7 +2649,7 @@ for (const auto &field : far_oversaturated_patches)
 		return possible_damage;
 	}
 
-	int TossBot::IncomingDamage(const Unit* unit) // TODO melee units
+	int TossBot::IncomingDamage(const Unit* unit)
 	{
 		int damage = 0;
 		if (enemy_attacks.count(unit) > 0)
@@ -3788,21 +3813,21 @@ for (const auto &field : far_oversaturated_patches)
 	{
 		for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
 		{
-			if (eneny_unit_saved_position.count(unit) > 0)
+			if (enemy_unit_saved_position.count(unit) > 0)
 			{
-				if (eneny_unit_saved_position[unit].pos == unit->pos)
+				if (enemy_unit_saved_position[unit].pos == unit->pos)
 				{
-					eneny_unit_saved_position[unit].frames++;
+					enemy_unit_saved_position[unit].frames++;
 				}
 				else
 				{
-					eneny_unit_saved_position[unit].pos = unit->pos;
-					eneny_unit_saved_position[unit].frames = 0;
+					enemy_unit_saved_position[unit].pos = unit->pos;
+					enemy_unit_saved_position[unit].frames = 0;
 				}
 			}
 			else
 			{
-				eneny_unit_saved_position[unit] = EnemyUnitPosition(unit->pos);
+				enemy_unit_saved_position[unit] = EnemyUnitPosition(unit->pos);
 			}
 		}
 	}
@@ -3838,12 +3863,12 @@ for (const auto &field : far_oversaturated_patches)
 
 			for (const auto &Funit : allied_units)
 			{
-				if (Distance2D(Eunit->pos, Funit->pos) < RealGroundRange(Eunit, Funit) && IsFacing(Eunit, Funit) && enemy_weapon_cooldown[Eunit] == 0 && eneny_unit_saved_position[Eunit].frames > GetDamagePoint(Eunit) * 22.4)
+				if (Distance2D(Eunit->pos, Funit->pos) < RealGroundRange(Eunit, Funit) && IsFacing(Eunit, Funit) && enemy_weapon_cooldown[Eunit] == 0 && enemy_unit_saved_position[Eunit].frames > 0/*GetDamagePoint(Eunit) * 22.4*/)
 				{
 					float damage_point = GetDamagePoint(Eunit);
 					if (damage_point == 0)
 					{
-						enemy_weapon_cooldown[Eunit] = GetWeaponCooldown(Eunit) - GetDamagePoint(Eunit) - (1 / 22.4);
+						enemy_weapon_cooldown[Eunit] = GetWeaponCooldown(Eunit) - /*GetDamagePoint(Eunit) - */(1 / 22.4);
 						EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + GetProjectileTime(Eunit, Distance2D(Eunit->pos, Funit->pos) - Eunit->radius - Funit->radius) - 1);
 						if (enemy_attacks.count(Funit) == 0)
 							enemy_attacks[Funit] = { attack };
@@ -3866,7 +3891,7 @@ for (const auto &field : far_oversaturated_patches)
 			if (enemy_weapon_cooldown[Eunit] < 0)
 			{
 				enemy_weapon_cooldown[Eunit] = 0;
-				eneny_unit_saved_position[Eunit].frames = 0;
+				enemy_unit_saved_position[Eunit].frames = -1;
 			}
 			Debug()->DebugTextOut(std::to_string(enemy_weapon_cooldown[Eunit]), Eunit->pos + Point3D(0, 0, .2), Color(255, 0, 255), 20);
 		}
@@ -3886,12 +3911,12 @@ for (const auto &field : far_oversaturated_patches)
 		}
 	}
 
-	void TossBot::FindConcave(Point2D enemy_front, Point2D fallback_point)
+	std::vector<Point2D> TossBot::FindConcave(Point2D enemy_front, Point2D fallback_point, int num_units)
 	{
-		float range = 5; //r
+		float range = 7; //r
 		float unit_radius = .625; //u
-		float concave_degree = 5; //p
-		int num_units = 9; //n
+		float concave_degree = 30; //p
+		int max_width = 4;
 
 		Point2D backward_vector = fallback_point - enemy_front;
 		Point2D forward_vector = enemy_front - fallback_point;
@@ -3903,26 +3928,114 @@ for (const auto &field : far_oversaturated_patches)
 		float backwards_direction = atan2(backward_vector.y, backward_vector.x);
 		float arclength = (2 * unit_radius) / (range + concave_degree + unit_radius);
 		
-		if (num_units % 2 == 0)
+		std::vector<Point2D> concave_points;
+		
+		int row = 0;
+
+		while(concave_points.size() < num_units)
 		{
-			for (float i = (num_units / -2) + .5; i <= (num_units / 2) - .5; i += 1)
+			row++;
+			// even row
+			bool left_limit = false;
+			bool right_limit = false;
+			float arclength = (2 * unit_radius) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+			for (float i = .5; i <= max_width - .5; i += 1)
 			{
-				float unit_direction = backwards_direction + i * arclength;
-				Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + unit_radius) * cos(unit_direction), 
-												offset_circle_center.y + (range + concave_degree + unit_radius) * sin(unit_direction));
-				Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(0, 255, 0));
+				if (!right_limit)
+				{
+					float unit_direction = backwards_direction + i * arclength;
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					if (Observation()->IsPathable(unit_position))
+					{
+						concave_points.push_back(unit_position);
+						Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(0, 255, 0));
+					}
+					else
+					{
+						right_limit = true;
+					}
+				}
+				if ((right_limit && left_limit) || concave_points.size() >= num_units)
+					break;
+
+				if (!left_limit)
+				{
+					float unit_direction = backwards_direction - i * arclength;
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					if (Observation()->IsPathable(unit_position))
+					{
+						concave_points.push_back(unit_position);
+						Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(0, 255, 0));
+					}
+					else
+					{
+						left_limit = true;
+					}
+				}
+				if ((right_limit && left_limit) || concave_points.size() >= num_units)
+					break;
+			}
+			if (concave_points.size() >= num_units)
+				break;
+
+			// odd row
+			row++;
+			// middle point
+			float unit_direction = backwards_direction;
+			Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+				offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+			if (Observation()->IsPathable(unit_position))
+			{
+				concave_points.push_back(unit_position);
+				Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(255, 0, 0));
+			}
+
+			left_limit = false;
+			right_limit = false;
+			arclength = (2 * unit_radius) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+			for (int i = 1; i <= max_width - 1; i++)
+			{
+				if (!right_limit)
+				{
+					float unit_direction = backwards_direction + i * arclength;
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					if (Observation()->IsPathable(unit_position))
+					{
+						concave_points.push_back(unit_position);
+						Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(255, 0, 0));
+					}
+					else
+					{
+						right_limit = true;
+					}
+				}
+				if ((right_limit && left_limit) || concave_points.size() >= num_units)
+					break;
+
+				if (!left_limit)
+				{
+					float unit_direction = backwards_direction - i * arclength;
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					if (Observation()->IsPathable(unit_position))
+					{
+						concave_points.push_back(unit_position);
+						Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(255, 0, 0));
+					}
+					else
+					{
+						left_limit = true;
+					}
+				}
+				if ((right_limit && left_limit) || concave_points.size() >= num_units)
+					break;
+			
 			}
 		}
-		else
-		{
-			for (int i = (num_units - 1)/ -2; i <= (num_units - 1) / 2; i++)
-			{
-				float unit_direction = backwards_direction + i * arclength;
-				Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + unit_radius) * cos(unit_direction), 
-												offset_circle_center.y + (range + concave_degree + unit_radius) * sin(unit_direction));
-				Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(255, 255, 0));
-			}
-		}
+		return concave_points;
 	}
 
 	void TossBot::SetUpUnitTypeInfo()
@@ -5690,7 +5803,7 @@ for (const auto &field : far_oversaturated_patches)
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::ContinueMakingWorkers,	BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(280.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(360.0f),										&TossBot::ProxyDoubleRoboAllIn,		BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(300.0f),										&TossBot::ProxyDoubleRoboAllIn,		BuildOrderResultArgData()),
 		};
 	}
     
@@ -5973,6 +6086,7 @@ for (const auto &field : far_oversaturated_patches)
 
 	void TossBot::DisplayAlliedAttackStatus()
 	{
+		return;
 		for (const auto &unit : test_army.attack_status)
 		{
 			Color col1 = Color(255, 0, 0);
