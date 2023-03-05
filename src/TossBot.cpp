@@ -558,7 +558,8 @@ namespace sc2 {
 			//Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
 		}
 
-		ApplyPressureGrouped(&test_army, enemy_army_spawn, fallback_point, unit_positions);
+		//ApplyPressureGrouped(&test_army, enemy_army_spawn, fallback_point, unit_positions);
+
 		
 
 		Units enemy_attacking_units = Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
@@ -568,14 +569,14 @@ namespace sc2 {
 	void TossBot::SpawnArmies()
 	{
 		Debug()->DebugEnemyControl();
-		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 16);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 1);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 20);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 40);
 
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 2, 8);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 2, 2);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 10);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 1);
 	}
 
 	void TossBot::ApplyPressureGrouped(ArmyGroup* army, Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> unit_positions)

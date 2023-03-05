@@ -6,6 +6,8 @@
 #include "sc2api/sc2_agent.h"
 #include "sc2api/sc2_map_info.h"
 
+#include "sc2api/sc2_unit_filters.h"
+
 namespace sc2
 {
 
@@ -405,6 +407,26 @@ public:
 	{
 		Debug()->DebugGiveAllUpgrades();
 		Debug()->SendDebug();
+	}
+
+	virtual void OnStep()
+	{
+		for (const auto &unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ROACH)))
+		{
+			if (Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)).size() == 0)
+				return;
+			const Unit* stalker = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER))[0];
+			Point2D vec = Point2D(stalker->pos.x - unit->pos.x, stalker->pos.y - unit->pos.y);
+			float angle = atan2(vec.y, vec.x);
+			if (angle < 0)
+				angle += 2 * 3.1415926535;
+			float facing = unit->facing;
+			std::string text = "roach facing: " + std::to_string(facing);
+			text += " angle to stalker: " + std::to_string(angle);
+			text += " weapon cooldown: " + std::to_string(unit->weapon_cooldown) + "\n";
+			Debug()->DebugTextOut(text, unit->pos, Color(0, 255, 255), 20);
+			Debug()->SendDebug();
+		}
 	}
 };
 
