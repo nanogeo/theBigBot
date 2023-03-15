@@ -11,6 +11,7 @@
 #include <iterator>
 #include <typeinfo>
 #include <ctime>
+#include <cstdlib>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -555,10 +556,10 @@ namespace sc2 {
 		for (const auto &unit : unit_positions)
 		{
 			Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
-			//Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
+			Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
 		}
 
-		//ApplyPressureGrouped(&test_army, enemy_army_spawn, fallback_point, unit_positions);
+		ApplyPressureGrouped(&test_army, enemy_army_spawn, fallback_point, unit_positions);
 
 		
 
@@ -569,14 +570,14 @@ namespace sc2 {
 	void TossBot::SpawnArmies()
 	{
 		Debug()->DebugEnemyControl();
-		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 1);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 12);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 40);
 
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 2, 8);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 2, 2);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 1);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 10);
 	}
 
 	void TossBot::ApplyPressureGrouped(ArmyGroup* army, Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> unit_positions)
@@ -3810,6 +3811,33 @@ for (const auto &field : far_oversaturated_patches)
 		return angle >= facing - .005 && angle <= facing + .005;
 	}
 
+	float TossBot::GetFacingAngle(const Unit* unit, const Unit* target)
+	{
+		Point2D vec = Point2D(target->pos.x - unit->pos.x, target->pos.y - unit->pos.y);
+		float angle = atan2(vec.y, vec.x);
+		if (angle < 0)
+			angle += 2 * M_PI;
+		return std::abs(angle - unit->facing);
+	}
+
+	const Unit* TossBot::AimingAt(const Unit* unit)
+	{
+		float smallest_angle = 180;
+		const Unit* target = NULL;
+		for (const auto Funit : Observation()->GetUnits(Unit::Alliance::Self))
+		{
+			if (Distance2D(unit->pos, Funit->pos) >= RealGroundRange(unit, Funit))
+				continue;
+			float angle = GetFacingAngle(unit, Funit);
+			if (angle < smallest_angle)
+			{
+				smallest_angle = angle;
+				target = Funit;
+			}
+		}
+		return target;
+	}
+
 	void TossBot::UpdateEnemyUnitPositions()
 	{
 		for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
@@ -3862,31 +3890,31 @@ for (const auto &field : far_oversaturated_patches)
 			if (enemy_weapon_cooldown.count(Eunit) == 0)
 				enemy_weapon_cooldown[Eunit] = 0;
 
-			for (const auto &Funit : allied_units)
+			const Unit* target = AimingAt(Eunit);
+
+			if (target != NULL && enemy_weapon_cooldown[Eunit] == 0 && enemy_unit_saved_position[Eunit].frames > GetDamagePoint(Eunit) * 22.4)
 			{
-				if (Distance2D(Eunit->pos, Funit->pos) < RealGroundRange(Eunit, Funit) && IsFacing(Eunit, Funit) && enemy_weapon_cooldown[Eunit] == 0 && enemy_unit_saved_position[Eunit].frames > 0/*GetDamagePoint(Eunit) * 22.4*/)
+				float damage_point = GetDamagePoint(Eunit);
+				if (damage_point == 0)
 				{
-					float damage_point = GetDamagePoint(Eunit);
-					if (damage_point == 0)
-					{
-						enemy_weapon_cooldown[Eunit] = GetWeaponCooldown(Eunit) - /*GetDamagePoint(Eunit) - */(1 / 22.4);
-						EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + GetProjectileTime(Eunit, Distance2D(Eunit->pos, Funit->pos) - Eunit->radius - Funit->radius) - 1);
-						if (enemy_attacks.count(Funit) == 0)
-							enemy_attacks[Funit] = { attack };
-						else
-							enemy_attacks[Funit].push_back(attack);
-					}
+					enemy_weapon_cooldown[Eunit] = GetWeaponCooldown(Eunit) - damage_point - (1 / 22.4);
+					EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + GetProjectileTime(Eunit, Distance2D(Eunit->pos, target->pos) - Eunit->radius - target->radius) - 1);
+					if (enemy_attacks.count(target) == 0)
+						enemy_attacks[target] = { attack };
 					else
-					{
-						enemy_weapon_cooldown[Eunit] = GetWeaponCooldown(Eunit) - GetDamagePoint(Eunit);
-						EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + GetProjectileTime(Eunit, Distance2D(Eunit->pos, Funit->pos) - Eunit->radius - Funit->radius));
-						if (enemy_attacks.count(Funit) == 0)
-							enemy_attacks[Funit] = { attack };
-						else
-							enemy_attacks[Funit].push_back(attack);
-					}
+						enemy_attacks[target].push_back(attack);
+				}
+				else
+				{
+					enemy_weapon_cooldown[Eunit] = GetWeaponCooldown(Eunit);
+					EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + GetProjectileTime(Eunit, Distance2D(Eunit->pos, target->pos) - Eunit->radius - target->radius));
+					if (enemy_attacks.count(target) == 0)
+						enemy_attacks[target] = { attack };
+					else
+						enemy_attacks[target].push_back(attack);
 				}
 			}
+
 			if (enemy_weapon_cooldown[Eunit] > 0)
 				enemy_weapon_cooldown[Eunit] -= 1 / 22.4;
 			if (enemy_weapon_cooldown[Eunit] < 0)

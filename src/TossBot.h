@@ -573,6 +573,8 @@ public:
     float GetTimeBuilt(const Unit*);
     AbilityID UnitToWarpInAbility(UNIT_TYPEID);
 	bool IsFacing(const Unit*, const Unit*);
+	float GetFacingAngle(const Unit*, const Unit*);
+	const Unit* AimingAt(const Unit*);
 	void UpdateEnemyUnitPositions();
 	void UpdateEnemyWeaponCooldowns();
 	void RemoveCompletedAtacks();
