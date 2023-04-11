@@ -133,6 +133,7 @@ struct ArmyGroup
 	Point2D retreat_point;
 
 	Units stalkers;
+	Units prisms;
 	std::map<const Unit*, bool> attack_status;
 
 	ArmyGroup() {};
@@ -147,6 +148,10 @@ struct ArmyGroup
 			{
 				stalkers.push_back(unit);
 				attack_status[unit] = false;
+			}
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_WARPPRISM)
+			{
+				prisms.push_back(unit);
 			}
 		}
 	}
@@ -405,7 +410,7 @@ public:
 
 	virtual void OnGameStart()
 	{
-		Debug()->DebugGiveAllUpgrades();
+		//Debug()->DebugGiveAllUpgrades();
 		Debug()->SendDebug();
 	}
 
@@ -460,9 +465,9 @@ public:
 	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
 
 	// testing
-	Point2D enemy_army_spawn = Point2D(30, 142);
+	Point2D enemy_army_spawn = Point2D(34, 139);
 	Point2D friendly_army_spawn = Point2D(59, 114);
-	Point2D fallback_point = Point2D(146, 30);
+	Point2D fallback_point = Point2D(142, 33);
 	ArmyGroup test_army;
 	bool tests_set_up = false;
 	bool initial_set_up = false;
@@ -472,6 +477,7 @@ public:
 
 	void SpawnArmies();
 	void ApplyPressureGrouped(ArmyGroup*, Point2D, Point2D, std::map<const Unit*, Point2D>);
+	void PickUpUnits(std::map<const Unit*, int>, ArmyGroup*);
 	void DodgeShots();
 	void SetUpArmies();
 	bool TestSwap(Point2D, Point2D, Point2D, Point2D);
@@ -499,6 +505,7 @@ public:
     Point2D ClosestTo(std::vector<Point2D>, Point2D);
     float DistanceToClosest(Units, Point2D);
     float DistanceToClosest(std::vector<Point2D>, Point2D);
+	Point2D ClosestPointOnLine(Point2D, Point2D, Point2D);
     Units CloserThan(Units, float, Point2D);
     bool HasBuff(const Unit*, BUFF_ID);
     std::vector<Point2D> GetLocations(UNIT_TYPEID);
@@ -565,6 +572,7 @@ public:
 	int IncomingDamage(const Unit*);
     int GetDamage(const Unit*, const Unit*);
 	int GetArmor(const Unit*);
+	int GetCargoSize(const Unit*);
     float RealGroundRange(const Unit *, const Unit *);
 	float GetDamagePoint(const Unit*);
 	int GetProjectileTime(const Unit*, float dist);
@@ -693,7 +701,7 @@ public:
 
 	// Other
 	bool FireVolley(Units, std::vector<UNIT_TYPEID>);
-	std::map<const Unit*, const Unit*> FindTargets(Units, std::vector<UNIT_TYPEID>);
+	std::map<const Unit*, const Unit*> FindTargets(Units, std::vector<UNIT_TYPEID>, float);
 
 };
 

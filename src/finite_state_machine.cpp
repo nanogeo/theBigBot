@@ -796,7 +796,7 @@ namespace sc2 {
 
 	void ImmortalDropMicroDropDropped1::EnterState()
 	{
-		std::map<const Unit*, const Unit*> attacks = agent->FindTargets({ state_machine->immortal1, state_machine->immortal2 }, state_machine->target_priority);
+		std::map<const Unit*, const Unit*> attacks = agent->FindTargets({ state_machine->immortal1, state_machine->immortal2 }, state_machine->target_priority, 0);
 		if (attacks.count(state_machine->immortal1))
 		{
 			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::ATTACK, attacks[state_machine->immortal1]);
@@ -847,7 +847,7 @@ namespace sc2 {
 
 	void ImmortalDropMicroDropDropped2::EnterState()
 	{
-		std::map<const Unit*, const Unit*> attacks = agent->FindTargets({ state_machine->immortal1, state_machine->immortal2 }, state_machine->target_priority);
+		std::map<const Unit*, const Unit*> attacks = agent->FindTargets({ state_machine->immortal1, state_machine->immortal2 }, state_machine->target_priority, 0);
 		if (attacks.count(state_machine->immortal1))
 		{
 			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::ATTACK, attacks[state_machine->immortal1]);

@@ -542,7 +542,7 @@ namespace sc2 {
 		//Debug()->DebugFastBuild();
 		//Debug()->DebugGiveAllResources();
 		Debug()->DebugShowMap();
-		Debug()->DebugGiveAllUpgrades();
+		//Debug()->DebugGiveAllUpgrades();
 		SpawnArmies();
 		initial_set_up = true;
 	}
@@ -550,15 +550,16 @@ namespace sc2 {
 	void TossBot::RunTests()
 	{
 		const Unit* closest_enemy = ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), MedianCenter(test_army.stalkers));
-		std::vector<Point2D> concave_positions = FindConcave(closest_enemy->pos, fallback_point, test_army.stalkers.size());
+		std::vector<Point2D> concave_positions = FindConcave(ClosestPointOnLine(closest_enemy->pos, enemy_army_spawn, fallback_point), fallback_point, test_army.stalkers.size());
 		std::map<const Unit*, Point2D> unit_positions = AssignUnitsToPositions(test_army.stalkers, concave_positions);
 		
 		for (const auto &unit : unit_positions)
 		{
 			Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
-			Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
+			//Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
 		}
-
+		Actions()->UnitCommand(test_army.prisms[0], ABILITY_ID::MOVE_MOVE, PointBetween(MedianCenter(test_army.stalkers), fallback_point, 3));
+		Actions()->UnitCommand(test_army.prisms[0], ABILITY_ID::UNLOADALLAT_WARPPRISM, test_army.prisms[0]);
 		ApplyPressureGrouped(&test_army, enemy_army_spawn, fallback_point, unit_positions);
 
 		
@@ -570,18 +571,22 @@ namespace sc2 {
 	void TossBot::SpawnArmies()
 	{
 		Debug()->DebugEnemyControl();
-		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 12);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 2);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 40);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 4);
 
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 2, 8);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 2, 2);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 10);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, enemy_army_spawn, 2, 8);
+
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 4);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_WARPPRISM, friendly_army_spawn, 1, 1);
 	}
 
 	void TossBot::ApplyPressureGrouped(ArmyGroup* army, Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> unit_positions)
 	{
+		std::map<const Unit*, int> units_requesting_pickup;
 		if (army->stalkers.size() > 0)
 		{
 			bool all_ready = true;
@@ -595,23 +600,29 @@ namespace sc2 {
 			}
 			if (all_ready)
 			{
-				std::map<const Unit*, const Unit*> found_targets = FindTargets(army->stalkers, {});
+				std::map<const Unit*, const Unit*> found_targets = FindTargets(army->stalkers, {}, 2);
+				if (found_targets.size() == 0)
+				{
+					found_targets = FindTargets(army->stalkers, {}, 2);
+					std::cout << "extra distance\n";
+				}
 				PrintAttacks(found_targets);
+
 				for (const auto &stalker : army->stalkers)
 				{
 					/*if (found_targets.size() == 0)
 					{
-						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army.attack_point);
+						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army->attack_point);
 					}*/
 					if (found_targets.count(stalker) > 0)
 					{
 						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, found_targets[stalker]);
 						army->attack_status[stalker] = true;
 					}
-					else
+					/*else
 					{
 						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army->attack_point);
-					}
+					}*/
 				}
 			}
 			else
@@ -619,18 +630,27 @@ namespace sc2 {
 				for (const auto &stalker : army->stalkers)
 				{
 					int danger = IncomingDamage(stalker);
-					if (danger > 0 || danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
+					if (danger > 0)
 					{
-						for (const auto &abiliy : Query()->GetAbilitiesForUnit(stalker).abilities)
+						bool using_blink = false;
+
+						if (danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
 						{
-							if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
+							for (const auto &abiliy : Query()->GetAbilitiesForUnit(stalker).abilities)
 							{
-								Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, PointBetween(stalker->pos, army->retreat_point, 7)); // TODO adjustable blink distance
-								Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army->attack_point, true);
-								army->attack_status[stalker] = false;
-								break;
+								if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
+								{
+									Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, PointBetween(stalker->pos, army->retreat_point, 7)); // TODO adjustable blink distance
+									Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army->attack_point, true);
+									army->attack_status[stalker] = false;
+									using_blink = true;
+									break;
+								}
 							}
 						}
+
+						if (!using_blink)
+							units_requesting_pickup[stalker] = danger;
 					}
 					if (army->attack_status[stalker] == false)
 					{
@@ -643,6 +663,58 @@ namespace sc2 {
 						army->attack_status[stalker] = false;
 					}
 				}
+			}
+		}
+		PickUpUnits(units_requesting_pickup, army);
+	}
+
+	void TossBot::PickUpUnits(std::map<const Unit*, int> unit_danger_levels, ArmyGroup* army)
+	{
+		std::map<const Unit*, int> prism_free_slots;
+		for (const auto &prism : army->prisms)
+		{
+			int free_slots = prism->cargo_space_max - prism->cargo_space_taken;
+			if (free_slots > 0)
+				prism_free_slots[prism] = free_slots;
+		}
+		if (army->prisms.size() == 0 || prism_free_slots.size() == 0 || unit_danger_levels.size() == 0)
+			return;
+
+		Units units;
+		for (const auto &unit : unit_danger_levels)
+		{
+			units.push_back(unit.first);
+		}
+		// order units by priority
+		std::sort(units.begin(), units.end(),
+			[&unit_danger_levels](const Unit* a, const Unit* b) -> bool
+		{
+			int a_danger = unit_danger_levels[a];
+			int b_danger = unit_danger_levels[b];
+			// priority units
+
+			// higher danger vs hp/shields
+			if (a->shield + a->health <= a_danger)
+				return true;
+			if (b->shield + b->health <= b_danger)
+				return false;
+			return a_danger - a->shield > b_danger - b->shield;
+		});
+
+
+		// find prism to pick up each unit if there is space
+		for (const auto &unit : units)
+		{
+			int cargo_size = GetCargoSize(unit);
+			for (auto &prism : prism_free_slots)
+			{
+				if (prism.second < cargo_size || Distance2D(prism.first->pos, unit->pos) > 5)
+					continue;
+
+				army->attack_status[unit] = false;
+				Actions()->UnitCommand(unit, ABILITY_ID::SMART, prism.first);
+				prism.second -= cargo_size;
+				break;
 			}
 		}
 	}
@@ -796,6 +868,26 @@ namespace sc2 {
         const Point2D closest_point = ClosestTo(points, position);
         return Distance2D(closest_point, position);
     }
+
+	Point2D TossBot::ClosestPointOnLine(Point2D point, Point2D start, Point2D end)
+	{
+		// undefined / 0 slope
+		if (end.y - start.y == 0)
+			return Point2D(point.x, start.y);
+		if (end.x - start.x == 0)
+			return Point2D(start.x, point.y);
+
+		float line_slope = (end.y - start.y) / (end.x - start.x);
+		float perpendicular_slope = -1 / line_slope;
+
+		float coef1 = line_slope * start.x - start.y;
+		float coef2 = perpendicular_slope * point.x - point.y;
+
+		float x_pos = (coef1 - coef2) / (line_slope - perpendicular_slope);
+		float y_pos = line_slope * x_pos - coef1;
+
+		return Point2D(x_pos, y_pos);
+	}
 
     Units TossBot::CloserThan(Units units, float distance, Point2D position)
     {
@@ -3208,6 +3300,40 @@ for (const auto &field : far_oversaturated_patches)
 
 	}
 
+
+	int TossBot::GetCargoSize(const Unit* unit)
+	{
+		switch (unit->unit_type.ToType())
+		{
+		case UNIT_TYPEID::PROTOSS_PROBE:
+			return 1;
+		case UNIT_TYPEID::PROTOSS_ZEALOT:
+			return 2;
+		case UNIT_TYPEID::PROTOSS_SENTRY:
+			return 2;
+		case UNIT_TYPEID::PROTOSS_STALKER:
+			return 2;
+		case UNIT_TYPEID::PROTOSS_ADEPT:
+			return 2;
+		case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+			return 2;
+		case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+			return 2;
+		case UNIT_TYPEID::PROTOSS_ARCHON:
+			return 4;
+		case UNIT_TYPEID::PROTOSS_IMMORTAL:
+			return 4;
+		case UNIT_TYPEID::PROTOSS_COLOSSUS:
+			return 8;
+		case UNIT_TYPEID::PROTOSS_DISRUPTOR:
+			return 4;
+		default:
+			std::cout << "Error invalid unit type in GetCargoSize\n";
+			return 0;
+		}
+
+	}
+
     float TossBot::RealGroundRange(const Unit* attacking_unit, const Unit * target)
     {
         float range = attacking_unit->radius + target->radius;
@@ -3942,7 +4068,7 @@ for (const auto &field : far_oversaturated_patches)
 
 	std::vector<Point2D> TossBot::FindConcave(Point2D enemy_front, Point2D fallback_point, int num_units)
 	{
-		float range = 7; //r
+		float range = 9; //r
 		float unit_radius = .625; //u
 		float concave_degree = 30; //p
 		int max_width = 4;
@@ -5854,15 +5980,15 @@ for (const auto &field : far_oversaturated_patches)
 	bool IsFightingUnit::operator()(const Unit& unit_) const {
 		if (unit_.alliance != m_type)
 			return false;
-		for (const auto &type : { UNIT_TYPEID::PROTOSS_PHOTONCANNON, UNIT_TYPEID::PROTOSS_PROBE, UNIT_TYPEID::PROTOSS_ZEALOT, UNIT_TYPEID::PROTOSS_SENTRY,
+		for (const auto &type : { UNIT_TYPEID::PROTOSS_PHOTONCANNON, /*UNIT_TYPEID::PROTOSS_PROBE,*/ UNIT_TYPEID::PROTOSS_ZEALOT, UNIT_TYPEID::PROTOSS_SENTRY,
 			UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_HIGHTEMPLAR, UNIT_TYPEID::PROTOSS_DARKTEMPLAR, UNIT_TYPEID::PROTOSS_ARCHON,
 			UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_COLOSSUS, UNIT_TYPEID::PROTOSS_PHOENIX, UNIT_TYPEID::PROTOSS_VOIDRAY, UNIT_TYPEID::PROTOSS_ORACLE,
 			UNIT_TYPEID::PROTOSS_CARRIER, UNIT_TYPEID::PROTOSS_TEMPEST, UNIT_TYPEID::PROTOSS_MOTHERSHIP, UNIT_TYPEID::TERRAN_PLANETARYFORTRESS, UNIT_TYPEID::TERRAN_MISSILETURRET,
-			UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_MULE, UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_REAPER, UNIT_TYPEID::TERRAN_GHOST,
+			/*UNIT_TYPEID::TERRAN_SCV,*/ UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_REAPER, UNIT_TYPEID::TERRAN_GHOST,
 			UNIT_TYPEID::TERRAN_HELLION, UNIT_TYPEID::TERRAN_HELLIONTANK, UNIT_TYPEID::TERRAN_SIEGETANK, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_CYCLONE,
 			UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_THORAP, UNIT_TYPEID::TERRAN_AUTOTURRET, UNIT_TYPEID::TERRAN_VIKINGASSAULT, UNIT_TYPEID::TERRAN_VIKINGFIGHTER,
 			UNIT_TYPEID::TERRAN_LIBERATOR, UNIT_TYPEID::TERRAN_LIBERATORAG, UNIT_TYPEID::TERRAN_BANSHEE, UNIT_TYPEID::TERRAN_BATTLECRUISER, UNIT_TYPEID::ZERG_SPINECRAWLER,
-			UNIT_TYPEID::ZERG_SPORECRAWLER, UNIT_TYPEID::ZERG_DRONE, UNIT_TYPEID::ZERG_QUEEN, UNIT_TYPEID::ZERG_ZERGLING, UNIT_TYPEID::ZERG_BANELING, UNIT_TYPEID::ZERG_ROACH,
+			UNIT_TYPEID::ZERG_SPORECRAWLER, /*UNIT_TYPEID::ZERG_DRONE,*/ UNIT_TYPEID::ZERG_QUEEN, UNIT_TYPEID::ZERG_ZERGLING, UNIT_TYPEID::ZERG_BANELING, UNIT_TYPEID::ZERG_ROACH,
 			UNIT_TYPEID::ZERG_RAVAGER, UNIT_TYPEID::ZERG_HYDRALISK, UNIT_TYPEID::ZERG_LURKERMP, UNIT_TYPEID::ZERG_ULTRALISK, UNIT_TYPEID::ZERG_MUTALISK, UNIT_TYPEID::ZERG_CORRUPTOR,
 			UNIT_TYPEID::ZERG_BROODLORD, UNIT_TYPEID::ZERG_LOCUSTMP, UNIT_TYPEID::ZERG_BROODLING })
 		{
@@ -6361,7 +6487,7 @@ for (const auto &field : far_oversaturated_patches)
 
 	bool TossBot::FireVolley(Units units, std::vector<UNIT_TYPEID> prio)
 	{
-		std::map<const Unit*, const Unit*> attacks = FindTargets(units, prio);
+		std::map<const Unit*, const Unit*> attacks = FindTargets(units, prio, 0);
 		if (attacks.size() == 0)
 			return false;
 		for (const auto &attack : attacks)
@@ -6371,7 +6497,7 @@ for (const auto &field : far_oversaturated_patches)
 		return true;
 	}
 
-	std::map<const Unit*, const Unit*> TossBot::FindTargets(Units units, std::vector<UNIT_TYPEID> prio)
+	std::map<const Unit*, const Unit*> TossBot::FindTargets(Units units, std::vector<UNIT_TYPEID> prio, float extra_range)
 	{
 		std::map<const Unit*, std::vector<const Unit*>> unit_targets;
 		Units Eunits;
@@ -6385,7 +6511,7 @@ for (const auto &field : far_oversaturated_patches)
 			Units units_in_range;
 			for (const auto &Eunit : Eunits)
 			{
-				if (Distance2D(unit->pos, Eunit->pos) <= RealGroundRange(unit, Eunit))
+				if (Distance2D(unit->pos, Eunit->pos) <= RealGroundRange(unit, Eunit) + extra_range)
 					units_in_range.push_back(Eunit);
 			}
 			unit_targets[unit] = units_in_range;
