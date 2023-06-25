@@ -578,25 +578,7 @@ public:
     void BuildWorkers();
 
     // Utility
-    Point2D Center(Units);
-    Point2D MedianCenter(Units);
-    Point2D PointBetween(Point2D, Point2D, float);
-    int DangerLevel(const Unit *);
-	int DangerLevelAt(const Unit *, Point2D);
 	int IncomingDamage(const Unit*);
-    int GetDamage(const Unit*, const Unit*);
-	int GetArmor(const Unit*);
-	int GetCargoSize(const Unit*);
-    float RealGroundRange(const Unit *, const Unit *);
-	float GetDamagePoint(const Unit*);
-	int GetProjectileTime(const Unit*, float dist);
-	float GetWeaponCooldown(const Unit*);
-    bool IsOnHighGround(Point3D, Point3D);
-    float GetTimeBuilt(const Unit*);
-    AbilityID UnitToWarpInAbility(UNIT_TYPEID);
-	bool IsFacing(const Unit*, const Unit*);
-	float GetFacingAngle(const Unit*, const Unit*);
-	const Unit* AimingAt(const Unit*);
 	void UpdateEnemyUnitPositions();
 	void UpdateEnemyWeaponCooldowns();
 	void RemoveCompletedAtacks();

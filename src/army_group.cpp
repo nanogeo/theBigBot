@@ -188,19 +188,19 @@ namespace sc2 {
 
 	}
 
-	bool TossBot::TestSwap(Point2D pos1, Point2D target1, Point2D pos2, Point2D target2)
+	bool ArmyGroup::TestSwap(Point2D pos1, Point2D target1, Point2D pos2, Point2D target2)
 	{
 		float curr_max = std::max(Distance2D(pos1, target1), Distance2D(pos2, target2));
 		float swap_max = std::max(Distance2D(pos1, target2), Distance2D(pos2, target1));
 		return swap_max < curr_max;
 	}
 
-	std::map<const Unit*, Point2D> TossBot::AssignUnitsToPositions(Units units, std::vector<Point2D> positions)
+	std::map<const Unit*, Point2D> ArmyGroup::AssignUnitsToPositions(Units units, std::vector<Point2D> positions)
 	{
 		std::map<const Unit*, Point2D> unit_assignments;
 		for (const auto &unit : units)
 		{
-			Point2D closest = ClosestTo(positions, unit->pos);
+			Point2D closest = agent->ClosestTo(positions, unit->pos);
 			unit_assignments[unit] = closest;
 			positions.erase(std::remove(positions.begin(), positions.end(), closest), positions.end());
 		}
@@ -218,6 +218,200 @@ namespace sc2 {
 		}
 		return unit_assignments;
 	}
+
+
+	void ArmyGroup::PickUpUnits(std::map<const Unit*, int> unit_danger_levels)
+	{
+		std::map<const Unit*, int> prism_free_slots;
+		for (const auto &prism : warp_prisms)
+		{
+			int free_slots = prism->cargo_space_max - prism->cargo_space_taken;
+			if (free_slots > 0)
+				prism_free_slots[prism] = free_slots;
+		}
+		if (warp_prisms.size() == 0 || prism_free_slots.size() == 0 || unit_danger_levels.size() == 0)
+			return;
+
+		Units units;
+		for (const auto &unit : unit_danger_levels)
+		{
+			units.push_back(unit.first);
+		}
+		// order units by priority
+		std::sort(units.begin(), units.end(),
+			[&unit_danger_levels](const Unit* a, const Unit* b) -> bool
+		{
+			int a_danger = unit_danger_levels[a];
+			int b_danger = unit_danger_levels[b];
+			// priority units
+
+			// higher danger vs hp/shields
+			if (a->shield + a->health <= a_danger)
+				return true;
+			if (b->shield + b->health <= b_danger)
+				return false;
+			return a_danger - a->shield > b_danger - b->shield;
+		});
+
+
+		// find prism to pick up each unit if there is space
+		for (const auto &unit : units)
+		{
+			int cargo_size = agent->GetCargoSize(unit);
+			for (auto &prism : prism_free_slots)
+			{
+				if (prism.second < cargo_size || Distance2D(prism.first->pos, unit->pos) > 5)
+					continue;
+
+				attack_status[unit] = false;
+				if (unit->orders.size() > 0 && unit->orders[0].ability_id == ABILITY_ID::ATTACK && unit->weapon_cooldown == 0)
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::SMART, prism.first, true);
+				else
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::SMART, prism.first);
+				prism.second -= cargo_size;
+				break;
+			}
+		}
+	}
+
+	void TossBot::DodgeShots()
+	{
+		for (const auto &Funit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)))
+		{
+			int danger = IncomingDamage(Funit);
+			if (danger)
+			{
+				bool blink_ready = false;
+				for (const auto &abiliy : Query()->GetAbilitiesForUnit(Funit).abilities)
+				{
+					if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
+					{
+						blink_ready = true;
+						break;
+					}
+				}
+				if (blink_ready && (danger > Funit->shield || danger > (Funit->shield_max / 2)))
+				{
+					Actions()->UnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4));
+					Actions()->UnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), true);
+					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
+				}
+				else
+				{
+					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(255, 0, 0), 20);
+				}
+			}
+		}
+	}
+
+
+	void ArmyGroup::ApplyPressureGrouped(Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> retreating_unit_positions, std::map<const Unit*, Point2D> attacking_unit_positions)
+	{
+		std::map<const Unit*, int> units_requesting_pickup;
+		if (stalkers.size() > 0)
+		{
+			bool all_ready = true;
+			for (const auto &stalker : stalkers)
+			{
+				if (stalker->weapon_cooldown > 0 || attack_status[stalker] == true)
+				{
+					// ignore units inside prisms
+					if (warp_prisms.size() > 0)
+					{
+						bool in_prism = false;
+						for (const auto &prism : warp_prisms)
+						{
+							for (const auto &passanger : prism->passengers)
+							{
+								if (passanger.tag == stalker->tag)
+								{
+									in_prism = true;
+									break;
+								}
+							}
+							if (in_prism)
+								break;
+						}
+						if (in_prism)
+							continue;
+					}
+					all_ready = false;
+					break;
+				}
+			}
+			if (all_ready)
+			{
+				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(army->stalkers, {}, 2);
+				if (found_targets.size() == 0)
+				{
+					found_targets = agent->FindTargets(army->stalkers, {}, 2);
+					std::cout << "extra distance\n";
+				}
+				agent->PrintAttacks(found_targets);
+
+				for (const auto &stalker : army->stalkers)
+				{
+					if (found_targets.size() == 0)
+					{
+						agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attacking_unit_positions[stalker]);
+					}
+					if (found_targets.count(stalker) > 0)
+					{
+						agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, found_targets[stalker]);
+						army->attack_status[stalker] = true;
+					}
+					/*else
+					{
+						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army->attack_point);
+					}*/
+				}
+			}
+			else
+			{
+				for (const auto &stalker : stalkers)
+				{
+					int danger = agent->IncomingDamage(stalker);
+					if (danger > 0)
+					{
+						bool using_blink = false;
+
+						if (danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
+						{
+							for (const auto &abiliy : agent->Query()->GetAbilitiesForUnit(stalker).abilities)
+							{
+								if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
+								{
+									if (stalker->orders.size() > 0 && stalker->orders[0].ability_id == ABILITY_ID::ATTACK && stalker->weapon_cooldown == 0)
+										agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, agent->PointBetween(stalker->pos, army->retreat_point, 7), true); // TODO adjustable blink distance
+									else
+										agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, agent->PointBetween(stalker->pos, army->retreat_point, 7)); // TODO adjustable blink distance
+									agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point, true);
+									attack_status[stalker] = false;
+									using_blink = true;
+									break;
+								}
+							}
+						}
+
+						if (!using_blink)
+							units_requesting_pickup[stalker] = danger;
+					}
+					if (attack_status[stalker] == false)
+					{
+						// no order but no danger so just move back
+						agent->Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, retreating_unit_positions[stalker]);
+					}
+					else if (stalker->weapon_cooldown > 0)
+					{
+						// attack has gone off so reset order status
+						attack_status[stalker] = false;
+					}
+				}
+			}
+		}
+		PickUpUnits(units_requesting_pickup);
+	}
+
 
 	void MicroUnits()
 	{

@@ -31,6 +31,7 @@ class ArmyGroup
 	Units carriers;
 	Units tempests;
 
+	std::map<const Unit*, bool> attack_status;
 	std::vector<Point2D> attack_path;
 	int current_attack_index;
 	int high_ground_index;
@@ -89,6 +90,11 @@ class ArmyGroup
 
 	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float);
 	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);
+	bool TestSwap(Point2D, Point2D, Point2D, Point2D);
+	std::map<const Unit*, Point2D> AssignUnitsToPositions(Units, std::vector<Point2D>);
+	void PickUpUnits(std::map<const Unit*, int>);
+	void DodgeShots();
+	void ArmyGroup::ApplyPressureGrouped(Point2D, Point2D, std::map<const Unit*, Point2D>, std::map<const Unit*, Point2D>);
 
 
 	void MicroUnits();
