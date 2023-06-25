@@ -135,9 +135,12 @@ struct ArmyGroup
 	Units stalkers;
 	Units prisms;
 	std::map<const Unit*, bool> attack_status;
+	std::vector<Point2D> attack_path;
+	int current_attack_index;
+	int high_ground_index;
 
 	ArmyGroup() {};
-	ArmyGroup(Units units, Point2D attack_pos, Point2D retreat_pos)
+	ArmyGroup(Units units, Point2D attack_pos, Point2D retreat_pos, std::vector<Point2D> path, int index)
 	{
 		attack_point = attack_pos;
 		retreat_point = retreat_pos;
@@ -154,6 +157,9 @@ struct ArmyGroup
 				prisms.push_back(unit);
 			}
 		}
+		attack_path = path;
+		current_attack_index = 3;
+		high_ground_index = index;
 	}
 };
 
@@ -274,7 +280,8 @@ enum BuildOrder {
     chargelot_allin_old,
     four_gate_adept_pressure,
     fastest_dts,
-	proxy_double_robo
+	proxy_double_robo,
+	recessed_cannon_rush
 };
 
 struct ActionArgData
@@ -286,6 +293,7 @@ struct ActionArgData
     UPGRADE_ID upgradeId;
     Point2D position;
     Army* army;
+	ArmyGroup* army_group;
     ActionArgData() {}
     ActionArgData(const Unit* x, UNIT_TYPEID y, Point2D z)
     {
@@ -306,6 +314,10 @@ struct ActionArgData
     {
         army = x;
     }
+	ActionArgData(ArmyGroup* x)
+	{
+		army_group = x;
+	}
     ActionArgData(const Unit* x, std::vector<UNIT_TYPEID> y, Point2D z, int i)
     {
         unit = x;
@@ -439,7 +451,7 @@ class TossBot : public sc2::Agent
 {
 public:
     TossBot() : Agent() {};
-    bool debug_mode = true;
+    bool debug_mode = false;
 	int frames_passed = 0;
     std::map<Tag, const Unit*> tag_to_unit;
     std::map<const Unit*, mineral_patch_data> mineral_patches;
@@ -476,7 +488,7 @@ public:
 	void RunTests();
 
 	void SpawnArmies();
-	void ApplyPressureGrouped(ArmyGroup*, Point2D, Point2D, std::map<const Unit*, Point2D>);
+	void ApplyPressureGrouped(ArmyGroup*, Point2D, Point2D, std::map<const Unit*, Point2D>, std::map<const Unit*, Point2D>);
 	void PickUpUnits(std::map<const Unit*, int>, ArmyGroup*);
 	void DodgeShots();
 	void SetUpArmies();
@@ -485,6 +497,7 @@ public:
 
 
     const Unit *new_base = NULL;
+	BuildOrder current_build_order;
     std::vector<BuildOrderData> build_order;
     int build_order_step = 0;
     std::vector<ActionData*> active_actions;
@@ -503,6 +516,7 @@ public:
     Units TagsToUnits(const std::vector<Tag>);
     const Unit* ClosestTo(Units, Point2D);
     Point2D ClosestTo(std::vector<Point2D>, Point2D);
+	const Unit* FurthestFrom(Units, Point2D);
     float DistanceToClosest(Units, Point2D);
     float DistanceToClosest(std::vector<Point2D>, Point2D);
 	Point2D ClosestPointOnLine(Point2D, Point2D, Point2D);
@@ -586,7 +600,8 @@ public:
 	void UpdateEnemyUnitPositions();
 	void UpdateEnemyWeaponCooldowns();
 	void RemoveCompletedAtacks();
-	std::vector<Point2D> FindConcave(Point2D, Point2D, int);
+	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float);
+	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);
 	void SetUpUnitTypeInfo();
 	void PrintAttacks(std::map<const Unit*, const Unit*>);
 
@@ -622,6 +637,7 @@ public:
     bool TimePassed(BuildOrderConditionArgData);
     bool NumWorkers(BuildOrderConditionArgData);
     bool HasBuilding(BuildOrderConditionArgData);
+	bool HasBuildingStarted(BuildOrderConditionArgData);
     bool IsResearching(BuildOrderConditionArgData);
     bool HasGas(BuildOrderConditionArgData);
 
@@ -630,6 +646,8 @@ public:
     bool BuildFirstPylon(BuildOrderResultArgData);
     bool BuildBuildingMulti(BuildOrderResultArgData);
     bool Scout(BuildOrderResultArgData);
+	bool CannonRushProbe1(BuildOrderResultArgData);
+	bool CannonRushProbe2(BuildOrderResultArgData);
     bool CutWorkers(BuildOrderResultArgData);
     bool UncutWorkers(BuildOrderResultArgData);
     bool ImmediatelySaturateGasses(BuildOrderResultArgData);
@@ -679,6 +697,7 @@ public:
     void Set4GateAdept();
     void SetFastestDTsPvT();
 	void SetProxyDoubleRobo();
+	void SetRecessedCannonRush();
 
     // Debug info
     void DisplayDebugHud();

@@ -37,6 +37,8 @@ namespace sc2 {
         //std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
         if (debug_mode)
         {
+			Debug()->SendDebug();
+			return;
 
             Units units = Observation()->GetUnits();
             std::vector<UNIT_TYPEID> types;
@@ -338,7 +340,7 @@ namespace sc2 {
                 //SaturateGas(building->tag);
             }
             
-            SetBuildOrder(BuildOrder::proxy_double_robo);
+            SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 
         }
 		/*if (Observation()->GetGameLoop() >= 2)
@@ -550,22 +552,48 @@ namespace sc2 {
 	void TossBot::RunTests()
 	{
 		const Unit* closest_enemy = ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), MedianCenter(test_army.stalkers));
-		std::vector<Point2D> concave_positions = FindConcave(ClosestPointOnLine(closest_enemy->pos, enemy_army_spawn, fallback_point), fallback_point, test_army.stalkers.size());
-		std::map<const Unit*, Point2D> unit_positions = AssignUnitsToPositions(test_army.stalkers, concave_positions);
+		const Unit* closest_unit_to_enemies = ClosestTo(test_army.stalkers, closest_enemy->pos);
+		const Unit* furthest_unit_from_enemies = FurthestFrom(test_army.stalkers, closest_enemy->pos);
+
+		Debug()->DebugSphereOut(closest_unit_to_enemies->pos, .625, Color(255, 0, 255));
+		Debug()->DebugSphereOut(furthest_unit_from_enemies->pos, .625, Color(0, 255, 255));
+
+		float unit_size = .625;
+		float unit_dispersion = 0;
+		Point2D retreating_concave_origin = PointBetween(ClosestPointOnLine(closest_unit_to_enemies->pos, enemy_army_spawn, fallback_point), fallback_point, unit_size + unit_dispersion);
+		Point2D attacking_concave_origin = PointBetween(ClosestPointOnLine(furthest_unit_from_enemies->pos, enemy_army_spawn, fallback_point), enemy_army_spawn, unit_size + unit_dispersion);
+
+		Debug()->DebugSphereOut(Point3D(retreating_concave_origin.x, retreating_concave_origin.y, Observation()->TerrainHeight(retreating_concave_origin)), .625, Color(255, 0, 128));
+		Debug()->DebugSphereOut(Point3D(attacking_concave_origin.x, attacking_concave_origin.y, Observation()->TerrainHeight(attacking_concave_origin)), .625, Color(0, 255, 128));
+
+		std::vector<Point2D> attacking_concave_positions = FindConcaveFromBack(attacking_concave_origin, fallback_point, test_army.stalkers.size(), .625, .2);
+		std::vector<Point2D> retreating_concave_positions = FindConcave(retreating_concave_origin, fallback_point, test_army.stalkers.size(), .625, .2);
+
+		std::map<const Unit*, Point2D> attacking_unit_positions = AssignUnitsToPositions(test_army.stalkers, attacking_concave_positions);
+		std::map<const Unit*, Point2D> retreating_unit_positions = AssignUnitsToPositions(test_army.stalkers, retreating_concave_positions);
 		
-		for (const auto &unit : unit_positions)
+		for (const auto &pos : attacking_concave_positions)
+		{
+			Debug()->DebugSphereOut(Point3D(pos.x, pos.y, Observation()->TerrainHeight(pos)), .625, Color(255, 0, 0));
+		}
+		for (const auto &pos : retreating_concave_positions)
+		{
+			Debug()->DebugSphereOut(Point3D(pos.x, pos.y, Observation()->TerrainHeight(pos)), .625, Color(0, 255, 0));
+		}
+
+		for (const auto &unit : retreating_unit_positions)
 		{
 			Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
 			//Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
 		}
 		Actions()->UnitCommand(test_army.prisms[0], ABILITY_ID::MOVE_MOVE, PointBetween(MedianCenter(test_army.stalkers), fallback_point, 3));
 		Actions()->UnitCommand(test_army.prisms[0], ABILITY_ID::UNLOADALLAT_WARPPRISM, test_army.prisms[0]);
-		ApplyPressureGrouped(&test_army, enemy_army_spawn, fallback_point, unit_positions);
+		ApplyPressureGrouped(&test_army, enemy_army_spawn, fallback_point, retreating_unit_positions, attacking_unit_positions);
 
 		
 
 		Units enemy_attacking_units = Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
-		Actions()->UnitCommand(enemy_attacking_units, ABILITY_ID::ATTACK, fallback_point);
+		//Actions()->UnitCommand(enemy_attacking_units, ABILITY_ID::ATTACK, fallback_point);
 	}
 
 	void TossBot::SpawnArmies()
@@ -575,16 +603,17 @@ namespace sc2 {
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 4);
 
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 2, 8);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 2, 2);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 2, 8);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 2, 1);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, enemy_army_spawn, 2, 1);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, enemy_army_spawn, 2, 8);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, enemy_army_spawn, 2, 8);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 4);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 6);
 		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_WARPPRISM, friendly_army_spawn, 1, 1);
 	}
 
-	void TossBot::ApplyPressureGrouped(ArmyGroup* army, Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> unit_positions)
+	void TossBot::ApplyPressureGrouped(ArmyGroup* army, Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> retreating_unit_positions, std::map<const Unit*, Point2D> attacking_unit_positions)
 	{
 		std::map<const Unit*, int> units_requesting_pickup;
 		if (army->stalkers.size() > 0)
@@ -594,6 +623,26 @@ namespace sc2 {
 			{
 				if (stalker->weapon_cooldown > 0 || army->attack_status[stalker] == true)
 				{
+					// ignore units inside prisms
+					if (army->prisms.size() > 0)
+					{
+						bool in_prism = false;
+						for (const auto &prism : army->prisms)
+						{
+							for (const auto &passanger : prism->passengers)
+							{
+								if (passanger.tag == stalker->tag)
+								{
+									in_prism = true;
+									break;
+								}
+							}
+							if (in_prism)
+								break;
+						}
+						if (in_prism)
+							continue;
+					}
 					all_ready = false;
 					break;
 				}
@@ -610,10 +659,10 @@ namespace sc2 {
 
 				for (const auto &stalker : army->stalkers)
 				{
-					/*if (found_targets.size() == 0)
+					if (found_targets.size() == 0)
 					{
-						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army->attack_point);
-					}*/
+						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attacking_unit_positions[stalker]);
+					}
 					if (found_targets.count(stalker) > 0)
 					{
 						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, found_targets[stalker]);
@@ -640,7 +689,10 @@ namespace sc2 {
 							{
 								if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
 								{
-									Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, PointBetween(stalker->pos, army->retreat_point, 7)); // TODO adjustable blink distance
+									if (stalker->orders.size() > 0 && stalker->orders[0].ability_id == ABILITY_ID::ATTACK && stalker->weapon_cooldown == 0)
+										Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, PointBetween(stalker->pos, army->retreat_point, 7), true); // TODO adjustable blink distance
+									else
+										Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, PointBetween(stalker->pos, army->retreat_point, 7)); // TODO adjustable blink distance
 									Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army->attack_point, true);
 									army->attack_status[stalker] = false;
 									using_blink = true;
@@ -655,7 +707,7 @@ namespace sc2 {
 					if (army->attack_status[stalker] == false)
 					{
 						// no order but no danger so just move back
-						Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, unit_positions[stalker]);
+						Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, retreating_unit_positions[stalker]);
 					}
 					else if (stalker->weapon_cooldown > 0)
 					{
@@ -712,7 +764,10 @@ namespace sc2 {
 					continue;
 
 				army->attack_status[unit] = false;
-				Actions()->UnitCommand(unit, ABILITY_ID::SMART, prism.first);
+				if (unit->orders.size() > 0 && unit->orders[0].ability_id == ABILITY_ID::ATTACK && unit->weapon_cooldown == 0)
+					Actions()->UnitCommand(unit, ABILITY_ID::SMART, prism.first, true);
+				else
+					Actions()->UnitCommand(unit, ABILITY_ID::SMART, prism.first);
 				prism.second -= cargo_size;
 				break;
 			}
@@ -751,7 +806,7 @@ namespace sc2 {
 
 	void TossBot::SetUpArmies()
 	{
-		test_army = ArmyGroup(Observation()->GetUnits(Unit::Alliance::Self), enemy_army_spawn, fallback_point);
+		//test_army = ArmyGroup(Observation()->GetUnits(Unit::Alliance::Self), enemy_army_spawn, fallback_point);
 		tests_set_up = true;
 	}
 
@@ -855,6 +910,27 @@ namespace sc2 {
         return current_closest;
     }
 
+	const Unit* TossBot::FurthestFrom(Units units, Point2D position)
+	{
+		const Unit* current_furthest;
+		float current_distance = 0;
+		for (const auto &unit : units)
+		{
+			float distance = Distance2D(unit->pos, position);
+			if (distance > current_distance)
+			{
+				current_furthest = unit;
+				current_distance = distance;
+			}
+		}
+		if (units.size() == 0 || current_furthest == NULL)
+		{
+			std::cout << "Error current closest is NULL\n";
+			return NULL;
+		}
+		return current_furthest;
+	}
+
     float TossBot::DistanceToClosest(Units units, Point2D position)
     {
         const Unit* closest_unit = ClosestTo(units, position);
@@ -950,38 +1026,80 @@ namespace sc2 {
 
     Point2D TossBot::GetLocation(UNIT_TYPEID type)
     {
-        std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
-            UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
-            UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_DARKSHRINE, UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE };
-        std::vector<Point2D> possible_locations;
-        if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
-        {
-            possible_locations = locations->tech_locations;
-        }
-        else
-        {
-            switch (type)
-            {
-            case UNIT_TYPEID::PROTOSS_PYLON:
-                possible_locations = locations->pylon_locations;
-                break;
-            case UNIT_TYPEID::PROTOSS_NEXUS:
-                possible_locations = locations->nexi_locations;
-                break;
-            case UNIT_TYPEID::PROTOSS_GATEWAY:
-                possible_locations = locations->gateway_locations;
-                break;
-            case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-                possible_locations = locations->assimilator_locations;
-                break;
-            case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-                possible_locations = locations->cyber_core_locations;
-                break;
-            default:
-                std::cout << "Error invalid type id in GetLocation" << std::endl;
-                return Point2D(0, 0);
-            }
-        }
+		std::vector<Point2D> possible_locations;
+
+		if (current_build_order == BuildOrder::recessed_cannon_rush)
+		{
+
+			std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
+				UNIT_TYPEID::PROTOSS_CYBERNETICSCORE, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
+				UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_DARKSHRINE, UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE };
+			if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
+			{
+				possible_locations = locations->tech_locations_cannon_rush;
+			}
+			else
+			{
+				switch (type)
+				{
+				case UNIT_TYPEID::PROTOSS_PYLON:
+					possible_locations = locations->pylon_locations_cannon_rush;
+					break;
+				case UNIT_TYPEID::PROTOSS_NEXUS:
+					possible_locations = locations->nexi_locations;
+					break;
+				case UNIT_TYPEID::PROTOSS_GATEWAY:
+					possible_locations = locations->gateway_locations_cannon_rush;
+					break;
+				case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
+					possible_locations = locations->assimilator_locations;
+					break;
+				case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
+					possible_locations = locations->cannon_locations_cannon_rush;
+					break;
+				case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
+					possible_locations = locations->shield_battery_locations_cannon_rush;
+					break;
+				default:
+					std::cout << "Error invalid type id in GetLocation" << std::endl;
+					return Point2D(0, 0);
+				}
+			}
+		}
+		else
+		{
+			std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
+				UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
+				UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_DARKSHRINE, UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE };
+			if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
+			{
+				possible_locations = locations->tech_locations;
+			}
+			else
+			{
+				switch (type)
+				{
+				case UNIT_TYPEID::PROTOSS_PYLON:
+					possible_locations = locations->pylon_locations;
+					break;
+				case UNIT_TYPEID::PROTOSS_NEXUS:
+					possible_locations = locations->nexi_locations;
+					break;
+				case UNIT_TYPEID::PROTOSS_GATEWAY:
+					possible_locations = locations->gateway_locations;
+					break;
+				case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
+					possible_locations = locations->assimilator_locations;
+					break;
+				case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
+					possible_locations = locations->cyber_core_locations;
+					break;
+				default:
+					std::cout << "Error invalid type id in GetLocation" << std::endl;
+					return Point2D(0, 0);
+				}
+			}
+		}
 
         for (const auto &point : possible_locations)
         {
@@ -1081,30 +1199,71 @@ namespace sc2 {
 
 	Point2D TossBot::GetProxyLocation(UNIT_TYPEID type)
 	{
-		std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
-			UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
-			UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_DARKSHRINE, UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE };
 		std::vector<Point2D> possible_locations;
-		if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
+
+		if (current_build_order == BuildOrder::recessed_cannon_rush)
 		{
-			possible_locations = locations->proxy_tech_locations;
+			std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
+				UNIT_TYPEID::PROTOSS_CYBERNETICSCORE, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
+				UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_DARKSHRINE, UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE };
+			if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
+			{
+				possible_locations = locations->tech_locations_cannon_rush;
+			}
+			else
+			{
+				switch (type)
+				{
+				case UNIT_TYPEID::PROTOSS_PYLON:
+					possible_locations = locations->pylon_locations_cannon_rush;
+					break;
+				case UNIT_TYPEID::PROTOSS_NEXUS:
+					possible_locations = locations->nexi_locations;
+					break;
+				case UNIT_TYPEID::PROTOSS_GATEWAY:
+					possible_locations = locations->gateway_locations_cannon_rush;
+					break;
+				case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
+					possible_locations = locations->assimilator_locations;
+					break;
+				case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
+					possible_locations = locations->cannon_locations_cannon_rush;
+					break;
+				case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
+					possible_locations = locations->shield_battery_locations_cannon_rush;
+					break;
+				default:
+					std::cout << "Error invalid type id in GetLocation" << std::endl;
+					return Point2D(0, 0);
+				}
+			}
 		}
 		else
 		{
-			switch (type)
+			std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
+				UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
+				UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_DARKSHRINE, UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE };
+			if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
 			{
-			case UNIT_TYPEID::PROTOSS_PYLON:
-				possible_locations = locations->proxy_pylon_locations;
-				break;
-			case UNIT_TYPEID::PROTOSS_NEXUS:
-				possible_locations = locations->nexi_locations;
-				break;
-			case UNIT_TYPEID::PROTOSS_GATEWAY:
-				possible_locations = locations->proxy_gateway_locations;
-				break;
-			default:
-				std::cout << "Error invalid type id in GetLocation" << std::endl;
-				return Point2D(0, 0);
+				possible_locations = locations->proxy_tech_locations;
+			}
+			else
+			{
+				switch (type)
+				{
+				case UNIT_TYPEID::PROTOSS_PYLON:
+					possible_locations = locations->proxy_pylon_locations;
+					break;
+				case UNIT_TYPEID::PROTOSS_NEXUS:
+					possible_locations = locations->nexi_locations;
+					break;
+				case UNIT_TYPEID::PROTOSS_GATEWAY:
+					possible_locations = locations->proxy_gateway_locations;
+					break;
+				default:
+					std::cout << "Error invalid type id in GetLocation" << std::endl;
+					return Point2D(0, 0);
+				}
 			}
 		}
 
@@ -1875,7 +2034,7 @@ namespace sc2 {
                         Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
                 }
                 const Unit* closest_unit = ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), oracle->pos);
-                if (oracle->orders[0].ability_id.ToType() == ABILITY_ID::GENERAL_MOVE)
+                if (oracle->orders.size() == 0 || oracle->orders[0].ability_id.ToType() == ABILITY_ID::GENERAL_MOVE)
                 {
                     Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK, closest_unit, false);
                 }
@@ -4066,19 +4225,18 @@ for (const auto &field : far_oversaturated_patches)
 		}
 	}
 
-	std::vector<Point2D> TossBot::FindConcave(Point2D enemy_front, Point2D fallback_point, int num_units)
+	std::vector<Point2D> TossBot::FindConcave(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
 	{
-		float range = 9; //r
-		float unit_radius = .625; //u
+		float range = 0; //r
+		float unit_radius = unit_size + dispersion; //u
 		float concave_degree = 30; //p
 		int max_width = 4;
 
-		Point2D backward_vector = fallback_point - enemy_front;
-		Point2D forward_vector = enemy_front - fallback_point;
+		Point2D backward_vector = fallback_point - origin;
+		Point2D forward_vector = origin - fallback_point;
 		forward_vector /= sqrt(forward_vector.x * forward_vector.x + forward_vector.y * forward_vector.y);
 
-		Point2D offset_circle_center = Point2D(enemy_front.x + concave_degree * forward_vector.x, enemy_front.y + concave_degree * forward_vector.y);
-		Debug()->DebugSphereOut(Point3D(offset_circle_center.x, offset_circle_center.y, Observation()->TerrainHeight(offset_circle_center)), concave_degree + range, Color(0, 255, 255));
+		Point2D offset_circle_center = Point2D(origin.x + concave_degree * forward_vector.x, origin.y + concave_degree * forward_vector.y);
 
 		float backwards_direction = atan2(backward_vector.y, backward_vector.x);
 		float arclength = (2 * unit_radius) / (range + concave_degree + unit_radius);
@@ -4104,7 +4262,6 @@ for (const auto &field : far_oversaturated_patches)
 					if (Observation()->IsPathable(unit_position))
 					{
 						concave_points.push_back(unit_position);
-						Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(0, 255, 0));
 					}
 					else
 					{
@@ -4122,7 +4279,6 @@ for (const auto &field : far_oversaturated_patches)
 					if (Observation()->IsPathable(unit_position))
 					{
 						concave_points.push_back(unit_position);
-						Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(0, 255, 0));
 					}
 					else
 					{
@@ -4144,7 +4300,6 @@ for (const auto &field : far_oversaturated_patches)
 			if (Observation()->IsPathable(unit_position))
 			{
 				concave_points.push_back(unit_position);
-				Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(255, 0, 0));
 			}
 
 			left_limit = false;
@@ -4160,7 +4315,6 @@ for (const auto &field : far_oversaturated_patches)
 					if (Observation()->IsPathable(unit_position))
 					{
 						concave_points.push_back(unit_position);
-						Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(255, 0, 0));
 					}
 					else
 					{
@@ -4178,7 +4332,6 @@ for (const auto &field : far_oversaturated_patches)
 					if (Observation()->IsPathable(unit_position))
 					{
 						concave_points.push_back(unit_position);
-						Debug()->DebugSphereOut(Point3D(unit_position.x, unit_position.y, Observation()->TerrainHeight(unit_position)), unit_radius, Color(255, 0, 0));
 					}
 					else
 					{
@@ -4191,6 +4344,20 @@ for (const auto &field : far_oversaturated_patches)
 			}
 		}
 		return concave_points;
+	}
+
+	std::vector<Point2D> TossBot::FindConcaveFromBack(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
+	{
+		Point2D current_origin = origin;
+		while (true)
+		{
+			std::vector<Point2D> concave_points = FindConcave(current_origin, fallback_point, num_units, unit_size, dispersion);
+			Point2D furthest_back = ClosestPointOnLine(concave_points.back(), origin, fallback_point);
+			if (Distance2D(origin, fallback_point) < Distance2D(furthest_back, fallback_point))
+				return concave_points;
+			current_origin = PointBetween(current_origin, fallback_point, -(unit_size + dispersion));
+		}
+
 	}
 
 	void TossBot::SetUpUnitTypeInfo()
@@ -5056,6 +5223,15 @@ for (const auto &field : far_oversaturated_patches)
         return false;
     }
 
+	bool TossBot::HasBuildingStarted(BuildOrderConditionArgData data)
+	{
+		for (const auto &building : Observation()->GetUnits(IsUnit(data.unitId)))
+		{
+			return true;
+		}
+		return false;
+	}
+
     bool TossBot::IsResearching(BuildOrderConditionArgData data)
     {
         for (const auto &building : Observation()->GetUnits(IsUnit(data.unitId)))
@@ -5090,18 +5266,26 @@ for (const auto &field : far_oversaturated_patches)
     bool TossBot::BuildFirstPylon(BuildOrderResultArgData data)
     {
         Point2D pos;
-        switch (enemy_race)
-        {
-        case Race::Zerg:
-            pos = locations->first_pylon_location_zerg;
-            break;
-        case Race::Protoss:
-            pos = locations->first_pylon_location_protoss;
-            break;
-        case Race::Terran:
-            pos = locations->first_pylon_location_terran;
-            break;
-        }
+		if (current_build_order == BuildOrder::recessed_cannon_rush)
+		{
+			pos = locations->first_pylon_cannon_rush;
+		}
+		else
+		{
+			switch (enemy_race)
+			{
+			case Race::Zerg:
+				pos = locations->first_pylon_location_zerg;
+				break;
+			case Race::Protoss:
+				pos = locations->first_pylon_location_protoss;
+				break;
+			case Race::Terran:
+				pos = locations->first_pylon_location_terran;
+				break;
+			}
+		}
+        
         const Unit* builder = GetBuilder(pos);
         if (builder == NULL)
         {
@@ -5163,6 +5347,29 @@ for (const auto &field : far_oversaturated_patches)
         }
         return true;
     }
+
+	bool TossBot::CannonRushProbe1(BuildOrderResultArgData data)
+	{
+		Point2D pos = Observation()->GetGameInfo().enemy_start_locations[0];
+		const Unit* scouter = GetBuilder(pos);
+		if (scouter == NULL)
+		{
+			std::cout << "Error could not find builder in Scout" << std::endl;
+			return false;
+		}
+		RemoveWorker(scouter);
+		if (enemy_race == Race::Zerg)
+		{
+			ScoutZergStateMachine* scout_fsm = new ScoutZergStateMachine(this, "Scout Zerg", scouter, locations->initial_scout_pos, locations->main_scout_path, locations->natural_scout_path, locations->enemy_natural, locations->possible_3rds);
+			active_FSMs.push_back(scout_fsm);
+		}
+		else
+		{
+			ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(this, "Scout Terran", scouter, locations->initial_scout_pos, locations->main_scout_path, locations->natural_scout_path, locations->enemy_natural);
+			active_FSMs.push_back(scout_fsm);
+		}
+		return true;
+	}
 
     bool TossBot::CutWorkers(BuildOrderResultArgData data)
     {
@@ -5677,7 +5884,7 @@ for (const auto &field : far_oversaturated_patches)
     void TossBot::SetBuildOrder(BuildOrder build)
     {
         locations = new Locations(Observation()->GetStartLocation(), build, Observation()->GetGameInfo().map_name);
-
+		current_build_order = build;
         switch (build)
         {
         case BuildOrder::blank:
@@ -5752,19 +5959,21 @@ for (const auto &field : far_oversaturated_patches)
 
 	void TossBot::SetOracleGatewaymanPvZ()
 	{
-		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON, UNIT_TYPEID::PROTOSS_GATEWAY})),
-						//BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(30.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(17.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(33.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(48.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(48.0f),										&TossBot::ImmediatelySaturateGasses,BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(68.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(94.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(102.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(95.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(102.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(107.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(123.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainAdept,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
+						BuildOrderData(&TossBot::HasBuildingStarted,BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STARGATE),				&TossBot::TrainAdept,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(130.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(134.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(149.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(150.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(156.0f),										&TossBot::TrainAdept,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
 						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STARGATE),				&TossBot::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(173.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
@@ -5772,23 +5981,23 @@ for (const auto &field : far_oversaturated_patches)
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(191.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(202.0f),										&TossBot::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(203.0f),										&TossBot::MicroOracles,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(203.0f),										&TossBot::StalkerOraclePressure,	BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_PYLON})),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(230.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(236.0f),										&TossBot::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL, UNIT_TYPEID::PROTOSS_FORGE})),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
 						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchBlink,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoTillFinished,		BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
 						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&TossBot::ResearchAttackOne,		BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_FORGE)),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::ContinueMakingWorkers,	BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::ContinueWarpingInStalkers,BuildOrderResultArgData()),
+						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(300.0f),										&TossBot::StalkerOraclePressure,	BuildOrderResultArgData()),
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(300.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
 						//BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(325.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchCharge,			BuildOrderResultArgData()),
+						//BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchCharge,			BuildOrderResultArgData()),
 		};
 	}
 
@@ -5961,7 +6170,6 @@ for (const auto &field : far_oversaturated_patches)
 						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(300.0f),										&TossBot::ProxyDoubleRoboAllIn,		BuildOrderResultArgData()),
 		};
 	}
-    
 
 #pragma endregion
 

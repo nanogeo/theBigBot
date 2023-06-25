@@ -50,6 +50,11 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 						convert_location(Point2D(99, 20), swap),
 						convert_location(Point2D(134, 26), swap) };
 
+	pylon_locations_cannon_rush = { convert_location(Point2D(46, 90), swap),
+									convert_location(Point2D(47, 92), swap),
+									convert_location(Point2D(51, 100), swap),
+									convert_location(Point2D(54, 94), swap) };
+
 	first_pylon_location_zerg = convert_location(Point2D(142, 63), swap);
 	first_pylon_location_protoss = convert_location(Point2D(135, 47), swap);
 	first_pylon_location_terran = convert_location(Point2D(131, 45), swap);
@@ -226,6 +231,44 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 
 	possible_3rds = { convert_location(Point2D(36.5, 69.5), swap),
 					convert_location(Point2D(64.5, 110.5), swap), };
+
+
+
+
+	first_pylon_cannon_rush = convert_location(Point2D(137, 47), swap);
+
+	pylon_locations_cannon_rush = { convert_location(Point2D(46, 90), swap),
+									convert_location(Point2D(47, 92), swap),
+									convert_location(Point2D(51, 100), swap),
+									convert_location(Point2D(54, 94), swap) };
+
+	gateway_locations_cannon_rush = { convert_location(Point2D(46.5, 94.5), swap),
+									convert_location(Point2D(47.5, 84.5), swap),
+									convert_location(Point2D(58.5, 89.5), swap) };
+
+	cannon_locations_cannon_rush = { convert_location(Point2D(45, 92), swap),
+									convert_location(Point2D(49, 95), swap),
+									convert_location(Point2D(50, 98), swap) };
+
+	shield_battery_locations_cannon_rush = { convert_location(Point2D(49, 93), swap),
+											convert_location(Point2D(52, 98), swap),
+											convert_location(Point2D(54, 96), swap),
+											convert_location(Point2D(52, 96), swap),
+											convert_location(Point2D(48, 90), swap),
+											convert_location(Point2D(50, 90), swap) };
+
+	robo_locations_cannon_rush = { convert_location(Point2D(46.5, 87.5), swap),
+									convert_location(Point2D(0, 0), swap) };
+
+	tech_locations_cannon_rush = { convert_location(Point2D(136.5, 49.5), swap),
+									convert_location(Point2D(139.5, 46.5), swap),
+									convert_location(Point2D(44.5, 84.5), swap) };
+
+	gas_steal_locations_cannon_rush = { convert_location(Point2D(), swap),
+										convert_location(Point2D(), swap),
+										convert_location(Point2D(), swap),
+										convert_location(Point2D(), swap) };
 }
 
 }
+

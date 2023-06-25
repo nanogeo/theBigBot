@@ -42,6 +42,15 @@ public:
     std::vector<Point2D> possible_3rds;
     Point2D enemy_natural;
 
+	Point2D first_pylon_cannon_rush;
+	std::vector<Point2D> pylon_locations_cannon_rush;
+	std::vector<Point2D> gateway_locations_cannon_rush;
+	std::vector<Point2D> cannon_locations_cannon_rush;
+	std::vector<Point2D> shield_battery_locations_cannon_rush;
+	std::vector<Point2D> robo_locations_cannon_rush;
+	std::vector<Point2D> tech_locations_cannon_rush;
+	std::vector<Point2D> gas_steal_locations_cannon_rush;
+
     Locations() {}
     Locations(Point3D start_location, BuildOrder build_order, std::string map_name)
     {
