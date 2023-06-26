@@ -5,12 +5,15 @@
 #include "sc2api/sc2_map_info.h"
 #include "sc2api/sc2_unit_filters.h"
 
-#include "TossBot.h"
 
 namespace sc2
 {
+
+class TossBot;
+
 class ArmyGroup
 {
+public:
 	TossBot* agent;
 	Units all_units;
 	Units zealots;

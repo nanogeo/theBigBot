@@ -1,5 +1,6 @@
 #pragma once
 #include "fire_control.h"
+#include "utility.h"
 
 
 
@@ -65,12 +66,12 @@ namespace sc2 {
 
 	int FireControl::GetDamage(const Unit* Funit, const Unit* Eunit)
 	{
-		return agent->GetDamage(Funit, Eunit);
+		return Utility::GetDamage(Funit, Eunit, agent->Observation());
 	}
 
 	bool FireControl::ApplyAttack(FriendlyUnitInfo* friendly_unit, EnemyUnitInfo* enemy_unit)
 	{
-		int damage = GetDamage(friendly_unit->unit, enemy_unit->unit);
+		int damage = Utility::GetDamage(friendly_unit->unit, enemy_unit->unit, agent->Observation());
 		bool Eunit_died = ApplyDamage(enemy_unit, damage);
 		attacks[friendly_unit->unit] = enemy_unit->unit;
 		RemoveFriendlyUnit(friendly_unit);

@@ -4,6 +4,7 @@
 #include "locations.h"
 #include "fire_control.h"
 #include "utility.h"
+#include "build_order_manager.h"
 
 #include <iostream>
 #include <string>
@@ -195,7 +196,7 @@ namespace sc2 {
 
             if (Observation()->GetGameLoop() == 1) 
             {
-                SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
+                build_order_manager.SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
 
             }
@@ -307,15 +308,15 @@ namespace sc2 {
 
         
         UpdateUnitTags();
-        DistributeWorkers();
-        if (new_base != NULL)
+        worker_manager.DistributeWorkers();
+        if (worker_manager.new_base != NULL)
         {
             std::cout << "add new base\n";
-            std::cout << new_base->pos.x << ' ' << new_base->pos.y << '\n';;
-            AddNewBase(new_base);
+            std::cout << worker_manager.new_base->pos.x << ' ' << worker_manager.new_base->pos.y << '\n';;
+            worker_manager.AddNewBase();
             if (Observation()->GetGameLoop() < 5)
             {
-                SplitWorkers();
+                worker_manager.SplitWorkers();
             }
         }
         if (Observation()->GetGameLoop() == 1)
@@ -333,15 +334,15 @@ namespace sc2 {
             std::cout << Utility::UnitTypeIdToString(building->unit_type);
             if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
             {
-                new_base = building;
+				worker_manager.new_base = building;
             }
             else if (building->unit_type == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
             {
-                assimilators[building] = assimilator_data();
+				worker_manager.assimilators[building] = assimilator_data();
                 //SaturateGas(building->tag);
             }
             
-            SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
+			build_order_manager.SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 
         }
 		/*if (Observation()->GetGameLoop() >= 2)
@@ -409,8 +410,8 @@ namespace sc2 {
         
         if (Observation()->GetGameLoop() % 2 == 0)
         {
-            BuildWorkers();
-            CheckBuildOrder();
+            worker_manager.BuildWorkers();
+			build_order_manager.CheckBuildOrder();
             ProcessActions();
         }
 
@@ -430,16 +431,13 @@ namespace sc2 {
         }
         if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
         {
-            new_base = building;
+			worker_manager.SetNewBase(building);
         }
         else if (building->unit_type == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
         {
-            assimilators[building] = assimilator_data();
-            gas_spaces.push_back(new mineral_patch_space(&assimilators[building].workers[0], building));
-            gas_spaces.push_back(new mineral_patch_space(&assimilators[building].workers[1], building));
-            gas_spaces.push_back(new mineral_patch_space(&assimilators[building].workers[2], building));
+			worker_manager.AddAssimilator(building);
             if (immediatelySaturateGasses)
-                SaturateGas(building);
+                worker_manager.SaturateGas(building);
         }
         else if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
         {
@@ -468,7 +466,7 @@ namespace sc2 {
             return;
         if (unit->unit_type == UNIT_TYPEID::PROTOSS_PROBE)
         {
-            PlaceWorker(unit);
+            worker_manager.PlaceWorker(unit);
         }
         if (army_groups.size() > 0)
         {
@@ -552,7 +550,7 @@ namespace sc2 {
 
 	void TossBot::RunTests()
 	{
-		const Unit* closest_enemy = Utility::ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), Utility::MedianCenter(test_army.stalkers));
+		/*const Unit* closest_enemy = Utility::ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), Utility::MedianCenter(test_army.stalkers));
 		const Unit* closest_unit_to_enemies = Utility::ClosestTo(test_army.stalkers, closest_enemy->pos);
 		const Unit* furthest_unit_from_enemies = Utility::FurthestFrom(test_army.stalkers, closest_enemy->pos);
 
@@ -594,7 +592,7 @@ namespace sc2 {
 		
 		
 		Units enemy_attacking_units = Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
-		//Actions()->UnitCommand(enemy_attacking_units, ABILITY_ID::ATTACK, fallback_point);
+		//Actions()->UnitCommand(enemy_attacking_units, ABILITY_ID::ATTACK, fallback_point);*/
 	}
 
 	void TossBot::SpawnArmies()
@@ -620,36 +618,6 @@ namespace sc2 {
 		tests_set_up = true;
 	}
 
-	bool TossBot::TestSwap(Point2D pos1, Point2D target1, Point2D pos2, Point2D target2)
-	{
-		float curr_max = std::max(Distance2D(pos1, target1), Distance2D(pos2, target2));
-		float swap_max = std::max(Distance2D(pos1, target2), Distance2D(pos2, target1));
-		return swap_max < curr_max;
-	}
-
-	std::map<const Unit*, Point2D> TossBot::AssignUnitsToPositions(Units units, std::vector<Point2D> positions)
-	{
-		std::map<const Unit*, Point2D> unit_assignments;
-		for (const auto &unit : units)
-		{
-			Point2D closest = Utility::ClosestTo(positions, unit->pos);
-			unit_assignments[unit] = closest;
-			positions.erase(std::remove(positions.begin(), positions.end(), closest), positions.end());
-		}
-		for (int i = 0; i < units.size() - 1; i++)
-		{
-			for (int j = i + 1; j < units.size(); j++)
-			{
-				if (TestSwap(units[i]->pos, unit_assignments[units[i]], units[j]->pos, unit_assignments[units[j]]))
-				{
-					Point2D temp = unit_assignments[units[i]];
-					unit_assignments[units[i]] = unit_assignments[units[j]];
-					unit_assignments[units[j]] = temp;
-				}
-			}
-		}
-		return unit_assignments;
-	}
 
 
 #pragma endregion
@@ -716,7 +684,7 @@ namespace sc2 {
     {
 		std::vector<Point2D> possible_locations;
 
-		if (current_build_order == BuildOrder::recessed_cannon_rush)
+		if (build_order_manager.current_build_order == BuildOrder::recessed_cannon_rush)
 		{
 
 			std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
@@ -889,7 +857,7 @@ namespace sc2 {
 	{
 		std::vector<Point2D> possible_locations;
 
-		if (current_build_order == BuildOrder::recessed_cannon_rush)
+		if (build_order_manager.current_build_order == BuildOrder::recessed_cannon_rush)
 		{
 			std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
 				UNIT_TYPEID::PROTOSS_CYBERNETICSCORE, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
@@ -996,35 +964,6 @@ namespace sc2 {
             std::cout << "Error invalid type id in GetProxyLocations" << std::endl;
             return std::vector<Point2D>();
         }
-    }
-
-
-
-    std::string TossBot::BuildOrderToString(std::vector<BuildOrderData> build)
-    {
-        std::string build_string = "";
-        for (const auto &step : build)
-        {
-            std::string step_string = "";
-            if (step.condition == &TossBot::TimePassed)
-            {
-                step_string += "At time: ";
-                step_string += step.condition_arg.time;
-            }
-            else
-            {
-                step_string += "Unknown condition";
-            }
-
-            if (step.result == &TossBot::BuildBuilding)
-            {
-                step_string += " build ";
-                step_string += Utility::UnitTypeIdToString(step.result_arg.unitId);
-            }
-            step_string += "\n";
-            build_string += step_string;
-        }
-        return build_string;
     }
 
     std::string TossBot::OrdersToString(std::vector<UnitOrder> orders)
@@ -1202,740 +1141,6 @@ namespace sc2 {
 
 #pragma endregion
 
-#pragma region Worker Management
-
-    const Unit* TossBot::GetWorker()
-    {
-        const ObservationInterface* observation = Observation();
-        // Units mineral_fields = observation->GetUnits(IsMineralPatch());
-        std::map<const Unit*, mineral_patch_data> close_patches;
-        for (const auto &field : mineral_patches)
-        {
-            if (field.second.is_close && field.second.workers[0] != NULL)
-            {
-                close_patches[field.first] = field.second;
-            }
-        }
-        std::map<const Unit*, mineral_patch_data> close_oversaturated_patches;
-        for (const auto &field : close_patches)
-        {
-            if (field.second.workers[2] != NULL)
-            {
-                close_oversaturated_patches[field.first] = field.second;
-            }
-        }
-        // check close mineral patches with 3 assigned harvesters
-        if (close_oversaturated_patches.size() > 0)
-        {
-            for (const auto &field : close_oversaturated_patches)
-            {
-                return field.second.workers[2];
-            }
-        }
-
-        std::map<const Unit*, mineral_patch_data> far_patches;
-        for (const auto &field : mineral_patches)
-        {
-            if (!field.second.is_close && field.second.workers[0] != NULL)
-            {
-                far_patches[field.first] = field.second;
-            }
-        }
-        std::map<const Unit*, mineral_patch_data> far_oversaturated_patches;
-        for (const auto &field : far_patches)
-        {
-            if (field.second.workers[2] != NULL)
-            {
-                far_oversaturated_patches[field.first] = field.second;
-            }
-        }
-        // check far mineral patches with 3 assigned harvesters
-        if (far_oversaturated_patches.size() > 0)
-        {
-for (const auto &field : far_oversaturated_patches)
-{
-    return field.second.workers[2];
-}
-        }
-        // check far mineral patches with <3 assigned harvesters
-        if (far_patches.size() > 0)
-        {
-            for (const auto &field : far_patches)
-            {
-                if (field.second.workers[1] != NULL)
-                {
-                    return field.second.workers[1];
-                }
-            }
-            for (const auto &field : far_patches)
-            {
-                if (field.second.workers[0] != NULL)
-                {
-                    return field.second.workers[0];
-                }
-            }
-        }
-        // check close mineral patches with <3 assigned harvesters
-        if (close_patches.size() > 0)
-        {
-            for (const auto &field : close_patches)
-            {
-                if (field.second.workers[1] != NULL)
-                {
-                    return field.second.workers[1];
-                }
-            }
-            for (const auto &field : close_patches)
-            {
-                if (field.second.workers[0] != NULL)
-                {
-                    return field.second.workers[0];
-                }
-            }
-        }
-        std::cout << "Error no available worker found";
-        return NULL;
-    }
-
-    const Unit* TossBot::GetBuilder(Point2D position)
-    {
-        const ObservationInterface* observation = Observation();
-        Units mineral_fields = observation->GetUnits(IsMineralPatch());
-        Units mineral_patches_reversed_keys;
-        Units far_only_mineral_patches_reversed_keys;
-        for (const auto &patch : mineral_patches_reversed)
-        {
-            if (!mineral_patches[mineral_patches_reversed[patch.first].mineral_tag].is_close)
-                far_only_mineral_patches_reversed_keys.push_back(patch.first);
-            mineral_patches_reversed_keys.push_back(patch.first);
-
-        }
-        const Unit* closest;
-        if (far_only_mineral_patches_reversed_keys.size() > 0)
-        {
-            closest = Utility::ClosestTo(far_only_mineral_patches_reversed_keys, position);
-        }
-        if (mineral_patches_reversed_keys.size() > 0)
-        {
-            const Unit* c = Utility::ClosestTo(mineral_patches_reversed_keys, position);
-            if (Distance2D(closest->pos, position) < Distance2D(c->pos, position) * 1.2)
-                return closest;
-            else
-                return c;
-        }
-        std::cout << "Error mineral patches reversed is empty in GetBuilder";
-        return NULL;
-    }
-
-    void TossBot::PlaceWorker(const Unit* worker)
-    {
-        if (first_2_mineral_patch_spaces.size() > 0)
-        {
-            float distance = INFINITY;
-            mineral_patch_space* closest = NULL;
-            float distance_c = INFINITY;
-            mineral_patch_space* closest_c = NULL;
-            for (mineral_patch_space* &space : first_2_mineral_patch_spaces)
-            {
-                float dist = Distance2D(worker->pos, space->mineral_patch->pos);
-                if (closest == NULL || dist < distance)
-                {
-                    distance = dist;
-                    closest = space;
-                }
-                if (mineral_patches[space->mineral_patch].is_close && (closest_c == NULL || dist < distance_c))
-                {
-                    distance_c = dist;
-                    closest_c = space;
-                }
-            }
-            if (closest_c != NULL)
-            {
-                (*closest_c->worker) = worker;
-                NewPlaceWorkerOnMinerals(worker, closest_c->mineral_patch);
-                first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), closest_c), first_2_mineral_patch_spaces.end());
-            }
-            else
-            {
-                (*closest->worker) = worker;
-                NewPlaceWorkerOnMinerals(worker, closest->mineral_patch);
-                first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), closest), first_2_mineral_patch_spaces.end());
-            }
-            return;
-        }
-        if (gas_spaces.size() > removed_gas_miners)
-        {
-            float distance = INFINITY;
-            mineral_patch_space* closest = NULL;
-            for (mineral_patch_space* &space : gas_spaces)
-            {
-                float dist = Distance2D(worker->pos, space->mineral_patch->pos);
-                if (closest == NULL || dist < distance)
-                {
-                    distance = dist;
-                    closest = space;
-                }
-            }
-            *(closest->worker) = worker;
-            NewPlaceWorkerInGas(worker, closest->mineral_patch);
-            gas_spaces.erase(std::remove(gas_spaces.begin(), gas_spaces.end(), closest), gas_spaces.end());
-
-            return;
-        }
-        if (far_3_mineral_patch_spaces.size() > 0)
-        {
-            float distance = INFINITY;
-            mineral_patch_space* closest = NULL;
-            for (mineral_patch_space* &space : far_3_mineral_patch_spaces)
-            {
-                float dist = Distance2D(worker->pos, space->mineral_patch->pos);
-                if (closest == NULL || dist < distance)
-                {
-                    distance = dist;
-                    closest = space;
-                }
-            }
-            *(closest->worker) = worker;
-            NewPlaceWorkerOnMinerals(worker, closest->mineral_patch);
-            far_3_mineral_patch_spaces.erase(std::remove(far_3_mineral_patch_spaces.begin(), far_3_mineral_patch_spaces.end(), closest), far_3_mineral_patch_spaces.end());
-            mineral_patch_space* space = new mineral_patch_space(closest->worker, closest->mineral_patch);
-            far_3_mineral_patch_extras.push_back(space);
-
-            return;
-        }
-        if (close_3_mineral_patch_spaces.size() > 0)
-        {
-            float distance = INFINITY;
-            mineral_patch_space* closest = NULL;
-            for (mineral_patch_space* &space : close_3_mineral_patch_spaces)
-            {
-                float dist = Distance2D(worker->pos, space->mineral_patch->pos);
-                if (closest == NULL || dist < distance)
-                {
-                    distance = dist;
-                    closest = space;
-                }
-            }
-            (*closest->worker) = worker;
-            NewPlaceWorkerOnMinerals(worker, closest->mineral_patch);
-            close_3_mineral_patch_spaces.erase(std::remove(close_3_mineral_patch_spaces.begin(), close_3_mineral_patch_spaces.end(), closest), close_3_mineral_patch_spaces.end());
-            close_3_mineral_patch_extras.push_back(new mineral_patch_space(closest->worker, closest->mineral_patch));
-            return;
-        }
-        std::cout << "Error no place for worker\n";
-    }
-
-    void TossBot::PlaceWorkerInGas(const Unit* worker, const Unit* gas, int index)
-    {
-        const ObservationInterface* observation = Observation();
-        if (assimilators.find(gas) == assimilators.end())
-        {
-            assimilators[gas] = assimilator_data();
-        }
-        assimilators[gas].workers[index] = worker;
-        Point2D assimilator_position = gas->pos;
-        Units townhalls = observation->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
-        const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
-        Point2D vector = assimilator_position - closest_nexus->pos;
-        Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
-        Point2D drop_off_point = closest_nexus->pos + normal_vector * 2;
-        Point2D pick_up_point = assimilator_position - normal_vector * .5;
-        assimilator_reversed_data data;
-        data.assimilator_tag = gas;
-        data.drop_off_point = drop_off_point;
-        data.pick_up_point = pick_up_point;
-        assimilators_reversed[worker] = data;
-    }
-
-    void TossBot::NewPlaceWorkerInGas(const Unit* worker, const Unit* gas)
-    {
-        const ObservationInterface* observation = Observation();
-        if (assimilators.find(gas) == assimilators.end())
-        {
-            assimilators[gas] = assimilator_data();
-        }
-        Point2D assimilator_position = gas->pos;
-        Units townhalls = observation->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
-        const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
-        Point2D vector = assimilator_position - closest_nexus->pos;
-        Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
-        Point2D drop_off_point = closest_nexus->pos + normal_vector * 2;
-        Point2D pick_up_point = assimilator_position - normal_vector * .5;
-        assimilator_reversed_data data;
-        data.assimilator_tag = gas;
-        data.drop_off_point = drop_off_point;
-        data.pick_up_point = pick_up_point;
-        assimilators_reversed[worker] = data;
-    }
-
-    void TossBot::PlaceWorkerOnMinerals(const Unit* worker, const Unit* mineral, int index)
-    {
-        const ObservationInterface* observation = Observation();
-        if (mineral_patches.find(mineral) == mineral_patches.end())
-        {
-            mineral_patches[mineral] = mineral_patch_data(mineral->mineral_contents == 1800);
-        }
-        mineral_patches[mineral].workers[index] = worker;
-        Point2D mineral_position = mineral->pos;
-        Units townhalls = observation->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
-        const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
-        Point2D vector = mineral_position - closest_nexus->pos;
-        Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
-        Point2D drop_off_point = closest_nexus->pos + normal_vector * 2;
-        Point2D pick_up_point = mineral_position - normal_vector * .5;
-        mineral_patch_reversed_data data;
-        data.mineral_tag = mineral;
-        data.drop_off_point = drop_off_point;
-        data.pick_up_point = pick_up_point;
-        mineral_patches_reversed[worker] = data;
-    }
-
-    void TossBot::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* mineral)
-    {
-        const ObservationInterface* observation = Observation();
-        if (mineral_patches.find(mineral) == mineral_patches.end())
-        {
-            mineral_patches[mineral] = mineral_patch_data(mineral->mineral_contents == 1800);
-        }
-        Point2D mineral_position = mineral->pos;
-        Units townhalls = observation->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
-        const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
-        Point2D vector = mineral_position - closest_nexus->pos;
-        Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
-        Point2D drop_off_point = closest_nexus->pos + normal_vector * 2;
-        Point2D pick_up_point = mineral_position - normal_vector * .5;
-        mineral_patch_reversed_data data;
-        data.mineral_tag = mineral;
-        data.drop_off_point = drop_off_point;
-        data.pick_up_point = pick_up_point;
-        mineral_patches_reversed[worker] = data;
-    }
-
-    void TossBot::RemoveWorker(const Unit* worker)
-    {
-        auto rem = [&](mineral_patch_space* space) -> bool
-        {
-            return *(space->worker) == worker;
-        };
-        if (mineral_patches_reversed.find(worker) != mineral_patches_reversed.end())
-        {
-            const Unit* mineral = mineral_patches_reversed[worker].mineral_tag;
-            mineral_patches_reversed.erase(worker);
-            bool is_close = mineral_patches[mineral].is_close;
-            
-            if (mineral_patches[mineral].workers[0] == worker)
-            {
-                if (mineral_patches[mineral].workers[1] == NULL)
-                {
-                    mineral_patches[mineral].workers[0] = NULL;
-                    first_2_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[0], mineral));
-                }
-                else
-                {
-                    mineral_patches[mineral].workers[0] = mineral_patches[mineral].workers[1];
-                    if (mineral_patches[mineral].workers[2] == NULL)
-                    {
-                        mineral_patches[mineral].workers[1] = NULL;
-                        first_2_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[1], mineral));
-                    }
-                    else
-                    {
-                        if (is_close)
-                        {
-                            close_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[2], mineral));
-                            close_3_mineral_patch_extras.erase(std::remove_if(close_3_mineral_patch_extras.begin(), close_3_mineral_patch_extras.end(), rem), close_3_mineral_patch_extras.end());
-                        }
-                        else
-                        {
-                            far_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[2], mineral));
-                            far_3_mineral_patch_extras.erase(std::remove_if(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), rem), far_3_mineral_patch_extras.end());
-                        }
-                        mineral_patches[mineral].workers[1] = mineral_patches[mineral].workers[2];
-                        mineral_patches[mineral].workers[2] = NULL;
-                    }
-                }
-            }
-            else if (mineral_patches[mineral].workers[1] == worker)
-            {
-                if (mineral_patches[mineral].workers[2] == NULL)
-                {
-                    mineral_patches[mineral].workers[1] = NULL;
-                    first_2_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[1], mineral));
-                }
-                else
-                {
-                    if (is_close)
-                    {
-                        close_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[2], mineral));
-                        close_3_mineral_patch_extras.erase(std::remove_if(close_3_mineral_patch_extras.begin(), close_3_mineral_patch_extras.end(), rem), close_3_mineral_patch_extras.end());
-                    }
-                    else
-                    {
-                        far_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[2], mineral));
-                        far_3_mineral_patch_extras.erase(std::remove_if(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), rem), far_3_mineral_patch_extras.end());
-                    }
-                    mineral_patches[mineral].workers[1] = mineral_patches[mineral].workers[2];
-                    mineral_patches[mineral].workers[2] = NULL;
-                }
-            }
-            else if (mineral_patches[mineral].workers[2] == worker)
-            {
-                if (is_close)
-                {
-                    close_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[2], mineral));
-                    close_3_mineral_patch_extras.erase(std::remove_if(close_3_mineral_patch_extras.begin(), close_3_mineral_patch_extras.end(), rem), close_3_mineral_patch_extras.end());
-                }
-                else
-                {
-                    far_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[2], mineral));
-                    far_3_mineral_patch_extras.erase(std::remove_if(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), rem), far_3_mineral_patch_extras.end());
-                }
-                mineral_patches[mineral].workers[2] = NULL;
-            }
-        }
-        else if (assimilators_reversed.find(worker) != assimilators_reversed.end())
-        {
-            const Unit* assimilator = assimilators_reversed[worker].assimilator_tag;
-            assimilators_reversed.erase(worker);
-            if (assimilators[assimilator].workers[0] == worker)
-            {
-                if (assimilators[assimilator].workers[1] == NULL)
-                {
-                    assimilators[assimilator].workers[0] = NULL;
-                    gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[0], assimilator));
-                }
-                else
-                {
-                    assimilators[assimilator].workers[0] = assimilators[assimilator].workers[1];
-                    if (assimilators[assimilator].workers[2] == NULL)
-                    {
-                        assimilators[assimilator].workers[1] = NULL;
-                        gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[1], assimilator));
-                    }
-                    else
-                    {
-                        assimilators[assimilator].workers[1] = assimilators[assimilator].workers[2];
-                        assimilators[assimilator].workers[2] = NULL;
-                        gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[2], assimilator));
-                    }
-                }
-            }
-            else if (assimilators[assimilator].workers[1] == worker)
-            {
-                if (assimilators[assimilator].workers[2] == NULL)
-                {
-                    assimilators[assimilator].workers[1] = NULL;
-                    gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[1], assimilator));
-                }
-                else
-                {
-                    assimilators[assimilator].workers[1] = assimilators[assimilator].workers[2];
-                    assimilators[assimilator].workers[2] = NULL;
-                    gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[2], assimilator));
-                }
-            }
-            else if (assimilators[assimilator].workers[2] == worker)
-            {
-                assimilators[assimilator].workers[2] = NULL;
-                gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[2], assimilator));
-            }
-        }
-    }
-
-    void TossBot::SplitWorkers()
-    {
-        const ObservationInterface* observation = Observation();
-        Units workers = observation->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE));
-        Units patches;
-        for (const auto &mineral_patch : mineral_patches)
-        {
-            patches.push_back(mineral_patch.first);
-        }
-        for (const auto &patch : patches)
-        {
-            const Unit* closest_worker = Utility::ClosestTo(workers, patch->pos);
-            PlaceWorkerOnMinerals(closest_worker, patch, 0);
-            for (mineral_patch_space* &space : first_2_mineral_patch_spaces)
-            {
-                if (patch == space->mineral_patch)
-                {
-                    first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), space), first_2_mineral_patch_spaces.end());
-                    break;
-                }
-            }
-            workers.erase(std::remove(workers.begin(), workers.end(), closest_worker), workers.end());
-        }
-        for (const auto &patch : patches)
-        {
-            if (patch->mineral_contents == 1800)
-            {
-                const Unit* closest_worker = Utility::ClosestTo(workers, patch->pos);
-                PlaceWorkerOnMinerals(closest_worker, patch, 1);
-                for (mineral_patch_space* &space : first_2_mineral_patch_spaces)
-                {
-                    if (patch == space->mineral_patch)
-                    {
-                        first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), space), first_2_mineral_patch_spaces.end());
-                        break;
-                    }
-                }
-                workers.erase(std::remove(workers.begin(), workers.end(), closest_worker), workers.end());
-            }
-        }
-    }
-
-    void TossBot::SaturateGas(const Unit* gas)
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            const Unit* worker = GetWorker();
-            RemoveWorker(worker);
-            PlaceWorkerInGas(worker, gas, i);
-            for (const auto &space : gas_spaces)
-            {
-                if (*space->worker == worker)
-                {
-                    gas_spaces.erase(std::remove(gas_spaces.begin(), gas_spaces.end(), space), gas_spaces.end());
-                    break;
-                }
-            }
-        }
-    }
-
-    void TossBot::AddNewBase(const Unit *nexus)
-    {
-        Units minerals = Observation()->GetUnits(IsMineralPatch());
-        Units close_minerals = Utility::CloserThan(minerals, 10, nexus->pos);
-        for (const auto &mineral_field : close_minerals)
-        {
-            if (mineral_field->display_type == Unit::Snapshot)
-            {
-                return;
-            }
-        }
-        for (const auto &mineral_field : close_minerals)
-        {
-            bool is_close = mineral_field->mineral_contents == 1800;
-            mineral_patches[mineral_field] = mineral_patch_data(is_close);
-            first_2_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral_field].workers[0], mineral_field));
-            first_2_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral_field].workers[1], mineral_field));
-            if (is_close)
-                close_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral_field].workers[2], mineral_field));
-            else
-                far_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral_field].workers[2], mineral_field));
-            new_base = NULL;
-        }
-    }
-
-    void TossBot::DistributeWorkers()
-    {
-        BalanceWorers();
-
-        Units workers;
-        for (const auto &worker : mineral_patches_reversed)
-        {
-            workers.push_back(worker.first);
-        }
-        for (const auto &worker : workers)
-        {
-            if (IsCarryingMinerals(*worker))
-            {
-                // close to nexus then return the mineral
-                Point2D closest_nexus = Utility::ClosestTo(Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
-                if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
-                {
-                    Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_RETURN_PROBE);
-                    continue;
-                }
-                Point2D drop_off_point = mineral_patches_reversed[worker].drop_off_point;
-                // don't get bugged out trying to move to the drop off point
-                if (worker->orders.size() > 0 && worker->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE)
-                {
-                    if (DistanceSquared2D(worker->pos, drop_off_point) < 1)
-                    {
-                        continue;
-                    }
-                }
-                // otherwise move to the drop off point
-                const Unit *mineral_patch = mineral_patches_reversed[worker].mineral_tag;
-                if (mineral_patch != NULL)
-                {
-                    Actions()->UnitCommand(worker, ABILITY_ID::GENERAL_MOVE, drop_off_point);
-                }
-                else
-                {
-                    std::cout << "Error null mineral patching in DistributeWorkers 1";
-                }
-            }
-            else
-            {
-                const Unit *mineral_patch = mineral_patches_reversed[worker].mineral_tag;
-                if (mineral_patch != NULL)
-                {
-                    if (DistanceSquared2D(worker->pos, mineral_patch->pos) < 4 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
-                    {
-                        if (worker->orders.size() == 0 || worker->orders[0].target_unit_tag != mineral_patch->tag)
-                        {
-                            Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_GATHER_PROBE, mineral_patch);
-                        }
-                    }
-                    else if (worker->orders.size() == 0 || worker->orders[0].ability_id != ABILITY_ID::GENERAL_MOVE || DistanceSquared2D(mineral_patches_reversed[worker].pick_up_point, worker->orders[0].target_pos) > 1)
-                    {
-                        Actions()->UnitCommand(worker, ABILITY_ID::GENERAL_MOVE, mineral_patches_reversed[worker].pick_up_point);
-                    }
-                }
-                else
-                {
-                    std::cout << "Error null mineral patching in DistributeWorkers 2";
-                }
-            }
-        }
-
-        Units gas_workers;
-        for (const auto &worker : assimilators_reversed)
-        {
-            gas_workers.push_back(worker.first);
-        }
-        for (const auto &worker : gas_workers)
-        {
-            const Unit* assimilator = assimilators_reversed[worker].assimilator_tag;
-            if (assimilators[assimilator].workers[1] != NULL)
-            {
-                // 2 or 3 workers assigned to gas
-                if (worker->orders.size() == 0)
-                {
-                    Actions()->UnitCommand(worker, ABILITY_ID::SMART, assimilator);
-                }
-                else
-                {
-                    UnitOrder current_order = worker->orders[0];
-                    if (current_order.ability_id == ABILITY_ID::HARVEST_GATHER && current_order.target_unit_tag != assimilator->tag)
-                    {
-                        Actions()->UnitCommand(worker, ABILITY_ID::SMART, assimilator);
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
-            }
-            else if (IsCarryingVespene(*worker))
-            {
-                // close to nexus then return the vespene
-                Point2D closest_nexus = Utility::ClosestTo(Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
-                if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
-                {
-                    Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_RETURN_PROBE);
-                    continue;
-                }
-                Point2D drop_off_point = assimilators_reversed[worker].drop_off_point;
-                // don't get bugged out trying to move to the drop off point
-                if (worker->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE && DistanceSquared2D(worker->pos, drop_off_point) < 1)
-                {
-                    continue;
-                }
-                // otherwise move to the drop off point
-                const Unit *assimilator = assimilators_reversed[worker].assimilator_tag;
-                if (assimilator != NULL)
-                {
-                    Actions()->UnitCommand(worker, ABILITY_ID::GENERAL_MOVE, drop_off_point);
-                }
-                else
-                {
-                    std::cout << "Error null assimilator in DistributeWorkers 3";
-                }
-            }
-            else
-            {
-                const Unit *assimilator = assimilators_reversed[worker].assimilator_tag;
-                if (assimilator != NULL)
-                {
-                    if (DistanceSquared2D(worker->pos, assimilator->pos) < 4 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
-                    {
-                        if (worker->orders.size() == 0 || worker->orders[0].target_unit_tag != assimilator->tag)
-                        {
-                            Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_GATHER_PROBE, assimilator);
-                        }
-                    }
-                    else if (worker->orders.size() == 0 || worker->orders[0].ability_id != ABILITY_ID::GENERAL_MOVE || DistanceSquared2D(assimilators_reversed[worker].pick_up_point, worker->orders[0].target_pos) > 1)
-                    {
-                        Actions()->UnitCommand(worker, ABILITY_ID::GENERAL_MOVE, assimilators_reversed[worker].pick_up_point);
-                    }
-                }
-                else
-                {
-                    std::cout << "Error null assimilator in DistributeWorkers 4";
-                }
-            }
-        }
-    }
-
-    void TossBot::BalanceWorers()
-    {
-        while (first_2_mineral_patch_spaces.size() > 0 && (close_3_mineral_patch_extras.size() > 0 || far_3_mineral_patch_extras.size() > 0))
-        {
-            if (close_3_mineral_patch_extras.size() > 0)
-            {
-                const Unit* worker = *(close_3_mineral_patch_extras[0]->worker);
-                RemoveWorker(worker);
-                PlaceWorker(worker);
-            }
-            else if (far_3_mineral_patch_extras.size() > 0)
-            {
-                const Unit* worker = *(far_3_mineral_patch_extras[0]->worker);
-                RemoveWorker(worker);
-                PlaceWorker(worker);
-            }
-        }
-        while (gas_spaces.size() > 0 && (close_3_mineral_patch_extras.size() > 0 || far_3_mineral_patch_extras.size() > 0))
-        {
-            if (close_3_mineral_patch_extras.size() > 0)
-            {
-                const Unit* worker = *(close_3_mineral_patch_extras[0]->worker);
-                RemoveWorker(worker);
-                PlaceWorker(worker);
-            }
-            else if (far_3_mineral_patch_extras.size() > 0)
-            {
-                const Unit* worker = *(far_3_mineral_patch_extras[0]->worker);
-                RemoveWorker(worker);
-                PlaceWorker(worker);
-            }
-        }
-        while (far_3_mineral_patch_spaces.size() > 0 && close_3_mineral_patch_extras.size() > 0)
-        {
-            const Unit* worker = *(close_3_mineral_patch_extras[0]->worker);
-            RemoveWorker(worker);
-            PlaceWorker(worker);
-        }
-    }
-
-    void TossBot::BuildWorkers()
-    {
-        if (should_build_workers)
-        {
-            for (const auto &nexus : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
-            {
-                bool probe_queued = false;
-                for (const auto &order : nexus->orders)
-                {
-                    if (order.ability_id == ABILITY_ID::TRAIN_PROBE && order.progress == 0)
-                    {
-                        probe_queued = true;
-                        break;
-                    }
-                }
-                if (probe_queued)
-                {
-                    Actions()->UnitCommand(nexus, ABILITY_ID::CANCELSLOT_QUEUEPASSIVE);
-                }
-                if (nexus->orders.empty())
-                {
-                    Actions()->UnitCommand(nexus, ABILITY_ID::TRAIN_PROBE);
-                }
-            }
-        }
-    }
 
 	int TossBot::IncomingDamage(const Unit* unit)
 	{
@@ -2360,8 +1565,6 @@ for (const auto &field : far_oversaturated_patches)
 		}
 	}
 
-#pragma endregion
-
 
 	Polygon TossBot::CreateNewBlocker(const Unit* unit)
 	{
@@ -2425,7 +1628,7 @@ for (const auto &field : far_oversaturated_patches)
         {
             if (Distance2D(Point2D(building->pos), pos) < 1 && building->display_type != Unit::DisplayType::Placeholder)
             {
-                PlaceWorker(builder);
+                worker_manager.PlaceWorker(builder);
                 // finished buildings.remove building.tag
                 return true;
             }
@@ -2468,7 +1671,7 @@ for (const auto &field : far_oversaturated_patches)
                 }
                 else
                 {
-                    PlaceWorker(builder);
+					worker_manager.PlaceWorker(builder);
                 }
                 return true;
             }
@@ -2511,7 +1714,7 @@ for (const auto &field : far_oversaturated_patches)
 				}
 				else
 				{
-					PlaceWorker(builder);
+					worker_manager.PlaceWorker(builder);
 				}
 				return true;
 			}
@@ -2548,11 +1751,11 @@ for (const auto &field : far_oversaturated_patches)
         int num_assimilators = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
         if (num_workers >= std::min(num_nexi * 16 + num_assimilators * 3, 70))
         {
-            should_build_workers = false;
+			worker_manager.should_build_workers = false;
         }
         else
         {
-            should_build_workers = true;
+			worker_manager.should_build_workers = true;
         }
         return false;
     }
@@ -2582,7 +1785,7 @@ for (const auto &field : far_oversaturated_patches)
         supply_used += 3 * Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)).size();
         supply_used += 3 * Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size();
         if (supply_used >= supply_cap)
-            BuildBuilding(UNIT_TYPEID::PROTOSS_PYLON);
+			build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_PYLON);
         
         return false;
     }
@@ -2842,17 +2045,17 @@ for (const auto &field : far_oversaturated_patches)
     bool TossBot::ActionPullOutOfGas(ActionArgData* data)
     {
         Units workers;
-        for (const auto &data : assimilators_reversed)
+        for (const auto &data : worker_manager.assimilators_reversed)
         {
             workers.push_back(data.first);
         }
 
         for (const auto &worker : workers)
         {
-            RemoveWorker(worker);
-            PlaceWorker(worker);
+			worker_manager.RemoveWorker(worker);
+			worker_manager.PlaceWorker(worker);
         }
-        if (assimilators_reversed.size() == 0)
+        if (worker_manager.assimilators_reversed.size() == 0)
             return true;
     }
 
@@ -3007,998 +2210,6 @@ for (const auto &field : far_oversaturated_patches)
 
 #pragma endregion
 
-#pragma region Build
-
-    void TossBot::CheckBuildOrder()
-    {
-        if (build_order_step < build_order.size())
-        {
-            BuildOrderData current_step = build_order[build_order_step];
-            bool(sc2::TossBot::*condition)(BuildOrderConditionArgData) = current_step.condition;
-            BuildOrderConditionArgData condition_arg = current_step.condition_arg;
-            if ((*this.*condition)(condition_arg))
-            {
-                bool(sc2::TossBot::*result)(BuildOrderResultArgData) = current_step.result;
-                BuildOrderResultArgData result_arg = current_step.result_arg;
-                if ((*this.*result)(result_arg))
-                {
-                    build_order_step++;
-                }
-            }
-        }
-    }
-
-    bool TossBot::TimePassed(BuildOrderConditionArgData data)
-    {
-        return Observation()->GetGameLoop() / 22.4 >= data.time;
-    }
-
-    bool TossBot::NumWorkers(BuildOrderConditionArgData data)
-    {
-        return Observation()->GetFoodWorkers() >= data.amount;
-    }
-
-    bool TossBot::HasBuilding(BuildOrderConditionArgData data)
-    {
-        for (const auto &building : Observation()->GetUnits(IsUnit(data.unitId)))
-        {
-            if (building->build_progress == 1)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-	bool TossBot::HasBuildingStarted(BuildOrderConditionArgData data)
-	{
-		for (const auto &building : Observation()->GetUnits(IsUnit(data.unitId)))
-		{
-			return true;
-		}
-		return false;
-	}
-
-    bool TossBot::IsResearching(BuildOrderConditionArgData data)
-    {
-        for (const auto &building : Observation()->GetUnits(IsUnit(data.unitId)))
-        {
-            if (!building->orders.empty())
-                return true;
-        }
-        return false;
-    }
-
-    bool TossBot::HasGas(BuildOrderConditionArgData data)
-    {
-        return Observation()->GetVespene() >= data.amount;
-    }
-
-
-
-    bool TossBot::BuildBuilding(BuildOrderResultArgData data)
-    {
-        Point2D pos = GetLocation(data.unitId);
-        const Unit* builder = GetBuilder(pos);
-        if (builder == NULL)
-        {
-            std::cout << "Error could not find builder in BuildBuilding" << std::endl;
-            return false;
-        }
-        RemoveWorker(builder);
-        active_actions.push_back(new ActionData(&TossBot::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
-        return true;
-    }
-
-    bool TossBot::BuildFirstPylon(BuildOrderResultArgData data)
-    {
-        Point2D pos;
-		if (current_build_order == BuildOrder::recessed_cannon_rush)
-		{
-			pos = locations->first_pylon_cannon_rush;
-		}
-		else
-		{
-			switch (enemy_race)
-			{
-			case Race::Zerg:
-				pos = locations->first_pylon_location_zerg;
-				break;
-			case Race::Protoss:
-				pos = locations->first_pylon_location_protoss;
-				break;
-			case Race::Terran:
-				pos = locations->first_pylon_location_terran;
-				break;
-			}
-		}
-        
-        const Unit* builder = GetBuilder(pos);
-        if (builder == NULL)
-        {
-            std::cout << "Error could not find builder in BuildBuilding" << std::endl;
-            return false;
-        }
-        RemoveWorker(builder);
-        active_actions.push_back(new ActionData(&TossBot::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
-        return true;
-    }
-
-    bool TossBot::BuildBuildingMulti(BuildOrderResultArgData data)
-    {
-        Point2D pos = GetLocation(data.unitIds[0]);
-        const Unit* builder = GetBuilder(pos);
-        if (builder == NULL)
-        {
-            std::cout << "Error could not find builder in BuildBuilding" << std::endl;
-            return false;
-        }
-        RemoveWorker(builder);
-        active_actions.push_back(new ActionData(&TossBot::ActionBuildBuildingMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
-        return true;
-    }
-
-	bool TossBot::BuildProxyMulti(BuildOrderResultArgData data)
-	{
-		Point2D pos = GetProxyLocation(data.unitIds[0]);
-		const Unit* builder = GetBuilder(pos);
-		if (builder == NULL)
-		{
-			std::cout << "Error could not find builder in BuildBuilding" << std::endl;
-			return false;
-		}
-		RemoveWorker(builder);
-		active_actions.push_back(new ActionData(&TossBot::ActionBuildProxyMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
-		return true;
-	}
-
-    bool TossBot::Scout(BuildOrderResultArgData data)
-    {
-        Point2D pos = Observation()->GetGameInfo().enemy_start_locations[0];
-        const Unit* scouter = GetBuilder(pos);
-        if (scouter == NULL)
-        {
-            std::cout << "Error could not find builder in Scout" << std::endl;
-            return false;
-        }
-        RemoveWorker(scouter);
-        if (enemy_race == Race::Zerg)
-        {
-            ScoutZergStateMachine* scout_fsm = new ScoutZergStateMachine(this, "Scout Zerg", scouter, locations->initial_scout_pos, locations->main_scout_path, locations->natural_scout_path, locations->enemy_natural, locations->possible_3rds);
-            active_FSMs.push_back(scout_fsm);
-        }
-        else
-        {
-            ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(this, "Scout Terran", scouter, locations->initial_scout_pos, locations->main_scout_path, locations->natural_scout_path, locations->enemy_natural);
-            active_FSMs.push_back(scout_fsm);
-        }
-        return true;
-    }
-
-	bool TossBot::CannonRushProbe1(BuildOrderResultArgData data)
-	{
-		Point2D pos = Observation()->GetGameInfo().enemy_start_locations[0];
-		const Unit* scouter = GetBuilder(pos);
-		if (scouter == NULL)
-		{
-			std::cout << "Error could not find builder in Scout" << std::endl;
-			return false;
-		}
-		RemoveWorker(scouter);
-		if (enemy_race == Race::Zerg)
-		{
-			ScoutZergStateMachine* scout_fsm = new ScoutZergStateMachine(this, "Scout Zerg", scouter, locations->initial_scout_pos, locations->main_scout_path, locations->natural_scout_path, locations->enemy_natural, locations->possible_3rds);
-			active_FSMs.push_back(scout_fsm);
-		}
-		else
-		{
-			ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(this, "Scout Terran", scouter, locations->initial_scout_pos, locations->main_scout_path, locations->natural_scout_path, locations->enemy_natural);
-			active_FSMs.push_back(scout_fsm);
-		}
-		return true;
-	}
-
-    bool TossBot::CutWorkers(BuildOrderResultArgData data)
-    {
-        should_build_workers = false;
-        return true;
-    }
-
-    bool TossBot::UncutWorkers(BuildOrderResultArgData data)
-    {
-        should_build_workers = true;
-        return true;
-    }
-
-    bool TossBot::ImmediatelySaturateGasses(BuildOrderResultArgData data)
-    {
-        immediatelySaturateGasses = true;
-        return true;
-    }
-
-    bool TossBot::TrainStalker(BuildOrderResultArgData data)
-    {
-        if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, 1, Observation()))
-        {
-            for (const auto &gateway : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)))
-            {
-                if (gateway->build_progress == 1 && gateway->orders.size() == 0)
-                {
-                    for (const auto & ability : Query()->GetAbilitiesForUnit(gateway).abilities)
-                    {
-                        if (ability.ability_id.ToType() == ABILITY_ID::TRAIN_STALKER)
-                        {
-                            Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_STALKER);
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::TrainAdept(BuildOrderResultArgData data)
-    {
-        if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_ADEPT, 1, Observation()))
-        {
-            for (const auto &gateway : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)))
-            {
-                if (gateway->build_progress == 1 && gateway->orders.size() == 0)
-                {
-                    for (const auto & ability : Query()->GetAbilitiesForUnit(gateway).abilities)
-                    {
-                        if (ability.ability_id.ToType() == ABILITY_ID::TRAIN_ADEPT)
-                        {
-                            Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_ADEPT);
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::TrainOracle(BuildOrderResultArgData data)
-    {
-        if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_ORACLE, 1, Observation()))
-        {
-            for (const auto &stargate : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
-            {
-                if (stargate->build_progress == 1 && stargate->orders.size() == 0)
-                {
-                    for (const auto & ability : Query()->GetAbilitiesForUnit(stargate).abilities)
-                    {
-                        if (ability.ability_id.ToType() == ABILITY_ID::TRAIN_ORACLE)
-                        {
-                            Actions()->UnitCommand(stargate, ABILITY_ID::TRAIN_ORACLE);
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::TrainPrism(BuildOrderResultArgData data)
-    {
-        if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_WARPPRISM, 1, Observation()))
-        {
-            for (const auto &robo : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
-            {
-                if (robo->build_progress == 1 && robo->orders.size() == 0)
-                {
-                    for (const auto & ability : Query()->GetAbilitiesForUnit(robo).abilities)
-                    {
-                        if (ability.ability_id.ToType() == ABILITY_ID::TRAIN_WARPPRISM)
-                        {
-                            Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::ChronoBuilding(BuildOrderResultArgData data)
-    {
-        for (const auto &building : Observation()->GetUnits(IsUnit(data.unitId)))
-        {
-            if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
-            {
-                for (const auto &nexus : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
-                {
-                    for (const auto &ability : Query()->GetAbilitiesForUnit(nexus).abilities)
-                    {
-                        if (ability.ability_id == ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST)
-                        {
-                            Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::ResearchWarpgate(BuildOrderResultArgData data)
-    {
-        for (const auto &cyber : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)))
-        {
-            if (Utility::CanAffordUpgrade(UPGRADE_ID::WARPGATERESEARCH, Observation()))
-            {
-                Actions()->UnitCommand(cyber, ABILITY_ID::RESEARCH_WARPGATE);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::ResearchBlink(BuildOrderResultArgData data)
-    {
-        for (const auto &twilight : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)))
-        {
-            if (Utility::CanAffordUpgrade(UPGRADE_ID::BLINKTECH, Observation()) && twilight->orders.size() == 0)
-            {
-                Actions()->UnitCommand(twilight, ABILITY_ID::RESEARCH_BLINK);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::ResearchCharge(BuildOrderResultArgData data)
-    {
-        for (const auto &twilight : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)))
-        {
-            if (Utility::CanAffordUpgrade(UPGRADE_ID::CHARGE, Observation()) && twilight->orders.size() == 0)
-            {
-                Actions()->UnitCommand(twilight, ABILITY_ID::RESEARCH_CHARGE);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::ResearchGlaives(BuildOrderResultArgData data)
-    {
-        for (const auto &twilight : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)))
-        {
-            if (Utility::CanAffordUpgrade(UPGRADE_ID::ADEPTPIERCINGATTACK, Observation()) && twilight->orders.size() == 0)
-            {
-                Actions()->UnitCommand(twilight, ABILITY_ID::RESEARCH_ADEPTRESONATINGGLAIVES);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::ResearchDTBlink(BuildOrderResultArgData data)
-    {
-        for (const auto &dark_shrine : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_DARKSHRINE)))
-        {
-            if (Utility::CanAffordUpgrade(UPGRADE_ID::DARKTEMPLARBLINKUPGRADE, Observation()) && dark_shrine->orders.size() == 0)
-            {
-                Actions()->UnitCommand(dark_shrine, ABILITY_ID::RESEARCH_SHADOWSTRIKE);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::ResearchAttackOne(BuildOrderResultArgData data)
-    {
-        for (const auto &forge : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
-        {
-            if (Utility::CanAffordUpgrade(UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1, Observation()))
-            {
-                Actions()->UnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::ChronoTillFinished(BuildOrderResultArgData data)
-    {
-        for (const auto &building : Observation()->GetUnits(IsFinishedUnit(data.unitId)))
-        {
-            if (building->orders.size() > 0)
-            {
-                active_actions.push_back(new ActionData(&TossBot::ActionChronoTillFinished, new ActionArgData(building, data.unitId)));
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::WarpInAtProxy(BuildOrderResultArgData data)
-    {
-        active_actions.push_back(new ActionData(&TossBot::ActionWarpInAtProxy, new ActionArgData()));
-        return true;
-    }
-
-    bool TossBot::BuildProxy(BuildOrderResultArgData data)
-    {
-        std::vector<Point2D> building_locations = GetProxyLocations(data.unitId);
-        
-        Point2D pos = building_locations[0];
-        const Unit* builder = GetBuilder(pos);
-        if (builder == NULL)
-        {
-            std::cout << "Error could not find builder in BuildBuilding" << std::endl;
-            return false;
-        }
-        RemoveWorker(builder);
-        active_actions.push_back(new ActionData(&TossBot::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
-        return true;
-    }
-
-    bool TossBot::ContinueBuildingPylons(BuildOrderResultArgData data)
-    {
-        active_actions.push_back(new ActionData(&TossBot::ActionContinueBuildingPylons, new ActionArgData()));
-        return true;
-    }
-
-    bool TossBot::ContinueMakingWorkers(BuildOrderResultArgData data)
-    {
-        active_actions.push_back(new ActionData(&TossBot::ActionContinueMakingWorkers, new ActionArgData()));
-        return true;
-    }
-
-    bool TossBot::TrainFromProxy(BuildOrderResultArgData data)
-    {
-        if (data.unitId == UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)
-        {
-            std::vector<const Unit*> proxy_robos;
-            for (const auto &robo : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
-            {
-                if (Utility::DistanceToClosest(GetProxyLocations(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY), robo->pos) < 2)
-                {
-                    active_actions.push_back(new ActionData(&TossBot::ActionTrainFromProxyRobo, new ActionArgData(robo)));
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::ContinueChronoProxyRobo(BuildOrderResultArgData data)
-    {
-        if (data.unitId == UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)
-        {
-            std::vector<const Unit*> proxy_robos;
-            for (const auto &robo : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
-            {
-                if (Utility::DistanceToClosest(GetProxyLocations(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY), robo->pos) < 2)
-                {
-                    active_actions.push_back(new ActionData(&TossBot::ActionConstantChrono, new ActionArgData(robo)));
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::Contain(BuildOrderResultArgData data)
-    {
-        Army* army = new Army(locations->attack_path, locations->high_ground_index);
-        army_groups.push_back(army);
-        active_actions.push_back(new ActionData(&TossBot::ActionContain, new ActionArgData(army)));
-        return true;
-    }
-
-    bool TossBot::StalkerOraclePressure(BuildOrderResultArgData data)
-    {
-        Army* army = new Army(locations->attack_path, locations->high_ground_index);
-        army_groups.push_back(army);
-        active_actions.push_back(new ActionData(&TossBot::ActionStalkerOraclePressure, new ActionArgData(army)));
-        return true;
-    }
-
-    bool TossBot::MicroOracles(BuildOrderResultArgData data)
-    {
-        StateMachine* oracle_fsm = new StateMachine(this, new OracleDefend(this, Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE)), GetLocations(UNIT_TYPEID::PROTOSS_NEXUS)[2]), "Oracles");
-        active_FSMs.push_back(oracle_fsm);
-        return true;
-    }
-
-    bool TossBot::SpawnUnits(BuildOrderResultArgData data)
-    {
-        Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, GetLocations(UNIT_TYPEID::PROTOSS_NEXUS)[2], 2, 15);
-        return true;
-    }
-
-    bool TossBot::ContinueWarpingInStalkers(BuildOrderResultArgData data)
-    {
-        active_actions.push_back(new ActionData(&TossBot::ActionContinueWarpingInStalkers, new ActionArgData()));
-        return true;
-    }
-
-    bool TossBot::ContinueWarpingInZealots(BuildOrderResultArgData data)
-    {
-        active_actions.push_back(new ActionData(&TossBot::ActionContinueWarpingInZealots, new ActionArgData()));
-        return true;
-    }
-
-    bool TossBot::WarpInUnits(BuildOrderResultArgData data)
-    {
-        int warp_ins = data.amount;
-        UnitTypeID type = data.unitId;
-        AbilityID warp_ability = Utility::UnitToWarpInAbility(type);
-        int gates_ready = 0;
-        Units gates = Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
-        for (const auto &warpgate : gates)
-        {
-            for (const auto &ability : Query()->GetAbilitiesForUnit(warpgate).abilities)
-            {
-                if (ability.ability_id == warp_ability)
-                {
-                    gates_ready++;
-                    break;
-                }
-            }
-            if (gates_ready >= warp_ins)
-            {
-                break;
-            }
-        }
-        if (gates.size() > 0 && gates_ready >= warp_ins && Utility::CanAfford(type, warp_ins, Observation()))
-        {
-            std::vector<Point2D> spots = FindWarpInSpots(Observation()->GetGameInfo().enemy_start_locations[0]);
-            if (spots.size() >= warp_ins)
-            {
-                for (int i = 0; i < warp_ins; i++)
-                {
-                    Actions()->UnitCommand(gates[i], warp_ability, spots[i]);
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::PullOutOfGas(BuildOrderResultArgData data)
-    {
-        removed_gas_miners += data.amount;
-        Units workers;
-        for (const auto &data : assimilators)
-        {
-            if (data.second.workers[2] != NULL)
-                workers.push_back(data.second.workers[2]);
-        }
-        for (const auto &data : assimilators)
-        {
-            if (data.second.workers[1] != NULL)
-                workers.push_back(data.second.workers[1]);
-        }
-        for (const auto &data : assimilators)
-        {
-            if (data.second.workers[0] != NULL)
-                workers.push_back(data.second.workers[0]);
-        }
-        int num_removed = 0;
-        for (const auto &worker : workers)
-        {
-            if (num_removed >= data.amount)
-                break;
-            RemoveWorker(worker);
-            PlaceWorker(worker);
-            num_removed++;
-        }
-        return true;
-    }
-
-    bool TossBot::IncreaseExtraPylons(BuildOrderResultArgData data)
-    {
-        extra_pylons += data.amount;
-        return true;
-    }
-
-    bool TossBot::MicroChargelotAllin(BuildOrderResultArgData data)
-    {
-        if (Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)).size() > 0)
-        {
-            const Unit* prism = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPPRISM))[0];
-            ChargelotAllInStateMachine* chargelotFSM = new ChargelotAllInStateMachine(this, "Chargelot allin", locations->warp_prism_locations, Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ZEALOT)), prism, Observation()->GetGameLoop() / 22.4);
-            active_FSMs.push_back(chargelotFSM);
-            return true;
-        }
-        return false;
-    }
-
-    bool TossBot::RemoveScoutToProxy(BuildOrderResultArgData data)
-    {
-        for (const auto &fsm : active_FSMs)
-        {
-            const Unit* scout = NULL;
-            if (fsm->name == "Scout Zerg")
-            {
-                scout = ((ScoutZergStateMachine*)fsm)->scout;
-            }
-            else if (fsm->name == "Scout Terran")
-            {
-                scout = ((ScoutTerranStateMachine*)fsm)->scout;
-            }
-            if (scout != NULL)
-            {
-                active_FSMs.erase(std::remove(active_FSMs.begin(), active_FSMs.end(), fsm), active_FSMs.end());
-                Point2D pos = locations->proxy_pylon_locations[0];
-                Actions()->UnitCommand(scout, ABILITY_ID::MOVE_MOVE, pos);
-                active_actions.push_back(new ActionData(&TossBot::ActionRemoveScoutToProxy, new ActionArgData(scout, data.unitId, pos, data.amount)));
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool TossBot::SafeRallyPoint(BuildOrderResultArgData data)
-    {
-        for (const auto &building : Observation()->GetUnits(IsUnit(data.unitId)))
-        {
-            for (const auto & ability : Query()->GetAbilitiesForUnit(building).abilities)
-            {
-                Point2D pos = Utility::PointBetween(building->pos, Observation()->GetStartLocation(), 2);
-                Actions()->UnitCommand(building, ABILITY_ID::SMART, pos);
-            }
-        }
-        return true;
-    }
-
-    bool TossBot::DTHarass(BuildOrderResultArgData data)
-    {
-        if (enemy_race == Race::Terran)
-            active_actions.push_back(new ActionData(&TossBot::ActionDTHarassTerran, new ActionArgData()));
-        return true;
-    }
-
-	bool TossBot::UseProxyDoubleRobo(BuildOrderResultArgData data)
-	{
-		active_actions.push_back(new ActionData(&TossBot::ActionUseProxyDoubleRobo, new ActionArgData({ UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_WARPPRISM, UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_OBSERVER })));
-		return true;
-	}
-
-	bool TossBot::MicroImmortalDrop(BuildOrderResultArgData data)
-	{
-		const Unit* immortal1 = NULL;
-		const Unit* immortal2 = NULL;
-		for (const auto &immortal : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_IMMORTAL)))
-		{
-			if (immortal1 == NULL)
-				immortal1 = immortal;
-			else if (immortal2 == NULL)
-				immortal2 = immortal;
-		}
-		ImmortalDropStateMachine* immortal_drop_fsm = new ImmortalDropStateMachine(this, "Immortal Drop", immortal1, immortal2, Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPPRISM))[0], Observation()->GetGameInfo().enemy_start_locations[0], locations->immortal_drop_prism_locations);
-		active_FSMs.push_back(immortal_drop_fsm);
-		return true;
-	}
-
-	bool TossBot::ProxyDoubleRoboAllIn(BuildOrderResultArgData data)
-	{
-		Units already_occupied;
-		for (const auto &fsm : active_FSMs)
-		{
-			if (dynamic_cast<ImmortalDropStateMachine*>(fsm))
-			{
-				already_occupied.push_back(((ImmortalDropStateMachine*)fsm)->prism);
-				already_occupied.push_back(((ImmortalDropStateMachine*)fsm)->immortal1);
-				already_occupied.push_back(((ImmortalDropStateMachine*)fsm)->immortal2);
-			}
-		}
-		Units available_units;
-		for (const auto &unit : Observation()->GetUnits(IsUnits({ UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_OBSERVER, UNIT_TYPEID::PROTOSS_IMMORTAL })))
-		{
-			if (std::find(already_occupied.begin(), already_occupied.end(), unit) == already_occupied.end())
-				available_units.push_back(unit);
-		}
-		Army* army = new Army(available_units, locations->attack_path_alt, locations->high_ground_index_alt);
-		army_groups.push_back(army);
-		active_actions.push_back(new ActionData(&TossBot::ActionAllIn, new ActionArgData(army)));
-		return true;
-	}
-
-
-#pragma endregion
-
-#pragma region Build Orders
-
-    void TossBot::SetBuildOrder(BuildOrder build)
-    {
-        locations = new Locations(Observation()->GetStartLocation(), build, Observation()->GetGameInfo().map_name);
-		current_build_order = build;
-        switch (build)
-        {
-        case BuildOrder::blank:
-            SetBlank();
-            break;
-        case BuildOrder::blink_proxy_robo_pressure:
-            SetBlinkProxyRoboPressureBuild();
-            break;
-        case BuildOrder::oracle_gatewayman_pvz:
-            SetOracleGatewaymanPvZ();
-            break;
-        case BuildOrder::chargelot_allin:
-            SetChargelotAllin();
-            break;
-        case BuildOrder::chargelot_allin_old:
-            SetChargelotAllinOld();
-            break;
-        case BuildOrder::four_gate_adept_pressure:
-            Set4GateAdept();
-            break;
-        case BuildOrder::fastest_dts:
-            SetFastestDTsPvT();
-            break;
-		case BuildOrder::proxy_double_robo:
-			SetProxyDoubleRobo();
-			break;
-        default:
-            std::cout << "Error invalid build order in SetBuildOrder" << std::endl;
-        }
-    }
-
-    void TossBot::SetBlank()
-    {
-        build_order = {};
-    }
-
-	void TossBot::SetBlinkProxyRoboPressureBuild()
-	{
-		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(17.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(40.5f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(60.5f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(70.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(82.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(85.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::NumWorkers,		BuildOrderConditionArgData(21),											&TossBot::CutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(117.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(117.0f),										&TossBot::Contain,					BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(137.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(152.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(159.0f),										&TossBot::BuildProxy,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)) ,
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(166.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(171.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(176.5f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchBlink,			BuildOrderResultArgData(UPGRADE_ID::BLINKTECH)),
-						BuildOrderData(&TossBot::IsResearching,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(185.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(185.0f),										&TossBot::WarpInAtProxy,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildProxy,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::ContinueMakingWorkers,	BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),		&TossBot::TrainFromProxy,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),		&TossBot::ContinueChronoProxyRobo,  BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY))
-		};
-	}
-
-	void TossBot::SetOracleGatewaymanPvZ()
-	{
-		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(17.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(33.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(48.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(48.0f),										&TossBot::ImmediatelySaturateGasses,BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(68.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(95.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(102.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(107.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(123.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-						BuildOrderData(&TossBot::HasBuildingStarted,BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STARGATE),				&TossBot::TrainAdept,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(130.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(134.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(149.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(156.0f),										&TossBot::TrainAdept,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STARGATE),				&TossBot::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(173.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(186.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(191.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(202.0f),										&TossBot::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(203.0f),										&TossBot::MicroOracles,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_PYLON})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(230.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(236.0f),										&TossBot::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL, UNIT_TYPEID::PROTOSS_FORGE})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchBlink,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&TossBot::ResearchAttackOne,		BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_FORGE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::ContinueMakingWorkers,	BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::ContinueWarpingInStalkers,BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(300.0f),										&TossBot::StalkerOraclePressure,	BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(300.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						//BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(325.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						//BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchCharge,			BuildOrderResultArgData()),
-		};
-	}
-
-	void TossBot::SetChargelotAllin()
-	{
-		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(16.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(30.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(63.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(69.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(97.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(101.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(124.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(128.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(135.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(158.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(160.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(172.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::HasGas,			BuildOrderConditionArgData(100),										&TossBot::PullOutOfGas,				BuildOrderResultArgData(6)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchCharge,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-						BuildOrderData(&TossBot::NumWorkers,		BuildOrderConditionArgData(30),											&TossBot::CutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(189.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(215.0f),										&TossBot::TrainPrism,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_WARPPRISM)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(215.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-						//BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(220.0f),										&TossBot::IncreaseExtraPylons,		BuildOrderResultArgData(1)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(220.0f),										&TossBot::ContinueBuildingPylons,	BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(235.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(255.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(255.0f),										&TossBot::MicroChargelotAllin,		BuildOrderResultArgData()),
-		};
-	}
-
-	void TossBot::SetChargelotAllinOld()
-	{
-		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(16.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::ImmediatelySaturateGasses,BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(68.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(97.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(102.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(110.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(130.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(133.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(149.0f),										&TossBot::PullOutOfGas,				BuildOrderResultArgData(2)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(155.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(165.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(172.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::HasGas,			BuildOrderConditionArgData(100),										&TossBot::PullOutOfGas,				BuildOrderResultArgData(4)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchCharge,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-						BuildOrderData(&TossBot::NumWorkers,		BuildOrderConditionArgData(30),											&TossBot::CutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(189.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(215.0f),										&TossBot::TrainPrism,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_WARPPRISM)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(215.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-						//BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(220.0f),										&TossBot::IncreaseExtraPylons,		BuildOrderResultArgData(1)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(220.0f),										&TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(235.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(255.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 2)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(255.0f),										&TossBot::MicroChargelotAllin,		BuildOrderResultArgData()),
-		};
-	}
-
-	void TossBot::Set4GateAdept()
-	{
-		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(6.5f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(16.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(68.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(94.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(102.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(102.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(130.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(130.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(158.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(170.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::NumWorkers,		BuildOrderConditionArgData(30),											&TossBot::CutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ResearchGlaives,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainAdept,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(191.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(198.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),		&TossBot::TrainPrism,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_WARPPRISM)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),		&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(211.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(230.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						//(&TossBot::TimePassed, 230, self.continue_warping_in_adepts, None),
-						BuildOrderData(&TossBot::NumWorkers,		BuildOrderConditionArgData(30),											&TossBot::CutWorkers,				BuildOrderResultArgData()),
-						//(self.has_unit, UnitTypeId.WARPPRISM, self.adept_pressure, None),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::ContinueBuildingPylons,   BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::ContinueMakingWorkers,	BuildOrderResultArgData()),
-		};
-	}
-
-	void TossBot::SetFastestDTsPvT()
-	{
-		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(10.0f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(27.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::Scout,					BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(34.0f),										&TossBot::SafeRallyPoint,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::ImmediatelySaturateGasses,BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(39.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(47.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(73.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(85.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(105.0f),										&TossBot::RemoveScoutToProxy,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY, 151)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(110.0f),										&TossBot::CutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(112.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(115.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(116.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(116.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(126.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::Contain,					BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(136.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(149.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(166.0f),										&TossBot::TrainStalker,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(177.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(190.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE),			&TossBot::ResearchDTBlink,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE),			&TossBot::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKSHRINE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(225.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER, 3)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(227.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(245.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER, 2)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(270.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(298.0f),										&TossBot::WarpInUnits,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_DARKTEMPLAR, 3)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(298.0f),										&TossBot::DTHarass,					BuildOrderResultArgData()),
-		};
-	}
-
-	void TossBot::SetProxyDoubleRobo()
-	{
-		build_order = { BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(10.0f),										&TossBot::BuildFirstPylon,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(25.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(30.0f),										&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(35.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(45.0f),										&TossBot::SafeRallyPoint,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(68.0f),										&TossBot::BuildProxyMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_PYLON, UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(82.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(93.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::TrainAdept,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
-						BuildOrderData(&TossBot::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&TossBot::ChronoBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(146.0f),										&TossBot::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(155.0f),										&TossBot::ResearchWarpgate,			BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(155.0f),										&TossBot::CutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(155.0f),										&TossBot::UseProxyDoubleRobo,		BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(185.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(200.0f),										&TossBot::UncutWorkers,				BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-						//BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(205.0f),										&TossBot::BuildBuildingMulti,		BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(228.0f),										&TossBot::ContinueBuildingPylons,	BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(228.0f),										&TossBot::MicroImmortalDrop,		BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(230.0f),										&TossBot::WarpInAtProxy,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(240.0f),										&TossBot::ContinueMakingWorkers,	BuildOrderResultArgData()),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(250.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(280.0f),										&TossBot::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
-						BuildOrderData(&TossBot::TimePassed,		BuildOrderConditionArgData(300.0f),										&TossBot::ProxyDoubleRoboAllIn,		BuildOrderResultArgData()),
-		};
-	}
-
-#pragma endregion
 
 #pragma region other
 
@@ -4051,22 +2262,22 @@ for (const auto &field : far_oversaturated_patches)
 
     void TossBot::DisplayWorkerStatus()
     {
-        Debug()->DebugTextOut("first 2 spaces: " + std::to_string(first_2_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
-        if (close_3_mineral_patch_extras.size() > 0)
-            Debug()->DebugTextOut("\nclose 3rd extras: " + std::to_string(close_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
+        Debug()->DebugTextOut("first 2 spaces: " + std::to_string(worker_manager.first_2_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
+        if (worker_manager.close_3_mineral_patch_extras.size() > 0)
+            Debug()->DebugTextOut("\nclose 3rd extras: " + std::to_string(worker_manager.close_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
         else
-            Debug()->DebugTextOut("\nclose 3rd spaces: " + std::to_string(close_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
-        if (far_3_mineral_patch_extras.size() > 0)
-            Debug()->DebugTextOut("\n\nfar 3rd extras: " + std::to_string(far_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
+            Debug()->DebugTextOut("\nclose 3rd spaces: " + std::to_string(worker_manager.close_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
+        if (worker_manager.far_3_mineral_patch_extras.size() > 0)
+            Debug()->DebugTextOut("\n\nfar 3rd extras: " + std::to_string(worker_manager.far_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
         else
-            Debug()->DebugTextOut("\n\nfar 3rd spaces: " + std::to_string(far_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
+            Debug()->DebugTextOut("\n\nfar 3rd spaces: " + std::to_string(worker_manager.far_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
 
 
 
         std::string close_patches = "\n\n\n";
         std::string far_patches = "\n\n\n";
         std::string gasses = "\n\n\n";
-        for (const auto &data : mineral_patches)
+        for (const auto &data : worker_manager.mineral_patches)
         {
             if (data.second.is_close)
             {
@@ -4082,7 +2293,7 @@ for (const auto &field : far_oversaturated_patches)
                 close_patches += "\n";
             }
         }
-        for (const auto &data : mineral_patches)
+        for (const auto &data : worker_manager.mineral_patches)
         {
             if (!data.second.is_close)
             {
@@ -4097,7 +2308,7 @@ for (const auto &field : far_oversaturated_patches)
                 far_patches += "\n";
             }
         }
-        for (const auto &data : assimilators)
+        for (const auto &data : worker_manager.assimilators)
         {
             gasses += "gas:";
             if (data.second.workers[0] != NULL)
@@ -4117,11 +2328,11 @@ for (const auto &field : far_oversaturated_patches)
     void TossBot::DisplayBuildOrder()
     {
         std::string build_order_message = "";
-        for (int i = build_order_step; i < build_order_step + 5; i++)
+        for (int i = build_order_manager.build_order_step; i < build_order_manager.build_order_step + 5; i++)
         {
-            if (i >= build_order.size())
+            if (i >= build_order_manager.build_order.size())
                 break;
-            build_order_message += build_order[i].toString() + "\n";
+            build_order_message += build_order_manager.build_order[i].toString() + "\n";
         }
         Debug()->DebugTextOut(build_order_message, Point2D(.7, .1), Color(0, 255, 0), 20);
     }
@@ -4159,7 +2370,7 @@ for (const auto &field : far_oversaturated_patches)
             sort(begin(buildings), end(buildings), [](const Unit* a, const Unit* b) { return a->tag < b->tag; });
             for (const auto &building : buildings)
             {
-                std::string info = UnitTypeIdToString(building_type) + " ";
+                std::string info = Utility::UnitTypeIdToString(building_type) + " ";
                 Color text_color = Color(0, 255, 0);
                 if (building_type == UNIT_TYPEID::PROTOSS_WARPGATE)
                 {
@@ -4262,12 +2473,12 @@ for (const auto &field : far_oversaturated_patches)
 		message += "Current time: " + std::to_string(frames_passed / 22.4) + "\n";
 		for (const auto &unit : enemy_attacks)
 		{
-			message += UnitTypeIdToString(unit.first->unit_type.ToType());
+			message += Utility::UnitTypeIdToString(unit.first->unit_type.ToType());
 			message += ":\n";
 			for (const auto &attack : unit.second)
 			{
 				message += "    ";
-				message += UnitTypeIdToString(attack.unit->unit_type.ToType());
+				message += Utility::UnitTypeIdToString(attack.unit->unit_type.ToType());
 				message += " - " + std::to_string(attack.impact_frame) + "\n";
 			}
 		}

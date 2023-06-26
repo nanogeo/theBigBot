@@ -1,6 +1,7 @@
 #pragma once
 #include "finish_state_machine.h"
 #include "locations.h"
+#include "utility.h"
 
 #include <iostream>
 #include <string>
@@ -54,7 +55,7 @@ namespace sc2 {
 	void OracleDefend::TickState()
 	{
 
-		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && agent->DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), denfensive_position) < 10)
+		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), denfensive_position) < 10)
 		{
 			for (int i = 0; i < oracles.size(); i++)
 			{
@@ -74,13 +75,13 @@ namespace sc2 {
 				if (!beam_active && oracle->energy >= 40)
 					beam_activatable = true;
 
-				const Unit* closest_unit = agent->ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), oracle->pos);
+				const Unit* closest_unit = Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), oracle->pos);
 				if (beam_active)
 				{
 					if (Distance2D(oracle->pos, closest_unit->pos) > 4)
 					{
 						float dist = Distance2D(oracle->pos, closest_unit->pos);
-						agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, agent->PointBetween(oracle->pos, closest_unit->pos, dist + 1), false);
+						agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), false);
 					}
 					else if (weapon_ready)
 					{
@@ -163,12 +164,12 @@ namespace sc2 {
 
 	void OracleDefend::OnUnitDamagedListener(const Unit* unit, float health, float shields)
 	{
-		std::cout << agent->UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
+		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
 		for (int i = 0; i < oracles.size(); i++)
 		{
 			if (oracles[i]->engaged_target_tag == unit->tag)
 			{
-				std::cout << agent->UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
+				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
 				has_attacked[i] = true;
 			}
 		}
@@ -176,12 +177,12 @@ namespace sc2 {
 
 	void OracleDefend::OnUnitDestroyedListener(const Unit* unit)
 	{
-		std::cout << agent->UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
 		for (int i = 0; i < oracles.size(); i++)
 		{
 			if (oracles[i]->engaged_target_tag == unit->tag)
 			{
-				std::cout << agent->UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
 				has_attacked[i] = true;
 			}
 		}
@@ -284,7 +285,7 @@ namespace sc2 {
 				break;
 			}
 		}
-		if (gates.size() > 0 && all_gates_ready && agent->CanAfford(UNIT_TYPEID::PROTOSS_ZEALOT, gates.size()))
+		if (gates.size() > 0 && all_gates_ready && Utility::CanAfford(UNIT_TYPEID::PROTOSS_ZEALOT, gates.size(), agent->Observation()))
 		{
 			std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0]);
 			if (spots.size() >= gates.size())
@@ -665,8 +666,8 @@ namespace sc2 {
 	void ImmortalDropMicroDrop::TickState()
 	{
 		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
-		agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1));
-		agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1));
+		agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1));
+		agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1));
 	}
 
 
@@ -707,9 +708,9 @@ namespace sc2 {
 		if (agent->Observation()->GetGameLoop() >= entry_frame + 15)
 			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
 		if (state_machine->immortal1->orders.size() == 0 || state_machine->immortal1->orders[0].ability_id != ABILITY_ID::SMART)
-			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1));
+			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1));
 		if (state_machine->immortal2->orders.size() == 0 || state_machine->immortal2->orders[0].ability_id != ABILITY_ID::SMART)
-			agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1));
+			agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1));
 	}
 
 	void ImmortalDropMicroDropCarrying1::EnterState()
@@ -749,9 +750,9 @@ namespace sc2 {
 		if (agent->Observation()->GetGameLoop() >= entry_frame + 15)
 			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
 		if (state_machine->immortal1->orders.size() == 0 || state_machine->immortal1->orders[0].ability_id != ABILITY_ID::SMART)
-			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1));
+			agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1));
 		if (state_machine->immortal2->orders.size() == 0 || state_machine->immortal2->orders[0].ability_id != ABILITY_ID::SMART)
-			agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::MOVE_MOVE, agent->PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1));
+			agent->Actions()->UnitCommand(state_machine->immortal2, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1));
 	}
 
 	void ImmortalDropMicroDropCarrying2::EnterState()

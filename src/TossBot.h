@@ -1,12 +1,15 @@
 #pragma once
 #include "pathfinding.h"
 #include "nav_mesh_pathfinding.h"
+#include "worker_manager.h"
+#include "army_group.h"
+#include "utility.h"
+#include "build_order_manager.h"
 
 
 #include "sc2api/sc2_interfaces.h"
 #include "sc2api/sc2_agent.h"
 #include "sc2api/sc2_map_info.h"
-
 #include "sc2api/sc2_unit_filters.h"
 
 namespace sc2
@@ -16,7 +19,6 @@ namespace sc2
 class State;
 class StateMachine;
 class Locations;
-class ArmyGroup;
 class TossBot;
 
 struct OnUnitDamagedEvent
@@ -128,126 +130,7 @@ struct Army
 	}
 };
 
-struct mineral_patch_data
-{
-    bool is_close;
-    const Unit* workers[3];
-    mineral_patch_data()
-    {
-        is_close = false;
-        workers[0] = NULL;
-        workers[1] = NULL;
-        workers[2] = NULL;
-    }
-    mineral_patch_data(bool a)
-    {
-        is_close = a;
-        workers[0] = NULL;
-        workers[1] = NULL;
-        workers[2] = NULL;
-    }
-    mineral_patch_data(bool a, Unit* x, Unit* y, Unit* z)
-    {
-        is_close = a;
-        workers[0] = x;
-        workers[1] = y;
-        workers[2] = z;
-    }
-};
 
-struct assimilator_data
-{
-    const Unit* workers[3];
-};
-
-struct mineral_patch_reversed_data
-{
-    const Unit* mineral_tag;
-    Point2D drop_off_point;
-    Point2D pick_up_point;
-};
-
-struct assimilator_reversed_data
-{
-    const Unit* assimilator_tag;
-    Point2D drop_off_point;
-    Point2D pick_up_point;
-};
-
-struct mineral_patch_space
-{
-    const Unit** worker;
-    const Unit* mineral_patch;
-    mineral_patch_space(const Unit** unit, const Unit* patch)
-    {
-        worker = unit;
-        mineral_patch = patch;
-    }
-};
-
-struct BuildOrderConditionArgData
-{
-    float time;
-    UNIT_TYPEID unitId;
-    int amount;
-    BuildOrderConditionArgData() {};
-    BuildOrderConditionArgData(float x)
-    {
-        time = x;
-    }
-    BuildOrderConditionArgData(UNIT_TYPEID x)
-    {
-        unitId = x;
-    }
-    BuildOrderConditionArgData(int x)
-    {
-        amount = x;
-    }
-};
-
-struct BuildOrderResultArgData
-{
-    UPGRADE_ID upgradeId;
-    UNIT_TYPEID unitId;
-    std::vector<UNIT_TYPEID> unitIds;
-    int amount;
-    BuildOrderResultArgData() {};
-    BuildOrderResultArgData(UPGRADE_ID x)
-    {
-        upgradeId = x;
-    }
-    BuildOrderResultArgData(UNIT_TYPEID x)
-    {
-        unitId = x;
-    }
-    BuildOrderResultArgData(std::vector<UNIT_TYPEID> x)
-    {
-        unitIds = x;
-    }
-    BuildOrderResultArgData(int x)
-    {
-        amount = x;
-    }
-    BuildOrderResultArgData(UNIT_TYPEID x, int y)
-    {
-        unitId = x;
-        amount = y;
-    }
-};
-
-struct BuildOrderData;
-
-enum BuildOrder {
-    blank,
-    blink_proxy_robo_pressure,
-    oracle_gatewayman_pvz,
-    chargelot_allin,
-    chargelot_allin_old,
-    four_gate_adept_pressure,
-    fastest_dts,
-	proxy_double_robo,
-	recessed_cannon_rush
-};
 
 struct ActionArgData
 {
@@ -401,20 +284,12 @@ public:
 class TossBot : public sc2::Agent
 {
 public:
-    TossBot() : Agent() {};
+	TossBot() : Agent(), worker_manager(this), build_order_manager(this) {};
+	WorkerManager worker_manager;
+	BuildOrderManager build_order_manager;
     bool debug_mode = false;
 	int frames_passed = 0;
     std::map<Tag, const Unit*> tag_to_unit;
-    std::map<const Unit*, mineral_patch_data> mineral_patches;
-    std::map<const Unit*, mineral_patch_reversed_data> mineral_patches_reversed;
-    std::map<const Unit*, assimilator_data> assimilators;
-    std::map<const Unit*, assimilator_reversed_data> assimilators_reversed;
-    std::vector<mineral_patch_space*> first_2_mineral_patch_spaces;
-    std::vector<mineral_patch_space*> far_3_mineral_patch_spaces;
-    std::vector<mineral_patch_space*> close_3_mineral_patch_spaces;
-    std::vector<mineral_patch_space*> gas_spaces;
-    std::vector<mineral_patch_space*> far_3_mineral_patch_extras;
-    std::vector<mineral_patch_space*> close_3_mineral_patch_extras;
     ScoutInfoZerg scout_info_zerg;
     ScoutInfoTerran scout_info_terran;
     Race enemy_race;
@@ -439,24 +314,16 @@ public:
 	void RunTests();
 
 	void SpawnArmies();
-	void ApplyPressureGrouped(ArmyGroup*, Point2D, Point2D, std::map<const Unit*, Point2D>, std::map<const Unit*, Point2D>);
-	void PickUpUnits(std::map<const Unit*, int>, ArmyGroup*);
-	void DodgeShots();
 	void SetUpArmies();
-	bool TestSwap(Point2D, Point2D, Point2D, Point2D);
-	std::map<const Unit*, Point2D> AssignUnitsToPositions(Units, std::vector<Point2D>);
 
 
-    const Unit *new_base = NULL;
-	BuildOrder current_build_order;
-    std::vector<BuildOrderData> build_order;
-    int build_order_step = 0;
+    //const Unit *new_base = NULL;
     std::vector<ActionData*> active_actions;
     std::vector<StateMachine*> active_FSMs;
     Locations* locations;
-    bool should_build_workers;
+    //bool should_build_workers;
     int extra_pylons = 0;
-    int removed_gas_miners = 0;
+    //int removed_gas_miners = 0;
     bool immediatelySaturateGasses = false;
     std::vector<Tag> proxy_pylons;
     std::vector<Army*> army_groups;
@@ -482,7 +349,6 @@ public:
     void CallOnUnitDestroyedEvent(const Unit*);
 
     // To strings
-    static std::string BuildOrderToString(std::vector<BuildOrderData>);
     static std::string OrdersToString(std::vector<UnitOrder>);
 
     // Overrides
@@ -494,21 +360,6 @@ public:
     virtual void OnStep();
     virtual void OnGameStart();
 
-    // Worker management
-    const Unit* GetWorker();
-    const Unit* GetBuilder(Point2D);
-    void PlaceWorker(const Unit*);
-    void PlaceWorkerInGas(const Unit*, const Unit*, int);
-    void NewPlaceWorkerInGas(const Unit*, const Unit*);
-    void PlaceWorkerOnMinerals(const Unit*, const Unit*, int);
-    void NewPlaceWorkerOnMinerals(const Unit*, const Unit*);
-    void RemoveWorker(const Unit*);
-    void SplitWorkers();
-    void SaturateGas(const Unit*);
-    void AddNewBase(const Unit*);
-    void DistributeWorkers();
-    void BalanceWorers();
-    void BuildWorkers();
 
     // Utility
 	int IncomingDamage(const Unit*);
@@ -547,72 +398,6 @@ public:
 	bool ActionUseProxyDoubleRobo(ActionArgData*);
 	bool ActionAllIn(ActionArgData*);
 
-    void CheckBuildOrder();
-    // Build order condition functions
-    bool TimePassed(BuildOrderConditionArgData);
-    bool NumWorkers(BuildOrderConditionArgData);
-    bool HasBuilding(BuildOrderConditionArgData);
-	bool HasBuildingStarted(BuildOrderConditionArgData);
-    bool IsResearching(BuildOrderConditionArgData);
-    bool HasGas(BuildOrderConditionArgData);
-
-    // Build order results
-    bool BuildBuilding(BuildOrderResultArgData);
-    bool BuildFirstPylon(BuildOrderResultArgData);
-    bool BuildBuildingMulti(BuildOrderResultArgData);
-    bool Scout(BuildOrderResultArgData);
-	bool CannonRushProbe1(BuildOrderResultArgData);
-	bool CannonRushProbe2(BuildOrderResultArgData);
-    bool CutWorkers(BuildOrderResultArgData);
-    bool UncutWorkers(BuildOrderResultArgData);
-    bool ImmediatelySaturateGasses(BuildOrderResultArgData);
-    bool TrainStalker(BuildOrderResultArgData);
-    bool TrainAdept(BuildOrderResultArgData);
-    bool TrainOracle(BuildOrderResultArgData);
-    bool TrainPrism(BuildOrderResultArgData);
-    bool ChronoBuilding(BuildOrderResultArgData);
-    bool ResearchWarpgate(BuildOrderResultArgData);
-    bool BuildProxy(BuildOrderResultArgData);
-	bool BuildProxyMulti(BuildOrderResultArgData);
-    bool ResearchBlink(BuildOrderResultArgData);
-    bool ResearchCharge(BuildOrderResultArgData);
-    bool ResearchGlaives(BuildOrderResultArgData);
-    bool ResearchDTBlink(BuildOrderResultArgData);
-    bool ChronoTillFinished(BuildOrderResultArgData);
-    bool WarpInAtProxy(BuildOrderResultArgData);
-    bool ContinueBuildingPylons(BuildOrderResultArgData);
-    bool ContinueMakingWorkers(BuildOrderResultArgData);
-    bool TrainFromProxy(BuildOrderResultArgData);
-    bool ContinueChronoProxyRobo(BuildOrderResultArgData);
-    bool Contain(BuildOrderResultArgData);
-    bool StalkerOraclePressure(BuildOrderResultArgData);
-    bool MicroOracles(BuildOrderResultArgData);
-    bool SpawnUnits(BuildOrderResultArgData);
-    bool ResearchAttackOne(BuildOrderResultArgData);
-    bool ContinueWarpingInStalkers(BuildOrderResultArgData);
-    bool ContinueWarpingInZealots(BuildOrderResultArgData);
-    bool WarpInUnits(BuildOrderResultArgData);
-    bool PullOutOfGas(BuildOrderResultArgData);
-    bool IncreaseExtraPylons(BuildOrderResultArgData);
-    bool MicroChargelotAllin(BuildOrderResultArgData);
-    bool RemoveScoutToProxy(BuildOrderResultArgData);
-    bool SafeRallyPoint(BuildOrderResultArgData);
-    bool DTHarass(BuildOrderResultArgData);
-	bool UseProxyDoubleRobo(BuildOrderResultArgData);
-	bool MicroImmortalDrop(BuildOrderResultArgData);
-	bool ProxyDoubleRoboAllIn(BuildOrderResultArgData);
-
-    // Bulid orders
-    void SetBuildOrder(BuildOrder);
-    void SetBlank();
-    void SetBlinkProxyRoboPressureBuild();
-    void SetOracleGatewaymanPvZ();
-    void SetChargelotAllin();
-    void SetChargelotAllinOld();
-    void Set4GateAdept();
-    void SetFastestDTsPvT();
-	void SetProxyDoubleRobo();
-	void SetRecessedCannonRush();
 
     // Debug info
     void DisplayDebugHud();
@@ -641,334 +426,6 @@ public:
 
 
 
-
-
-
-struct BuildOrderData
-{
-    bool(sc2::TossBot::*condition)(BuildOrderConditionArgData);
-    BuildOrderConditionArgData condition_arg;
-    bool(sc2::TossBot::*result)(BuildOrderResultArgData);
-    BuildOrderResultArgData result_arg;
-    BuildOrderData(bool(sc2::TossBot::*x)(BuildOrderConditionArgData), BuildOrderConditionArgData y, bool(sc2::TossBot::*z)(BuildOrderResultArgData), BuildOrderResultArgData a)
-    {
-        condition = x;
-        condition_arg = y;
-        result = z;
-        result_arg = a;
-    }
-    std::string toString()
-    {
-        // Condition
-        std::string str = "When ";
-        if (condition == &TossBot::TimePassed)
-        {
-            int mins = std::floor(condition_arg.time / 60);
-            int seconds = (int)condition_arg.time % 60;
-            str += std::to_string(mins);
-            str += ':';
-            if (seconds < 10)
-                str += '0';
-            str += std::to_string(seconds);
-            str += " time have passed, ";
-        }
-        else if (condition == &TossBot::NumWorkers)
-        {
-            str += "worker count = ";
-            str += std::to_string(condition_arg.amount);
-            str += ", ";
-        }
-        else if (condition == &TossBot::HasBuilding)
-        {
-            str += "a ";
-            switch (condition_arg.unitId)
-            {
-            case UNIT_TYPEID::PROTOSS_PYLON:
-                str += "pylon";
-                break;
-            case UNIT_TYPEID::PROTOSS_NEXUS:
-                str += "nexus";
-                break;
-            case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-                str += "assimilator";
-                break;
-            case UNIT_TYPEID::PROTOSS_GATEWAY:
-                str += "gateway";
-                break;
-            case UNIT_TYPEID::PROTOSS_FORGE:
-                str += "forge";
-                break;
-            case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-                str += "cyber core";
-                break;
-            case UNIT_TYPEID::PHOTONCANNONWEAPON:
-                str += "cannon";
-                break;
-            case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
-                str += "shield battery";
-                break;
-            case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
-                str += "twitlight";
-                break;
-            case UNIT_TYPEID::PROTOSS_STARGATE:
-                str += "stargate";
-                break;
-            case UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
-                str += "robo";
-                break;
-            case UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
-                str += "robo bay";
-                break;
-            case UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
-                str += "templar archive";
-                break;
-            case UNIT_TYPEID::PROTOSS_DARKSHRINE:
-                str += "dark shrine";
-                break;
-            case UNIT_TYPEID::PROTOSS_FLEETBEACON:
-                str += "fleet beacon";
-                break;
-            default:
-                str += "unknow building";
-                break;
-            }
-            str += " is built, ";
-        }
-        else if (condition == &TossBot::IsResearching)
-        {
-            switch (condition_arg.unitId)
-            {
-            case UNIT_TYPEID::PROTOSS_FORGE:
-                str += "forge";
-                break;
-            case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-                str += "cyber core";
-                break;
-            case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
-                str += "twitlight";
-                break;
-            case UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
-                str += "robo bay";
-                break;
-            case UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
-                str += "templar archive";
-                break;
-            case UNIT_TYPEID::PROTOSS_DARKSHRINE:
-                str += "dark shrine";
-                break;
-            case UNIT_TYPEID::PROTOSS_FLEETBEACON:
-                str += "fleet beacon";
-                break;
-            default:
-                str += "unknow building";
-                break;
-            }
-            str += " is researching, ";
-        }
-        else if (condition == &TossBot::HasGas)
-        {
-            str += "vespene >= ";
-            str += std::to_string(condition_arg.amount);
-            str += ", ";
-        }
-        else
-        {
-            str += "unknown condition, ";
-        }
-
-        // Result
-        if (result == &TossBot::BuildBuilding)
-        {
-            str += "build a ";
-            str += Utility::UnitTypeIdToString(result_arg.unitId);
-        }
-        else if (result == &TossBot::BuildFirstPylon)
-        {
-            str += "build first pylon";
-        }
-        else if (result == &TossBot::BuildBuildingMulti)
-        {
-            str += "build a ";
-            for (const auto &building : result_arg.unitIds)
-            {
-                str += Utility::UnitTypeIdToString(building);
-                str += ", ";
-            }
-            str.pop_back();
-            str.pop_back();
-        }
-		else if (result == &TossBot::BuildProxyMulti)
-		{
-			str += "build a proxy ";
-			for (const auto &building : result_arg.unitIds)
-			{
-				str += Utility::UnitTypeIdToString(building);
-				str += ", ";
-			}
-			str.pop_back();
-			str.pop_back();
-		}
-        else if (result == &TossBot::Scout)
-        {
-            str += "send scout";
-        }
-        else if (result == &TossBot::CutWorkers)
-        {
-            str += "stop building probes";
-        }
-        else if (result == &TossBot::UncutWorkers)
-        {
-            str += "start building probes again";
-        }
-        else if (result == &TossBot::ImmediatelySaturateGasses)
-        {
-            str += "immediately saturate gasses";
-        }
-        else if (result == &TossBot::TrainStalker)
-        {
-            str += "build a stalker";
-        }
-        else if (result == &TossBot::TrainAdept)
-        {
-            str += "build an adept";
-        }
-        else if (result == &TossBot::TrainOracle)
-        {
-            str += "build an oracle";
-        }
-        else if (result == &TossBot::ChronoBuilding)
-        {
-            str += "chrono ";
-            str += Utility::UnitTypeIdToString(result_arg.unitId);
-        }
-        else if (result == &TossBot::ResearchWarpgate)
-        {
-            str += "research warpgate";
-        }
-        else if (result == &TossBot::BuildProxy)
-        {
-            str += "build a proxy ";
-            str += Utility::UnitTypeIdToString(result_arg.unitId);
-        }
-        else if (result == &TossBot::ResearchBlink)
-        {
-            str += "research blink";
-        }
-        else if (result == &TossBot::ResearchCharge)
-        {
-            str += "research charge";
-        }
-        else if (result == &TossBot::ResearchGlaives)
-        {
-            str += "research glaives";
-        }
-        else if (result == &TossBot::ResearchDTBlink)
-        {
-            str += "research dt blink";
-        }
-        else if (result == &TossBot::ChronoTillFinished)
-        {
-            str += "chrono ";
-            str += Utility::UnitTypeIdToString(result_arg.unitId);
-            str += " till it's finished";
-        }
-        else if (result == &TossBot::WarpInAtProxy)
-        {
-            str += "warp in stalkers at proxy";
-        }
-        else if (result == &TossBot::ContinueBuildingPylons)
-        {
-            str += "macro pylons";
-        }
-        else if (result == &TossBot::ContinueMakingWorkers)
-        {
-            str += "macro workers";
-        }
-        else if (result == &TossBot::TrainFromProxy)
-        {
-            str += "train units from proxy ";
-            str += Utility::UnitTypeIdToString(result_arg.unitId);
-        }
-        else if (result == &TossBot::ContinueChronoProxyRobo)
-        {
-            str += "continue chronoing proxy robo";
-        }
-        else if (result == &TossBot::Contain)
-        {
-            str += "contain";
-        }
-        else if (result == &TossBot::StalkerOraclePressure)
-        {
-            str += "stalker oracle pressure";
-        }
-        else if (result == &TossBot::MicroOracles)
-        {
-        str += "micro oracles";
-        }
-        else if (result == &TossBot::SpawnUnits)
-        {
-            str += "cheat in units ";
-            //add what units
-        }
-        else if (result == &TossBot::ResearchAttackOne)
-        {
-            str += "research +1 attack";
-        }
-        else if (result == &TossBot::ContinueWarpingInStalkers)
-        {
-            str += "continue warping in stalkers";
-        }
-        else if (result == &TossBot::ContinueWarpingInZealots)
-        {
-            str += "continue warping in zealots";
-        }
-        else if (result == &TossBot::WarpInUnits)
-        {
-            str += "warp in ";
-            str += std::to_string(result_arg.amount);
-            str += " ";
-            str += Utility::UnitTypeIdToString(result_arg.unitId);
-            str += 's';
-        }
-        else if (result == &TossBot::PullOutOfGas)
-        {
-            str += "pull ";
-            str += std::to_string(result_arg.amount);
-            str += " out of gas";
-        }
-        else if (result == &TossBot::IncreaseExtraPylons)
-        {
-            str += "increase extra pylons by ";
-            str += std::to_string(result_arg.amount);
-        }
-        else if (result == &TossBot::MicroChargelotAllin)
-        {
-            str += "micro chargelot allin";
-        }
-        else if (result == &TossBot::RemoveScoutToProxy)
-        {
-            str += "remove scout and send to proxy";
-        }
-        else if (result == &TossBot::SafeRallyPoint)
-        {
-            str += "change rally point to safe pos";
-        }
-        else if (result == &TossBot::DTHarass)
-        {
-            str += "start DT harass";
-        }
-		else if (result == &TossBot::UseProxyDoubleRobo)
-		{
-		str += "use proxy double robo";
-		}
-		else if (result == &TossBot::MicroImmortalDrop)
-		{
-		str += "micro immortal drop";
-		}
-
-        return str;
-    }
-};
 
 struct ActionData
 {
