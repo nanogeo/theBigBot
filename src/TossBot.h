@@ -2,6 +2,7 @@
 #include "pathfinding.h"
 #include "nav_mesh_pathfinding.h"
 
+
 #include "sc2api/sc2_interfaces.h"
 #include "sc2api/sc2_agent.h"
 #include "sc2api/sc2_map_info.h"
@@ -12,10 +13,10 @@ namespace sc2
 {
 
 
-
 class State;
 class StateMachine;
 class Locations;
+class ArmyGroup;
 class TossBot;
 
 struct OnUnitDamagedEvent
@@ -124,42 +125,6 @@ struct Army
         attack_path = path;
         current_attack_index = 3;
         high_ground_index = index;
-	}
-};
-
-struct ArmyGroup
-{
-	Point2D attack_point;
-	Point2D retreat_point;
-
-	Units stalkers;
-	Units prisms;
-	std::map<const Unit*, bool> attack_status;
-	std::vector<Point2D> attack_path;
-	int current_attack_index;
-	int high_ground_index;
-
-	ArmyGroup() {};
-	ArmyGroup(Units units, Point2D attack_pos, Point2D retreat_pos, std::vector<Point2D> path, int index)
-	{
-		attack_point = attack_pos;
-		retreat_point = retreat_pos;
-
-		for (const auto &unit : units)
-		{
-			if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
-			{
-				stalkers.push_back(unit);
-				attack_status[unit] = false;
-			}
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_WARPPRISM)
-			{
-				prisms.push_back(unit);
-			}
-		}
-		attack_path = path;
-		current_attack_index = 3;
-		high_ground_index = index;
 	}
 };
 
@@ -341,20 +306,6 @@ struct ActionArgData
 struct ActionData;
 
 
-struct UnitCost
-{
-    int mineral_cost;
-    int vespene_cost;
-    int supply;
-    UnitCost() {};
-    UnitCost(int x, int y, int z)
-    {
-        mineral_cost = x;
-        vespene_cost = y;
-        supply = z;
-    }
-};
-
 struct IsFinishedUnit {
     explicit IsFinishedUnit(UNIT_TYPEID type_);
 
@@ -514,28 +465,12 @@ public:
 
     void UpdateUnitTags();
     Units TagsToUnits(const std::vector<Tag>);
-    const Unit* ClosestTo(Units, Point2D);
-    Point2D ClosestTo(std::vector<Point2D>, Point2D);
-	const Unit* FurthestFrom(Units, Point2D);
-    float DistanceToClosest(Units, Point2D);
-    float DistanceToClosest(std::vector<Point2D>, Point2D);
-	Point2D ClosestPointOnLine(Point2D, Point2D, Point2D);
-    Units CloserThan(Units, float, Point2D);
-    bool HasBuff(const Unit*, BUFF_ID);
     std::vector<Point2D> GetLocations(UNIT_TYPEID);
     Point2D GetLocation(UNIT_TYPEID);
 	Point2D GetProxyLocation(UNIT_TYPEID);
     std::vector<Point2D> GetProxyLocations(UNIT_TYPEID);
-    float BuildingSize(UNIT_TYPEID);
-    bool CanBuildBuilding(UNIT_TYPEID);
-    ABILITY_ID GetBuildAbility(UNIT_TYPEID);
-	ABILITY_ID GetTrainAbility(UNIT_TYPEID);
-    bool CanAfford(UNIT_TYPEID, int);
-    bool CanAffordUpgrade(UPGRADE_ID);
-    int BuildingsReady(UNIT_TYPEID);
     std::vector<Point2D> FindWarpInSpots(Point2D);
     std::vector<Point2D> FindProxyWarpInSpots();
-    static const Unit* GetLeastFullPrism(Units);
     void OraclesCoverStalkers(Units, Units);
 
     void ProcessFSMs();
@@ -548,8 +483,6 @@ public:
 
     // To strings
     static std::string BuildOrderToString(std::vector<BuildOrderData>);
-    static std::string UnitTypeIdToString(UNIT_TYPEID);
-    static std::string AbilityIdToString(ABILITY_ID);
     static std::string OrdersToString(std::vector<UnitOrder>);
 
     // Overrides
@@ -847,7 +780,7 @@ struct BuildOrderData
         if (result == &TossBot::BuildBuilding)
         {
             str += "build a ";
-            str += TossBot::UnitTypeIdToString(result_arg.unitId);
+            str += Utility::UnitTypeIdToString(result_arg.unitId);
         }
         else if (result == &TossBot::BuildFirstPylon)
         {
@@ -858,7 +791,7 @@ struct BuildOrderData
             str += "build a ";
             for (const auto &building : result_arg.unitIds)
             {
-                str += TossBot::UnitTypeIdToString(building);
+                str += Utility::UnitTypeIdToString(building);
                 str += ", ";
             }
             str.pop_back();
@@ -869,7 +802,7 @@ struct BuildOrderData
 			str += "build a proxy ";
 			for (const auto &building : result_arg.unitIds)
 			{
-				str += TossBot::UnitTypeIdToString(building);
+				str += Utility::UnitTypeIdToString(building);
 				str += ", ";
 			}
 			str.pop_back();
@@ -906,7 +839,7 @@ struct BuildOrderData
         else if (result == &TossBot::ChronoBuilding)
         {
             str += "chrono ";
-            str += TossBot::UnitTypeIdToString(result_arg.unitId);
+            str += Utility::UnitTypeIdToString(result_arg.unitId);
         }
         else if (result == &TossBot::ResearchWarpgate)
         {
@@ -915,7 +848,7 @@ struct BuildOrderData
         else if (result == &TossBot::BuildProxy)
         {
             str += "build a proxy ";
-            str += TossBot::UnitTypeIdToString(result_arg.unitId);
+            str += Utility::UnitTypeIdToString(result_arg.unitId);
         }
         else if (result == &TossBot::ResearchBlink)
         {
@@ -936,7 +869,7 @@ struct BuildOrderData
         else if (result == &TossBot::ChronoTillFinished)
         {
             str += "chrono ";
-            str += TossBot::UnitTypeIdToString(result_arg.unitId);
+            str += Utility::UnitTypeIdToString(result_arg.unitId);
             str += " till it's finished";
         }
         else if (result == &TossBot::WarpInAtProxy)
@@ -954,7 +887,7 @@ struct BuildOrderData
         else if (result == &TossBot::TrainFromProxy)
         {
             str += "train units from proxy ";
-            str += TossBot::UnitTypeIdToString(result_arg.unitId);
+            str += Utility::UnitTypeIdToString(result_arg.unitId);
         }
         else if (result == &TossBot::ContinueChronoProxyRobo)
         {
@@ -994,7 +927,7 @@ struct BuildOrderData
             str += "warp in ";
             str += std::to_string(result_arg.amount);
             str += " ";
-            str += TossBot::UnitTypeIdToString(result_arg.unitId);
+            str += Utility::UnitTypeIdToString(result_arg.unitId);
             str += 's';
         }
         else if (result == &TossBot::PullOutOfGas)
@@ -1052,14 +985,14 @@ struct ActionData
         if (action == &TossBot::ActionBuildBuilding)
         {
             str += "Build a ";
-            str += TossBot::UnitTypeIdToString(action_arg->unitId);
+            str += Utility::UnitTypeIdToString(action_arg->unitId);
         }
         else if (action == &TossBot::ActionBuildBuildingMulti)
         {
             str += "Build a ";
             for (int i = action_arg->index; i < action_arg->unitIds.size(); i++)
             {
-                str += TossBot::UnitTypeIdToString(action_arg->unitIds[i]);
+                str += Utility::UnitTypeIdToString(action_arg->unitIds[i]);
                 str += ", ";
             }
             str.pop_back();
@@ -1070,7 +1003,7 @@ struct ActionData
 			str += "Build a proxy ";
 			for (int i = action_arg->index; i < action_arg->unitIds.size(); i++)
 			{
-				str += TossBot::UnitTypeIdToString(action_arg->unitIds[i]);
+				str += Utility::UnitTypeIdToString(action_arg->unitIds[i]);
 				str += ", ";
 			}
 			str.pop_back();
@@ -1091,13 +1024,13 @@ struct ActionData
         else if (action == &TossBot::ActionChronoTillFinished)
         {
             str += "Chrono ";
-            str += TossBot::UnitTypeIdToString(action_arg->unitId);
+            str += Utility::UnitTypeIdToString(action_arg->unitId);
             str += " till finished";
         }
         else if (action == &TossBot::ActionConstantChrono)
         {
             str += "Constant chrono on ";
-            str += TossBot::UnitTypeIdToString(action_arg->unitId);
+            str += Utility::UnitTypeIdToString(action_arg->unitId);
         }
         else if (action == &TossBot::ActionWarpInAtProxy)
         {
@@ -1134,7 +1067,7 @@ struct ActionData
 			{
 				for (const auto &unit : action_arg->unitIds)
 				{
-					str += TossBot::UnitTypeIdToString(unit);
+					str += Utility::UnitTypeIdToString(unit);
 					str += ", ";
 				}
 			}

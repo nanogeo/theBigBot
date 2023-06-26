@@ -14,6 +14,128 @@
 namespace sc2
 {
 
+const Unit* Utility::ClosestTo(Units units, Point2D position)
+{
+	const Unit* current_closest;
+	float current_distance = INFINITY;
+	for (const auto &unit : units)
+	{
+		float distance = Distance2D(unit->pos, position);
+		if (distance < current_distance)
+		{
+			current_closest = unit;
+			current_distance = distance;
+		}
+	}
+	if (units.size() == 0 || current_closest == NULL)
+	{
+		std::cout << "Error current closest is NULL\n";
+		return NULL;
+	}
+	return current_closest;
+}
+
+Point2D Utility::ClosestTo(std::vector<Point2D> points, Point2D position)
+{
+	Point2D current_closest;
+	float current_distance = INFINITY;
+	for (const auto &point : points)
+	{
+		float distance = Distance2D(point, position);
+		if (distance < current_distance)
+		{
+			current_closest = point;
+			current_distance = distance;
+		}
+	}
+	/*if (points.size() == 0 || current_closest == NULL)
+	{
+		std::cout << "Error current closest is NULL\n";
+		return NULL;
+	}*/
+	return current_closest;
+}
+
+const Unit* Utility::FurthestFrom(Units units, Point2D position)
+{
+	const Unit* current_furthest;
+	float current_distance = 0;
+	for (const auto &unit : units)
+	{
+		float distance = Distance2D(unit->pos, position);
+		if (distance > current_distance)
+		{
+			current_furthest = unit;
+			current_distance = distance;
+		}
+	}
+	if (units.size() == 0 || current_furthest == NULL)
+	{
+		std::cout << "Error current closest is NULL\n";
+		return NULL;
+	}
+	return current_furthest;
+}
+
+float Utility::DistanceToClosest(Units units, Point2D position)
+{
+	const Unit* closest_unit = ClosestTo(units, position);
+	if (closest_unit == NULL)
+		return INFINITY;
+	return Distance2D(closest_unit->pos, position);
+}
+
+float Utility::DistanceToClosest(std::vector<Point2D> points, Point2D position)
+{
+	const Point2D closest_point = ClosestTo(points, position);
+	return Distance2D(closest_point, position);
+}
+
+Point2D Utility::ClosestPointOnLine(Point2D point, Point2D start, Point2D end)
+{
+	// undefined / 0 slope
+	if (end.y - start.y == 0)
+		return Point2D(point.x, start.y);
+	if (end.x - start.x == 0)
+		return Point2D(start.x, point.y);
+
+	float line_slope = (end.y - start.y) / (end.x - start.x);
+	float perpendicular_slope = -1 / line_slope;
+
+	float coef1 = line_slope * start.x - start.y;
+	float coef2 = perpendicular_slope * point.x - point.y;
+
+	float x_pos = (coef1 - coef2) / (line_slope - perpendicular_slope);
+	float y_pos = line_slope * x_pos - coef1;
+
+	return Point2D(x_pos, y_pos);
+}
+
+Units Utility::CloserThan(Units units, float distance, Point2D position)
+{
+	Units close_units;
+	for (const auto &unit : units)
+	{
+		if (Distance2D(unit->pos, position) <= distance)
+		{
+			close_units.push_back(unit);
+		}
+	}
+	return close_units;
+}
+
+bool Utility::HasBuff(const Unit *unit, BUFF_ID buffId)
+{
+	for (const auto &buff : unit->buffs)
+	{
+		if (buff == buffId)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 Point2D Utility::Center(Units units)
 {
 	if (units.size() == 0)
@@ -1296,6 +1418,584 @@ const Unit* Utility::AimingAt(const Unit* unit, const ObservationInterface* obse
 		}
 	}
 	return target;
+}
+
+float Utility::BuildingSize(UNIT_TYPEID buildingId)
+{
+	if (buildingId == UNIT_TYPEID::PROTOSS_NEXUS)
+		return 2.5;
+	if (buildingId == UNIT_TYPEID::PROTOSS_PYLON || buildingId == UNIT_TYPEID::PROTOSS_SHIELDBATTERY || buildingId == UNIT_TYPEID::PROTOSS_PHOTONCANNON)
+		return 1;
+	return 1.5;
+}
+
+bool Utility::CanBuildBuilding(UNIT_TYPEID buildingId, const ObservationInterface* observation)
+{
+	if (CanAfford(buildingId, 1, observation))
+	{
+		if (buildingId == UNIT_TYPEID::PROTOSS_GATEWAY)
+			return BuildingsReady(UNIT_TYPEID::PROTOSS_PYLON, observation) > 0;
+		return true;
+	}
+	return false;
+}
+
+int Utility::BuildingsReady(UNIT_TYPEID buildingId, const ObservationInterface* observation)
+{
+	int ready = 0;
+	for (const auto &building : observation->GetUnits(IsUnit(buildingId)))
+	{
+		if (building->build_progress == 1)
+			ready++;
+	}
+	return ready;
+}
+
+const Unit* Utility::GetLeastFullPrism(Units units)
+{
+	const Unit* least_full = NULL;
+	for (const auto &unit : units)
+	{
+		if (least_full == NULL || unit->cargo_space_taken < least_full->cargo_space_taken)
+			least_full = unit;
+	}
+	return least_full;
+}
+
+ABILITY_ID Utility::GetBuildAbility(UNIT_TYPEID buildingId)
+{
+	switch (buildingId)
+	{
+	case UNIT_TYPEID::PROTOSS_PYLON:
+		return ABILITY_ID::BUILD_PYLON;
+	case UNIT_TYPEID::PROTOSS_NEXUS:
+		return ABILITY_ID::BUILD_NEXUS;
+	case UNIT_TYPEID::PROTOSS_GATEWAY:
+		return ABILITY_ID::BUILD_GATEWAY;
+	case UNIT_TYPEID::PROTOSS_FORGE:
+		return ABILITY_ID::BUILD_FORGE;
+	case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
+		return ABILITY_ID::BUILD_CYBERNETICSCORE;
+	case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
+		return ABILITY_ID::BUILD_PHOTONCANNON;
+	case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
+		return ABILITY_ID::BUILD_SHIELDBATTERY;
+	case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
+		return ABILITY_ID::BUILD_TWILIGHTCOUNCIL;
+	case UNIT_TYPEID::PROTOSS_STARGATE:
+		return ABILITY_ID::BUILD_STARGATE;
+	case UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
+		return ABILITY_ID::BUILD_ROBOTICSFACILITY;
+	case UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
+		return ABILITY_ID::BUILD_ROBOTICSBAY;
+	case UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
+		return ABILITY_ID::BUILD_TEMPLARARCHIVE;
+	case UNIT_TYPEID::PROTOSS_DARKSHRINE:
+		return ABILITY_ID::BUILD_DARKSHRINE;
+	case UNIT_TYPEID::PROTOSS_FLEETBEACON:
+		return ABILITY_ID::BUILD_FLEETBEACON;
+	case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
+		return ABILITY_ID::BUILD_ASSIMILATOR;
+	default:
+		std::cout << "Error invalid building id in GetBuildAbility";
+		return ABILITY_ID::BUILD_CANCEL;
+	}
+}
+
+ABILITY_ID Utility::GetTrainAbility(UNIT_TYPEID unitId)
+{
+	switch (unitId)
+	{
+	case UNIT_TYPEID::PROTOSS_PROBE:
+		return ABILITY_ID::TRAIN_PROBE;
+	case UNIT_TYPEID::PROTOSS_ZEALOT:
+		return ABILITY_ID::TRAIN_ZEALOT;
+	case UNIT_TYPEID::PROTOSS_ADEPT:
+		return ABILITY_ID::TRAIN_ADEPT;
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		return ABILITY_ID::TRAIN_STALKER;
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		return ABILITY_ID::TRAIN_SENTRY;
+	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		return ABILITY_ID::TRAIN_HIGHTEMPLAR;
+	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		return ABILITY_ID::TRAIN_DARKTEMPLAR;
+	case UNIT_TYPEID::PROTOSS_IMMORTAL:
+		return ABILITY_ID::TRAIN_IMMORTAL;
+	case UNIT_TYPEID::PROTOSS_COLOSSUS:
+		return ABILITY_ID::TRAIN_COLOSSUS;
+	case UNIT_TYPEID::PROTOSS_DISRUPTOR:
+		return ABILITY_ID::TRAIN_DISRUPTOR;
+	case UNIT_TYPEID::PROTOSS_OBSERVER:
+		return ABILITY_ID::TRAIN_OBSERVER;
+	case UNIT_TYPEID::PROTOSS_WARPPRISM:
+		return ABILITY_ID::TRAIN_WARPPRISM;
+	case UNIT_TYPEID::PROTOSS_PHOENIX:
+		return ABILITY_ID::TRAIN_PHOENIX;
+	case UNIT_TYPEID::PROTOSS_VOIDRAY:
+		return ABILITY_ID::TRAIN_VOIDRAY;
+	case UNIT_TYPEID::PROTOSS_ORACLE:
+		return ABILITY_ID::TRAIN_ORACLE;
+	case UNIT_TYPEID::PROTOSS_CARRIER:
+		return ABILITY_ID::TRAIN_CARRIER;
+	case UNIT_TYPEID::PROTOSS_TEMPEST:
+		return ABILITY_ID::TRAIN_TEMPEST;
+	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+		return ABILITY_ID::TRAIN_MOTHERSHIP;
+	default:
+		std::cout << "Error invalid unit id in GetTrainAbility";
+		return ABILITY_ID::BUILD_CANCEL;
+	}
+}
+
+bool Utility::CanAfford(UNIT_TYPEID unit, int amount, const ObservationInterface* observation)
+{
+	UnitCost cost;
+	switch (unit)
+	{
+	case UNIT_TYPEID::PROTOSS_PYLON:
+		cost = UnitCost(100, 0, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_NEXUS:
+		cost = UnitCost(400, 0, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_GATEWAY:
+		cost = UnitCost(150, 0, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_FORGE:
+		cost = UnitCost(150, 0, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
+		cost = UnitCost(150, 0, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
+		cost = UnitCost(150, 0, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
+		cost = UnitCost(100, 0, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
+		cost = UnitCost(150, 100, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_STARGATE:
+		cost = UnitCost(150, 150, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
+		cost = UnitCost(150, 100, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
+		cost = UnitCost(150, 150, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
+		cost = UnitCost(150, 200, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_DARKSHRINE:
+		cost = UnitCost(150, 150, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_FLEETBEACON:
+		cost = UnitCost(300, 200, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
+		cost = UnitCost(75, 0, 0);
+		break;
+	case UNIT_TYPEID::PROTOSS_PROBE:
+		cost = UnitCost(50, 0, 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_ZEALOT:
+		cost = UnitCost(100, 0, 2);
+		break;
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		cost = UnitCost(125, 50, 2);
+		break;
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		cost = UnitCost(50, 150, 2);
+		break;
+	case UNIT_TYPEID::PROTOSS_ADEPT:
+		cost = UnitCost(100, 25, 2);
+		break;
+	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		cost = UnitCost(50, 150, 2);
+		break;
+	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		cost = UnitCost(125, 125, 2);
+		break;
+	case UNIT_TYPEID::PROTOSS_IMMORTAL:
+		cost = UnitCost(275, 100, 4);
+		break;
+	case UNIT_TYPEID::PROTOSS_COLOSSUS:
+		cost = UnitCost(300, 200, 6);
+		break;
+	case UNIT_TYPEID::PROTOSS_DISRUPTOR:
+		cost = UnitCost(150, 150, 3);
+		break;
+	case UNIT_TYPEID::PROTOSS_OBSERVER:
+		cost = UnitCost(25, 75, 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_WARPPRISM:
+		cost = UnitCost(250, 0, 2);
+		break;
+	case UNIT_TYPEID::PROTOSS_PHOENIX:
+		cost = UnitCost(150, 100, 2);
+		break;
+	case UNIT_TYPEID::PROTOSS_VOIDRAY:
+		cost = UnitCost(250, 150, 4);
+		break;
+	case UNIT_TYPEID::PROTOSS_ORACLE:
+		cost = UnitCost(150, 150, 3);
+		break;
+	case UNIT_TYPEID::PROTOSS_CARRIER:
+		cost = UnitCost(350, 250, 6);
+		break;
+	case UNIT_TYPEID::PROTOSS_TEMPEST:
+		cost = UnitCost(250, 175, 5);
+		break;
+	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+		cost = UnitCost(400, 400, 8);
+		break;
+	default:
+		std::cout << "Error invalid unit id in CanAfford";
+		return false;
+	}
+	bool enough_minerals = observation->GetMinerals() >= cost.mineral_cost * amount;
+	bool enough_vespene = observation->GetVespene() >= cost.vespene_cost * amount;
+	bool enough_supply = observation->GetFoodCap() - observation->GetFoodUsed() >= cost.supply * amount;
+	return enough_minerals && enough_vespene && enough_supply;
+}
+
+bool Utility::CanAffordUpgrade(UPGRADE_ID upgrade, const ObservationInterface* observation)
+{
+	UnitCost cost;
+	switch (upgrade)
+	{
+	case UPGRADE_ID::WARPGATERESEARCH:
+		cost = UnitCost(50, 50, 0);
+		break;
+	case UPGRADE_ID::BLINKTECH:
+		cost = UnitCost(150, 150, 0);
+		break;
+	case UPGRADE_ID::CHARGE:
+		cost = UnitCost(100, 100, 0);
+		break;
+	case UPGRADE_ID::ADEPTPIERCINGATTACK:
+		cost = UnitCost(100, 100, 0);
+		break;
+	case UPGRADE_ID::DARKTEMPLARBLINKUPGRADE:
+		cost = UnitCost(100, 100, 0);
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1:
+		cost = UnitCost(100, 100, 0);
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2:
+		cost = UnitCost(150, 150, 0);
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL3:
+		cost = UnitCost(200, 200, 0);
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL1:
+		cost = UnitCost(100, 100, 0);
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL2:
+		cost = UnitCost(150, 150, 0);
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL3:
+		cost = UnitCost(200, 200, 0);
+		break;
+	case UPGRADE_ID::PROTOSSSHIELDSLEVEL1:
+		cost = UnitCost(150, 150, 0);
+		break;
+	case UPGRADE_ID::PROTOSSSHIELDSLEVEL2:
+		cost = UnitCost(225, 225, 0);
+		break;
+	case UPGRADE_ID::PROTOSSSHIELDSLEVEL3:
+		cost = UnitCost(300, 300, 0);
+		break;
+	default:
+		std::cout << "Error invalid upgrade id in CanAffordUpgrade";
+		return false;
+	}
+	bool enough_minerals = observation->GetMinerals() >= cost.mineral_cost;
+	bool enough_vespene = observation->GetVespene() >= cost.vespene_cost;
+	return enough_minerals && enough_vespene;
+}
+
+std::string Utility::UnitTypeIdToString(UNIT_TYPEID typeId)
+{
+	switch (typeId)
+	{
+	case UNIT_TYPEID::PROTOSS_PYLON: // protoss buildings
+		return "pylon";
+	case UNIT_TYPEID::PROTOSS_NEXUS:
+		return "nexus";
+	case UNIT_TYPEID::PROTOSS_GATEWAY:
+		return "gateway";
+	case UNIT_TYPEID::PROTOSS_WARPGATE:
+		return "warpgate";
+	case UNIT_TYPEID::PROTOSS_FORGE:
+		return "forge";
+	case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
+		return "cybercore";
+	case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
+		return "photon cannon";
+	case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
+		return "shield battery";
+	case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
+		return "twilight";
+	case UNIT_TYPEID::PROTOSS_STARGATE:
+		return "stargate";
+	case UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
+		return "robo";
+	case UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
+		return "robo bay";
+	case UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
+		return "templar archives";
+	case UNIT_TYPEID::PROTOSS_DARKSHRINE:
+		return "dark shrine";
+	case UNIT_TYPEID::PROTOSS_FLEETBEACON:
+		return "fleet beacon";
+	case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
+		return "assimilator";
+	case UNIT_TYPEID::PROTOSS_PROBE: // protoss units
+		return "probe";
+	case UNIT_TYPEID::PROTOSS_ZEALOT:
+		return "zealot";
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		return "sentry";
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		return "stalker";
+	case UNIT_TYPEID::PROTOSS_ADEPT:
+		return "adept";
+	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		return "high templar";
+	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		return "dark templar";
+	case UNIT_TYPEID::PROTOSS_IMMORTAL:
+		return "immortal";
+	case UNIT_TYPEID::PROTOSS_COLOSSUS:
+		return "colossus";
+	case UNIT_TYPEID::PROTOSS_DISRUPTOR:
+		return "disruptor";
+	case UNIT_TYPEID::PROTOSS_OBSERVER:
+		return "observer";
+	case UNIT_TYPEID::PROTOSS_WARPPRISM:
+		return "warp prism";
+	case UNIT_TYPEID::PROTOSS_PHOENIX:
+		return "phoenis";
+	case UNIT_TYPEID::PROTOSS_VOIDRAY:
+		return "void ray";
+	case UNIT_TYPEID::PROTOSS_ORACLE:
+		return "oracle";
+	case UNIT_TYPEID::PROTOSS_CARRIER:
+		return "carrier";
+	case UNIT_TYPEID::PROTOSS_TEMPEST:
+		return "tempest";
+	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+		return "mothership";
+	case UNIT_TYPEID::TERRAN_COMMANDCENTER: // terran buildings
+		return "command center";
+	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
+		return "planetary forttress";
+	case UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
+		return "orbital command";
+	case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
+		return "supply depot";
+	case UNIT_TYPEID::TERRAN_REFINERY:
+		return "refinery";
+	case UNIT_TYPEID::TERRAN_BARRACKS:
+		return "barracks";
+	case UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+		return "engineering bay";
+	case UNIT_TYPEID::TERRAN_BUNKER:
+		return "bunker";
+	case UNIT_TYPEID::TERRAN_SENSORTOWER:
+		return "sensor tower";
+	case UNIT_TYPEID::TERRAN_MISSILETURRET:
+		return "missile turret";
+	case UNIT_TYPEID::TERRAN_FACTORY:
+		return "factory";
+	case UNIT_TYPEID::TERRAN_GHOSTACADEMY:
+		return "ghost academy";
+	case UNIT_TYPEID::TERRAN_STARPORT:
+		return "starport";
+	case UNIT_TYPEID::TERRAN_ARMORY:
+		return "armory";
+	case UNIT_TYPEID::TERRAN_FUSIONCORE:
+		return "fusion core";
+	case UNIT_TYPEID::TERRAN_TECHLAB:
+		return "teck lab";
+	case UNIT_TYPEID::TERRAN_REACTOR:
+		return "reactor";
+	case UNIT_TYPEID::TERRAN_SCV:
+		return "SCV";
+	case UNIT_TYPEID::TERRAN_MULE:
+		return "MULE";
+	case UNIT_TYPEID::TERRAN_MARINE: // terran units
+		return "marine";
+	case UNIT_TYPEID::TERRAN_MARAUDER:
+		return "marauder";
+	case UNIT_TYPEID::TERRAN_REAPER:
+		return "reaper";
+	case UNIT_TYPEID::TERRAN_GHOST:
+		return "ghost";
+	case UNIT_TYPEID::TERRAN_HELLION:
+		return "hellion";
+	case UNIT_TYPEID::TERRAN_HELLIONTANK:
+		return "hellbat";
+	case UNIT_TYPEID::TERRAN_SIEGETANK:
+		return "siege tank";
+	case UNIT_TYPEID::TERRAN_CYCLONE:
+		return "cyclone";
+	case UNIT_TYPEID::TERRAN_WIDOWMINE:
+		return "widow mine";
+	case UNIT_TYPEID::TERRAN_THOR:
+		return "thor";
+	case UNIT_TYPEID::TERRAN_AUTOTURRET:
+		return "auto turret";
+	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+		return "viking assault";
+	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+		return "viking fighter";
+	case UNIT_TYPEID::TERRAN_MEDIVAC:
+		return "medivac";
+	case UNIT_TYPEID::TERRAN_LIBERATOR:
+		return "liberator";
+	case UNIT_TYPEID::TERRAN_RAVEN:
+		return "raven";
+	case UNIT_TYPEID::TERRAN_BANSHEE:
+		return "banshee";
+	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
+		return "battlecruiser";
+	case UNIT_TYPEID::ZERG_HATCHERY: // zerg buildings
+		return "hatchery";
+	case UNIT_TYPEID::ZERG_LAIR:
+		return "lair";
+	case UNIT_TYPEID::ZERG_HIVE:
+		return "hive";
+	case UNIT_TYPEID::ZERG_SPINECRAWLER:
+		return "spine crawler";
+	case UNIT_TYPEID::ZERG_SPORECRAWLER:
+		return "spore crawler";
+	case UNIT_TYPEID::ZERG_EXTRACTOR:
+		return "extractor";
+	case UNIT_TYPEID::ZERG_SPAWNINGPOOL:
+		return "spawning pool";
+	case UNIT_TYPEID::ZERG_EVOLUTIONCHAMBER:
+		return "evolution chamber";
+	case UNIT_TYPEID::ZERG_ROACHWARREN:
+		return "roach warren";
+	case UNIT_TYPEID::ZERG_BANELINGNEST:
+		return "baneling next";
+	case UNIT_TYPEID::ZERG_HYDRALISKDEN:
+		return "hydralisk den";
+	case UNIT_TYPEID::ZERG_LURKERDENMP:
+		return "lurker den";
+	case UNIT_TYPEID::ZERG_INFESTATIONPIT:
+		return "infestation pit";
+	case UNIT_TYPEID::ZERG_SPIRE:
+		return "spire";
+	case UNIT_TYPEID::ZERG_GREATERSPIRE:
+		return "greater spire";
+	case UNIT_TYPEID::ZERG_NYDUSNETWORK:
+		return "nydus network";
+	case UNIT_TYPEID::ZERG_ULTRALISKCAVERN:
+		return "ultralisk cavern";
+	case UNIT_TYPEID::ZERG_LARVA: // zerg units
+		return "larva";
+	case UNIT_TYPEID::ZERG_EGG:
+		return "egg";
+	case UNIT_TYPEID::ZERG_DRONE:
+		return "drone";
+	case UNIT_TYPEID::ZERG_QUEEN:
+		return "queen";
+	case UNIT_TYPEID::ZERG_ZERGLING:
+		return "zergling";
+	case UNIT_TYPEID::ZERG_BANELING:
+		return "baneling";
+	case UNIT_TYPEID::ZERG_ROACH:
+		return "roach";
+	case UNIT_TYPEID::ZERG_RAVAGER:
+		return "ravager";
+	case UNIT_TYPEID::ZERG_HYDRALISK:
+		return "hydralisk";
+	case UNIT_TYPEID::ZERG_LURKERMP:
+		return "lurker";
+	case UNIT_TYPEID::ZERG_INFESTOR:
+		return "infestor";
+	case UNIT_TYPEID::ZERG_SWARMHOSTMP:
+		return "swarm host";
+	case UNIT_TYPEID::ZERG_ULTRALISK:
+		return "ultralisk";
+	case UNIT_TYPEID::ZERG_OVERLORD:
+		return "overlord";
+	case UNIT_TYPEID::ZERG_OVERSEER:
+		return "overseer";
+	case UNIT_TYPEID::ZERG_MUTALISK:
+		return "mutalisk";
+	case UNIT_TYPEID::ZERG_CORRUPTOR:
+		return "corruptor";
+	case UNIT_TYPEID::ZERG_BROODLORD:
+		return "broodlord";
+	case UNIT_TYPEID::ZERG_VIPER:
+		return "viper";
+	case UNIT_TYPEID::ZERG_LOCUSTMP:
+		return "locust";
+	case UNIT_TYPEID::ZERG_BROODLING:
+		return "broodling";
+	case UNIT_TYPEID::ZERG_TRANSPORTOVERLORDCOCOON:
+		return "dropperlord cocoon";
+	case UNIT_TYPEID::ZERG_BANELINGCOCOON:
+		return "baneling cocoon";
+	case UNIT_TYPEID::ZERG_BROODLORDCOCOON:
+		return "broodlord cocoon";
+	case UNIT_TYPEID::ZERG_OVERLORDCOCOON:
+		return "overseer cocoon";
+	case UNIT_TYPEID::ZERG_RAVAGERCOCOON:
+		return "ravager cocoon";
+	case UNIT_TYPEID::ZERG_LURKERMPEGG:
+		return "lurker cocoon";
+	default:
+		std::cout << "Error invalid typeId in UnitTypeIdToString";
+		return "Error invalid abilityId in UnitTypeIdToString";
+		break;
+	}
+}
+
+std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
+{
+	switch (abilityId)
+	{
+	case ABILITY_ID::TRAIN_PROBE:
+		return "train probe";
+	case ABILITY_ID::TRAIN_ZEALOT:
+		return "train zealot";
+	case ABILITY_ID::TRAIN_ADEPT:
+		return "train adept";
+	case ABILITY_ID::TRAIN_STALKER:
+		return "train stalker";
+	case ABILITY_ID::TRAIN_SENTRY:
+		return "train sentry";
+	case ABILITY_ID::TRAIN_IMMORTAL:
+		return "train immortal";
+	case ABILITY_ID::TRAIN_OBSERVER:
+		return "train observer";
+	case ABILITY_ID::TRAIN_WARPPRISM:
+		return "train warpprism";
+	case ABILITY_ID::RESEARCH_WARPGATE:
+		return "research warpgate";
+	case ABILITY_ID::RESEARCH_BLINK:
+		return "research blink";
+	case ABILITY_ID::RESEARCH_CHARGE:
+		return "research charge";
+	case ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS:
+		return "research ground attack";
+	case ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1:
+		return "research +1 attack";
+	case ABILITY_ID::MORPH_WARPGATE:
+		return "morph into warpgate";
+	default:
+		std::cout << "Error invalid abilityId in AbilityIdToString\n";
+		return "Error invalid abilityId in AbilityIdToString";
+		break;
+	}
 }
 
 

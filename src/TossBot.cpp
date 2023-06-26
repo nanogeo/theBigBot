@@ -330,7 +330,7 @@ namespace sc2 {
             }
 
             const Unit *building = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS))[0];
-            std::cout << UnitTypeIdToString(building->unit_type);
+            std::cout << Utility::UnitTypeIdToString(building->unit_type);
             if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
             {
                 new_base = building;
@@ -424,7 +424,7 @@ namespace sc2 {
     {
         if (debug_mode)
         {
-            std::cout << UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
+            std::cout << Utility::UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
 			//nav_mesh.AddNewObstacle(building);
             return;
         }
@@ -552,17 +552,17 @@ namespace sc2 {
 
 	void TossBot::RunTests()
 	{
-		const Unit* closest_enemy = ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), Utility::MedianCenter(test_army.stalkers));
-		const Unit* closest_unit_to_enemies = ClosestTo(test_army.stalkers, closest_enemy->pos);
-		const Unit* furthest_unit_from_enemies = FurthestFrom(test_army.stalkers, closest_enemy->pos);
+		const Unit* closest_enemy = Utility::ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), Utility::MedianCenter(test_army.stalkers));
+		const Unit* closest_unit_to_enemies = Utility::ClosestTo(test_army.stalkers, closest_enemy->pos);
+		const Unit* furthest_unit_from_enemies = Utility::FurthestFrom(test_army.stalkers, closest_enemy->pos);
 
 		Debug()->DebugSphereOut(closest_unit_to_enemies->pos, .625, Color(255, 0, 255));
 		Debug()->DebugSphereOut(furthest_unit_from_enemies->pos, .625, Color(0, 255, 255));
 
 		float unit_size = .625;
 		float unit_dispersion = 0;
-		Point2D retreating_concave_origin = Utility::PointBetween(ClosestPointOnLine(closest_unit_to_enemies->pos, enemy_army_spawn, fallback_point), fallback_point, unit_size + unit_dispersion);
-		Point2D attacking_concave_origin = Utility::PointBetween(ClosestPointOnLine(furthest_unit_from_enemies->pos, enemy_army_spawn, fallback_point), enemy_army_spawn, unit_size + unit_dispersion);
+		Point2D retreating_concave_origin = Utility::PointBetween(Utility::ClosestPointOnLine(closest_unit_to_enemies->pos, enemy_army_spawn, fallback_point), fallback_point, unit_size + unit_dispersion);
+		Point2D attacking_concave_origin = Utility::PointBetween(Utility::ClosestPointOnLine(furthest_unit_from_enemies->pos, enemy_army_spawn, fallback_point), enemy_army_spawn, unit_size + unit_dispersion);
 
 		Debug()->DebugSphereOut(Point3D(retreating_concave_origin.x, retreating_concave_origin.y, Observation()->TerrainHeight(retreating_concave_origin)), .625, Color(255, 0, 128));
 		Debug()->DebugSphereOut(Point3D(attacking_concave_origin.x, attacking_concave_origin.y, Observation()->TerrainHeight(attacking_concave_origin)), .625, Color(0, 255, 128));
@@ -614,197 +614,6 @@ namespace sc2 {
 		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_WARPPRISM, friendly_army_spawn, 1, 1);
 	}
 
-	void TossBot::ApplyPressureGrouped(ArmyGroup* army, Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> retreating_unit_positions, std::map<const Unit*, Point2D> attacking_unit_positions)
-	{
-		std::map<const Unit*, int> units_requesting_pickup;
-		if (army->stalkers.size() > 0)
-		{
-			bool all_ready = true;
-			for (const auto &stalker : army->stalkers)
-			{
-				if (stalker->weapon_cooldown > 0 || army->attack_status[stalker] == true)
-				{
-					// ignore units inside prisms
-					if (army->prisms.size() > 0)
-					{
-						bool in_prism = false;
-						for (const auto &prism : army->prisms)
-						{
-							for (const auto &passanger : prism->passengers)
-							{
-								if (passanger.tag == stalker->tag)
-								{
-									in_prism = true;
-									break;
-								}
-							}
-							if (in_prism)
-								break;
-						}
-						if (in_prism)
-							continue;
-					}
-					all_ready = false;
-					break;
-				}
-			}
-			if (all_ready)
-			{
-				std::map<const Unit*, const Unit*> found_targets = FindTargets(army->stalkers, {}, 2);
-				if (found_targets.size() == 0)
-				{
-					found_targets = FindTargets(army->stalkers, {}, 2);
-					std::cout << "extra distance\n";
-				}
-				PrintAttacks(found_targets);
-
-				for (const auto &stalker : army->stalkers)
-				{
-					if (found_targets.size() == 0)
-					{
-						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attacking_unit_positions[stalker]);
-					}
-					if (found_targets.count(stalker) > 0)
-					{
-						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, found_targets[stalker]);
-						army->attack_status[stalker] = true;
-					}
-					/*else
-					{
-						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army->attack_point);
-					}*/
-				}
-			}
-			else
-			{
-				for (const auto &stalker : army->stalkers)
-				{
-					int danger = IncomingDamage(stalker);
-					if (danger > 0)
-					{
-						bool using_blink = false;
-
-						if (danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
-						{
-							for (const auto &abiliy : Query()->GetAbilitiesForUnit(stalker).abilities)
-							{
-								if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
-								{
-									if (stalker->orders.size() > 0 && stalker->orders[0].ability_id == ABILITY_ID::ATTACK && stalker->weapon_cooldown == 0)
-										Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, army->retreat_point, 7), true); // TODO adjustable blink distance
-									else
-										Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, army->retreat_point, 7)); // TODO adjustable blink distance
-									Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army->attack_point, true);
-									army->attack_status[stalker] = false;
-									using_blink = true;
-									break;
-								}
-							}
-						}
-
-						if (!using_blink)
-							units_requesting_pickup[stalker] = danger;
-					}
-					if (army->attack_status[stalker] == false)
-					{
-						// no order but no danger so just move back
-						Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, retreating_unit_positions[stalker]);
-					}
-					else if (stalker->weapon_cooldown > 0)
-					{
-						// attack has gone off so reset order status
-						army->attack_status[stalker] = false;
-					}
-				}
-			}
-		}
-		PickUpUnits(units_requesting_pickup, army);
-	}
-
-	void TossBot::PickUpUnits(std::map<const Unit*, int> unit_danger_levels, ArmyGroup* army)
-	{
-		std::map<const Unit*, int> prism_free_slots;
-		for (const auto &prism : army->prisms)
-		{
-			int free_slots = prism->cargo_space_max - prism->cargo_space_taken;
-			if (free_slots > 0)
-				prism_free_slots[prism] = free_slots;
-		}
-		if (army->prisms.size() == 0 || prism_free_slots.size() == 0 || unit_danger_levels.size() == 0)
-			return;
-
-		Units units;
-		for (const auto &unit : unit_danger_levels)
-		{
-			units.push_back(unit.first);
-		}
-		// order units by priority
-		std::sort(units.begin(), units.end(),
-			[&unit_danger_levels](const Unit* a, const Unit* b) -> bool
-		{
-			int a_danger = unit_danger_levels[a];
-			int b_danger = unit_danger_levels[b];
-			// priority units
-
-			// higher danger vs hp/shields
-			if (a->shield + a->health <= a_danger)
-				return true;
-			if (b->shield + b->health <= b_danger)
-				return false;
-			return a_danger - a->shield > b_danger - b->shield;
-		});
-
-
-		// find prism to pick up each unit if there is space
-		for (const auto &unit : units)
-		{
-			int cargo_size = Utility::GetCargoSize(unit);
-			for (auto &prism : prism_free_slots)
-			{
-				if (prism.second < cargo_size || Distance2D(prism.first->pos, unit->pos) > 5)
-					continue;
-
-				army->attack_status[unit] = false;
-				if (unit->orders.size() > 0 && unit->orders[0].ability_id == ABILITY_ID::ATTACK && unit->weapon_cooldown == 0)
-					Actions()->UnitCommand(unit, ABILITY_ID::SMART, prism.first, true);
-				else
-					Actions()->UnitCommand(unit, ABILITY_ID::SMART, prism.first);
-				prism.second -= cargo_size;
-				break;
-			}
-		}
-	}
-
-	void TossBot::DodgeShots()
-	{
-		for (const auto &Funit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)))
-		{
-			int danger = IncomingDamage(Funit);
-			if (danger)
-			{
-				bool blink_ready = false;
-				for (const auto &abiliy : Query()->GetAbilitiesForUnit(Funit).abilities)
-				{
-					if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
-					{
-						blink_ready = true;
-						break;
-					}
-				}
-				if (blink_ready && (danger > Funit->shield || danger > (Funit->shield_max / 2)))
-				{
-					Actions()->UnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4));
-					Actions()->UnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), true);
-					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
-				}
-				else
-				{
-					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(255, 0, 0), 20);
-				}
-			}
-		}
-	}
-
 	void TossBot::SetUpArmies()
 	{
 		//test_army = ArmyGroup(Observation()->GetUnits(Unit::Alliance::Self), enemy_army_spawn, fallback_point);
@@ -823,7 +632,7 @@ namespace sc2 {
 		std::map<const Unit*, Point2D> unit_assignments;
 		for (const auto &unit : units)
 		{
-			Point2D closest = ClosestTo(positions, unit->pos);
+			Point2D closest = Utility::ClosestTo(positions, unit->pos);
 			unit_assignments[unit] = closest;
 			positions.erase(std::remove(positions.begin(), positions.end(), closest), positions.end());
 		}
@@ -867,128 +676,6 @@ namespace sc2 {
                 units.push_back(tag_to_unit[tag]);
         }
         return units;
-    }
-
-    const Unit* TossBot::ClosestTo(Units units, Point2D position)
-    {
-        const Unit* current_closest;
-        float current_distance = INFINITY;
-        for (const auto &unit : units)
-        {
-            float distance = Distance2D(unit->pos, position);
-            if (distance < current_distance)
-            {
-                current_closest = unit;
-                current_distance = distance;
-            }
-        }
-        if (units.size() == 0 || current_closest == NULL)
-        {
-            std::cout << "Error current closest is NULL\n";
-            return NULL;
-        }
-        return current_closest;
-    }
-
-    Point2D TossBot::ClosestTo(std::vector<Point2D> points, Point2D position)
-    {
-        Point2D current_closest;
-        float current_distance = INFINITY;
-        for (const auto &point : points)
-        {
-            float distance = Distance2D(point, position);
-            if (distance < current_distance)
-            {
-                current_closest = point;
-                current_distance = distance;
-            }
-        }
-        /*if (points.size() == 0 || current_closest == NULL)
-        {
-            std::cout << "Error current closest is NULL\n";
-            return NULL;
-        }*/
-        return current_closest;
-    }
-
-	const Unit* TossBot::FurthestFrom(Units units, Point2D position)
-	{
-		const Unit* current_furthest;
-		float current_distance = 0;
-		for (const auto &unit : units)
-		{
-			float distance = Distance2D(unit->pos, position);
-			if (distance > current_distance)
-			{
-				current_furthest = unit;
-				current_distance = distance;
-			}
-		}
-		if (units.size() == 0 || current_furthest == NULL)
-		{
-			std::cout << "Error current closest is NULL\n";
-			return NULL;
-		}
-		return current_furthest;
-	}
-
-    float TossBot::DistanceToClosest(Units units, Point2D position)
-    {
-        const Unit* closest_unit = ClosestTo(units, position);
-        if (closest_unit == NULL)
-            return INFINITY;
-        return Distance2D(closest_unit->pos, position);
-    }
-
-    float TossBot::DistanceToClosest(std::vector<Point2D> points, Point2D position)
-    {
-        const Point2D closest_point = ClosestTo(points, position);
-        return Distance2D(closest_point, position);
-    }
-
-	Point2D TossBot::ClosestPointOnLine(Point2D point, Point2D start, Point2D end)
-	{
-		// undefined / 0 slope
-		if (end.y - start.y == 0)
-			return Point2D(point.x, start.y);
-		if (end.x - start.x == 0)
-			return Point2D(start.x, point.y);
-
-		float line_slope = (end.y - start.y) / (end.x - start.x);
-		float perpendicular_slope = -1 / line_slope;
-
-		float coef1 = line_slope * start.x - start.y;
-		float coef2 = perpendicular_slope * point.x - point.y;
-
-		float x_pos = (coef1 - coef2) / (line_slope - perpendicular_slope);
-		float y_pos = line_slope * x_pos - coef1;
-
-		return Point2D(x_pos, y_pos);
-	}
-
-    Units TossBot::CloserThan(Units units, float distance, Point2D position)
-    {
-        Units close_units;
-        for (const auto &unit : units)
-        {
-            if (Distance2D(unit->pos, position) <= distance)
-            {
-                close_units.push_back(unit);
-            }
-        }
-        return close_units;
-    }
-
-    bool TossBot::HasBuff(const Unit *unit, BUFF_ID buffId)
-    {
-        for (const auto &buff : unit->buffs)
-        {
-            if (buff == buffId)
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
     std::vector<Point2D> TossBot::GetLocations(UNIT_TYPEID type)
@@ -1312,292 +999,6 @@ namespace sc2 {
     }
 
 
-    float TossBot::BuildingSize(UNIT_TYPEID buildingId)
-    {
-        if (buildingId == UNIT_TYPEID::PROTOSS_NEXUS)
-            return 2.5;
-        if (buildingId == UNIT_TYPEID::PROTOSS_PYLON || buildingId == UNIT_TYPEID::PROTOSS_SHIELDBATTERY || buildingId == UNIT_TYPEID::PROTOSS_PHOTONCANNON)
-            return 1;
-        return 1.5;
-    }
-
-    bool TossBot::CanBuildBuilding(UNIT_TYPEID buildingId)
-    {
-        if (CanAfford(buildingId, 1))
-        {
-            if (buildingId == UNIT_TYPEID::PROTOSS_GATEWAY)
-                return BuildingsReady(UNIT_TYPEID::PROTOSS_PYLON) > 0;
-            return true;
-        }
-        return false;
-    }
-
-    int TossBot::BuildingsReady(UNIT_TYPEID buildingId)
-    {
-        int ready = 0;
-        for (const auto &building : Observation()->GetUnits(IsUnit(buildingId)))
-        {
-            if (building->build_progress == 1)
-                ready++;
-        }
-        return ready;
-    }
-
-    ABILITY_ID TossBot::GetBuildAbility(UNIT_TYPEID buildingId)
-    {
-        switch (buildingId)
-        {
-        case UNIT_TYPEID::PROTOSS_PYLON:
-            return ABILITY_ID::BUILD_PYLON;
-        case UNIT_TYPEID::PROTOSS_NEXUS:
-            return ABILITY_ID::BUILD_NEXUS;
-        case UNIT_TYPEID::PROTOSS_GATEWAY:
-            return ABILITY_ID::BUILD_GATEWAY;
-        case UNIT_TYPEID::PROTOSS_FORGE:
-            return ABILITY_ID::BUILD_FORGE;
-        case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-            return ABILITY_ID::BUILD_CYBERNETICSCORE;
-        case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
-            return ABILITY_ID::BUILD_PHOTONCANNON;
-        case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
-            return ABILITY_ID::BUILD_SHIELDBATTERY;
-        case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
-            return ABILITY_ID::BUILD_TWILIGHTCOUNCIL;
-        case UNIT_TYPEID::PROTOSS_STARGATE:
-            return ABILITY_ID::BUILD_STARGATE;
-        case UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
-            return ABILITY_ID::BUILD_ROBOTICSFACILITY;
-        case UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
-            return ABILITY_ID::BUILD_ROBOTICSBAY;
-        case UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
-            return ABILITY_ID::BUILD_TEMPLARARCHIVE;
-        case UNIT_TYPEID::PROTOSS_DARKSHRINE:
-            return ABILITY_ID::BUILD_DARKSHRINE;
-        case UNIT_TYPEID::PROTOSS_FLEETBEACON:
-            return ABILITY_ID::BUILD_FLEETBEACON;
-        case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-            return ABILITY_ID::BUILD_ASSIMILATOR;
-        default:
-            std::cout << "Error invalid building id in GetBuildAbility";
-            return ABILITY_ID::BUILD_CANCEL;
-        }
-    }
-
-	ABILITY_ID TossBot::GetTrainAbility(UNIT_TYPEID unitId)
-	{
-		switch (unitId)
-		{
-		case UNIT_TYPEID::PROTOSS_PROBE:
-			return ABILITY_ID::TRAIN_PROBE;
-		case UNIT_TYPEID::PROTOSS_ZEALOT:
-			return ABILITY_ID::TRAIN_ZEALOT;
-		case UNIT_TYPEID::PROTOSS_ADEPT:
-			return ABILITY_ID::TRAIN_ADEPT;
-		case UNIT_TYPEID::PROTOSS_STALKER:
-			return ABILITY_ID::TRAIN_STALKER;
-		case UNIT_TYPEID::PROTOSS_SENTRY:
-			return ABILITY_ID::TRAIN_SENTRY;
-		case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
-			return ABILITY_ID::TRAIN_HIGHTEMPLAR;
-		case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
-			return ABILITY_ID::TRAIN_DARKTEMPLAR;
-		case UNIT_TYPEID::PROTOSS_IMMORTAL:
-			return ABILITY_ID::TRAIN_IMMORTAL;
-		case UNIT_TYPEID::PROTOSS_COLOSSUS:
-			return ABILITY_ID::TRAIN_COLOSSUS;
-		case UNIT_TYPEID::PROTOSS_DISRUPTOR:
-			return ABILITY_ID::TRAIN_DISRUPTOR;
-		case UNIT_TYPEID::PROTOSS_OBSERVER:
-			return ABILITY_ID::TRAIN_OBSERVER;
-		case UNIT_TYPEID::PROTOSS_WARPPRISM:
-			return ABILITY_ID::TRAIN_WARPPRISM;
-		case UNIT_TYPEID::PROTOSS_PHOENIX:
-			return ABILITY_ID::TRAIN_PHOENIX;
-		case UNIT_TYPEID::PROTOSS_VOIDRAY:
-			return ABILITY_ID::TRAIN_VOIDRAY;
-		case UNIT_TYPEID::PROTOSS_ORACLE:
-			return ABILITY_ID::TRAIN_ORACLE;
-		case UNIT_TYPEID::PROTOSS_CARRIER:
-			return ABILITY_ID::TRAIN_CARRIER;
-		case UNIT_TYPEID::PROTOSS_TEMPEST:
-			return ABILITY_ID::TRAIN_TEMPEST;
-		case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
-			return ABILITY_ID::TRAIN_MOTHERSHIP;
-		default:
-			std::cout << "Error invalid unit id in GetTrainAbility";
-			return ABILITY_ID::BUILD_CANCEL;
-		}
-	}
-
-    bool TossBot::CanAfford(UNIT_TYPEID unit, int amount)
-    {
-        UnitCost cost;
-        switch (unit)
-        {
-        case UNIT_TYPEID::PROTOSS_PYLON:
-            cost = UnitCost(100, 0, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_NEXUS:
-            cost = UnitCost(400, 0, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_GATEWAY:
-            cost = UnitCost(150, 0, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_FORGE:
-            cost = UnitCost(150, 0, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-            cost = UnitCost(150, 0, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
-            cost = UnitCost(150, 0, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
-            cost = UnitCost(100, 0, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
-            cost = UnitCost(150, 100, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_STARGATE:
-            cost = UnitCost(150, 150, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
-            cost = UnitCost(150, 100, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
-            cost = UnitCost(150, 150, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
-            cost = UnitCost(150, 200, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_DARKSHRINE:
-            cost = UnitCost(150, 150, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_FLEETBEACON:
-            cost = UnitCost(300, 200, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-            cost = UnitCost(75, 0, 0);
-            break;
-        case UNIT_TYPEID::PROTOSS_PROBE:
-            cost = UnitCost(50, 0, 1);
-            break;
-        case UNIT_TYPEID::PROTOSS_ZEALOT:
-            cost = UnitCost(100, 0, 2);
-            break;
-        case UNIT_TYPEID::PROTOSS_STALKER:
-            cost = UnitCost(125, 50, 2);
-            break;
-        case UNIT_TYPEID::PROTOSS_SENTRY:
-            cost = UnitCost(50, 150, 2);
-            break;
-        case UNIT_TYPEID::PROTOSS_ADEPT:
-            cost = UnitCost(100, 25, 2);
-            break;
-        case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
-            cost = UnitCost(50, 150, 2);
-            break;
-        case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
-            cost = UnitCost(125, 125, 2);
-            break;
-        case UNIT_TYPEID::PROTOSS_IMMORTAL:
-            cost = UnitCost(275, 100, 4);
-            break;
-        case UNIT_TYPEID::PROTOSS_COLOSSUS:
-            cost = UnitCost(300, 200, 6);
-            break;
-        case UNIT_TYPEID::PROTOSS_DISRUPTOR:
-            cost = UnitCost(150, 150, 3);
-            break;
-        case UNIT_TYPEID::PROTOSS_OBSERVER:
-            cost = UnitCost(25, 75, 1);
-            break;
-        case UNIT_TYPEID::PROTOSS_WARPPRISM:
-            cost = UnitCost(250, 0, 2);
-            break;
-        case UNIT_TYPEID::PROTOSS_PHOENIX:
-            cost = UnitCost(150, 100, 2);
-            break;
-        case UNIT_TYPEID::PROTOSS_VOIDRAY:
-            cost = UnitCost(250, 150, 4);
-            break;
-        case UNIT_TYPEID::PROTOSS_ORACLE:
-            cost = UnitCost(150, 150, 3);
-            break;
-        case UNIT_TYPEID::PROTOSS_CARRIER:
-            cost = UnitCost(350, 250, 6);
-            break;
-        case UNIT_TYPEID::PROTOSS_TEMPEST:
-            cost = UnitCost(250, 175, 5);
-            break;
-        case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
-            cost = UnitCost(400, 400, 8);
-            break;
-        default:
-            std::cout << "Error invalid unit id in CanAfford";
-            return false;
-        }
-        bool enough_minerals = Observation()->GetMinerals() >= cost.mineral_cost * amount;
-        bool enough_vespene = Observation()->GetVespene() >= cost.vespene_cost * amount;
-        bool enough_supply = Observation()->GetFoodCap() - Observation()->GetFoodUsed() >= cost.supply * amount;
-        return enough_minerals && enough_vespene && enough_supply;
-    }
-
-    bool TossBot::CanAffordUpgrade(UPGRADE_ID upgrade)
-    {
-        UnitCost cost;
-        switch (upgrade)
-        {
-        case UPGRADE_ID::WARPGATERESEARCH:
-            cost = UnitCost(50, 50, 0);
-            break;
-        case UPGRADE_ID::BLINKTECH:
-            cost = UnitCost(150, 150, 0);
-            break;
-        case UPGRADE_ID::CHARGE:
-            cost = UnitCost(100, 100, 0);
-            break;
-        case UPGRADE_ID::ADEPTPIERCINGATTACK:
-            cost = UnitCost(100, 100, 0);
-            break;
-        case UPGRADE_ID::DARKTEMPLARBLINKUPGRADE:
-            cost = UnitCost(100, 100, 0);
-            break;
-        case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1:
-            cost = UnitCost(100, 100, 0);
-            break;
-        case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2:
-            cost = UnitCost(150, 150, 0);
-            break;
-        case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL3:
-            cost = UnitCost(200, 200, 0);
-            break;
-        case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL1:
-            cost = UnitCost(100, 100, 0);
-            break;
-        case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL2:
-            cost = UnitCost(150, 150, 0);
-            break;
-        case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL3:
-            cost = UnitCost(200, 200, 0);
-            break;
-        case UPGRADE_ID::PROTOSSSHIELDSLEVEL1:
-            cost = UnitCost(150, 150, 0);
-            break;
-        case UPGRADE_ID::PROTOSSSHIELDSLEVEL2:
-            cost = UnitCost(225, 225, 0);
-            break;
-        case UPGRADE_ID::PROTOSSSHIELDSLEVEL3:
-            cost = UnitCost(300, 300, 0);
-            break;
-        default:
-            std::cout << "Error invalid upgrade id in CanAffordUpgrade";
-            return false;
-        }
-        bool enough_minerals = Observation()->GetMinerals() >= cost.mineral_cost;
-        bool enough_vespene = Observation()->GetVespene() >= cost.vespene_cost;
-        return enough_minerals && enough_vespene;
-    }
 
     std::string TossBot::BuildOrderToString(std::vector<BuildOrderData> build)
     {
@@ -1618,7 +1019,7 @@ namespace sc2 {
             if (step.result == &TossBot::BuildBuilding)
             {
                 step_string += " build ";
-                step_string += UnitTypeIdToString(step.result_arg.unitId);
+                step_string += Utility::UnitTypeIdToString(step.result_arg.unitId);
             }
             step_string += "\n";
             build_string += step_string;
@@ -1626,292 +1027,12 @@ namespace sc2 {
         return build_string;
     }
 
-    std::string TossBot::UnitTypeIdToString(UNIT_TYPEID typeId)
-    {
-        switch (typeId)
-        {
-        case UNIT_TYPEID::PROTOSS_PYLON: // protoss buildings
-            return "pylon";
-        case UNIT_TYPEID::PROTOSS_NEXUS:
-            return "nexus";
-        case UNIT_TYPEID::PROTOSS_GATEWAY:
-            return "gateway";
-        case UNIT_TYPEID::PROTOSS_WARPGATE:
-            return "warpgate";
-        case UNIT_TYPEID::PROTOSS_FORGE:
-            return "forge";
-        case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-            return "cybercore";
-        case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
-            return "photon cannon";
-        case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
-            return "shield battery";
-        case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
-            return "twilight";
-        case UNIT_TYPEID::PROTOSS_STARGATE:
-            return "stargate";
-        case UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
-            return "robo";
-        case UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
-            return "robo bay";
-        case UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
-            return "templar archives";
-        case UNIT_TYPEID::PROTOSS_DARKSHRINE:
-            return "dark shrine";
-        case UNIT_TYPEID::PROTOSS_FLEETBEACON:
-            return "fleet beacon";
-        case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-            return "assimilator";
-        case UNIT_TYPEID::PROTOSS_PROBE: // protoss units
-            return "probe";
-        case UNIT_TYPEID::PROTOSS_ZEALOT:
-            return "zealot";
-        case UNIT_TYPEID::PROTOSS_SENTRY:
-            return "sentry";
-        case UNIT_TYPEID::PROTOSS_STALKER:
-            return "stalker";
-        case UNIT_TYPEID::PROTOSS_ADEPT:
-            return "adept";
-        case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
-            return "high templar";
-        case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
-            return "dark templar";
-        case UNIT_TYPEID::PROTOSS_IMMORTAL:
-            return "immortal";
-        case UNIT_TYPEID::PROTOSS_COLOSSUS:
-            return "colossus";
-        case UNIT_TYPEID::PROTOSS_DISRUPTOR:
-            return "disruptor";
-        case UNIT_TYPEID::PROTOSS_OBSERVER:
-            return "observer";
-        case UNIT_TYPEID::PROTOSS_WARPPRISM:
-            return "warp prism";
-        case UNIT_TYPEID::PROTOSS_PHOENIX:
-            return "phoenis";
-        case UNIT_TYPEID::PROTOSS_VOIDRAY:
-            return "void ray";
-        case UNIT_TYPEID::PROTOSS_ORACLE:
-            return "oracle";
-        case UNIT_TYPEID::PROTOSS_CARRIER:
-            return "carrier";
-        case UNIT_TYPEID::PROTOSS_TEMPEST:
-            return "tempest";
-        case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
-            return "mothership";
-        case UNIT_TYPEID::TERRAN_COMMANDCENTER: // terran buildings
-            return "command center";
-        case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
-            return "planetary forttress";
-        case UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
-            return "orbital command";
-        case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
-            return "supply depot";
-        case UNIT_TYPEID::TERRAN_REFINERY:
-            return "refinery";
-        case UNIT_TYPEID::TERRAN_BARRACKS:
-            return "barracks";
-        case UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
-            return "engineering bay";
-        case UNIT_TYPEID::TERRAN_BUNKER:
-            return "bunker";
-        case UNIT_TYPEID::TERRAN_SENSORTOWER:
-            return "sensor tower";
-        case UNIT_TYPEID::TERRAN_MISSILETURRET:
-            return "missile turret";
-        case UNIT_TYPEID::TERRAN_FACTORY:
-            return "factory";
-        case UNIT_TYPEID::TERRAN_GHOSTACADEMY:
-            return "ghost academy";
-        case UNIT_TYPEID::TERRAN_STARPORT:
-            return "starport";
-        case UNIT_TYPEID::TERRAN_ARMORY:
-            return "armory";
-        case UNIT_TYPEID::TERRAN_FUSIONCORE:
-            return "fusion core";
-        case UNIT_TYPEID::TERRAN_TECHLAB:
-            return "teck lab";
-        case UNIT_TYPEID::TERRAN_REACTOR:
-            return "reactor";
-        case UNIT_TYPEID::TERRAN_SCV:
-            return "SCV";
-        case UNIT_TYPEID::TERRAN_MULE:
-            return "MULE";
-        case UNIT_TYPEID::TERRAN_MARINE: // terran units
-            return "marine";
-        case UNIT_TYPEID::TERRAN_MARAUDER:
-            return "marauder";
-        case UNIT_TYPEID::TERRAN_REAPER:
-            return "reaper";
-        case UNIT_TYPEID::TERRAN_GHOST:
-            return "ghost";
-        case UNIT_TYPEID::TERRAN_HELLION:
-            return "hellion";
-        case UNIT_TYPEID::TERRAN_HELLIONTANK:
-            return "hellbat";
-        case UNIT_TYPEID::TERRAN_SIEGETANK:
-            return "siege tank";
-        case UNIT_TYPEID::TERRAN_CYCLONE:
-            return "cyclone";
-        case UNIT_TYPEID::TERRAN_WIDOWMINE:
-            return "widow mine";
-        case UNIT_TYPEID::TERRAN_THOR:
-            return "thor";
-        case UNIT_TYPEID::TERRAN_AUTOTURRET:
-            return "auto turret";
-        case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
-            return "viking assault";
-        case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
-            return "viking fighter";
-        case UNIT_TYPEID::TERRAN_MEDIVAC:
-            return "medivac";
-        case UNIT_TYPEID::TERRAN_LIBERATOR:
-            return "liberator";
-        case UNIT_TYPEID::TERRAN_RAVEN:
-            return "raven";
-        case UNIT_TYPEID::TERRAN_BANSHEE:
-            return "banshee";
-        case UNIT_TYPEID::TERRAN_BATTLECRUISER:
-            return "battlecruiser";
-        case UNIT_TYPEID::ZERG_HATCHERY: // zerg buildings
-            return "hatchery";
-        case UNIT_TYPEID::ZERG_LAIR:
-            return "lair";
-        case UNIT_TYPEID::ZERG_HIVE:
-            return "hive";
-        case UNIT_TYPEID::ZERG_SPINECRAWLER:
-            return "spine crawler";
-        case UNIT_TYPEID::ZERG_SPORECRAWLER:
-            return "spore crawler";
-        case UNIT_TYPEID::ZERG_EXTRACTOR:
-            return "extractor";
-        case UNIT_TYPEID::ZERG_SPAWNINGPOOL:
-            return "spawning pool";
-        case UNIT_TYPEID::ZERG_EVOLUTIONCHAMBER:
-            return "evolution chamber";
-        case UNIT_TYPEID::ZERG_ROACHWARREN:
-            return "roach warren";
-        case UNIT_TYPEID::ZERG_BANELINGNEST:
-            return "baneling next";
-        case UNIT_TYPEID::ZERG_HYDRALISKDEN:
-            return "hydralisk den";
-        case UNIT_TYPEID::ZERG_LURKERDENMP:
-            return "lurker den";
-        case UNIT_TYPEID::ZERG_INFESTATIONPIT:
-            return "infestation pit";
-        case UNIT_TYPEID::ZERG_SPIRE:
-            return "spire";
-        case UNIT_TYPEID::ZERG_GREATERSPIRE:
-            return "greater spire";
-        case UNIT_TYPEID::ZERG_NYDUSNETWORK:
-            return "nydus network";
-        case UNIT_TYPEID::ZERG_ULTRALISKCAVERN:
-            return "ultralisk cavern";
-        case UNIT_TYPEID::ZERG_LARVA: // zerg units
-            return "larva";
-        case UNIT_TYPEID::ZERG_EGG:
-            return "egg";
-        case UNIT_TYPEID::ZERG_DRONE:
-            return "drone";
-        case UNIT_TYPEID::ZERG_QUEEN:
-            return "queen";
-        case UNIT_TYPEID::ZERG_ZERGLING:
-            return "zergling";
-        case UNIT_TYPEID::ZERG_BANELING:
-            return "baneling";
-        case UNIT_TYPEID::ZERG_ROACH:
-            return "roach";
-        case UNIT_TYPEID::ZERG_RAVAGER:
-            return "ravager";
-        case UNIT_TYPEID::ZERG_HYDRALISK:
-            return "hydralisk";
-        case UNIT_TYPEID::ZERG_LURKERMP:
-            return "lurker";
-        case UNIT_TYPEID::ZERG_INFESTOR:
-            return "infestor";
-        case UNIT_TYPEID::ZERG_SWARMHOSTMP:
-            return "swarm host";
-        case UNIT_TYPEID::ZERG_ULTRALISK:
-            return "ultralisk";
-        case UNIT_TYPEID::ZERG_OVERLORD:
-            return "overlord";
-        case UNIT_TYPEID::ZERG_OVERSEER:
-            return "overseer";
-        case UNIT_TYPEID::ZERG_MUTALISK:
-            return "mutalisk";
-        case UNIT_TYPEID::ZERG_CORRUPTOR:
-            return "corruptor";
-        case UNIT_TYPEID::ZERG_BROODLORD:
-            return "broodlord";
-        case UNIT_TYPEID::ZERG_VIPER:
-            return "viper";
-        case UNIT_TYPEID::ZERG_LOCUSTMP:
-            return "locust";
-        case UNIT_TYPEID::ZERG_BROODLING:
-            return "broodling";
-        case UNIT_TYPEID::ZERG_TRANSPORTOVERLORDCOCOON:
-            return "dropperlord cocoon";
-        case UNIT_TYPEID::ZERG_BANELINGCOCOON:
-            return "baneling cocoon";
-        case UNIT_TYPEID::ZERG_BROODLORDCOCOON:
-            return "broodlord cocoon";
-        case UNIT_TYPEID::ZERG_OVERLORDCOCOON:
-            return "overseer cocoon";
-        case UNIT_TYPEID::ZERG_RAVAGERCOCOON:
-            return "ravager cocoon";
-        case UNIT_TYPEID::ZERG_LURKERMPEGG:
-            return "lurker cocoon";
-        default:
-            std::cout << "Error invalid typeId in UnitTypeIdToString";
-            return "Error invalid abilityId in UnitTypeIdToString";
-            break;
-        }
-    }
-
-    std::string TossBot::AbilityIdToString(ABILITY_ID abilityId)
-    {
-        switch (abilityId)
-        {
-        case ABILITY_ID::TRAIN_PROBE:
-            return "train probe";
-        case ABILITY_ID::TRAIN_ZEALOT:
-            return "train zealot";
-        case ABILITY_ID::TRAIN_ADEPT:
-            return "train adept";
-        case ABILITY_ID::TRAIN_STALKER:
-            return "train stalker";
-        case ABILITY_ID::TRAIN_SENTRY:
-            return "train sentry";
-        case ABILITY_ID::TRAIN_IMMORTAL:
-            return "train immortal";
-        case ABILITY_ID::TRAIN_OBSERVER:
-            return "train observer";
-        case ABILITY_ID::TRAIN_WARPPRISM:
-            return "train warpprism";
-        case ABILITY_ID::RESEARCH_WARPGATE:
-            return "research warpgate";
-        case ABILITY_ID::RESEARCH_BLINK:
-            return "research blink";
-        case ABILITY_ID::RESEARCH_CHARGE:
-            return "research charge";
-        case ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS:
-            return "research ground attack";
-        case ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1:
-            return "research +1 attack";
-        case ABILITY_ID::MORPH_WARPGATE:
-            return "morph into warpgate";
-        default:
-            std::cout << "Error invalid abilityId in AbilityIdToString\n";
-            return "Error invalid abilityId in AbilityIdToString";
-            break;
-        }
-    }
-
     std::string TossBot::OrdersToString(std::vector<UnitOrder> orders)
     {
         std::string text = "";
         for (const auto &order : orders)
         {
-            text += AbilityIdToString(order.ability_id);
+            text += Utility::AbilityIdToString(order.ability_id);
             int percent = floor(order.progress * 10);
             std::string completed(percent, '|');
             std::string todo(10 - percent, '-');
@@ -1930,7 +1051,7 @@ namespace sc2 {
                 for (int j = -7; j <= 6; j += 1)
                 {
                     Point2D pos = Point2D(pylon->pos.x + i + .5, pylon->pos.y + j + .5);
-                    if (Distance2D(pos, pylon->pos) <= 6 && DistanceToClosest(Observation()->GetUnits(), pos) > 1.5)
+                    if (Distance2D(pos, pylon->pos) <= 6 && Utility::DistanceToClosest(Observation()->GetUnits(), pos) > 1.5)
                     {
                         bool blocked = false;
                         for (const auto &building : Observation()->GetUnits(IsBuilding()))
@@ -1975,7 +1096,7 @@ namespace sc2 {
                 for (int j = -4; j <= 4; j += 1)
                 {
                     Point2D pos = Point2D(prism->pos.x + i + .5, prism->pos.y + j + .5);
-                    if (Observation()->IsPathable(pos) && Distance2D(pos, prism->pos) <= 3.75 && DistanceToClosest(Observation()->GetUnits(), pos) > 1)
+                    if (Observation()->IsPathable(pos) && Distance2D(pos, prism->pos) <= 3.75 && Utility::DistanceToClosest(Observation()->GetUnits(), pos) > 1)
                     {
                         spots.push_back(pos);
                     }
@@ -2001,7 +1122,7 @@ namespace sc2 {
                 for (int j = -6; j <= 6; j += 2)
                 {
                     Point2D pos = Point2D(pylon_pos.x + i + .5, pylon_pos.y + j + .5);
-                    if (Observation()->IsPathable(pos) && Distance2D(pos, pylon_pos) <= 6 && DistanceToClosest(Observation()->GetUnits(), pos) > 1)
+                    if (Observation()->IsPathable(pos) && Distance2D(pos, pylon_pos) <= 6 && Utility::DistanceToClosest(Observation()->GetUnits(), pos) > 1)
                         spots.push_back(pos);
                 }
             }
@@ -2009,21 +1130,10 @@ namespace sc2 {
         return spots;
     }
 
-    const Unit* TossBot::GetLeastFullPrism(Units units)
-    {
-        const Unit* least_full = NULL;
-        for (const auto &unit : units)
-        {
-            if (least_full == NULL || unit->cargo_space_taken < least_full->cargo_space_taken)
-                least_full = unit;
-        }
-        return least_full;
-    }
-
     void TossBot::OraclesCoverStalkers(Units stalkers, Units oracles)
     {
         Point2D center = Utility::MedianCenter(stalkers);
-        bool danger = Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && DistanceToClosest(Observation()->GetUnits(Unit::Alliance::Enemy), center) < 5;
+        bool danger = Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(Observation()->GetUnits(Unit::Alliance::Enemy), center) < 5;
         
         for (const auto &oracle : oracles)
         {
@@ -2034,7 +1144,7 @@ namespace sc2 {
                     if (ability.ability_id.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMON)
                         Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
                 }
-                const Unit* closest_unit = ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), oracle->pos);
+                const Unit* closest_unit = Utility::ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), oracle->pos);
                 if (oracle->orders.size() == 0 || oracle->orders[0].ability_id.ToType() == ABILITY_ID::GENERAL_MOVE)
                 {
                     Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK, closest_unit, false);
@@ -2203,11 +1313,11 @@ for (const auto &field : far_oversaturated_patches)
         const Unit* closest;
         if (far_only_mineral_patches_reversed_keys.size() > 0)
         {
-            closest = ClosestTo(far_only_mineral_patches_reversed_keys, position);
+            closest = Utility::ClosestTo(far_only_mineral_patches_reversed_keys, position);
         }
         if (mineral_patches_reversed_keys.size() > 0)
         {
-            const Unit* c = ClosestTo(mineral_patches_reversed_keys, position);
+            const Unit* c = Utility::ClosestTo(mineral_patches_reversed_keys, position);
             if (Distance2D(closest->pos, position) < Distance2D(c->pos, position) * 1.2)
                 return closest;
             else
@@ -2325,7 +1435,7 @@ for (const auto &field : far_oversaturated_patches)
         assimilators[gas].workers[index] = worker;
         Point2D assimilator_position = gas->pos;
         Units townhalls = observation->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
-        const Unit* closest_nexus = ClosestTo(townhalls, assimilator_position);
+        const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
         Point2D vector = assimilator_position - closest_nexus->pos;
         Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
         Point2D drop_off_point = closest_nexus->pos + normal_vector * 2;
@@ -2346,7 +1456,7 @@ for (const auto &field : far_oversaturated_patches)
         }
         Point2D assimilator_position = gas->pos;
         Units townhalls = observation->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
-        const Unit* closest_nexus = ClosestTo(townhalls, assimilator_position);
+        const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
         Point2D vector = assimilator_position - closest_nexus->pos;
         Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
         Point2D drop_off_point = closest_nexus->pos + normal_vector * 2;
@@ -2368,7 +1478,7 @@ for (const auto &field : far_oversaturated_patches)
         mineral_patches[mineral].workers[index] = worker;
         Point2D mineral_position = mineral->pos;
         Units townhalls = observation->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
-        const Unit* closest_nexus = ClosestTo(townhalls, mineral_position);
+        const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
         Point2D vector = mineral_position - closest_nexus->pos;
         Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
         Point2D drop_off_point = closest_nexus->pos + normal_vector * 2;
@@ -2389,7 +1499,7 @@ for (const auto &field : far_oversaturated_patches)
         }
         Point2D mineral_position = mineral->pos;
         Units townhalls = observation->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
-        const Unit* closest_nexus = ClosestTo(townhalls, mineral_position);
+        const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
         Point2D vector = mineral_position - closest_nexus->pos;
         Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
         Point2D drop_off_point = closest_nexus->pos + normal_vector * 2;
@@ -2543,7 +1653,7 @@ for (const auto &field : far_oversaturated_patches)
         }
         for (const auto &patch : patches)
         {
-            const Unit* closest_worker = ClosestTo(workers, patch->pos);
+            const Unit* closest_worker = Utility::ClosestTo(workers, patch->pos);
             PlaceWorkerOnMinerals(closest_worker, patch, 0);
             for (mineral_patch_space* &space : first_2_mineral_patch_spaces)
             {
@@ -2559,7 +1669,7 @@ for (const auto &field : far_oversaturated_patches)
         {
             if (patch->mineral_contents == 1800)
             {
-                const Unit* closest_worker = ClosestTo(workers, patch->pos);
+                const Unit* closest_worker = Utility::ClosestTo(workers, patch->pos);
                 PlaceWorkerOnMinerals(closest_worker, patch, 1);
                 for (mineral_patch_space* &space : first_2_mineral_patch_spaces)
                 {
@@ -2595,7 +1705,7 @@ for (const auto &field : far_oversaturated_patches)
     void TossBot::AddNewBase(const Unit *nexus)
     {
         Units minerals = Observation()->GetUnits(IsMineralPatch());
-        Units close_minerals = CloserThan(minerals, 10, nexus->pos);
+        Units close_minerals = Utility::CloserThan(minerals, 10, nexus->pos);
         for (const auto &mineral_field : close_minerals)
         {
             if (mineral_field->display_type == Unit::Snapshot)
@@ -2631,8 +1741,8 @@ for (const auto &field : far_oversaturated_patches)
             if (IsCarryingMinerals(*worker))
             {
                 // close to nexus then return the mineral
-                Point2D closest_nexus = ClosestTo(Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
-                if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || CloserThan(workers, .75, worker->pos).size() > 1)
+                Point2D closest_nexus = Utility::ClosestTo(Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
+                if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
                 {
                     Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_RETURN_PROBE);
                     continue;
@@ -2662,7 +1772,7 @@ for (const auto &field : far_oversaturated_patches)
                 const Unit *mineral_patch = mineral_patches_reversed[worker].mineral_tag;
                 if (mineral_patch != NULL)
                 {
-                    if (DistanceSquared2D(worker->pos, mineral_patch->pos) < 4 || CloserThan(workers, .75, worker->pos).size() > 1)
+                    if (DistanceSquared2D(worker->pos, mineral_patch->pos) < 4 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
                     {
                         if (worker->orders.size() == 0 || worker->orders[0].target_unit_tag != mineral_patch->tag)
                         {
@@ -2712,8 +1822,8 @@ for (const auto &field : far_oversaturated_patches)
             else if (IsCarryingVespene(*worker))
             {
                 // close to nexus then return the vespene
-                Point2D closest_nexus = ClosestTo(Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
-                if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || CloserThan(workers, .75, worker->pos).size() > 1)
+                Point2D closest_nexus = Utility::ClosestTo(Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
+                if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
                 {
                     Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_RETURN_PROBE);
                     continue;
@@ -2740,7 +1850,7 @@ for (const auto &field : far_oversaturated_patches)
                 const Unit *assimilator = assimilators_reversed[worker].assimilator_tag;
                 if (assimilator != NULL)
                 {
-                    if (DistanceSquared2D(worker->pos, assimilator->pos) < 4 || CloserThan(workers, .75, worker->pos).size() > 1)
+                    if (DistanceSquared2D(worker->pos, assimilator->pos) < 4 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
                     {
                         if (worker->orders.size() == 0 || worker->orders[0].target_unit_tag != assimilator->tag)
                         {
@@ -3069,7 +2179,7 @@ for (const auto &field : far_oversaturated_patches)
 		while (true)
 		{
 			std::vector<Point2D> concave_points = FindConcave(current_origin, fallback_point, num_units, unit_size, dispersion);
-			Point2D furthest_back = ClosestPointOnLine(concave_points.back(), origin, fallback_point);
+			Point2D furthest_back = Utility::ClosestPointOnLine(concave_points.back(), origin, fallback_point);
 			if (Distance2D(origin, fallback_point) < Distance2D(furthest_back, fallback_point))
 				return concave_points;
 			current_origin = Utility::PointBetween(current_origin, fallback_point, -(unit_size + dispersion));
@@ -3320,20 +2430,20 @@ for (const auto &field : far_oversaturated_patches)
                 return true;
             }
         }
-        if (Distance2D(builder->pos, pos) < BuildingSize(buildingId) + 1 && CanBuildBuilding(buildingId))
+        if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && Utility::CanBuildBuilding(buildingId, Observation()))
         {
             if (buildingId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
             {
                 std::vector<UNIT_TYPEID> gas_types = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
-                const Unit *gas = ClosestTo(Observation()->GetUnits(IsUnits(gas_types)), pos);
+                const Unit *gas = Utility::ClosestTo(Observation()->GetUnits(IsUnits(gas_types)), pos);
                 Actions()->UnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas);
             }
             else
             {
-                Actions()->UnitCommand(builder, GetBuildAbility(buildingId), pos);
+                Actions()->UnitCommand(builder, Utility::GetBuildAbility(buildingId), pos);
             }
         }
-        else if (Distance2D(builder->pos, pos) > BuildingSize(buildingId))
+        else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
         {
             Actions()->UnitCommand(builder, ABILITY_ID::MOVE_MOVE, pos);
         }
@@ -3363,20 +2473,20 @@ for (const auto &field : far_oversaturated_patches)
                 return true;
             }
         }
-        if (Distance2D(builder->pos, pos) < BuildingSize(buildingId) + 1 && CanBuildBuilding(buildingId))
+        if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && Utility::CanBuildBuilding(buildingId, Observation()))
         {
             if (buildingId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
             {
                 std::vector<UNIT_TYPEID> gas_types = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
-                const Unit *gas = ClosestTo(Observation()->GetUnits(IsUnits(gas_types)), pos);
+                const Unit *gas = Utility::ClosestTo(Observation()->GetUnits(IsUnits(gas_types)), pos);
                 Actions()->UnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas);
             }
             else
             {
-                Actions()->UnitCommand(builder, GetBuildAbility(buildingId), pos);
+                Actions()->UnitCommand(builder, Utility::GetBuildAbility(buildingId), pos);
             }
         }
-        else if (Distance2D(builder->pos, pos) > BuildingSize(buildingId))
+        else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
         {
             Actions()->UnitCommand(builder, ABILITY_ID::GENERAL_MOVE, pos);
         }
@@ -3406,20 +2516,20 @@ for (const auto &field : far_oversaturated_patches)
 				return true;
 			}
 		}
-		if (Distance2D(builder->pos, pos) < BuildingSize(buildingId) + 1 && CanBuildBuilding(buildingId))
+		if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && Utility::CanBuildBuilding(buildingId, Observation()))
 		{
 			if (buildingId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
 			{
 				std::vector<UNIT_TYPEID> gas_types = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
-				const Unit *gas = ClosestTo(Observation()->GetUnits(IsUnits(gas_types)), pos);
+				const Unit *gas = Utility::ClosestTo(Observation()->GetUnits(IsUnits(gas_types)), pos);
 				Actions()->UnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas);
 			}
 			else
 			{
-				Actions()->UnitCommand(builder, GetBuildAbility(buildingId), pos);
+				Actions()->UnitCommand(builder, Utility::GetBuildAbility(buildingId), pos);
 			}
 		}
-		else if (Distance2D(builder->pos, pos) > BuildingSize(buildingId))
+		else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 		{
 			Actions()->UnitCommand(builder, ABILITY_ID::GENERAL_MOVE, pos);
 		}
@@ -3524,7 +2634,7 @@ for (const auto &field : far_oversaturated_patches)
             {
                 if (ability.ability_id == ABILITY_ID::TRAINWARP_ZEALOT)
                 {
-                    if (CanAfford(UNIT_TYPEID::PROTOSS_STALKER, 1))
+                    if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, 1, Observation()))
                     {
                         Actions()->UnitCommand(warpgate, ABILITY_ID::TRAINWARP_STALKER, possible_spots.back());
                         possible_spots.pop_back();
@@ -3546,11 +2656,11 @@ for (const auto &field : far_oversaturated_patches)
 
         if (robo->build_progress == 1 && robo->orders.size() == 0)
         {
-            if (num_prisms == 0 && CanAfford(UNIT_TYPEID::PROTOSS_WARPPRISM, 1))
+            if (num_prisms == 0 && Utility::CanAfford(UNIT_TYPEID::PROTOSS_WARPPRISM, 1, Observation()))
                 Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
-            else if (num_obs == 0 && CanAfford(UNIT_TYPEID::PROTOSS_OBSERVER, 1))
+            else if (num_obs == 0 && Utility::CanAfford(UNIT_TYPEID::PROTOSS_OBSERVER, 1, Observation()))
                 Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_OBSERVER);
-            else if (CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1))
+            else if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1, Observation()))
                 Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL);
         }
         return false;
@@ -3574,7 +2684,7 @@ for (const auto &field : far_oversaturated_patches)
         {
             if (observers.size() > 0)
             {
-                if (DistanceToClosest(observers, attack_point) < 10)
+                if (Utility::DistanceToClosest(observers, attack_point) < 10)
                     obs_in_position = true;
                 ObserveAttackPath(observers, retreat_point, attack_point);
             }
@@ -3624,7 +2734,7 @@ for (const auto &field : far_oversaturated_patches)
         {
             if (observers.size() > 0)
             {
-                if (DistanceToClosest(observers, attack_point) < 10)
+                if (Utility::DistanceToClosest(observers, attack_point) < 10)
                     obs_in_position = true;
                 ObserveAttackPath(observers, retreat_point, attack_point);
             }
@@ -3676,7 +2786,7 @@ for (const auto &field : far_oversaturated_patches)
                 break;
             }
         }
-        if (all_gates_ready && CanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates.size()))
+        if (all_gates_ready && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates.size(), Observation()))
         {
             std::vector<Point2D> spots = FindWarpInSpots(Observation()->GetGameInfo().enemy_start_locations[0]);
             if (spots.size() >= gates.size())
@@ -3713,7 +2823,7 @@ for (const auto &field : far_oversaturated_patches)
                 break;
             }
         }
-        if (gates.size() > 0 && all_gates_ready && CanAfford(UNIT_TYPEID::PROTOSS_ZEALOT, gates.size()))
+        if (gates.size() > 0 && all_gates_ready && Utility::CanAfford(UNIT_TYPEID::PROTOSS_ZEALOT, gates.size(), Observation()))
         {
             std::vector<Point2D> spots = FindWarpInSpots(Observation()->GetGameInfo().enemy_start_locations[0]);
             if (spots.size() >= gates.size())
@@ -3816,18 +2926,18 @@ for (const auto &field : far_oversaturated_patches)
 			{
 				if (data->unitIds.size() == 0)
 				{
-					if (CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1))
+					if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1, Observation()))
 						Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL);
 				}
-				else if (CanAfford(data->unitIds[0], 1))
+				else if (Utility::CanAfford(data->unitIds[0], 1, Observation()))
 				{
-					Actions()->UnitCommand(robo, GetTrainAbility(data->unitIds[0]));
+					Actions()->UnitCommand(robo, Utility::GetTrainAbility(data->unitIds[0]));
 					data->unitIds.erase(data->unitIds.begin());
 				}
 			}
 			else if (robo->orders[0].ability_id == ABILITY_ID::TRAIN_IMMORTAL)
 			{
-				if (HasBuff(robo, BUFF_ID::CHRONOBOOSTENERGYCOST))
+				if (Utility::HasBuff(robo, BUFF_ID::CHRONOBOOSTENERGYCOST))
 					continue;
 
 				for (const auto &nexus : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
@@ -3863,7 +2973,7 @@ for (const auto &field : far_oversaturated_patches)
 		{
 			if (observers.size() > 0)
 			{
-				if (DistanceToClosest(observers, attack_point) < 10)
+				if (Utility::DistanceToClosest(observers, attack_point) < 10)
 					obs_in_position = true;
 				ObserveAttackPath(observers, retreat_point, attack_point);
 			}
@@ -4108,7 +3218,7 @@ for (const auto &field : far_oversaturated_patches)
 
     bool TossBot::TrainStalker(BuildOrderResultArgData data)
     {
-        if (CanAfford(UNIT_TYPEID::PROTOSS_STALKER, 1))
+        if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, 1, Observation()))
         {
             for (const auto &gateway : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)))
             {
@@ -4130,7 +3240,7 @@ for (const auto &field : far_oversaturated_patches)
 
     bool TossBot::TrainAdept(BuildOrderResultArgData data)
     {
-        if (CanAfford(UNIT_TYPEID::PROTOSS_ADEPT, 1))
+        if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_ADEPT, 1, Observation()))
         {
             for (const auto &gateway : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)))
             {
@@ -4152,7 +3262,7 @@ for (const auto &field : far_oversaturated_patches)
 
     bool TossBot::TrainOracle(BuildOrderResultArgData data)
     {
-        if (CanAfford(UNIT_TYPEID::PROTOSS_ORACLE, 1))
+        if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_ORACLE, 1, Observation()))
         {
             for (const auto &stargate : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
             {
@@ -4174,7 +3284,7 @@ for (const auto &field : far_oversaturated_patches)
 
     bool TossBot::TrainPrism(BuildOrderResultArgData data)
     {
-        if (CanAfford(UNIT_TYPEID::PROTOSS_WARPPRISM, 1))
+        if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_WARPPRISM, 1, Observation()))
         {
             for (const auto &robo : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
             {
@@ -4220,7 +3330,7 @@ for (const auto &field : far_oversaturated_patches)
     {
         for (const auto &cyber : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)))
         {
-            if (CanAffordUpgrade(UPGRADE_ID::WARPGATERESEARCH))
+            if (Utility::CanAffordUpgrade(UPGRADE_ID::WARPGATERESEARCH, Observation()))
             {
                 Actions()->UnitCommand(cyber, ABILITY_ID::RESEARCH_WARPGATE);
                 return true;
@@ -4233,7 +3343,7 @@ for (const auto &field : far_oversaturated_patches)
     {
         for (const auto &twilight : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)))
         {
-            if (CanAffordUpgrade(UPGRADE_ID::BLINKTECH) && twilight->orders.size() == 0)
+            if (Utility::CanAffordUpgrade(UPGRADE_ID::BLINKTECH, Observation()) && twilight->orders.size() == 0)
             {
                 Actions()->UnitCommand(twilight, ABILITY_ID::RESEARCH_BLINK);
                 return true;
@@ -4246,7 +3356,7 @@ for (const auto &field : far_oversaturated_patches)
     {
         for (const auto &twilight : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)))
         {
-            if (CanAffordUpgrade(UPGRADE_ID::CHARGE) && twilight->orders.size() == 0)
+            if (Utility::CanAffordUpgrade(UPGRADE_ID::CHARGE, Observation()) && twilight->orders.size() == 0)
             {
                 Actions()->UnitCommand(twilight, ABILITY_ID::RESEARCH_CHARGE);
                 return true;
@@ -4259,7 +3369,7 @@ for (const auto &field : far_oversaturated_patches)
     {
         for (const auto &twilight : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)))
         {
-            if (CanAffordUpgrade(UPGRADE_ID::ADEPTPIERCINGATTACK) && twilight->orders.size() == 0)
+            if (Utility::CanAffordUpgrade(UPGRADE_ID::ADEPTPIERCINGATTACK, Observation()) && twilight->orders.size() == 0)
             {
                 Actions()->UnitCommand(twilight, ABILITY_ID::RESEARCH_ADEPTRESONATINGGLAIVES);
                 return true;
@@ -4272,7 +3382,7 @@ for (const auto &field : far_oversaturated_patches)
     {
         for (const auto &dark_shrine : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_DARKSHRINE)))
         {
-            if (CanAffordUpgrade(UPGRADE_ID::DARKTEMPLARBLINKUPGRADE) && dark_shrine->orders.size() == 0)
+            if (Utility::CanAffordUpgrade(UPGRADE_ID::DARKTEMPLARBLINKUPGRADE, Observation()) && dark_shrine->orders.size() == 0)
             {
                 Actions()->UnitCommand(dark_shrine, ABILITY_ID::RESEARCH_SHADOWSTRIKE);
                 return true;
@@ -4285,7 +3395,7 @@ for (const auto &field : far_oversaturated_patches)
     {
         for (const auto &forge : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
         {
-            if (CanAffordUpgrade(UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1))
+            if (Utility::CanAffordUpgrade(UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1, Observation()))
             {
                 Actions()->UnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1);
                 return true;
@@ -4348,7 +3458,7 @@ for (const auto &field : far_oversaturated_patches)
             std::vector<const Unit*> proxy_robos;
             for (const auto &robo : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
             {
-                if (DistanceToClosest(GetProxyLocations(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY), robo->pos) < 2)
+                if (Utility::DistanceToClosest(GetProxyLocations(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY), robo->pos) < 2)
                 {
                     active_actions.push_back(new ActionData(&TossBot::ActionTrainFromProxyRobo, new ActionArgData(robo)));
                     return true;
@@ -4365,7 +3475,7 @@ for (const auto &field : far_oversaturated_patches)
             std::vector<const Unit*> proxy_robos;
             for (const auto &robo : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
             {
-                if (DistanceToClosest(GetProxyLocations(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY), robo->pos) < 2)
+                if (Utility::DistanceToClosest(GetProxyLocations(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY), robo->pos) < 2)
                 {
                     active_actions.push_back(new ActionData(&TossBot::ActionConstantChrono, new ActionArgData(robo)));
                     return true;
@@ -4438,7 +3548,7 @@ for (const auto &field : far_oversaturated_patches)
                 break;
             }
         }
-        if (gates.size() > 0 && gates_ready >= warp_ins && CanAfford(type, warp_ins))
+        if (gates.size() > 0 && gates_ready >= warp_ins && Utility::CanAfford(type, warp_ins, Observation()))
         {
             std::vector<Point2D> spots = FindWarpInSpots(Observation()->GetGameInfo().enemy_start_locations[0]);
             if (spots.size() >= warp_ins)
@@ -5242,17 +4352,17 @@ for (const auto &field : far_oversaturated_patches)
             {
                 if (Utility::DangerLevel(stalker, Observation()) > stalker->shield && blink_ready)
                     Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK_STALKER, Utility::PointBetween(stalker->pos, retreat_point, 4));
-                else if (close_enemies.size() > 0 && DistanceToClosest(close_enemies, stalker->pos) - 2 < Utility::RealGroundRange(stalker, ClosestTo(close_enemies, stalker->pos)))
+                else if (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, stalker->pos) - 2 < Utility::RealGroundRange(stalker, Utility::ClosestTo(close_enemies, stalker->pos)))
                     Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
                 else
                     Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point);
             }
             else if (close_enemies.size() > 0)
             {
-                if (!ob_in_position && Utility::IsOnHighGround(stalker->pos, ClosestTo(close_enemies, stalker->pos)->pos) || ClosestTo(close_enemies, stalker->pos)->display_type == Unit::DisplayType::Snapshot)
+                if (!ob_in_position && Utility::IsOnHighGround(stalker->pos, Utility::ClosestTo(close_enemies, stalker->pos)->pos) || Utility::ClosestTo(close_enemies, stalker->pos)->display_type == Unit::DisplayType::Snapshot)
                     Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
                 else
-                    Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, ClosestTo(close_enemies, stalker->pos));
+                    Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, Utility::ClosestTo(close_enemies, stalker->pos));
             }
             else
             {
@@ -5305,7 +4415,7 @@ for (const auto &field : far_oversaturated_patches)
 
             if (find(stalker->buffs.begin(), stalker->buffs.end(), BUFF_ID::LOCKON) != stalker->buffs.end())
             {
-                const Unit* prism = GetLeastFullPrism(prisms);
+                const Unit* prism = Utility::GetLeastFullPrism(prisms);
                 if (prism->cargo_space_max - prism->cargo_space_taken > 4)
                 {
                     //Actions()->UnitCommand(prism, ABILITY_ID::LOAD_WARPPRISM, stalker, true);
@@ -5329,7 +4439,7 @@ for (const auto &field : far_oversaturated_patches)
             }
             else if (!weapon_ready)
             {
-                const Unit* prism = GetLeastFullPrism(prisms);
+                const Unit* prism = Utility::GetLeastFullPrism(prisms);
                 if (prism->cargo_space_max - prism->cargo_space_taken > 6)
                 {
                     //Actions()->UnitCommand(prism, ABILITY_ID::LOAD_WARPPRISM, stalker, true);
@@ -5337,17 +4447,17 @@ for (const auto &field : far_oversaturated_patches)
                 }
                 if (Utility::DangerLevel(stalker, Observation()) > stalker->shield && blink_ready)
                     Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK_STALKER, Utility::PointBetween(stalker->pos, retreat_point, 4));
-                else if (close_enemies.size() > 0 && DistanceToClosest(close_enemies, stalker->pos) - 2 < Utility::RealGroundRange(stalker, ClosestTo(close_enemies, stalker->pos)))
+                else if (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, stalker->pos) - 2 < Utility::RealGroundRange(stalker, Utility::ClosestTo(close_enemies, stalker->pos)))
                     Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
                 else
                     Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point);
             }
             else if (close_enemies.size() > 0)
             {
-                if (!ob_in_position && Utility::IsOnHighGround(stalker->pos, ClosestTo(close_enemies, stalker->pos)->pos) || ClosestTo(close_enemies, stalker->pos)->display_type == Unit::DisplayType::Snapshot)
+                if (!ob_in_position && Utility::IsOnHighGround(stalker->pos, Utility::ClosestTo(close_enemies, stalker->pos)->pos) || Utility::ClosestTo(close_enemies, stalker->pos)->display_type == Unit::DisplayType::Snapshot)
                     Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
                 else
-                    Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, ClosestTo(close_enemies, stalker->pos));
+                    Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, Utility::ClosestTo(close_enemies, stalker->pos));
             }
             else
             {
@@ -5386,17 +4496,17 @@ for (const auto &field : far_oversaturated_patches)
 			}
 			else if (!weapon_ready)
 			{
-				if (close_enemies.size() > 0 && DistanceToClosest(close_enemies, immortal->pos) - 2 < Utility::RealGroundRange(immortal, ClosestTo(close_enemies, immortal->pos)))
+				if (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, immortal->pos) - 2 < Utility::RealGroundRange(immortal, Utility::ClosestTo(close_enemies, immortal->pos)))
 					Actions()->UnitCommand(immortal, ABILITY_ID::MOVE_MOVE, retreat_point);
 				else
 					Actions()->UnitCommand(immortal, ABILITY_ID::ATTACK, attack_point);
 			}
 			else if (close_enemies.size() > 0)
 			{
-				if (!ob_in_position && Utility::IsOnHighGround(immortal->pos, ClosestTo(close_enemies, immortal->pos)->pos) || ClosestTo(close_enemies, immortal->pos)->display_type == Unit::DisplayType::Snapshot)
+				if (!ob_in_position && Utility::IsOnHighGround(immortal->pos, Utility::ClosestTo(close_enemies, immortal->pos)->pos) || Utility::ClosestTo(close_enemies, immortal->pos)->display_type == Unit::DisplayType::Snapshot)
 					Actions()->UnitCommand(immortal, ABILITY_ID::MOVE_MOVE, retreat_point);
 				else
-					Actions()->UnitCommand(immortal, ABILITY_ID::ATTACK, ClosestTo(close_enemies, immortal->pos));
+					Actions()->UnitCommand(immortal, ABILITY_ID::ATTACK, Utility::ClosestTo(close_enemies, immortal->pos));
 			}
 			else
 			{

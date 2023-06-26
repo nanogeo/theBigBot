@@ -8,6 +8,7 @@
 
 #include "army_group.h"
 #include "TossBot.h"
+#include "utility.h"
 
 namespace sc2 {
 
@@ -180,10 +181,10 @@ namespace sc2 {
 		while (true)
 		{
 			std::vector<Point2D> concave_points = FindConcave(current_origin, fallback_point, num_units, unit_size, dispersion);
-			Point2D furthest_back = agent->ClosestPointOnLine(concave_points.back(), origin, fallback_point);
+			Point2D furthest_back = Utility::ClosestPointOnLine(concave_points.back(), origin, fallback_point);
 			if (Distance2D(origin, fallback_point) < Distance2D(furthest_back, fallback_point))
 				return concave_points;
-			current_origin = agent->PointBetween(current_origin, fallback_point, -(unit_size + dispersion));
+			current_origin = Utility::PointBetween(current_origin, fallback_point, -(unit_size + dispersion));
 		}
 
 	}
@@ -200,7 +201,7 @@ namespace sc2 {
 		std::map<const Unit*, Point2D> unit_assignments;
 		for (const auto &unit : units)
 		{
-			Point2D closest = agent->ClosestTo(positions, unit->pos);
+			Point2D closest = Utility::ClosestTo(positions, unit->pos);
 			unit_assignments[unit] = closest;
 			positions.erase(std::remove(positions.begin(), positions.end(), closest), positions.end());
 		}
@@ -257,7 +258,7 @@ namespace sc2 {
 		// find prism to pick up each unit if there is space
 		for (const auto &unit : units)
 		{
-			int cargo_size = agent->GetCargoSize(unit);
+			int cargo_size = Utility::GetCargoSize(unit);
 			for (auto &prism : prism_free_slots)
 			{
 				if (prism.second < cargo_size || Distance2D(prism.first->pos, unit->pos) > 5)
@@ -274,15 +275,15 @@ namespace sc2 {
 		}
 	}
 
-	void TossBot::DodgeShots()
+	void ArmyGroup::DodgeShots()
 	{
-		for (const auto &Funit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)))
+		for (const auto &Funit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)))
 		{
-			int danger = IncomingDamage(Funit);
+			int danger = agent->IncomingDamage(Funit);
 			if (danger)
 			{
 				bool blink_ready = false;
-				for (const auto &abiliy : Query()->GetAbilitiesForUnit(Funit).abilities)
+				for (const auto &abiliy : agent->Query()->GetAbilitiesForUnit(Funit).abilities)
 				{
 					if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
 					{
@@ -292,13 +293,13 @@ namespace sc2 {
 				}
 				if (blink_ready && (danger > Funit->shield || danger > (Funit->shield_max / 2)))
 				{
-					Actions()->UnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4));
-					Actions()->UnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), true);
-					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
+					agent->Actions()->UnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4));
+					agent->Actions()->UnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), true);
+					agent->Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
 				}
 				else
 				{
-					Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(255, 0, 0), 20);
+					agent->Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(255, 0, 0), 20);
 				}
 			}
 		}
@@ -341,15 +342,15 @@ namespace sc2 {
 			}
 			if (all_ready)
 			{
-				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(army->stalkers, {}, 2);
+				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers, {}, 2);
 				if (found_targets.size() == 0)
 				{
-					found_targets = agent->FindTargets(army->stalkers, {}, 2);
+					found_targets = agent->FindTargets(stalkers, {}, 2);
 					std::cout << "extra distance\n";
 				}
 				agent->PrintAttacks(found_targets);
 
-				for (const auto &stalker : army->stalkers)
+				for (const auto &stalker : stalkers)
 				{
 					if (found_targets.size() == 0)
 					{
@@ -358,7 +359,7 @@ namespace sc2 {
 					if (found_targets.count(stalker) > 0)
 					{
 						agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, found_targets[stalker]);
-						army->attack_status[stalker] = true;
+						attack_status[stalker] = true;
 					}
 					/*else
 					{
@@ -382,9 +383,9 @@ namespace sc2 {
 								if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
 								{
 									if (stalker->orders.size() > 0 && stalker->orders[0].ability_id == ABILITY_ID::ATTACK && stalker->weapon_cooldown == 0)
-										agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, agent->PointBetween(stalker->pos, army->retreat_point, 7), true); // TODO adjustable blink distance
+										agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7), true); // TODO adjustable blink distance
 									else
-										agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, agent->PointBetween(stalker->pos, army->retreat_point, 7)); // TODO adjustable blink distance
+										agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7)); // TODO adjustable blink distance
 									agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point, true);
 									attack_status[stalker] = false;
 									using_blink = true;
@@ -413,7 +414,7 @@ namespace sc2 {
 	}
 
 
-	void MicroUnits()
+	void ArmyGroup::MicroUnits()
 	{
 
 	}
