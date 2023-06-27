@@ -4,6 +4,7 @@
 #include "worker_manager.h"
 #include "army_group.h"
 #include "utility.h"
+#include "action_manager.h"
 #include "build_order_manager.h"
 
 
@@ -132,62 +133,6 @@ struct Army
 
 
 
-struct ActionArgData
-{
-    int index;
-    const Unit* unit = NULL;
-    UNIT_TYPEID unitId;
-    std::vector<UNIT_TYPEID> unitIds;
-    UPGRADE_ID upgradeId;
-    Point2D position;
-    Army* army;
-	ArmyGroup* army_group;
-    ActionArgData() {}
-    ActionArgData(const Unit* x, UNIT_TYPEID y, Point2D z)
-    {
-        unit = x;
-        unitId = y;
-        position = z;
-    }
-    ActionArgData(const Unit* x)
-    {
-        unit = x;
-    }
-    ActionArgData(const Unit* x, UNIT_TYPEID y)
-    {
-        unit = x;
-        unitId = y;
-    }
-    ActionArgData(Army* x)
-    {
-        army = x;
-    }
-	ActionArgData(ArmyGroup* x)
-	{
-		army_group = x;
-	}
-    ActionArgData(const Unit* x, std::vector<UNIT_TYPEID> y, Point2D z, int i)
-    {
-        unit = x;
-        unitIds = y;
-        position = z;
-        index = i;
-    }
-    ActionArgData(const Unit* x, UNIT_TYPEID y, Point2D z, int time)
-    {
-        unit = x;
-        unitId = y;
-        position = z;
-        index = time;
-    }
-	ActionArgData(std::vector<UNIT_TYPEID> x)
-	{
-		unitIds = x;
-	}
-};
-
-struct ActionData;
-
 
 struct IsFinishedUnit {
     explicit IsFinishedUnit(UNIT_TYPEID type_);
@@ -284,12 +229,12 @@ public:
 class TossBot : public sc2::Agent
 {
 public:
-	TossBot() : Agent(), worker_manager(this), build_order_manager(this) {};
+	TossBot() : Agent(), worker_manager(this), action_manager(this), build_order_manager(this) {};
 	WorkerManager worker_manager;
+	ActionManager action_manager;
 	BuildOrderManager build_order_manager;
     bool debug_mode = false;
 	int frames_passed = 0;
-    std::map<Tag, const Unit*> tag_to_unit;
     ScoutInfoZerg scout_info_zerg;
     ScoutInfoTerran scout_info_terran;
     Race enemy_race;
@@ -318,7 +263,6 @@ public:
 
 
     //const Unit *new_base = NULL;
-    std::vector<ActionData*> active_actions;
     std::vector<StateMachine*> active_FSMs;
     Locations* locations;
     //bool should_build_workers;
@@ -326,12 +270,10 @@ public:
     //int removed_gas_miners = 0;
     bool immediatelySaturateGasses = false;
     std::vector<Tag> proxy_pylons;
-    std::vector<Army*> army_groups;
+    std::vector<ArmyGroup*> army_groups;
     OnUnitDamagedEvent on_unit_damaged_event;
     OnUnitDestroyedEvent on_unit_destroyed_event;
 
-    void UpdateUnitTags();
-    Units TagsToUnits(const std::vector<Tag>);
     std::vector<Point2D> GetLocations(UNIT_TYPEID);
     Point2D GetLocation(UNIT_TYPEID);
 	Point2D GetProxyLocation(UNIT_TYPEID);
@@ -375,29 +317,6 @@ public:
     // Pathing
 	Polygon CreateNewBlocker(const Unit*);
 
-    // Actions
-	void ProcessActions();
-
-    bool ActionBuildBuilding(ActionArgData*);
-    bool ActionBuildBuildingMulti(ActionArgData*);
-	bool ActionBuildProxyMulti(ActionArgData*);
-    bool ActionScoutZerg(ActionArgData*);
-    bool ActionContinueMakingWorkers(ActionArgData*);
-    bool ActionContinueBuildingPylons(ActionArgData*);
-    bool ActionChronoTillFinished(ActionArgData*);
-    bool ActionConstantChrono(ActionArgData*);
-    bool ActionWarpInAtProxy(ActionArgData*);
-    bool ActionTrainFromProxyRobo(ActionArgData*);
-    bool ActionContain(ActionArgData*);
-    bool ActionStalkerOraclePressure(ActionArgData*);
-    bool ActionContinueWarpingInStalkers(ActionArgData*);
-    bool ActionContinueWarpingInZealots(ActionArgData*);
-    bool ActionPullOutOfGas(ActionArgData*);
-    bool ActionRemoveScoutToProxy(ActionArgData*);
-    bool ActionDTHarassTerran(ActionArgData*);
-	bool ActionUseProxyDoubleRobo(ActionArgData*);
-	bool ActionAllIn(ActionArgData*);
-
 
     // Debug info
     void DisplayDebugHud();
@@ -426,117 +345,6 @@ public:
 
 
 
-
-struct ActionData
-{
-    bool(sc2::TossBot::*action)(ActionArgData*);
-    ActionArgData* action_arg;
-    ActionData(bool(sc2::TossBot::*x)(ActionArgData*), ActionArgData* y)
-    {
-        action = x;
-        action_arg = y;
-    }
-    std::string toString()
-    {
-        std::string str;
-        if (action == &TossBot::ActionBuildBuilding)
-        {
-            str += "Build a ";
-            str += Utility::UnitTypeIdToString(action_arg->unitId);
-        }
-        else if (action == &TossBot::ActionBuildBuildingMulti)
-        {
-            str += "Build a ";
-            for (int i = action_arg->index; i < action_arg->unitIds.size(); i++)
-            {
-                str += Utility::UnitTypeIdToString(action_arg->unitIds[i]);
-                str += ", ";
-            }
-            str.pop_back();
-            str.pop_back();
-        }
-		else if (action == &TossBot::ActionBuildProxyMulti)
-		{
-			str += "Build a proxy ";
-			for (int i = action_arg->index; i < action_arg->unitIds.size(); i++)
-			{
-				str += Utility::UnitTypeIdToString(action_arg->unitIds[i]);
-				str += ", ";
-			}
-			str.pop_back();
-			str.pop_back();
-		}
-        else if (action == &TossBot::ActionScoutZerg)
-        {
-            str += "Scout zerg UNUSED";
-        }
-        else if (action == &TossBot::ActionContinueMakingWorkers)
-        {
-            str += "Continue making workers";
-        }
-        else if (action == &TossBot::ActionContinueBuildingPylons)
-        {
-            str += "Continue building pylons";
-        }
-        else if (action == &TossBot::ActionChronoTillFinished)
-        {
-            str += "Chrono ";
-            str += Utility::UnitTypeIdToString(action_arg->unitId);
-            str += " till finished";
-        }
-        else if (action == &TossBot::ActionConstantChrono)
-        {
-            str += "Constant chrono on ";
-            str += Utility::UnitTypeIdToString(action_arg->unitId);
-        }
-        else if (action == &TossBot::ActionWarpInAtProxy)
-        {
-            str += "Warp in at proxy";
-        }
-        else if (action == &TossBot::ActionTrainFromProxyRobo)
-        {
-            str += "Train units from proxy robo";
-        }
-        else if (action == &TossBot::ActionContain)
-        {
-            str += "Contain";
-        }
-        else if (action == &TossBot::ActionStalkerOraclePressure)
-        {
-            str += "Stalker Oracle pressure";
-        }
-        else if (action == &TossBot::ActionContinueWarpingInStalkers)
-        {
-            str += "Continue warping in stalkers";
-        }
-        else if (action == &TossBot::ActionContinueWarpingInZealots)
-        {
-            str += "Continue warping in zealots";
-        }
-        else if (action == &TossBot::ActionPullOutOfGas)
-        {
-            str += "pull out of gas";
-        }
-		else if (action == &TossBot::ActionUseProxyDoubleRobo)
-		{
-			str += "Build ";
-			if (action_arg->unitIds.size() > 0)
-			{
-				for (const auto &unit : action_arg->unitIds)
-				{
-					str += Utility::UnitTypeIdToString(unit);
-					str += ", ";
-				}
-			}
-			else
-			{
-				str += "immortals ";
-			}
-			str += "from proxy robos";
-		}
-        return str;
-    }
-};
 
 
 

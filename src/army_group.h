@@ -89,7 +89,7 @@ public:
 		high_ground_index = index;
 	}
 
-	void AddUnit(Unit* unit);
+	void AddUnit(const Unit* unit);
 
 	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float);
 	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);

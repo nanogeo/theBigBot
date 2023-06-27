@@ -3,6 +3,7 @@
 #include "utility.h"
 #include "locations.h"
 #include "finish_state_machine.h"
+#include "action_manager.h"
 
 namespace sc2
 {
@@ -84,7 +85,7 @@ bool BuildOrderManager::BuildBuilding(BuildOrderResultArgData data)
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(builder);
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
 	return true;
 }
 
@@ -118,7 +119,7 @@ bool BuildOrderManager::BuildFirstPylon(BuildOrderResultArgData data)
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(builder);
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
 	return true;
 }
 
@@ -132,7 +133,7 @@ bool BuildOrderManager::BuildBuildingMulti(BuildOrderResultArgData data)
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(builder);
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionBuildBuildingMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuildingMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
 	return true;
 }
 
@@ -146,7 +147,7 @@ bool BuildOrderManager::BuildProxyMulti(BuildOrderResultArgData data)
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(builder);
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionBuildProxyMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildProxyMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
 	return true;
 }
 
@@ -408,7 +409,7 @@ bool BuildOrderManager::ChronoTillFinished(BuildOrderResultArgData data)
 	{
 		if (building->orders.size() > 0)
 		{
-			agent->active_actions.push_back(new ActionData(&TossBot::ActionChronoTillFinished, new ActionArgData(building, data.unitId)));
+			agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionChronoTillFinished, new ActionArgData(building, data.unitId)));
 			return true;
 		}
 	}
@@ -417,7 +418,7 @@ bool BuildOrderManager::ChronoTillFinished(BuildOrderResultArgData data)
 
 bool BuildOrderManager::WarpInAtProxy(BuildOrderResultArgData data)
 {
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionWarpInAtProxy, new ActionArgData()));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionWarpInAtProxy, new ActionArgData()));
 	return true;
 }
 
@@ -433,19 +434,19 @@ bool BuildOrderManager::BuildProxy(BuildOrderResultArgData data)
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(builder);
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
 	return true;
 }
 
 bool BuildOrderManager::ContinueBuildingPylons(BuildOrderResultArgData data)
 {
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionContinueBuildingPylons, new ActionArgData()));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
 	return true;
 }
 
 bool BuildOrderManager::ContinueMakingWorkers(BuildOrderResultArgData data)
 {
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionContinueMakingWorkers, new ActionArgData()));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData()));
 	return true;
 }
 
@@ -458,7 +459,7 @@ bool BuildOrderManager::TrainFromProxy(BuildOrderResultArgData data)
 		{
 			if (Utility::DistanceToClosest(agent->GetProxyLocations(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY), robo->pos) < 2)
 			{
-				agent->active_actions.push_back(new ActionData(&TossBot::ActionTrainFromProxyRobo, new ActionArgData(robo)));
+				agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionTrainFromProxyRobo, new ActionArgData(robo)));
 				return true;
 			}
 		}
@@ -475,7 +476,7 @@ bool BuildOrderManager::ContinueChronoProxyRobo(BuildOrderResultArgData data)
 		{
 			if (Utility::DistanceToClosest(agent->GetProxyLocations(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY), robo->pos) < 2)
 			{
-				agent->active_actions.push_back(new ActionData(&TossBot::ActionConstantChrono, new ActionArgData(robo)));
+				agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionConstantChrono, new ActionArgData(robo)));
 				return true;
 			}
 		}
@@ -485,17 +486,17 @@ bool BuildOrderManager::ContinueChronoProxyRobo(BuildOrderResultArgData data)
 
 bool BuildOrderManager::Contain(BuildOrderResultArgData data)
 {
-	Army* army = new Army(agent->locations->attack_path, agent->locations->high_ground_index);
+	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
 	agent->army_groups.push_back(army);
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionContain, new ActionArgData(army)));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContain, new ActionArgData(army)));
 	return true;
 }
 
 bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 {
-	Army* army = new Army(agent->locations->attack_path, agent->locations->high_ground_index);
+	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
 	agent->army_groups.push_back(army);
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionStalkerOraclePressure, new ActionArgData(army)));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionStalkerOraclePressure, new ActionArgData(army)));
 	return true;
 }
 
@@ -514,13 +515,13 @@ bool BuildOrderManager::SpawnUnits(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ContinueWarpingInStalkers(BuildOrderResultArgData data)
 {
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionContinueWarpingInStalkers, new ActionArgData()));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueWarpingInStalkers, new ActionArgData()));
 	return true;
 }
 
 bool BuildOrderManager::ContinueWarpingInZealots(BuildOrderResultArgData data)
 {
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionContinueWarpingInZealots, new ActionArgData()));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueWarpingInZealots, new ActionArgData()));
 	return true;
 }
 
@@ -628,7 +629,7 @@ bool BuildOrderManager::RemoveScoutToProxy(BuildOrderResultArgData data)
 			agent->active_FSMs.erase(std::remove(agent->active_FSMs.begin(), agent->active_FSMs.end(), fsm), agent->active_FSMs.end());
 			Point2D pos = agent->locations->proxy_pylon_locations[0];
 			agent->Actions()->UnitCommand(scout, ABILITY_ID::MOVE_MOVE, pos);
-			agent->active_actions.push_back(new ActionData(&TossBot::ActionRemoveScoutToProxy, new ActionArgData(scout, data.unitId, pos, data.amount)));
+			agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionRemoveScoutToProxy, new ActionArgData(scout, data.unitId, pos, data.amount)));
 			return true;
 		}
 	}
@@ -651,13 +652,13 @@ bool BuildOrderManager::SafeRallyPoint(BuildOrderResultArgData data)
 bool BuildOrderManager::DTHarass(BuildOrderResultArgData data)
 {
 	if (agent->enemy_race == Race::Terran)
-		agent->active_actions.push_back(new ActionData(&TossBot::ActionDTHarassTerran, new ActionArgData()));
+		agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionDTHarassTerran, new ActionArgData()));
 	return true;
 }
 
 bool BuildOrderManager::UseProxyDoubleRobo(BuildOrderResultArgData data)
 {
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionUseProxyDoubleRobo, new ActionArgData({ UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_WARPPRISM, UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_OBSERVER })));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionUseProxyDoubleRobo, new ActionArgData({ UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_WARPPRISM, UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_OBSERVER })));
 	return true;
 }
 
@@ -695,9 +696,9 @@ bool BuildOrderManager::ProxyDoubleRoboAllIn(BuildOrderResultArgData data)
 		if (std::find(already_occupied.begin(), already_occupied.end(), unit) == already_occupied.end())
 			available_units.push_back(unit);
 	}
-	Army* army = new Army(available_units, agent->locations->attack_path_alt, agent->locations->high_ground_index_alt);
+	ArmyGroup* army = new ArmyGroup(agent, available_units, agent->locations->attack_path_alt, agent->locations->high_ground_index_alt);
 	agent->army_groups.push_back(army);
-	agent->active_actions.push_back(new ActionData(&TossBot::ActionAllIn, new ActionArgData(army)));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionAllIn, new ActionArgData(army)));
 	return true;
 }
 

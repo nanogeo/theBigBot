@@ -12,7 +12,7 @@
 
 namespace sc2 {
 
-	void ArmyGroup::AddUnit(Unit* unit)
+	void ArmyGroup::AddUnit(const Unit* unit)
 	{
 		if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
 			zealots.push_back(unit);
