@@ -881,5 +881,68 @@ namespace sc2 {
 
 #pragma endregion
 
+#pragma region DoorOpen
+
+	void DoorOpen::TickState()
+	{
+		return;
+	}
+
+	void DoorOpen::EnterState()
+	{
+		agent->Actions()->UnitCommand(state_machine->guard, ABILITY_ID::MOVE_MOVE, state_machine->door_open_pos);
+		agent->Actions()->UnitCommand(state_machine->guard, ABILITY_ID::GENERAL_HOLDPOSITION, true);
+	}
+
+	void DoorOpen::ExitState()
+	{
+		return;
+	}
+
+	State* DoorOpen::TestTransitions()
+	{
+		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), state_machine->guard->pos) < 8)
+			return new DoorClosed(agent, state_machine);
+		return NULL;
+	}
+
+	std::string DoorOpen::toString()
+	{
+		return "door open";
+	}
+
+#pragma endregion
+
+#pragma region DoorClosed
+
+	void DoorClosed::TickState()
+	{
+		return;
+	}
+
+	void DoorClosed::EnterState()
+	{
+		agent->Actions()->UnitCommand(state_machine->guard, ABILITY_ID::MOVE_MOVE, state_machine->door_closed_pos);
+		agent->Actions()->UnitCommand(state_machine->guard, ABILITY_ID::GENERAL_HOLDPOSITION, true);
+	}
+
+	void DoorClosed::ExitState()
+	{
+		return;
+	}
+
+	State* DoorClosed::TestTransitions()
+	{
+		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), state_machine->guard->pos) > 8)
+			return new DoorOpen(agent, state_machine);
+		return NULL;
+	}
+
+	std::string DoorClosed::toString()
+	{
+		return "door closed";
+	}
+
+#pragma endregion
 
 }

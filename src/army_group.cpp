@@ -9,11 +9,15 @@
 #include "army_group.h"
 #include "TossBot.h"
 #include "utility.h"
+#include "finish_state_machine.h"
+#include "locations.h"
 
 namespace sc2 {
 
 	void ArmyGroup::AddUnit(const Unit* unit)
 	{
+		all_units.push_back(unit);
+
 		if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
 			zealots.push_back(unit);
 		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
@@ -411,6 +415,26 @@ namespace sc2 {
 			}
 		}
 		PickUpUnits(units_requesting_pickup);
+	}
+
+	void ArmyGroup::DefendFrontDoor(Point2D door_open_pos, Point2D door_closed_pos)
+	{
+		DoorGuardStateMachine* door_guard_fsm = new DoorGuardStateMachine(agent, "Door Guard", adepts[0], door_open_pos, door_closed_pos);
+		agent->active_FSMs.push_back(door_guard_fsm);
+	}
+
+	void ArmyGroup::DefendExpansion(Point2D base_location, Point2D pylon_gap_location)
+	{
+		for (const auto &adept : adepts)
+		{
+			if (Distance2D(adept->pos, pylon_gap_location) > 1)
+			{
+				agent->Actions()->UnitCommand(adept, ABILITY_ID::MOVE_MOVE, pylon_gap_location);
+				agent->Actions()->UnitCommand(adept, ABILITY_ID::GENERAL_HOLDPOSITION, true);
+			}
+		}
+		StateMachine* oracle_fsm = new StateMachine(agent, new OracleDefend(agent, oracles, base_location), "Oracles");
+		agent->active_FSMs.push_back(oracle_fsm);
 	}
 
 

@@ -35,6 +35,7 @@ namespace sc2 {
 
     void TossBot::OnStep()
     {
+		Units bla = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ADEPT));
 		frames_passed++;
         //std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
         if (debug_mode)
@@ -1517,6 +1518,19 @@ namespace sc2 {
 		{
 			std::cout << "    attack from " << std::to_string(attack.first->tag) << " to " << std::to_string(attack.second->tag) << " health " << std::to_string(attack.second->health) << "\n";
 		}
+	}
+
+	bool TossBot::UnitIsOccupied(const Unit* unit)
+	{
+		for (ArmyGroup* army_group : army_groups)
+		{
+			for (const Unit* army_unit : army_group->all_units)
+			{
+				if (unit == army_unit)
+					return true;
+			}
+		}
+		return false;
 	}
 
 

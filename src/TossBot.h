@@ -312,6 +312,7 @@ public:
 	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);
 	void SetUpUnitTypeInfo();
 	void PrintAttacks(std::map<const Unit*, const Unit*>);
+	bool UnitIsOccupied(const Unit*);
 
 
     // Pathing

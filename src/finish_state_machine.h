@@ -408,6 +408,42 @@ public:
 
 #pragma endregion
 
+#pragma region Door Guard
+
+class DoorOpen : public State
+{
+public:
+	class DoorGuardStateMachine* state_machine;
+	DoorOpen(TossBot* agent, DoorGuardStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class DoorClosed : public State
+{
+public:
+	class DoorGuardStateMachine* state_machine;
+	DoorClosed(TossBot* agent, DoorGuardStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+#pragma endregion
+
 class StateMachine
 {
 public:
@@ -685,6 +721,23 @@ public:
 
 	}
 
+};
+
+class DoorGuardStateMachine : public StateMachine
+{
+public:
+	const Unit* guard;
+	Point2D door_open_pos;
+	Point2D door_closed_pos;
+	DoorGuardStateMachine(TossBot* agent, std::string name, const Unit* guard, Point2D door_open_pos, Point2D door_closed_pos) {
+		this->agent = agent;
+		this->name = name;
+		current_state = new DoorClosed(agent, this);
+		this->guard = guard;
+		this->door_open_pos = door_open_pos;
+		this->door_closed_pos = door_closed_pos;
+		current_state->EnterState();
+	}
 };
 
 }

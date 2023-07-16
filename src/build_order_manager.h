@@ -147,6 +147,8 @@ public:
 	bool UseProxyDoubleRobo(BuildOrderResultArgData);
 	bool MicroImmortalDrop(BuildOrderResultArgData);
 	bool ProxyDoubleRoboAllIn(BuildOrderResultArgData);
+	bool DefendThirdBase(BuildOrderResultArgData);
+	bool SetDoorGuard(BuildOrderResultArgData);
 
 	void SetBuildOrder(BuildOrder);
 	void SetBlank();

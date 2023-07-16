@@ -51,6 +51,10 @@ public:
 	std::vector<Point2D> tech_locations_cannon_rush;
 	std::vector<Point2D> gas_steal_locations_cannon_rush;
 
+	Point2D third_base_pylon_gap;
+	Point2D natural_door_closed;
+	Point2D natural_door_open;
+
     Locations() {}
     Locations(Point3D start_location, BuildOrder build_order, std::string map_name)
     {

@@ -205,6 +205,8 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		NewPlaceWorkerOnMinerals(worker, closest->mineral_patch);
 		far_3_mineral_patch_spaces.erase(std::remove(far_3_mineral_patch_spaces.begin(), far_3_mineral_patch_spaces.end(), closest), far_3_mineral_patch_spaces.end());
 		mineral_patch_space* space = new mineral_patch_space(closest->worker, closest->mineral_patch);
+		if (worker == NULL)
+			std::cout << "null";
 		far_3_mineral_patch_extras.push_back(space);
 
 		return;

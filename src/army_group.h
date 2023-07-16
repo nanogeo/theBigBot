@@ -6,6 +6,7 @@
 #include "sc2api/sc2_unit_filters.h"
 
 
+
 namespace sc2
 {
 
@@ -41,6 +42,10 @@ public:
 
 
 	ArmyGroup() {};
+	ArmyGroup(TossBot* agent)
+	{
+		this->agent = agent;
+	}
 
 	ArmyGroup(TossBot* agent, Units all_units, std::vector<Point2D> path, int index)
 	{
@@ -97,8 +102,10 @@ public:
 	std::map<const Unit*, Point2D> AssignUnitsToPositions(Units, std::vector<Point2D>);
 	void PickUpUnits(std::map<const Unit*, int>);
 	void DodgeShots();
-	void ArmyGroup::ApplyPressureGrouped(Point2D, Point2D, std::map<const Unit*, Point2D>, std::map<const Unit*, Point2D>);
 
+	void ApplyPressureGrouped(Point2D, Point2D, std::map<const Unit*, Point2D>, std::map<const Unit*, Point2D>);
+	void DefendFrontDoor(Point2D, Point2D);
+	void DefendExpansion(Point2D, Point2D);
 
 	void MicroUnits();
 
