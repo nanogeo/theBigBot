@@ -495,7 +495,21 @@ bool BuildOrderManager::Contain(BuildOrderResultArgData data)
 
 bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 {
-	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
+	Units units;
+	for (const auto &unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE)))
+	{
+		if (agent->UnitIsOccupied(unit))
+			continue;
+		units.push_back(unit);
+	}
+	for (const auto &unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)))
+	{
+		if (agent->UnitIsOccupied(unit))
+			continue;
+		units.push_back(unit);
+	}
+	ArmyGroup* army = new ArmyGroup(agent, units, agent->locations->attack_path, agent->locations->high_ground_index);
+	army->AutoAddStalkers();
 	agent->army_groups.push_back(army);
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionStalkerOraclePressure, new ActionArgData(army)));
 	return true;
@@ -705,33 +719,35 @@ bool BuildOrderManager::ProxyDoubleRoboAllIn(BuildOrderResultArgData data)
 
 bool BuildOrderManager::DefendThirdBase(BuildOrderResultArgData data)
 {
-	ArmyGroup defenders = ArmyGroup(agent);
+	ArmyGroup* defenders = new ArmyGroup(agent);
 	for (const auto &unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ADEPT)))
 	{
 		if (agent->UnitIsOccupied(unit))
 			continue;
-		defenders.AddUnit(unit);
+		defenders->AddUnit(unit);
 		break;
 	}
 	for (const auto &unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE)))
 	{
-		defenders.AddUnit(unit);
+		defenders->AddUnit(unit);
 	}
-	defenders.DefendExpansion(agent->GetLocations(UNIT_TYPEID::PROTOSS_NEXUS)[2], agent->locations->third_base_pylon_gap);
+	agent->army_groups.push_back(defenders);
+	defenders->DefendExpansion(agent->GetLocations(UNIT_TYPEID::PROTOSS_NEXUS)[2], agent->locations->third_base_pylon_gap);
 	return true;
 }
 
 bool BuildOrderManager::SetDoorGuard(BuildOrderResultArgData data)
 {
-	ArmyGroup defenders = ArmyGroup(agent);
+	ArmyGroup* defenders = new ArmyGroup(agent);
 	for (const auto &unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ADEPT)))
 	{
 		if (agent->UnitIsOccupied(unit))
 			continue;
-		defenders.AddUnit(unit);
+		defenders->AddUnit(unit);
 		break;
 	}
-	defenders.DefendFrontDoor(agent->locations->natural_door_open, agent->locations->natural_door_closed);
+	agent->army_groups.push_back(defenders);
+	defenders->DefendFrontDoor(agent->locations->natural_door_open, agent->locations->natural_door_closed);
 	return true;
 }
 

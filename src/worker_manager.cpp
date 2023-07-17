@@ -135,6 +135,8 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 
 void WorkerManager::PlaceWorker(const Unit* worker)
 {
+	if (worker == NULL)
+		std::cout << "why";
 	if (first_2_mineral_patch_spaces.size() > 0)
 	{
 		float distance = INFINITY;

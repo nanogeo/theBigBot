@@ -392,11 +392,16 @@ bool ActionManager::ActionContinueWarpingInStalkers(ActionArgData* data)
 	}
 	if (all_gates_ready && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates.size(), agent->Observation()))
 	{
+		std::cout << "warp in stalkers/n";
+		std::cout << "all gates ready " << all_gates_ready << "\n";
+
 		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0]);
+		std::cout << "spots " << spots.size() << "\n";
 		if (spots.size() >= gates.size())
 		{
 			for (int i = 0; i < gates.size(); i++)
 			{
+				std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
 				agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_STALKER, spots[i]);
 			}
 		}

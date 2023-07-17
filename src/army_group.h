@@ -109,6 +109,9 @@ public:
 
 	void MicroUnits();
 
+	void AutoAddStalkers();
+	void OnStalkerCreatedListener(const Unit*);
+
 
 };
 

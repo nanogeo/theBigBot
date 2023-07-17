@@ -444,4 +444,19 @@ namespace sc2 {
 	}
 
 
+	void ArmyGroup::AutoAddStalkers()
+	{
+
+		std::function<void(const Unit*)> onStalkerCreated = [=](const Unit* unit) {
+			this->OnStalkerCreatedListener(unit);
+		};
+		agent->AddListenerToOnUnitCreatedEvent(onStalkerCreated);
+	}
+
+	void ArmyGroup::OnStalkerCreatedListener(const Unit* unit)
+	{
+		if (unit->unit_type == UNIT_TYPEID::PROTOSS_STALKER)
+			AddUnit(unit);
+	}
+
 }

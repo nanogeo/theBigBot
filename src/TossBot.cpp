@@ -464,13 +464,10 @@ namespace sc2 {
     {
         if (Observation()->GetGameLoop() == 0)
             return;
+		CallOnUnitCreatedEvent(unit);
         if (unit->unit_type == UNIT_TYPEID::PROTOSS_PROBE)
         {
             worker_manager.PlaceWorker(unit);
-        }
-        else if (army_groups.size() > 0)
-        {
-			army_groups[0]->AddUnit(unit);
         }
         /*if len(self.adept_groups) > 0:
             if unit.type_id == UnitTypeId.ADEPT :
@@ -945,7 +942,7 @@ namespace sc2 {
                 for (int j = -7; j <= 6; j += 1)
                 {
                     Point2D pos = Point2D(pylon->pos.x + i + .5, pylon->pos.y + j + .5);
-                    if (Distance2D(pos, pylon->pos) <= 6 && Utility::DistanceToClosest(Observation()->GetUnits(), pos) > 1.5)
+                    if (Observation()->IsPathable(pos) && Distance2D(pos, pylon->pos) <= 6 && Utility::DistanceToClosest(Observation()->GetUnits(), pos) > 1.5)
                     {
                         bool blocked = false;
                         for (const auto &building : Observation()->GetUnits(IsBuilding()))
@@ -976,6 +973,14 @@ namespace sc2 {
                             }
 
                         }
+						for (const auto &spot : spots)
+						{
+							if (Distance2D(pos, spot) < 1.5)
+							{
+								blocked = true;
+								break;
+							}
+						}
                         if (!blocked)
                             spots.push_back(pos);
                     }
@@ -1093,6 +1098,19 @@ namespace sc2 {
             func(unit);
         }
     }
+
+	void TossBot::AddListenerToOnUnitCreatedEvent(std::function<void(const Unit*)> func)
+	{
+		on_unit_created_event.listeners.push_back(func);
+	}
+
+	void TossBot::CallOnUnitCreatedEvent(const Unit* unit)
+	{
+		for (const auto &func : on_unit_created_event.listeners)
+		{
+			func(unit);
+		}
+	}
 
 #pragma endregion
 

@@ -36,7 +36,7 @@ struct OnUnitDestroyedEvent
 
 struct OnUnitCreatedEvent
 {
-    std::vector<std::function<void(const Unit*)>*> listeners;
+    std::vector<std::function<void(const Unit*)>> listeners;
     OnUnitCreatedEvent() {};
 };
 
@@ -273,6 +273,7 @@ public:
     std::vector<ArmyGroup*> army_groups;
     OnUnitDamagedEvent on_unit_damaged_event;
     OnUnitDestroyedEvent on_unit_destroyed_event;
+	OnUnitCreatedEvent on_unit_created_event;
 
     std::vector<Point2D> GetLocations(UNIT_TYPEID);
     Point2D GetLocation(UNIT_TYPEID);
@@ -289,6 +290,8 @@ public:
     void CallOnUnitDamagedEvent(const Unit*, float, float);
     void AddListenerToOnUnitDestroyedEvent(std::function<void(const Unit*)>);
     void CallOnUnitDestroyedEvent(const Unit*);
+	void AddListenerToOnUnitCreatedEvent(std::function<void(const Unit*)>);
+	void CallOnUnitCreatedEvent(const Unit*);
 
     // To strings
     static std::string OrdersToString(std::vector<UnitOrder>);
