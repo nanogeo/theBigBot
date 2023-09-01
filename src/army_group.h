@@ -35,6 +35,8 @@ public:
 	Units carriers;
 	Units tempests;
 
+	Units new_units;
+
 	std::map<const Unit*, bool> attack_status;
 	std::vector<Point2D> attack_path;
 	int current_attack_index;
@@ -95,6 +97,7 @@ public:
 	}
 
 	void AddUnit(const Unit* unit);
+	void AddNewUnit(const Unit* unit);
 
 	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float);
 	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);

@@ -322,45 +322,73 @@ bool ActionManager::ActionContain(ActionArgData* data)
 bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 {
 	ArmyGroup* army = data->army_group;
-	Point2D retreat_point = army->attack_path[army->current_attack_index - 2];
+
+	Point2D fallback_point = army->attack_path[army->current_attack_index - 2];
 
 	Point2D attack_point = army->attack_path[army->current_attack_index];
 
-	Units prisms = army->warp_prisms;
-	Units stalkers = army->stalkers;
-	Units observers = army->observers;
-	Units oracles = army->oracles;
-
-
-
-	bool obs_in_position = false;
-	if (stalkers.size() > 0)
+	for (const auto &unit : army->new_units)
 	{
-		if (observers.size() > 0)
-		{
-			if (Utility::DistanceToClosest(observers, attack_point) < 10)
-				obs_in_position = true;
-			agent->ObserveAttackPath(observers, retreat_point, attack_point);
-		}
-		if (prisms.size() > 0)
-		{
-			agent->StalkerAttackTowardsWithPrism(stalkers, prisms, retreat_point, attack_point, obs_in_position);
-		}
-		else
-		{
-			agent->StalkerAttackTowards(stalkers, retreat_point, attack_point, obs_in_position);
-		}
-		if (oracles.size() > 0)
-		{
-			agent->OraclesCoverStalkers(stalkers, oracles);
-		}
+		agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, fallback_point);
+		if (Distance2D(unit->pos, fallback_point) < 5)
+			army->AddUnit(unit);
 	}
 
-	if (army->current_attack_index > 2 && Distance2D(Utility::Center(stalkers), retreat_point) < 3)
-		army->current_attack_index--;
-	if (army->current_attack_index < army->attack_path.size() - 1 && Distance2D(Utility::MedianCenter(stalkers), attack_point) < 3)
+	agent->Debug()->DebugSphereOut(Point3D(fallback_point.x, fallback_point.y, agent->Observation()->TerrainHeight(fallback_point)), 3, Color(255, 0, 0));
+	agent->Debug()->DebugSphereOut(Point3D(attack_point.x, attack_point.y, agent->Observation()->TerrainHeight(attack_point)), 3, Color(0, 255, 0));
+
+	if (army->stalkers.size() == 0)
+		return false;
+
+	const Unit* closest_enemy = Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), Utility::MedianCenter(army->stalkers));
+	const Unit* closest_unit_to_enemies = Utility::ClosestTo(army->stalkers, closest_enemy->pos);
+	const Unit* furthest_unit_from_enemies = Utility::FurthestFrom(army->stalkers, closest_enemy->pos);
+
+	agent->Debug()->DebugSphereOut(closest_unit_to_enemies->pos, .625, Color(255, 0, 255));
+	agent->Debug()->DebugSphereOut(furthest_unit_from_enemies->pos, .625, Color(0, 255, 255));
+
+	float unit_size = .625;
+	float unit_dispersion = 0;
+	Point2D retreating_concave_origin = Utility::PointBetween(Utility::ClosestPointOnLine(closest_unit_to_enemies->pos, attack_point, fallback_point), fallback_point, unit_size + unit_dispersion);
+	Point2D attacking_concave_origin = Utility::PointBetween(Utility::ClosestPointOnLine(furthest_unit_from_enemies->pos, attack_point, fallback_point), attack_point, unit_size + unit_dispersion);
+
+	agent->Debug()->DebugSphereOut(Point3D(retreating_concave_origin.x, retreating_concave_origin.y, agent->Observation()->TerrainHeight(retreating_concave_origin)), .625, Color(255, 0, 128));
+	agent->Debug()->DebugSphereOut(Point3D(attacking_concave_origin.x, attacking_concave_origin.y, agent->Observation()->TerrainHeight(attacking_concave_origin)), .625, Color(0, 255, 128));
+
+	std::vector<Point2D> attacking_concave_positions = army->FindConcaveFromBack(attacking_concave_origin, fallback_point, army->stalkers.size(), .625, .2);
+	std::vector<Point2D> retreating_concave_positions = army->FindConcave(retreating_concave_origin, fallback_point, army->stalkers.size(), .625, .2);
+
+	std::map<const Unit*, Point2D> attacking_unit_positions = army->AssignUnitsToPositions(army->stalkers, attacking_concave_positions);
+	std::map<const Unit*, Point2D> retreating_unit_positions = army->AssignUnitsToPositions(army->stalkers, retreating_concave_positions);
+
+	for (const auto &pos : attacking_concave_positions)
 	{
-		if (obs_in_position)
+		agent->Debug()->DebugSphereOut(Point3D(pos.x, pos.y, agent->Observation()->TerrainHeight(pos)), .625, Color(255, 0, 0));
+	}
+	for (const auto &pos : retreating_concave_positions)
+	{
+		agent->Debug()->DebugSphereOut(Point3D(pos.x, pos.y, agent->Observation()->TerrainHeight(pos)), .625, Color(0, 255, 0));
+	}
+
+	for (const auto &unit : retreating_unit_positions)
+	{
+		agent->Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, agent->Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
+		//Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
+	}
+	//agent->Actions()->UnitCommand(army->warp_prisms[0], ABILITY_ID::MOVE_MOVE, Utility::PointBetween(Utility::MedianCenter(army->stalkers), fallback_point, 3));
+	//agent->Actions()->UnitCommand(army->warp_prisms[0], ABILITY_ID::UNLOADALLAT_WARPPRISM, army->warp_prisms[0]);
+	army->ApplyPressureGrouped(attack_point, fallback_point, retreating_unit_positions, attacking_unit_positions);
+
+
+
+	Units enemy_attacking_units = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
+	//Actions()->UnitCommand(enemy_attacking_units, ABILITY_ID::ATTACK, fallback_point);
+
+	if (army->current_attack_index > 2 && Distance2D(Utility::Center(army->stalkers), fallback_point) < 3)
+		army->current_attack_index--;
+	if (army->current_attack_index < army->attack_path.size() - 1 && Distance2D(Utility::MedianCenter(army->stalkers), attack_point) < 3)
+	{
+		if (true) //obs_in_position
 			army->current_attack_index++;
 		else
 			army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);

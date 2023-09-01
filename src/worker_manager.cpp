@@ -688,8 +688,15 @@ void WorkerManager::BalanceWorers()
 		else if (far_3_mineral_patch_extras.size() > 0)
 		{
 			const Unit* worker = *(far_3_mineral_patch_extras[0]->worker);
-			RemoveWorker(worker);
-			PlaceWorker(worker);
+			if (worker != NULL)
+			{
+				RemoveWorker(worker);
+				PlaceWorker(worker);
+			}
+			else
+			{
+				far_3_mineral_patch_extras.erase(far_3_mineral_patch_extras.begin());
+			}
 		}
 	}
 	while (gas_spaces.size() > 0 && (close_3_mineral_patch_extras.size() > 0 || far_3_mineral_patch_extras.size() > 0))
@@ -703,8 +710,15 @@ void WorkerManager::BalanceWorers()
 		else if (far_3_mineral_patch_extras.size() > 0)
 		{
 			const Unit* worker = *(far_3_mineral_patch_extras[0]->worker);
-			RemoveWorker(worker);
-			PlaceWorker(worker);
+			if (worker != NULL)
+			{
+				RemoveWorker(worker);
+				PlaceWorker(worker);
+			}
+			else
+			{
+				far_3_mineral_patch_extras.erase(far_3_mineral_patch_extras.begin());
+			}
 		}
 	}
 	while (far_3_mineral_patch_spaces.size() > 0 && close_3_mineral_patch_extras.size() > 0)

@@ -32,6 +32,11 @@ struct BuildOrderConditionArgData
 	{
 		amount = x;
 	}
+	BuildOrderConditionArgData(UNIT_TYPEID x, int y)
+	{
+		unitId = x;
+		amount = y;
+	}
 };
 
 struct BuildOrderResultArgData
@@ -101,6 +106,7 @@ public:
 	bool HasBuildingStarted(BuildOrderConditionArgData);
 	bool IsResearching(BuildOrderConditionArgData);
 	bool HasGas(BuildOrderConditionArgData);
+	bool HasUnits(BuildOrderConditionArgData);
 
 	// Build order results
 	bool BuildBuilding(BuildOrderResultArgData);

@@ -17,6 +17,7 @@ namespace sc2 {
 	void ArmyGroup::AddUnit(const Unit* unit)
 	{
 		all_units.push_back(unit);
+		new_units.erase(std::remove(new_units.begin(), new_units.end(), unit), new_units.end());
 
 		if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
 			zealots.push_back(unit);
@@ -56,6 +57,10 @@ namespace sc2 {
 			std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
 	}
 
+	void ArmyGroup::AddNewUnit(const Unit* unit)
+	{
+		new_units.push_back(unit);
+	}
 
 
 	std::vector<Point2D> ArmyGroup::FindConcave(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
@@ -456,7 +461,7 @@ namespace sc2 {
 	void ArmyGroup::OnStalkerCreatedListener(const Unit* unit)
 	{
 		if (unit->unit_type == UNIT_TYPEID::PROTOSS_STALKER)
-			AddUnit(unit);
+			AddNewUnit(unit);
 	}
 
 }
