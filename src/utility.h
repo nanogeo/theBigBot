@@ -26,7 +26,9 @@ class Utility
 {
 public:
 	static const Unit* ClosestTo(Units, Point2D);
+	static const Unit* NthClosestTo(Units, Point2D, int);
 	static Point2D ClosestTo(std::vector<Point2D>, Point2D);
+	static Point2D NthClosestTo(std::vector<Point2D>, Point2D, int);
 	static const Unit* FurthestFrom(Units, Point2D);
 	static float DistanceToClosest(Units, Point2D);
 	static float DistanceToClosest(std::vector<Point2D>, Point2D);

@@ -40,8 +40,6 @@ namespace sc2 {
         //std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
         if (debug_mode)
         {
-			Debug()->SendDebug();
-			return;
 
             Units units = Observation()->GetUnits();
             std::vector<UNIT_TYPEID> types;
@@ -288,6 +286,10 @@ namespace sc2 {
 				{
 					RunTests();
 				}
+				for (const auto &point : locations->attack_path_line.GetPoints())
+				{
+					Debug()->DebugSphereOut(Point3D(point.x, point.y, Observation()->TerrainHeight(point)), .4, Color(255, 255, 255));
+				}
 
             }
 			if (Observation()->GetGameLoop() > 10 && !tests_set_up)
@@ -298,6 +300,7 @@ namespace sc2 {
             {
                 std::cout << "1000\n";
             }
+
 
 			action_manager.ProcessActions();
 			DisplayEnemyAttacks();
@@ -495,6 +498,11 @@ namespace sc2 {
 			std::cout << unit->tag << " destroyed\n";
         CallOnUnitDestroyedEvent(unit);
 		nav_mesh.RemoveObstacle(unit);
+
+		for (auto &army : army_groups)
+		{
+			army->RemoveUnit(unit);
+		}
 
 		if (debug_mode)
 		{

@@ -1,7 +1,7 @@
 
 #include "TossBot.h"
 #include "path_manager.h"
-#include "locations.h"
+
 
 constexpr float PI = 3.14159265358979323;
 
@@ -23,7 +23,7 @@ Point2D LineSegmentLinearX::FindClosestPoint(Point2D point)
 	return closest_pos;
 }
 
-Point2D LineSegmentLinearX::FindClosestPoint(Point2D point)
+Point2D LineSegmentLinearY::FindClosestPoint(Point2D point)
 {
 	float perp_slope = -1 / a;
 	float perp_coef = point.x - point.y * perp_slope;
@@ -99,7 +99,7 @@ Point2D LineSegmentCurveX::FindClosestPoint(Point2D point)
 	}
 }
 
-Point2D LineSegmentCurveX::FindClosestPoint(Point2D point)
+Point2D LineSegmentCurveY::FindClosestPoint(Point2D point)
 {
 	// derivative of distance
 	float a1 = 4 * pow(a, 2);
@@ -159,5 +159,43 @@ Point2D LineSegmentCurveX::FindClosestPoint(Point2D point)
 		return point;
 	}
 }
+
+
+Point2D PathManager::FindClosestPoint(Point2D point)
+{
+	Point2D closest;
+	float distance_to_closest = INFINITY;
+
+	for (auto &segment : segments)
+	{
+		Point2D closest_on_segment = segment->FindClosestPoint(point);
+		float dist = Distance2D(point, closest_on_segment);
+		if (dist < distance_to_closest)
+		{
+			distance_to_closest = dist;
+			closest = closest_on_segment;
+		}
+	}
+	return closest;
+}
+
+std::vector<Point2D> PathManager::GetPoints()
+{
+	int min = ceil(segments[0]->GetMin());
+
+	std::vector<Point2D> points;
+	int curr = min;
+	for (const auto &segment : segments)
+	{
+		while (curr <= segment->GetMax())
+		{
+			points.push_back(segment->EvaluateAt(curr));
+			curr++;
+		}
+	}
+	return points;
+}
+
+
 
 }

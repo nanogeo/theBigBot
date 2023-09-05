@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 		CreateParticipant(sc2::Race::Protoss, &bot1),
 		CreateComputer(sc2::Race::Zerg, sc2::Difficulty::Easy, sc2::AIBuild::Macro)
     });
-    coordinator.SetRealtime(false);
+    coordinator.SetRealtime(true);
 
     coordinator.LaunchStarcraft();
     coordinator.StartGame("LightShadeLE.SC2Map");

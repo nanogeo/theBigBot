@@ -98,6 +98,7 @@ public:
 
 	void AddUnit(const Unit* unit);
 	void AddNewUnit(const Unit* unit);
+	void RemoveUnit(const Unit* unit);
 
 	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float);
 	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);

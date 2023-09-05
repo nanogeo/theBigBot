@@ -62,6 +62,53 @@ namespace sc2 {
 		new_units.push_back(unit);
 	}
 
+	void ArmyGroup::RemoveUnit(const Unit* unit)
+	{
+		all_units.erase(std::remove(all_units.begin(), all_units.end(), unit), all_units.end());
+
+		Units* units;
+		if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
+			units = &zealots;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
+			units = &stalkers;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
+			units = &adepts;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_SENTRY)
+			units = &sentries;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_HIGHTEMPLAR)
+			units = &high_templar;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DARKTEMPLAR)
+			units = &dark_templar;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ARCHON)
+			units = &archons;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_IMMORTAL)
+			units = &immortals;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_COLOSSUS)
+			units = &collossi;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DISRUPTOR)
+			units = &disrupter;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_OBSERVER)
+			units = &observers;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_WARPPRISM)
+			units = &warp_prisms;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_PHOENIX)
+			units = &phoenixes;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_VOIDRAY)
+			units = &void_rays;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ORACLE)
+			units = &oracles;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_CARRIER)
+			units = &carriers;
+		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_TEMPEST)
+			units = &tempests;
+		else
+		{
+			std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
+			return;
+		}
+
+		units->erase(std::remove(units->begin(), units->end(), unit), units->end());
+	}
 
 	std::vector<Point2D> ArmyGroup::FindConcave(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
 	{
@@ -416,6 +463,11 @@ namespace sc2 {
 						// attack has gone off so reset order status
 						attack_status[stalker] = false;
 					}
+					else if (stalker->orders.size() == 0 || stalker->orders[0].ability_id == ABILITY_ID::MOVE_MOVE)
+					{
+						// attack order is no longer valid
+						attack_status[stalker] = false;
+					}
 				}
 			}
 		}
@@ -451,7 +503,6 @@ namespace sc2 {
 
 	void ArmyGroup::AutoAddStalkers()
 	{
-
 		std::function<void(const Unit*)> onStalkerCreated = [=](const Unit* unit) {
 			this->OnStalkerCreatedListener(unit);
 		};

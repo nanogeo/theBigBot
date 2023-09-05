@@ -1,6 +1,7 @@
 #pragma once
 #include "pathfinding.h"
 #include "TossBot.h"
+#include "path_manager.h"
 
 #include <string>
 
@@ -29,6 +30,7 @@ public:
 
     std::vector<Point2D> attack_path;
 	std::vector<Point2D> attack_path_alt;
+	PathManager attack_path_line;
     int high_ground_index;
 	int high_ground_index_alt;
     Graph* air_graph;

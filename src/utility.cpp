@@ -1,7 +1,9 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
-
+#include <algorithm>
+#include <functional>
+#include <array>
 
 #include "sc2api/sc2_interfaces.h"
 #include "sc2api/sc2_agent.h"
@@ -35,6 +37,24 @@ const Unit* Utility::ClosestTo(Units units, Point2D position)
 	return current_closest;
 }
 
+const Unit* Utility::NthClosestTo(Units units, Point2D position, int n)
+{
+	std::vector<Point2D> points;
+	for (const auto &unit : units)
+	{
+		points.push_back(Point2D(unit->pos));
+	}
+	Point2D nthClosestPoint = NthClosestTo(points, position, n);
+
+	for (const auto &unit : units)
+	{
+		if (nthClosestPoint == Point2D(unit->pos))
+			return unit;
+	}
+	std::cout << "Error no unit found in NthClosestTo";
+	return units[0];
+}
+
 Point2D Utility::ClosestTo(std::vector<Point2D> points, Point2D position)
 {
 	Point2D current_closest;
@@ -54,6 +74,20 @@ Point2D Utility::ClosestTo(std::vector<Point2D> points, Point2D position)
 		return NULL;
 	}*/
 	return current_closest;
+}
+
+Point2D Utility::NthClosestTo(std::vector<Point2D> points, Point2D position, int n)
+{
+	if (n == 0)
+		n++;
+	std::sort(points.begin(), points.end(), [&position](const Point2D &a, const Point2D &b) -> bool
+	{
+		return Distance2D(a, position) < Distance2D(b, position);
+	});
+	if (points.size() > n)
+		return points[n - 1];
+	else
+		return points[points.size() - 1];
 }
 
 const Unit* Utility::FurthestFrom(Units units, Point2D position)
