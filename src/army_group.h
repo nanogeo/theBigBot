@@ -42,6 +42,7 @@ public:
 	int current_attack_index;
 	int high_ground_index;
 
+	std::vector<bool> blink_ready;
 
 	ArmyGroup() {};
 	ArmyGroup(TossBot* agent)
@@ -59,7 +60,10 @@ public:
 			if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
 				zealots.push_back(unit);
 			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
+			{
 				stalkers.push_back(unit);
+				blink_ready.push_back(true);
+			}
 			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
 				adepts.push_back(unit);
 			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_SENTRY)

@@ -22,7 +22,10 @@ namespace sc2 {
 		if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
 			zealots.push_back(unit);
 		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
+		{
 			stalkers.push_back(unit);
+			blink_ready.push_back(true);
+		}
 		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
 			adepts.push_back(unit);
 		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_SENTRY)
@@ -70,7 +73,16 @@ namespace sc2 {
 		if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
 			units = &zealots;
 		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
+		{
 			units = &stalkers;
+			auto index = std::find(stalkers.begin(), stalkers.end(), unit);
+			if (index == stalkers.end())
+				std::cout << "Error trying to remove stalker not in stalkers in RemoveUnit\n";
+			else
+			{
+				blink_ready.erase(blink_ready.begin() + (index - stalkers.begin()));
+			}
+		}
 		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
 			units = &adepts;
 		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_SENTRY)
@@ -425,8 +437,9 @@ namespace sc2 {
 			}
 			else
 			{
-				for (const auto &stalker : stalkers)
+				for (int i = 0; i < stalkers.size(); i++)
 				{
+					const Unit* stalker = stalkers[i];
 					int danger = agent->IncomingDamage(stalker);
 					if (danger > 0)
 					{
@@ -434,19 +447,16 @@ namespace sc2 {
 
 						if (danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
 						{
-							for (const auto &abiliy : agent->Query()->GetAbilitiesForUnit(stalker).abilities)
+							if (blink_ready[i])
 							{
-								if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
-								{
-									if (stalker->orders.size() > 0 && stalker->orders[0].ability_id == ABILITY_ID::ATTACK && stalker->weapon_cooldown == 0)
-										agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7), true); // TODO adjustable blink distance
-									else
-										agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7)); // TODO adjustable blink distance
-									agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point, true);
-									attack_status[stalker] = false;
-									using_blink = true;
-									break;
-								}
+								if (stalker->orders.size() > 0 && stalker->orders[0].ability_id == ABILITY_ID::ATTACK && stalker->weapon_cooldown == 0)
+									agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7), true); // TODO adjustable blink distance
+								else
+									agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7)); // TODO adjustable blink distance
+								agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point, true);
+								attack_status[stalker] = false;
+								using_blink = true;
+								break;
 							}
 						}
 

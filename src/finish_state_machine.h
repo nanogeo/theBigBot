@@ -29,6 +29,7 @@ public:
     Units oracles;
     std::vector<float> time_last_attacked;
     std::vector<bool> has_attacked;
+	std::vector<bool> is_beam_active;
     Point2D denfensive_position;
     OracleDefend(TossBot* agent, Units oracles, Point2D point)
     {
@@ -38,6 +39,7 @@ public:
         {
             time_last_attacked.push_back(0);
             has_attacked.push_back(true);
+			is_beam_active.push_back(false);
         }
         denfensive_position = point;
     }
