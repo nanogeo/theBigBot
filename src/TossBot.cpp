@@ -7,6 +7,8 @@
 #include "build_order_manager.h"
 
 #include <iostream>
+#include <fstream>
+#include <chrono>
 #include <string>
 #include <algorithm>
 #include <random>
@@ -35,6 +37,10 @@ namespace sc2 {
 
     void TossBot::OnStep()
     {
+		std::chrono::milliseconds startTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			);
+
 		Units bla = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ADEPT));
 		frames_passed++;
         //std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
@@ -312,6 +318,11 @@ namespace sc2 {
 
         
         worker_manager.DistributeWorkers();
+
+		std::chrono::milliseconds postDistributeWorkers = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			);
+
         if (worker_manager.new_base != NULL)
         {
             std::cout << "add new base\n";
@@ -322,6 +333,11 @@ namespace sc2 {
                 worker_manager.SplitWorkers();
             }
         }
+
+		std::chrono::milliseconds postNewBase = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			);
+
         if (Observation()->GetGameLoop() == 1)
         {
             auto infos = Observation()->GetGameInfo().player_info;
@@ -348,6 +364,7 @@ namespace sc2 {
 			build_order_manager.SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 
         }
+
 		/*if (Observation()->GetGameLoop() >= 2)
 		{
 			Point2D fallback = Point2D(75, 120);
@@ -410,18 +427,59 @@ namespace sc2 {
 				}
 			}
 		}*/
-        
+
+		std::chrono::milliseconds postBuildWorkers = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			);;
+		std::chrono::milliseconds postCheckBuildOrder = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			);;
+		std::chrono::milliseconds postProcessActions = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			);;
+
         if (Observation()->GetGameLoop() % 2 == 0)
         {
             worker_manager.BuildWorkers();
+			postBuildWorkers = std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::system_clock::now().time_since_epoch()
+				);
 			build_order_manager.CheckBuildOrder();
+			postCheckBuildOrder = std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::system_clock::now().time_since_epoch()
+				);
 			action_manager.ProcessActions();
+			postProcessActions = std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::system_clock::now().time_since_epoch()
+				);
         }
 
         ProcessFSMs();
+		std::chrono::milliseconds postProcessFSM = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			);
 
         DisplayDebugHud();
+		std::chrono::milliseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			);
         Debug()->SendDebug();
+		std::chrono::milliseconds postSendDebug = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			);
+
+		std::ofstream frame_time_file;
+		frame_time_file.open("frame_time.txt", std::ios_base::app);
+		frame_time_file << postDistributeWorkers.count() - startTime.count() << ", ";
+		frame_time_file << postNewBase.count() - postDistributeWorkers.count() << ", ";
+		frame_time_file << postBuildWorkers.count() - postNewBase.count() << ", ";
+		frame_time_file << postCheckBuildOrder.count() - postBuildWorkers.count() << ", ";
+		frame_time_file << postProcessActions.count() - postCheckBuildOrder.count() << ", ";
+		frame_time_file << postProcessFSM.count() - postProcessActions.count() << ", ";
+		frame_time_file << postDisplayDebug.count() - postProcessFSM.count() << ", ";
+		frame_time_file << postSendDebug.count() - postDisplayDebug.count() << "\n";
+
+		frame_time_file.close();
     }
 
     void TossBot::OnBuildingConstructionComplete(const Unit *building)
@@ -1071,10 +1129,26 @@ namespace sc2 {
 
     void TossBot::ProcessFSMs()
     {
+		std::chrono::milliseconds fsmStart = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			); 
+		std::ofstream fsm_time_file;
+		fsm_time_file.open("fsm_time_file.txt", std::ios_base::app);
+
         for (const auto &state_machine : active_FSMs)
         {
             state_machine->RunStateMachine();
+			std::chrono::milliseconds fsmNext = std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::system_clock::now().time_since_epoch()
+				);
+			fsm_time_file << fsmNext.count() - fsmStart.count() << ", ";
+
+			fsmStart = std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::system_clock::now().time_since_epoch()
+				);
         }
+		fsm_time_file << "\n";
+		fsm_time_file.close();
     }
 
 #pragma endregion

@@ -4,6 +4,8 @@
 #include "utility.h"
 
 #include <iostream>
+#include <fstream>
+#include <chrono>
 #include <string>
 
 
@@ -54,11 +56,32 @@ namespace sc2 {
 
 	void OracleDefend::TickState()
 	{
+		std::chrono::milliseconds start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			);
+
+		std::ofstream oracle_time;
+		oracle_time.open("oracle_time.txt", std::ios_base::app);
+
+		std::chrono::milliseconds enemy_in_range = start_time;
+		std::chrono::milliseconds query_abilities = start_time;
+		std::chrono::milliseconds beam_active = start_time;
+		std::chrono::milliseconds beam_activatable = start_time;
+		std::chrono::milliseconds neither = start_time;
+		std::chrono::milliseconds debug_text = start_time;
+		std::chrono::milliseconds no_enemy_in_range = start_time;
 
 		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), denfensive_position) < 10)
 		{
+			oracle_time << std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::system_clock::now().time_since_epoch()
+				).count() - start_time.count() << ", ";
 			for (int i = 0; i < oracles.size(); i++)
 			{
+				start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::system_clock::now().time_since_epoch()
+					);
+
 				const Unit* oracle = oracles[i];
 				float now = agent->Observation()->GetGameLoop() / 22.4;
 				bool weapon_ready = now - time_last_attacked[i] > .61;
@@ -74,6 +97,14 @@ namespace sc2 {
 
 				if (!beam_active && oracle->energy >= 40)
 					beam_activatable = true;
+
+				oracle_time << std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::system_clock::now().time_since_epoch()
+					).count() - start_time.count() << ", ";
+
+				start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::system_clock::now().time_since_epoch()
+					);
 
 				const Unit* closest_unit = Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), oracle->pos);
 				if (beam_active)
