@@ -459,11 +459,11 @@ namespace sc2 {
 			std::chrono::system_clock::now().time_since_epoch()
 			);
 
-        DisplayDebugHud();
+        //DisplayDebugHud();
 		std::chrono::milliseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::system_clock::now().time_since_epoch()
 			);
-        Debug()->SendDebug();
+        //Debug()->SendDebug();
 		std::chrono::milliseconds postSendDebug = std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::system_clock::now().time_since_epoch()
 			);
@@ -2206,6 +2206,12 @@ namespace sc2 {
 
 	std::map<const Unit*, const Unit*> TossBot::FindTargets(Units units, std::vector<UNIT_TYPEID> prio, float extra_range)
 	{
+		std::ofstream find_targets;
+		find_targets.open("find_targets.txt", std::ios_base::app);
+
+		unsigned long long start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count();
 		std::map<const Unit*, std::vector<const Unit*>> unit_targets;
 		Units Eunits;
 		for (const auto &unit : Observation()->GetUnits())
@@ -2223,9 +2229,26 @@ namespace sc2 {
 			}
 			unit_targets[unit] = units_in_range;
 		}
+		unsigned long long set_up_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count() - start_time;
+
+		start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count();
 
 		FireControl* fire_control = new FireControl(this, unit_targets, prio);
+
+		unsigned long long constructor_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count() - start_time;
+
+		find_targets << set_up_time << ", ";
+		find_targets << constructor_time << "\n";
+		find_targets.close();
+
 		return fire_control->FindAttacks();
+
 	}
 
 #pragma endregion

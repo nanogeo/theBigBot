@@ -2,6 +2,9 @@
 #include "fire_control.h"
 #include "utility.h"
 
+#include <fstream>
+#include <chrono>
+
 
 
 
@@ -111,11 +114,30 @@ namespace sc2 {
 
 	std::map<const Unit*, const Unit*> FireControl::FindAttacks()
 	{
+		unsigned long long start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count();
+
+		std::ofstream fire_control_time;
+		fire_control_time.open("fire_control_time.txt", std::ios_base::app);
+
+		unsigned long long single_target = 0;
+		unsigned long long enemy_min_heap = 0;
+		unsigned long long friendly_min_heap = 0;
+
 		for (const auto &unit : friendly_units)
 		{
 			if (unit->units_in_range.size() == 1)
 				ApplyAttack(unit, unit->units_in_range[0]);
 		}
+
+		single_target = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count() - start_time;
+
+		start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count();
 
 		// order enemy units by number of friendly units that can hit them
 		EnemyMinHeap enemy_units_ordered = EnemyMinHeap(enemy_units.size());
@@ -152,6 +174,14 @@ namespace sc2 {
 			}
 		}
 
+		enemy_min_heap = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count() - start_time;
+
+		start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count();
+
 		FriendlyMinHeap friendly_units_ordered = FriendlyMinHeap(friendly_units.size());
 		for (const auto &unit : friendly_units)
 		{
@@ -176,6 +206,14 @@ namespace sc2 {
 				ApplyAttack(current_unit, current_unit->units_in_range[0]);
 			}
 		}
+		friendly_min_heap = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count() - start_time;
+
+		fire_control_time << single_target << ", ";
+		fire_control_time << enemy_min_heap << ", ";
+		fire_control_time << friendly_min_heap << "\n";
+		fire_control_time.close();
 
 		return attacks;
 	}

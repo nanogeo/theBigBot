@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <chrono>
 
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit_filters.h"
@@ -376,6 +378,20 @@ namespace sc2 {
 
 	void ArmyGroup::ApplyPressureGrouped(Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> retreating_unit_positions, std::map<const Unit*, Point2D> attacking_unit_positions)
 	{
+		unsigned long long start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+			).count();
+
+		std::ofstream pressure_time;
+		pressure_time.open("pressure_time.txt", std::ios_base::app);
+
+		unsigned long long ready_check = 0;
+		unsigned long long find_targets = 0;
+		unsigned long long print_attacks = 0;
+		unsigned long long give_targets = 0;
+		unsigned long long not_ready = 0;
+		unsigned long long pick_up = 0;
+
 		std::map<const Unit*, int> units_requesting_pickup;
 		if (stalkers.size() > 0)
 		{
@@ -410,13 +426,29 @@ namespace sc2 {
 			}
 			if (all_ready)
 			{
+				start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::system_clock::now().time_since_epoch()
+					).count();
+
 				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers, {}, 2);
 				if (found_targets.size() == 0)
 				{
 					found_targets = agent->FindTargets(stalkers, {}, 2);
 					std::cout << "extra distance\n";
 				}
-				agent->PrintAttacks(found_targets);
+				find_targets = std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::system_clock::now().time_since_epoch()
+					).count() - start_time;
+
+				start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::system_clock::now().time_since_epoch()
+					).count();
+
+				//agent->PrintAttacks(found_targets);
+
+				print_attacks = std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::system_clock::now().time_since_epoch()
+					).count() - start_time;
 
 				for (const auto &stalker : stalkers)
 				{
@@ -482,6 +514,15 @@ namespace sc2 {
 			}
 		}
 		PickUpUnits(units_requesting_pickup);
+
+
+		pressure_time << ready_check << ", ";
+		pressure_time << find_targets << ", ";
+		pressure_time << print_attacks << ", ";
+		pressure_time << give_targets << ", ";
+		pressure_time << not_ready << ", ";
+		pressure_time << pick_up << "\n";
+		pressure_time.close();
 	}
 
 	void ArmyGroup::DefendFrontDoor(Point2D door_open_pos, Point2D door_closed_pos)
