@@ -37,6 +37,10 @@ namespace sc2 {
 
     void TossBot::OnStep()
     {
+
+
+
+
 		std::chrono::milliseconds startTime = std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::system_clock::now().time_since_epoch()
 			);
@@ -340,6 +344,36 @@ namespace sc2 {
 
         if (Observation()->GetGameLoop() == 1)
         {
+			std::ofstream frame_time_file;
+			frame_time_file.open("frame_time.txt", std::ios_base::out);
+			frame_time_file << "Distribute workers,New base,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug\n";
+			frame_time_file.close();
+
+			std::ofstream action_time_file;
+			action_time_file.open("action_time.txt", std::ios_base::out);
+			action_time_file << "New units,Closest units,Concaves,Positions,Debug,ApplyPressure,UpdateIndex\n";
+			action_time_file.close();
+
+			std::ofstream find_targets_time_file;
+			find_targets_time_file.open("find_targets.txt", std::ios_base::out);
+			find_targets_time_file << "Set up,Constructor\n";
+			find_targets_time_file.close();
+
+			std::ofstream fire_control_time_file;
+			fire_control_time_file.open("fire_control_time.txt", std::ios_base::out);
+			fire_control_time_file << "Single target,Enemy min heap,Friendly min heap\n";
+			fire_control_time_file.close();
+
+			std::ofstream oracle_time_file;
+			oracle_time_file.open("oracle_time.txt", std::ios_base::out);
+			oracle_time_file << "Enemy in range,Query abilities,Beam active,Beam activatable,Neither,Debug text,No enemy in range\n";
+			oracle_time_file.close();
+
+			std::ofstream pressure_time_file;
+			pressure_time_file.open("pressure_time.txt", std::ios_base::out);
+			pressure_time_file << "Ready check,Find targets,Print attacks,Give targets,Not ready,Pick up\n";
+			pressure_time_file.close();
+
             auto infos = Observation()->GetGameInfo().player_info;
             if (infos.size() > 0)
             {
