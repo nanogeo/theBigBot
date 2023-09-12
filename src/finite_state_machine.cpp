@@ -56,8 +56,8 @@ namespace sc2 {
 
 	void OracleDefend::TickState()
 	{
-		unsigned long long start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
 
 		std::ofstream oracle_time;
@@ -73,14 +73,14 @@ namespace sc2 {
 
 		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), denfensive_position) < 10)
 		{
-			enemy_in_range = std::chrono::duration_cast<std::chrono::milliseconds>(
-				std::chrono::system_clock::now().time_since_epoch()
+			enemy_in_range = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count() - start_time;
 
 			for (int i = 0; i < oracles.size(); i++)
 			{
-				start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::system_clock::now().time_since_epoch()
+				start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count();
 
 				const Unit* oracle = oracles[i];
@@ -92,15 +92,15 @@ namespace sc2 {
 				if (!beam_active && oracle->energy >= 40)
 					beam_activatable = true;
 
-				query_abilities = std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::system_clock::now().time_since_epoch()
+				query_abilities = std::chrono::duration_cast<std::chrono::microseconds>(
+					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count() - start_time;
 
 				const Unit* closest_unit = Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), oracle->pos);
 				if (beam_active)
 				{
-					start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-						std::chrono::system_clock::now().time_since_epoch()
+					start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+						std::chrono::high_resolution_clock::now().time_since_epoch()
 						).count();
 
 					if (Distance2D(oracle->pos, closest_unit->pos) > 4)
@@ -125,14 +125,14 @@ namespace sc2 {
 						agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
 					}
 
-					beam_active = std::chrono::duration_cast<std::chrono::milliseconds>(
-						std::chrono::system_clock::now().time_since_epoch()
+					beam_active = std::chrono::duration_cast<std::chrono::microseconds>(
+						std::chrono::high_resolution_clock::now().time_since_epoch()
 						).count() - start_time;
 				}
 				else if (beam_activatable)
 				{
-					start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-						std::chrono::system_clock::now().time_since_epoch()
+					start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+						std::chrono::high_resolution_clock::now().time_since_epoch()
 						).count();
 
 					if (Distance2D(oracle->pos, closest_unit->pos) < 3)
@@ -145,42 +145,42 @@ namespace sc2 {
 						agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
 					}
 
-					beam_activatable = std::chrono::duration_cast<std::chrono::milliseconds>(
-						std::chrono::system_clock::now().time_since_epoch()
+					beam_activatable = std::chrono::duration_cast<std::chrono::microseconds>(
+						std::chrono::high_resolution_clock::now().time_since_epoch()
 						).count() - start_time;
 				}
 				else
 				{
-					start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-						std::chrono::system_clock::now().time_since_epoch()
+					start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+						std::chrono::high_resolution_clock::now().time_since_epoch()
 						).count();
 
 					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
 					agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
 
-					neither = std::chrono::duration_cast<std::chrono::milliseconds>(
-						std::chrono::system_clock::now().time_since_epoch()
+					neither = std::chrono::duration_cast<std::chrono::microseconds>(
+						std::chrono::high_resolution_clock::now().time_since_epoch()
 						).count() - start_time;
 				}
-				start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::system_clock::now().time_since_epoch()
+				start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count();
 
 				agent->Debug()->DebugTextOut(std::to_string(now - time_last_attacked[i]), Point2D(.7, .7), Color(0, 255, 255), 20);
 				agent->Debug()->DebugTextOut(std::to_string(agent->Observation()->GetGameLoop()), Point2D(.7, .75), Color(0, 255, 255), 20);
 
-				debug_text = std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::system_clock::now().time_since_epoch()
+				debug_text = std::chrono::duration_cast<std::chrono::microseconds>(
+					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count() - start_time;
 			}
 		}
 		else
 		{
-			enemy_in_range = std::chrono::duration_cast<std::chrono::milliseconds>(
-				std::chrono::system_clock::now().time_since_epoch()
+			enemy_in_range = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count() - start_time;
-			start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-				std::chrono::system_clock::now().time_since_epoch()
+			start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
 			for (int i = 0; i < oracles.size(); i++)
 			{
@@ -195,8 +195,8 @@ namespace sc2 {
 					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, denfensive_position);
 			}
 
-			no_enemy_in_range = std::chrono::duration_cast<std::chrono::milliseconds>(
-				std::chrono::system_clock::now().time_since_epoch()
+			no_enemy_in_range = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count() - start_time;
 		}
 

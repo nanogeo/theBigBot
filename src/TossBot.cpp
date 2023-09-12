@@ -41,8 +41,8 @@ namespace sc2 {
 
 
 
-		std::chrono::milliseconds startTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		std::chrono::microseconds startTime = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
 		Units bla = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ADEPT));
@@ -323,8 +323,8 @@ namespace sc2 {
         
         worker_manager.DistributeWorkers();
 
-		std::chrono::milliseconds postDistributeWorkers = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		std::chrono::microseconds postDistributeWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
         if (worker_manager.new_base != NULL)
@@ -338,15 +338,15 @@ namespace sc2 {
             }
         }
 
-		std::chrono::milliseconds postNewBase = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		std::chrono::microseconds postNewBase = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
         if (Observation()->GetGameLoop() == 1)
         {
 			std::ofstream frame_time_file;
 			frame_time_file.open("frame_time.txt", std::ios_base::out);
-			frame_time_file << "Distribute workers,New base,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug\n";
+			frame_time_file << "Distribute workers,New base,Update enemy pos,Update enemy weapon cd,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug\n";
 			frame_time_file.close();
 
 			std::ofstream action_time_file;
@@ -462,51 +462,63 @@ namespace sc2 {
 			}
 		}*/
 
-		std::chrono::milliseconds postBuildWorkers = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		UpdateEnemyUnitPositions();
+		std::chrono::microseconds postUpdateEnemyUnitPositions = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
+		UpdateEnemyWeaponCooldowns();
+		std::chrono::microseconds postUpdateEnemyWeaponCooldowns = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
+
+		std::chrono::microseconds postBuildWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);;
-		std::chrono::milliseconds postCheckBuildOrder = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		std::chrono::microseconds postCheckBuildOrder = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);;
-		std::chrono::milliseconds postProcessActions = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		std::chrono::microseconds postProcessActions = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);;
 
         if (Observation()->GetGameLoop() % 2 == 0)
         {
+			
             worker_manager.BuildWorkers();
-			postBuildWorkers = std::chrono::duration_cast<std::chrono::milliseconds>(
-				std::chrono::system_clock::now().time_since_epoch()
+			postBuildWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
 			build_order_manager.CheckBuildOrder();
-			postCheckBuildOrder = std::chrono::duration_cast<std::chrono::milliseconds>(
-				std::chrono::system_clock::now().time_since_epoch()
+			postCheckBuildOrder = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
 			action_manager.ProcessActions();
-			postProcessActions = std::chrono::duration_cast<std::chrono::milliseconds>(
-				std::chrono::system_clock::now().time_since_epoch()
+			postProcessActions = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
         }
 
         ProcessFSMs();
-		std::chrono::milliseconds postProcessFSM = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		std::chrono::microseconds postProcessFSM = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
         //DisplayDebugHud();
-		std::chrono::milliseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		std::chrono::microseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
         //Debug()->SendDebug();
-		std::chrono::milliseconds postSendDebug = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		std::chrono::microseconds postSendDebug = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
 		std::ofstream frame_time_file;
 		frame_time_file.open("frame_time.txt", std::ios_base::app);
 		frame_time_file << postDistributeWorkers.count() - startTime.count() << ", ";
 		frame_time_file << postNewBase.count() - postDistributeWorkers.count() << ", ";
-		frame_time_file << postBuildWorkers.count() - postNewBase.count() << ", ";
+		frame_time_file << postUpdateEnemyUnitPositions.count() - postNewBase.count() << ", ";
+		frame_time_file << postUpdateEnemyWeaponCooldowns.count() - postUpdateEnemyUnitPositions.count() << ", ";
+		frame_time_file << postBuildWorkers.count() - postUpdateEnemyWeaponCooldowns.count() << ", ";
 		frame_time_file << postCheckBuildOrder.count() - postBuildWorkers.count() << ", ";
 		frame_time_file << postProcessActions.count() - postCheckBuildOrder.count() << ", ";
 		frame_time_file << postProcessFSM.count() - postProcessActions.count() << ", ";
@@ -1163,8 +1175,8 @@ namespace sc2 {
 
     void TossBot::ProcessFSMs()
     {
-		std::chrono::milliseconds fsmStart = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		std::chrono::microseconds fsmStart = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			); 
 		std::ofstream fsm_time_file;
 		fsm_time_file.open("fsm_time_file.txt", std::ios_base::app);
@@ -1172,13 +1184,13 @@ namespace sc2 {
         for (const auto &state_machine : active_FSMs)
         {
             state_machine->RunStateMachine();
-			std::chrono::milliseconds fsmNext = std::chrono::duration_cast<std::chrono::milliseconds>(
-				std::chrono::system_clock::now().time_since_epoch()
+			std::chrono::microseconds fsmNext = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
 			fsm_time_file << fsmNext.count() - fsmStart.count() << ", ";
 
-			fsmStart = std::chrono::duration_cast<std::chrono::milliseconds>(
-				std::chrono::system_clock::now().time_since_epoch()
+			fsmStart = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
         }
 		fsm_time_file << "\n";
@@ -2243,8 +2255,8 @@ namespace sc2 {
 		std::ofstream find_targets;
 		find_targets.open("find_targets.txt", std::ios_base::app);
 
-		unsigned long long start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
 		std::map<const Unit*, std::vector<const Unit*>> unit_targets;
 		Units Eunits;
@@ -2263,18 +2275,18 @@ namespace sc2 {
 			}
 			unit_targets[unit] = units_in_range;
 		}
-		unsigned long long set_up_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		unsigned long long set_up_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count() - start_time;
 
-		start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
 
 		FireControl* fire_control = new FireControl(this, unit_targets, prio);
 
-		unsigned long long constructor_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		unsigned long long constructor_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count() - start_time;
 
 		find_targets << set_up_time << ", ";

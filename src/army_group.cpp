@@ -70,6 +70,7 @@ namespace sc2 {
 	void ArmyGroup::RemoveUnit(const Unit* unit)
 	{
 		all_units.erase(std::remove(all_units.begin(), all_units.end(), unit), all_units.end());
+		attack_status.erase(unit);
 
 		Units* units;
 		if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
@@ -378,8 +379,8 @@ namespace sc2 {
 
 	void ArmyGroup::ApplyPressureGrouped(Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> retreating_unit_positions, std::map<const Unit*, Point2D> attacking_unit_positions)
 	{
-		unsigned long long start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()
+		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
 
 		std::ofstream pressure_time;
@@ -426,8 +427,8 @@ namespace sc2 {
 			}
 			if (all_ready)
 			{
-				start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::system_clock::now().time_since_epoch()
+				start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count();
 
 				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers, {}, 2);
@@ -436,18 +437,18 @@ namespace sc2 {
 					found_targets = agent->FindTargets(stalkers, {}, 2);
 					std::cout << "extra distance\n";
 				}
-				find_targets = std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::system_clock::now().time_since_epoch()
+				find_targets = std::chrono::duration_cast<std::chrono::microseconds>(
+					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count() - start_time;
 
-				start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::system_clock::now().time_since_epoch()
+				start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count();
 
 				//agent->PrintAttacks(found_targets);
 
-				print_attacks = std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::system_clock::now().time_since_epoch()
+				print_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
+					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count() - start_time;
 
 				for (const auto &stalker : stalkers)
@@ -475,8 +476,6 @@ namespace sc2 {
 					int danger = agent->IncomingDamage(stalker);
 					if (danger > 0)
 					{
-						bool using_blink = false;
-
 						if (danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
 						{
 							if (blink_ready[i])
@@ -485,15 +484,14 @@ namespace sc2 {
 									agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7), true); // TODO adjustable blink distance
 								else
 									agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7)); // TODO adjustable blink distance
-								agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point, true);
+								//agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point, true);
 								attack_status[stalker] = false;
-								using_blink = true;
-								break;
+								blink_ready[i] = false;
+								continue;
 							}
 						}
 
-						if (!using_blink)
-							units_requesting_pickup[stalker] = danger;
+						units_requesting_pickup[stalker] = danger;
 					}
 					if (attack_status[stalker] == false)
 					{
@@ -505,7 +503,7 @@ namespace sc2 {
 						// attack has gone off so reset order status
 						attack_status[stalker] = false;
 					}
-					else if (stalker->orders.size() == 0 || stalker->orders[0].ability_id == ABILITY_ID::MOVE_MOVE)
+					else if (stalker->orders.size() == 0 || stalker->orders[0].ability_id == ABILITY_ID::MOVE_MOVE || stalker->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE)
 					{
 						// attack order is no longer valid
 						attack_status[stalker] = false;
