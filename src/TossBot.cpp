@@ -33,6 +33,11 @@ namespace sc2 {
     {
         std::cout << "Hello World!" << std::endl;
 		SetUpUnitTypeInfo();
+		if (debug_mode)
+		{
+			Debug()->DebugGiveAllResources();
+			Debug()->DebugFastBuild();
+		}
     }
 
     void TossBot::OnStep()
@@ -275,7 +280,7 @@ namespace sc2 {
                 Point3D end = Point3D(path[0].x, path[0].y, Observation()->TerrainHeight(path[0]) + .1);
                 Debug()->DebugLineOut(start, end, Color(0, 255, 0));*/
 
-				UpdateEnemyUnitPositions();
+				/*UpdateEnemyUnitPositions();
 				UpdateEnemyWeaponCooldowns();
 				for (const auto &unit : enemy_unit_saved_position)
 				{
@@ -299,17 +304,17 @@ namespace sc2 {
 				for (const auto &point : locations->attack_path_line.GetPoints())
 				{
 					Debug()->DebugSphereOut(Point3D(point.x, point.y, Observation()->TerrainHeight(point)), .4, Color(255, 255, 255));
-				}
+				}*/
 
             }
-			if (Observation()->GetGameLoop() > 10 && !tests_set_up)
+			/*if (Observation()->GetGameLoop() > 10 && !tests_set_up)
 			{
 				SetUpArmies();
 			}
             if (Observation()->GetGameLoop() % 1000 == 0)
             {
                 std::cout << "1000\n";
-            }
+            }*/
 
 
 			action_manager.ProcessActions();
@@ -373,6 +378,11 @@ namespace sc2 {
 			pressure_time_file.open("pressure_time.txt", std::ios_base::out);
 			pressure_time_file << "Ready check,Find targets,Print attacks,Give targets,Not ready,Pick up\n";
 			pressure_time_file.close();
+
+			std::ofstream debug_hud_file;
+			debug_hud_file.open("debug_hud_time.txt", std::ios_base::out);
+			debug_hud_file << "Worker status,Build order,Active actions,Active FSM,Building status,Army groups,Supply info\n";
+			debug_hud_file.close();
 
             auto infos = Observation()->GetGameInfo().player_info;
             if (infos.size() > 0)
@@ -503,11 +513,11 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
-        //DisplayDebugHud();
+        DisplayDebugHud();
 		std::chrono::microseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
-        //Debug()->SendDebug();
+        Debug()->SendDebug();
 		std::chrono::microseconds postSendDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
@@ -1758,13 +1768,50 @@ namespace sc2 {
 
     void TossBot::DisplayDebugHud()
     {
+		std::chrono::microseconds start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
         DisplayWorkerStatus();
+		std::chrono::microseconds worker_status = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
         DisplayBuildOrder();
+		std::chrono::microseconds build_order = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
         DisplayActiveActions();
+		std::chrono::microseconds active_actions = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
         DisplayActiveStateMachines();
+		std::chrono::microseconds active_fsm = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
         DisplayBuildingStatuses();
+		std::chrono::microseconds building_status = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
         DisplayArmyGroups();
+		std::chrono::microseconds army_groups = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
         DisplaySupplyInfo();
+		std::chrono::microseconds suply_info = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
+
+
+		std::ofstream debug_hud_file;
+		debug_hud_file.open("debug_hud_time.txt", std::ios_base::app);
+		debug_hud_file << worker_status.count() - start_time.count() << ", ";
+		debug_hud_file << build_order.count() - worker_status.count() << ", ";
+		debug_hud_file << active_actions.count() - build_order.count() << ", ";
+		debug_hud_file << active_fsm.count() - active_actions.count() << ", ";
+		debug_hud_file << building_status.count() - active_fsm.count() << ", ";
+		debug_hud_file << army_groups.count() - building_status.count() << ", ";
+		debug_hud_file << suply_info.count() - army_groups.count() << "\n";
+
+		debug_hud_file.close();
     }
 
     void TossBot::DisplayWorkerStatus()
@@ -1879,7 +1926,7 @@ namespace sc2 {
             {
                 std::string info = Utility::UnitTypeIdToString(building_type) + " ";
                 Color text_color = Color(0, 255, 0);
-                if (building_type == UNIT_TYPEID::PROTOSS_WARPGATE)
+                /*if (building_type == UNIT_TYPEID::PROTOSS_WARPGATE)
                 {
                     for (const auto & ability : Query()->GetAbilitiesForUnit(building).abilities)
                     {
@@ -1889,7 +1936,7 @@ namespace sc2 {
                         }
                     }
                 }
-                else if (building->orders.empty())
+                else */if (building->orders.empty())
                 {
                     text_color = Color(255, 0, 0);
                 }

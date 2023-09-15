@@ -51,6 +51,10 @@ def display_times(info, indent):
 			fire_control = read_file('fire_control_time.txt')
 			print('   |' * (indent + 1) + 'Fire Control Time')
 			display_times(fire_control, indent + 1)
+		elif info[0][i] == 'Display debug':
+			debug_hud = read_file('debug_hud_time.txt')
+			#print('   |' * (indent + 1) + 'Pressure Time')
+			display_times(debug_hud, indent + 1)
 
 	print('   |' * indent + '{:<25} {:>8}'.format('Total', "{:.2f}".format(total)))
 

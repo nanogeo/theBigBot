@@ -182,6 +182,8 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 	}
 	int supply_used = agent->Observation()->GetFoodUsed();
 	int supply_cap = agent->Observation()->GetFoodCap() - 8 * agent->extra_pylons;
+	if (supply_cap >= 200)
+		return false;
 	supply_cap += 8 * (build_pylon_actions + pending_pylons);
 	supply_used += agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
 	supply_used += 2 * agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPGATE)).size();
@@ -192,6 +194,94 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 		agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_PYLON);
 
 	return false;
+}
+
+bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
+{
+	// TODO make global upgrade tracker
+	std::vector<ABILITY_ID> upgrades = { ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS, ABILITY_ID::RESEARCH_PROTOSSSHIELDS, ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR};
+	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
+	{
+		int upgrade_value = 9;
+		if (forge->orders.size() == 0)
+		{
+			AvailableAbilities abilities = agent->Query()->GetAbilitiesForUnit(forge);
+			for (const auto &ability : abilities.abilities)
+			{
+				auto found = std::find(upgrades.begin(), upgrades.end(), ability.ability_id);
+				if (found != upgrades.end())
+				{
+					int index = found - upgrades.begin();
+					if (index < upgrade_value)
+						upgrade_value = index;
+				}
+			}
+		}
+		if (upgrade_value < 9)
+		{
+			agent->Actions()->UnitCommand(forge, upgrades[upgrade_value]);
+			upgrades.erase(upgrades.begin() + upgrade_value);
+		}
+	}
+	return false;
+}
+
+bool ActionManager::ActionContinueChronos(ActionArgData* data)
+{
+	Units need_chrono;
+	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSBAY)))
+	{
+		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
+			need_chrono.push_back(building);
+	}
+	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
+	{
+		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
+			need_chrono.push_back(building);
+	}
+	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
+	{
+		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
+			need_chrono.push_back(building);
+	}
+	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
+	{
+		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
+			need_chrono.push_back(building);
+	}
+
+	for (const auto &nexus : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+	{
+		if (need_chrono.size() == 0)
+			break;
+		if (nexus->energy >= 50)
+		{
+			agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, need_chrono[0]);
+			need_chrono.erase(need_chrono.begin());
+		}
+	}
+	return false;
+}
+
+bool ActionManager::ActionContinueExpanding(ActionArgData* data)
+{
+	if (agent->worker_manager.far_3_mineral_patch_extras.size() > 0)
+	{
+		for (const auto &pylon : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+		{
+			if (pylon->build_progress < 1)
+				return false;
+		}
+		for (const auto &action : active_actions)
+		{
+			if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == UNIT_TYPEID::PROTOSS_NEXUS)
+			{
+				return false;
+			}
+		}
+
+		agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_NEXUS);
+	}
 }
 
 bool ActionManager::ActionChronoTillFinished(ActionArgData* data)

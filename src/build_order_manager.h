@@ -134,6 +134,9 @@ public:
 	bool WarpInAtProxy(BuildOrderResultArgData);
 	bool ContinueBuildingPylons(BuildOrderResultArgData);
 	bool ContinueMakingWorkers(BuildOrderResultArgData);
+	bool ContinueUpgrades(BuildOrderResultArgData);
+	bool ContinueChronos(BuildOrderResultArgData);
+	bool ContinueExpanding(BuildOrderResultArgData);
 	bool TrainFromProxy(BuildOrderResultArgData);
 	bool ContinueChronoProxyRobo(BuildOrderResultArgData);
 	bool Contain(BuildOrderResultArgData);

@@ -431,7 +431,7 @@ namespace sc2 {
 					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count();
 
-				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers, {}, 2);
+				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers, {}, 0);
 				if (found_targets.size() == 0)
 				{
 					found_targets = agent->FindTargets(stalkers, {}, 2);
@@ -511,6 +511,7 @@ namespace sc2 {
 				}
 			}
 		}
+
 		PickUpUnits(units_requesting_pickup);
 
 
@@ -560,7 +561,7 @@ namespace sc2 {
 
 	void ArmyGroup::OnStalkerCreatedListener(const Unit* unit)
 	{
-		if (unit->unit_type == UNIT_TYPEID::PROTOSS_STALKER)
+		if (unit->unit_type == UNIT_TYPEID::PROTOSS_STALKER || unit->unit_type == UNIT_TYPEID::PROTOSS_IMMORTAL || unit->unit_type == UNIT_TYPEID::PROTOSS_OBSERVER || unit->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
 			AddNewUnit(unit);
 	}
 

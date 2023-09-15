@@ -92,7 +92,12 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 	assimilator_locations = { convert_location(Point2D(150.5, 35.5), swap),
 								convert_location(Point2D(139.5, 25.5), swap),
 								convert_location(Point2D(152.5, 58.5), swap),
-								convert_location(Point2D(148.5, 54.5), swap) };
+								convert_location(Point2D(148.5, 54.5), swap),
+								convert_location(Point2D(149.5, 87.5), swap),
+								convert_location(Point2D(149.5, 101.5), swap),
+								convert_location(Point2D(126.5, 56.5), swap),
+								convert_location(Point2D(116.5, 46.5), swap) };
+
 
 	cyber_core_locations = { convert_location(Point2D(139.5, 64.5), swap),
 								convert_location(Point2D(137.5, 46.5), swap),

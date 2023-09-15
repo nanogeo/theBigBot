@@ -86,6 +86,9 @@ public:
 	bool ActionScoutZerg(ActionArgData*);
 	bool ActionContinueMakingWorkers(ActionArgData*);
 	bool ActionContinueBuildingPylons(ActionArgData*);
+	bool ActionContinueUpgrades(ActionArgData*);
+	bool ActionContinueChronos(ActionArgData*);
+	bool ActionContinueExpanding(ActionArgData*);
 	bool ActionChronoTillFinished(ActionArgData*);
 	bool ActionConstantChrono(ActionArgData*);
 	bool ActionWarpInAtProxy(ActionArgData*);
