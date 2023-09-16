@@ -88,6 +88,87 @@ public:
 
 #pragma endregion
 
+#pragma region Oracle
+
+class OracleHarassStateMachine;
+
+class OracleHarassGroupUp : public State {
+public:
+	OracleHarassStateMachine* state_machine;
+	Point2D consolidation_pos;
+	OracleHarassGroupUp(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D consolidation_pos)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->consolidation_pos = consolidation_pos;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class OracleHarassMoveToEntrance : public State {
+public:
+	OracleHarassStateMachine* state_machine;
+	Point2D entrance_pos;
+	OracleHarassMoveToEntrance(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D entrance_pos)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->entrance_pos = entrance_pos;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class OracleHarassAttackMineralLine : public State {
+public:
+	OracleHarassStateMachine* state_machine;
+	Point2D exit_pos;
+	OracleHarassAttackMineralLine(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D exit_pos)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->exit_pos = exit_pos;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+
+	void OnUnitDestroyedListener(const Unit*);
+};
+
+class OracleHarassReturnToBase : public State {
+public:
+	OracleHarassStateMachine* state_machine;
+	Point2D base_pos;
+	OracleHarassReturnToBase(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D base_pos)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->base_pos = base_pos;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+
+	void OnUnitDamagedListener(const Unit*, float, float);
+	void OnUnitDestroyedListener(const Unit*);
+};
+
+
+#pragma endregion
+
+
 #pragma region Chargelot Allin
 
 class ChargelotAllInStateMachine;
@@ -492,6 +573,28 @@ class OraclePvZStateMachine : public StateMachine
 {
     std::vector<const Unit*> oracles;
     float last_scout_time;
+};
+
+class OracleHarassStateMachine : public StateMachine
+{
+public:
+	Units oracles;
+	std::vector<float> time_last_attacked;
+	std::vector<bool> has_attacked;
+	std::vector<bool> is_beam_active;
+	OracleHarassStateMachine(TossBot* agent, Units oracles, Point2D consolidation_pos)
+	{
+		this->agent = agent;
+		this->oracles = oracles;
+		current_state = new OracleHarassGroupUp(agent, this, consolidation_pos);
+		for (int i = 0; i < oracles.size(); i++)
+		{
+			time_last_attacked.push_back(0);
+			has_attacked.push_back(true);
+			is_beam_active.push_back(false);
+		}
+		current_state->EnterState();
+	}
 };
 
 class ChargelotAllInStateMachine : public StateMachine

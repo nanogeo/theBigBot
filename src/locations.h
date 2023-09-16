@@ -10,7 +10,6 @@
 
 namespace sc2 {
 
-
 class Locations
 {
 public:
@@ -34,6 +33,7 @@ public:
     int high_ground_index;
 	int high_ground_index_alt;
     Graph* air_graph;
+	std::vector<std::vector<Point2D>> enemy_mineral_lines;
 
     std::vector<Point2D> warp_prism_locations;
 	std::vector<Point2D> immortal_drop_prism_locations;

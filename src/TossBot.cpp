@@ -35,8 +35,8 @@ namespace sc2 {
 		SetUpUnitTypeInfo();
 		if (debug_mode)
 		{
-			Debug()->DebugGiveAllResources();
-			Debug()->DebugFastBuild();
+			//Debug()->DebugGiveAllResources();
+			//Debug()->DebugFastBuild();
 		}
     }
 
@@ -212,8 +212,19 @@ namespace sc2 {
             {
                 build_order_manager.SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
+				Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, Point2D(100, 100), 1, 2);
 
             }
+			if (Observation()->GetGameLoop() > 1 && !tests_set_up)
+			{
+				Units oracles = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE));
+				if (oracles.size() == 0)
+					return;
+				OracleHarassStateMachine* oracleFSM = new OracleHarassStateMachine(this, oracles, Point2D(60, 60));
+				active_FSMs.push_back(oracleFSM);
+				tests_set_up = true;
+
+			}
             if (Observation()->GetGameLoop() > 1)
             {
                 /*for (int i = 0; i < grid_map.size(); i++)
@@ -318,9 +329,11 @@ namespace sc2 {
 
 
 			action_manager.ProcessActions();
+			ProcessFSMs();
 			DisplayEnemyAttacks();
 			DisplayAlliedAttackStatus();
 			RemoveCompletedAtacks();
+			DisplayDebugHud();
 			Debug()->SendDebug();
             return;
         }
@@ -513,11 +526,11 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
-        DisplayDebugHud();
+        //DisplayDebugHud();
 		std::chrono::microseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
-        Debug()->SendDebug();
+        //Debug()->SendDebug();
 		std::chrono::microseconds postSendDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);

@@ -204,6 +204,14 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 	air_graph = new Graph(air_path, links);
 
 
+	std::vector<std::vector<Point2D>> enemy_mineral_lines = { {convert_location(Point2D(40.5, 131.5), swap), convert_location(Point2D(32, 131), swap),convert_location(Point2D(42, 139), swap)},
+															{convert_location(Point2D(38.5, 102.5), swap), convert_location(Point2D(38, 95), swap),convert_location(Point2D(31.5, 105.5), swap)},
+															{convert_location(Point2D(36.5, 69.5), swap), convert_location(Point2D(32, 63), swap),convert_location(Point2D(32, 76), swap)},
+															{convert_location(Point2D(64.5, 110.5), swap), convert_location(Point2D(57.5, 107.5), swap),convert_location(Point2D(65, 118), swap)},
+															{convert_location(Point2D(35.5, 38.5), swap), convert_location(Point2D(36, 32), swap),convert_location(Point2D(28.5, 41.5), swap)},
+															{convert_location(Point2D(79.5, 136.5), swap), convert_location(Point2D(71, 136), swap),convert_location(Point2D(82.5, 143.5), swap)},
+															{convert_location(Point2D(59.5, 43.5), swap), convert_location(Point2D(59, 36), swap),convert_location(Point2D(52.5, 46.5), swap)} };
+
 
 	warp_prism_locations = { convert_location(Point2D(50, 60), swap),
 							convert_location(Point2D(76, 86), swap),

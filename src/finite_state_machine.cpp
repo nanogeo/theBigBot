@@ -276,6 +276,227 @@ namespace sc2 {
 
 #pragma endregion
 
+#pragma region OracleHarassGroupUp
+
+	std::string OracleHarassGroupUp::toString()
+	{
+		return "Oracle Harass Group Up";
+	}
+
+	void OracleHarassGroupUp::EnterState()
+	{
+		for (const auto &oracle : state_machine->oracles)
+		{
+			agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, consolidation_pos);
+		}
+	}
+
+	State* OracleHarassGroupUp::TestTransitions()
+	{
+		for (const auto &oracle : state_machine->oracles)
+		{
+			if (Distance2D(oracle->pos, consolidation_pos) > 1)
+			{
+				return NULL;
+			}
+		}
+		return new OracleHarassMoveToEntrance(agent, state_machine, Point2D(30, 129));
+	}
+
+	void OracleHarassGroupUp::TickState()
+	{
+		for (const auto &oracle : state_machine->oracles)
+		{
+			agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, consolidation_pos);
+		}
+	}
+
+	void OracleHarassGroupUp::ExitState()
+	{
+		return;
+	}
+
+#pragma endregion
+
+#pragma region OracleHarassMoveToEntrance
+
+	std::string OracleHarassMoveToEntrance::toString()
+	{
+		return "Oracle Harass Move to Entrance";
+	}
+
+	void OracleHarassMoveToEntrance::EnterState()
+	{
+		for (const auto &oracle : state_machine->oracles)
+		{
+			agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, entrance_pos);
+		}
+	}
+
+	State* OracleHarassMoveToEntrance::TestTransitions()
+	{
+		for (const auto &oracle : state_machine->oracles)
+		{
+			if (Distance2D(oracle->pos, entrance_pos) > 2)
+			{
+				return NULL;
+			}
+		}
+		return new OracleHarassAttackMineralLine(agent, state_machine, Point2D(44, 141));
+	}
+
+	void OracleHarassMoveToEntrance::TickState()
+	{
+		for (const auto &oracle : state_machine->oracles)
+		{
+			agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, entrance_pos);
+		}
+	}
+
+	void OracleHarassMoveToEntrance::ExitState()
+	{
+		return;
+	}
+
+#pragma endregion
+
+#pragma region OracleHarassAttackMineralLine
+
+	std::string OracleHarassAttackMineralLine::toString()
+	{
+		return "Oracle Harass Attack Mineral Line";
+	}
+
+	void OracleHarassAttackMineralLine::EnterState()
+	{
+		agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
+
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		agent->AddListenerToOnUnitDestroyedEvent(onUnitDestroyed);
+	}
+
+	State* OracleHarassAttackMineralLine::TestTransitions()
+	{
+		for (const auto &oracle : state_machine->oracles)
+		{
+			if (Distance2D(oracle->pos, exit_pos) > 1)
+			{
+				return NULL;
+			}
+		}
+		return new OracleHarassReturnToBase(agent, state_machine, agent->locations->nexi_locations[0]);
+	}
+	
+	void OracleHarassAttackMineralLine::TickState()
+	{
+		Units drones = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_DRONE));
+		if (drones.size() == 0)
+		{
+			agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, exit_pos);
+			agent->Debug()->DebugSphereOut(state_machine->oracles[0]->pos, 1, Color(0, 255, 255));
+			return;
+		}
+
+		const Unit* closest_drone = Utility::ClosestTo(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_DRONE)), Utility::PointBetween(Utility::MedianCenter(state_machine->oracles), exit_pos, 1));
+		if (Distance2D(closest_drone->pos, closest_drone->pos) > 5)
+		{
+			agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, exit_pos);
+			agent->Debug()->DebugSphereOut(closest_drone->pos, 1, Color(255, 255, 255));
+			return;
+		}
+
+		for (const auto &oracle : state_machine->oracles)
+		{
+			if (Distance2D(oracle->pos, closest_drone->pos) > 3)
+			{
+				agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, exit_pos);
+				agent->Debug()->DebugSphereOut(closest_drone->pos, 1, Color(255, 255, 255));
+				return;
+			}
+		}
+
+		agent->Debug()->DebugSphereOut(closest_drone->pos, 1, Color(0, 255, 255));
+
+		for (int i = 0; i < state_machine->oracles.size(); i++)
+		{
+
+			const Unit* oracle = state_machine->oracles[i];
+			float now = agent->Observation()->GetGameLoop() / 22.4;
+			bool weapon_ready = now - state_machine->time_last_attacked[i] > 1; //.61
+			bool beam_active = state_machine->is_beam_active[i];
+
+
+
+			if (weapon_ready)
+			{
+				agent->Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_drone);
+				state_machine->time_last_attacked[i] = now;
+				state_machine->has_attacked[i] = false;
+				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
+			}
+			else if (state_machine->has_attacked[i])
+			{
+				agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, exit_pos);
+				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
+			}
+			else
+			{
+				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
+			}
+		}
+	}
+
+	void OracleHarassAttackMineralLine::ExitState()
+	{
+		agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+	}
+
+	void OracleHarassAttackMineralLine::OnUnitDestroyedListener(const Unit* unit)
+	{
+		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		for (int i = 0; i < state_machine->oracles.size(); i++)
+		{
+			if (state_machine->oracles[i]->engaged_target_tag == unit->tag)
+			{
+				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+				state_machine->has_attacked[i] = true;
+			}
+		}
+	}
+
+#pragma endregion
+
+#pragma region OracleHarassReturnToBase
+
+	std::string OracleHarassReturnToBase::toString()
+	{
+		return "Oracle Harass Return to Base";
+	}
+
+	void OracleHarassReturnToBase::EnterState()
+	{
+		agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+	}
+
+	State* OracleHarassReturnToBase::TestTransitions()
+	{
+		return NULL;
+	}
+
+	void OracleHarassReturnToBase::TickState()
+	{
+		agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, base_pos);
+	}
+
+	void OracleHarassReturnToBase::ExitState()
+	{
+		return;
+	}
+
+#pragma endregion
+
 #pragma region ChargeAllInMovingToWarpinSpot
 
 	std::string ChargeAllInMovingToWarpinSpot::toString()
@@ -399,6 +620,7 @@ namespace sc2 {
 	}
 
 #pragma endregion
+
 
 #pragma region ScoutZInitialMove
 
