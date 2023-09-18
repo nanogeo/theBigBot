@@ -391,59 +391,105 @@ namespace sc2 {
 	
 	void OracleHarassAttackMineralLine::TickState()
 	{
-		Units drones = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_DRONE));
-		if (drones.size() == 0)
-		{
-			agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, exit_pos);
-			agent->Debug()->DebugSphereOut(state_machine->oracles[0]->pos, 1, Color(0, 255, 255));
-			return;
-		}
-
-		const Unit* closest_drone = Utility::ClosestTo(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_DRONE)), Utility::PointBetween(Utility::MedianCenter(state_machine->oracles), exit_pos, 1));
-		if (Distance2D(closest_drone->pos, closest_drone->pos) > 5)
-		{
-			agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, exit_pos);
-			agent->Debug()->DebugSphereOut(closest_drone->pos, 1, Color(255, 255, 255));
-			return;
-		}
-
-		for (const auto &oracle : state_machine->oracles)
-		{
-			if (Distance2D(oracle->pos, closest_drone->pos) > 3)
-			{
-				agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, exit_pos);
-				agent->Debug()->DebugSphereOut(closest_drone->pos, 1, Color(255, 255, 255));
-				return;
-			}
-		}
-
-		agent->Debug()->DebugSphereOut(closest_drone->pos, 1, Color(0, 255, 255));
-
+		bool weapons_ready = true;
 		for (int i = 0; i < state_machine->oracles.size(); i++)
 		{
-
 			const Unit* oracle = state_machine->oracles[i];
 			float now = agent->Observation()->GetGameLoop() / 22.4;
-			bool weapon_ready = now - state_machine->time_last_attacked[i] > 1; //.61
-			bool beam_active = state_machine->is_beam_active[i];
-
-
-
-			if (weapon_ready)
+			bool weapon_ready = now - state_machine->time_last_attacked[i] > .8; //.61
+			if (!weapon_ready)
 			{
-				agent->Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_drone);
-				state_machine->time_last_attacked[i] = now;
+				weapons_ready = false;
+				break;
+			}
+		}
+
+
+		Point2D oracle_center = Utility::MedianCenter(state_machine->oracles);
+		float s = (oracle_center.y - exit_pos.y) / (oracle_center.x - exit_pos.x);
+		float d = sqrt(pow(oracle_center.x - exit_pos.x, 2) + pow(oracle_center.y - exit_pos.y, 2));
+		Point2D l1 = Point2D(oracle_center.x + 2 * (exit_pos.x - oracle_center.x) / d + 3, oracle_center.y + 2 * (exit_pos.y - oracle_center.y) / d - (3 / s));
+		Point2D l2 = Point2D(oracle_center.x + 2 * (exit_pos.x - oracle_center.x) / d - 3, oracle_center.y + 2 * (exit_pos.y - oracle_center.y) / d + (3 / s));
+		Point3D L1 = agent->ToPoint3D(l1) + Point3D(0, 0, .2);
+		Point3D L2 = agent->ToPoint3D(l2) + Point3D(0, 0, .2);
+
+		agent->Debug()->DebugLineOut(L1, L2, Color(255, 0, 255));
+
+
+		if (weapons_ready)
+		{
+			Units drones = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_DRONE));
+			if (drones.size() == 0)
+			{
+				agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(oracle_center, exit_pos, 3));
+				agent->Debug()->DebugSphereOut(state_machine->oracles[0]->pos, 1, Color(0, 255, 255));
+				return;
+			}
+
+			Point2D oracle_center = Utility::MedianCenter(state_machine->oracles);
+			float perp_direction_to_exit = -1 / sqrt(pow(oracle_center.x + exit_pos.x, 2) + pow(oracle_center.y + exit_pos.y, 3));
+
+			float best_dist = 4;
+			for (const auto &drone : drones)
+			{
+				Point2D closest_point = Utility::ClosestPointOnLine(drone->pos, oracle_center, oracle_center + Point2D(1, perp_direction_to_exit));
+				if (Distance2D(drone->pos, exit_pos) > Distance2D(oracle_center, exit_pos))
+					continue;
+				float dist_to_line = Distance2D(closest_point, drone->pos);
+				if (dist_to_line > 2 && dist_to_line < best_dist)
+				{
+					bool out_of_range = false;
+					for (const auto &oracle : state_machine->oracles)
+					{
+						if (Distance2D(oracle->pos, drone->pos) > 4)
+						{
+							out_of_range = true;
+							break;
+						}
+					}
+					if (out_of_range)
+						continue;
+					target_drone = drone;
+					best_dist = dist_to_line;
+				}
+			}
+			if (target_drone == NULL)
+			{
+				agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(oracle_center, exit_pos, 3));
+				agent->Debug()->DebugSphereOut(state_machine->oracles[0]->pos, 1, Color(0, 255, 255));
+				return;
+			}
+
+
+			agent->Debug()->DebugTextOut(std::to_string(target_drone->tag), Point2D(.5, .5), Color(255, 0, 255), 20);
+			agent->Debug()->DebugSphereOut(target_drone->pos, 1, Color(0, 255, 255));
+
+
+			agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::ATTACK_ATTACK, target_drone);
+
+
+			for (int i = 0; i < state_machine->oracles.size(); i++)
+			{
+				state_machine->time_last_attacked[i] = agent->Observation()->GetGameLoop() / 22.4;
 				state_machine->has_attacked[i] = false;
+				const Unit* oracle = state_machine->oracles[i];
 				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
 			}
-			else if (state_machine->has_attacked[i])
+		}
+		else if (state_machine->has_attacked[0])
+		{
+			agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle_center, exit_pos, 3));
+
+			for (int i = 0; i < state_machine->oracles.size(); i++)
 			{
-				agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, exit_pos);
-				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
+				agent->Debug()->DebugSphereOut(state_machine->oracles[i]->pos, 2, Color(0, 0, 255));
 			}
-			else
+		}
+		else
+		{
+			for (int i = 0; i < state_machine->oracles.size(); i++)
 			{
-				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
+				agent->Debug()->DebugSphereOut(state_machine->oracles[i]->pos, 2, Color(0, 255, 0));
 			}
 		}
 	}
@@ -456,13 +502,22 @@ namespace sc2 {
 	void OracleHarassAttackMineralLine::OnUnitDestroyedListener(const Unit* unit)
 	{
 		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
-		for (int i = 0; i < state_machine->oracles.size(); i++)
+		if (target_drone != NULL && unit->tag == target_drone->tag)
 		{
-			if (state_machine->oracles[i]->engaged_target_tag == unit->tag)
+			target_drone = NULL;
+			for (int i = 0; i < state_machine->oracles.size(); i++)
 			{
-				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+
 				state_machine->has_attacked[i] = true;
+				/*
+				if (state_machine->oracles[i]->engaged_target_tag == unit->tag || state_machine->oracles[i]->engaged_target_tag == 0)
+				{
+					std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+					state_machine->has_attacked[i] = true;
+				}*/
 			}
+			agent->Debug()->DebugTextOut(std::to_string(unit->tag), Point2D(.5, .45), Color(0, 255, 255), 20);
+
 		}
 	}
 

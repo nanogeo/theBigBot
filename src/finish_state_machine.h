@@ -130,6 +130,7 @@ class OracleHarassAttackMineralLine : public State {
 public:
 	OracleHarassStateMachine* state_machine;
 	Point2D exit_pos;
+	const Unit* target_drone = NULL;
 	OracleHarassAttackMineralLine(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D exit_pos)
 	{
 		this->agent = agent;

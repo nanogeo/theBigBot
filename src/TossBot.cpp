@@ -35,8 +35,8 @@ namespace sc2 {
 		SetUpUnitTypeInfo();
 		if (debug_mode)
 		{
-			//Debug()->DebugGiveAllResources();
-			//Debug()->DebugFastBuild();
+			Debug()->DebugGiveAllResources();
+			Debug()->DebugFastBuild();
 		}
     }
 
@@ -56,163 +56,12 @@ namespace sc2 {
         if (debug_mode)
         {
 
-            Units units = Observation()->GetUnits();
-            std::vector<UNIT_TYPEID> types;
-            for (const auto *unit : units)
-            {
-                switch (unit->unit_type.ToType())
-                {
-                case UNIT_TYPEID::NEUTRAL_MINERALFIELD750:
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-.5, 0, 0), 1, Color(255, 0, 0));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(.5, 0, 0), 1, Color(255, 0, 0));
-                    break;
-                case UNIT_TYPEID::NEUTRAL_LABMINERALFIELD750:
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-.5, 0, 0), 1, Color(255, 128, 0));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(.5, 0, 0), 1, Color(255, 128, 0));
-                    break;
-                case UNIT_TYPEID::NEUTRAL_LABMINERALFIELD:
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-.5, 0, 0), 1, Color(255, 255, 0));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(.5, 0, 0), 1, Color(255, 255, 0));
-                    break;
-                case UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR:
-                    Debug()->DebugSphereOut(unit->pos, 4, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, 0, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, -1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 0, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(1, -2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(1, -3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(2, -2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(2, -3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(3, -4, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(1, 0, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(1, -1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(2, -1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(3, -2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(3, -3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(4, -3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, -2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, -3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(1, -4, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(2, -4, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(2, -5, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-4, 3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, 1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 3, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 4, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-2, -1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 0, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 0, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-4, 1, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-4, 2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-5, 2, 1) + Point3D(.5, .5, -.5), .5, Color(255, 0, 255));
-                    break;
-                case UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER:
-                    Debug()->DebugSphereOut(unit->pos, 2, Color(0, 255, 0));
-                    break;
-                case UNIT_TYPEID::NEUTRAL_MINERALFIELD:
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-.5, 0, 0), 1, Color(255, 255, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(.5, 0, 0), 1, Color(255, 255, 255));
-                    break;
-                case UNIT_TYPEID::NEUTRAL_VESPENEGEYSER:
-                    Debug()->DebugSphereOut(unit->pos, 2, Color(0, 255, 128));
-                    break;
-                case UNIT_TYPEID::NEUTRAL_UNBUILDABLEPLATESDESTRUCTIBLE:
-                    Debug()->DebugSphereOut(unit->pos, 1, Color(30, 30, 30));
-                    break;
-                case UNIT_TYPEID::DESTRUCTIBLEDEBRIS4X4:
-                    Debug()->DebugSphereOut(unit->pos, 4, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(1, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(1, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-2, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 0, 255));
-                    break;
-                case UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRIS6X6:
-                    Debug()->DebugSphereOut(unit->pos, 4, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(1, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(1, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(2, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(2, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-2, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-3, 0, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-3, -1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, 2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, 2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(0, -3, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-1, -3, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(1, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(1, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-2, -2, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-					Debug()->DebugSphereOut(unit->pos + Point3D(-2, 1, 1) + Point3D(.5, .5, 0), .5, Color(0, 255, 255));
-                    break;
-                case UNIT_TYPEID::DESTRUCTIBLEROCKEX16X6:
-                    Debug()->DebugSphereOut(unit->pos, 4, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(0, 0, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-1, 0, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(0, -1, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-1, -1, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(1, 0, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(2, 0, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(1, -1, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(2, -1, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-2, 0, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-3, 0, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-2, -1, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-3, -1, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(0, 1, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(0, 2, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-1, 1, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-1, 2, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(0, -2, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(0, -3, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-1, -2, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-1, -3, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(1, 1, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(1,-2 , 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-2, 1, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    Debug()->DebugSphereOut(unit->pos + Point3D(-2, -2, 1) + Point3D(.5, .5, -.5), .5, Color(128, 0, 255));
-                    break;
-                case UNIT_TYPEID::PROTOSS_PROBE:
-                    break;
-                case UNIT_TYPEID::PROTOSS_NEXUS:
-                    break;
-                default:
-                    //std::cout << "ah";
-                    break;
-
-                }
-            }
 
             if (Observation()->GetGameLoop() == 1) 
             {
                 build_order_manager.SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
-				Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, Point2D(100, 100), 1, 2);
+				Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, Point2D(100, 100), 2, 2); // team num
 
             }
 			if (Observation()->GetGameLoop() > 1 && !tests_set_up)
@@ -1702,6 +1551,11 @@ namespace sc2 {
 		return false;
 	}
 
+	Point3D TossBot::ToPoint3D(Point2D point)
+	{
+		float height = Observation()->TerrainHeight(point);
+		return Point3D(point.x, point.y, height);
+	}
 
 	Polygon TossBot::CreateNewBlocker(const Unit* unit)
 	{

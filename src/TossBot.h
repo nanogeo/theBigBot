@@ -316,6 +316,7 @@ public:
 	void SetUpUnitTypeInfo();
 	void PrintAttacks(std::map<const Unit*, const Unit*>);
 	bool UnitIsOccupied(const Unit*);
+	Point3D ToPoint3D(Point2D);
 
 
     // Pathing
