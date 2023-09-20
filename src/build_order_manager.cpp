@@ -525,9 +525,7 @@ bool BuildOrderManager::Contain(BuildOrderResultArgData data)
 
 bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 {
-	// revert
-	//ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
-	ArmyGroup* army = new ArmyGroup(agent, {}, { Point2D(143, 32), Point2D(142, 33), Point2D(59, 114), Point2D(34, 139), Point2D(33, 140) }, 2);
+	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
 	Units oracles = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE));
 	for (const auto &fsm : agent->active_FSMs)
 	{
@@ -904,8 +902,8 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(123.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(124.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
 					BuildOrderData(&BuildOrderManager::HasBuildingStarted,	BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STARGATE),				&BuildOrderManager::TrainAdept,					BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(130.0f),										&BuildOrderManager::ResearchWarpgate,			BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(130.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(134.0f),										&BuildOrderManager::ResearchWarpgate,			BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(149.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(156.0f),										&BuildOrderManager::TrainAdept,					BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(156.0f),										&BuildOrderManager::SetDoorGuard,				BuildOrderResultArgData()),

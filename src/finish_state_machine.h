@@ -145,6 +145,7 @@ public:
 	Point2D exit_pos;
 	const Unit* target_drone = NULL;
 	long long event_id;
+	bool lost_oracle = false;
 	OracleHarassAttackMineralLine(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D exit_pos)
 	{
 		this->agent = agent;

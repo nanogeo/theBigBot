@@ -224,7 +224,9 @@ namespace sc2 {
 
 	void OracleDefendArmyGroup::TickState()
 	{
-		Point2D center = Utility::MedianCenter(state_machine->attached_army_group->all_units);
+		Point2D center = state_machine->attached_army_group->attack_path[state_machine->attached_army_group->current_attack_index - 2];
+		if (state_machine->attached_army_group->all_units.size() > 0)
+			center = Utility::MedianCenter(state_machine->attached_army_group->all_units);
 
 		Units enemy_units = agent->Observation()->GetUnits(IsUnits(Utility::GetBurrowedUnitTypes()));
 
@@ -273,7 +275,7 @@ namespace sc2 {
 		int num_close_lings = 0;
 		for (const auto &ling : enemy_lings)
 		{
-			if (Utility::DistanceToClosest(state_machine->attached_army_group->all_units, ling->pos) < 2)
+			if (Utility::DistanceToClosest(state_machine->attached_army_group->all_units, ling->pos) < 4)
 				num_close_lings++;
 		}
 		if (true) //(num_close_lings > 4)
@@ -289,34 +291,46 @@ namespace sc2 {
 				percent_stalkers_with_blink = static_cast<float>(num_stalkers_with_blink) / static_cast<float>(state_machine->attached_army_group->blink_ready.size());
 
 			int num_oracles_needed = 0;
+
 			if (percent_stalkers_with_blink < .25)
 				num_oracles_needed = 3;
 			else if (percent_stalkers_with_blink < .5)
 				num_oracles_needed = 2;
 			else if (percent_stalkers_with_blink < .75)
 				num_oracles_needed = 1;
+
+			if (num_close_lings > 30)
+				num_oracles_needed += 3;
+			else if (num_close_lings > 20)
+				num_oracles_needed += 2;
+			else if (num_close_lings > 10)
+				num_oracles_needed += 1;
 			
+
+			num_oracles_needed = std::min(num_oracles_needed, 3);
+
 			int num_oracles_active = 0;
 			for (const auto &beam_active : state_machine->is_beam_active)
 			{
 				if (beam_active)
 					num_oracles_active++;
 			}
-
+			/*
+			agent->Debug()->DebugTextOut(std::to_string(num_close_lings), Point2D(.2, .18), Color(0, 255, 0), 20);
 			agent->Debug()->DebugTextOut(std::to_string(num_oracles_active), Point2D(.2, .2), Color(0, 255, 255), 20);
-			agent->Debug()->DebugTextOut(std::to_string(num_oracles_needed), Point2D(.2, .25), Color(0, 255, 255), 20);
-			agent->Debug()->DebugTextOut(std::to_string(percent_stalkers_with_blink), Point2D(.2, .3), Color(0, 255, 255), 20);
-			agent->Debug()->DebugTextOut(std::to_string(num_stalkers_with_blink), Point2D(.2, .35), Color(0, 255, 255), 20);
-			agent->Debug()->DebugTextOut(std::to_string(state_machine->attached_army_group->blink_ready.size()), Point2D(.2, .4), Color(0, 255, 255), 20);
-
+			agent->Debug()->DebugTextOut(std::to_string(num_oracles_needed), Point2D(.2, .22), Color(0, 255, 255), 20);
+			agent->Debug()->DebugTextOut(std::to_string(percent_stalkers_with_blink), Point2D(.2, .24), Color(0, 255, 255), 20);
+			agent->Debug()->DebugTextOut(std::to_string(num_stalkers_with_blink), Point2D(.2, .26), Color(0, 255, 255), 20);
+			agent->Debug()->DebugTextOut(std::to_string(state_machine->attached_army_group->blink_ready.size()), Point2D(.2, .28), Color(0, 255, 255), 20);
+			
 			for (int i = 0; i < state_machine->oracles.size(); i++)
 			{
 				if (state_machine->is_beam_active[i])
-					agent->Debug()->DebugTextOut(std::to_string(state_machine->oracles[i]->energy), Point2D(.2, .42 + .02 * i), Color(0, 255, 0), 20);
+					agent->Debug()->DebugTextOut(std::to_string(state_machine->oracles[i]->energy), Point2D(.2, .3 + .02 * i), Color(0, 255, 0), 20);
 				else
-					agent->Debug()->DebugTextOut(std::to_string(state_machine->oracles[i]->energy), Point2D(.2, .42 + .02 * i), Color(255, 0, 255), 20);
+					agent->Debug()->DebugTextOut(std::to_string(state_machine->oracles[i]->energy), Point2D(.2, .3 + .02 * i), Color(255, 0, 255), 20);
 
-			}
+			}*/
 
 			if (num_oracles_active > num_oracles_needed) // deactivate oracles
 			{
@@ -329,7 +343,7 @@ namespace sc2 {
 				{
 					if (num_oracles_active == num_oracles_needed)
 						break;
-					if (oracle->energy > 10)
+					if (oracle->energy > 10 && Utility::DistanceToClosest(enemy_lings, oracle->pos) > 5)
 					{
 						auto found = std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle);
 						if (found != state_machine->oracles.end())
@@ -389,7 +403,7 @@ namespace sc2 {
 			if (weapon_ready)
 			{
 				const Unit* closest_unit = Utility::ClosestTo(enemy_lings, oracle->pos);
-				if (Distance2D(closest_unit->pos, oracle->pos) > 6)
+				if (closest_unit == NULL || Distance2D(closest_unit->pos, oracle->pos) > 6)
 				{
 					agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, center);
 					continue;
@@ -405,7 +419,6 @@ namespace sc2 {
 			else if (state_machine->has_attacked[0])
 			{
 				agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, center);
-				//agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
 
 				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 			}
@@ -413,7 +426,10 @@ namespace sc2 {
 			{
 				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
 			}
-			// update beam status for tired oracles
+		}
+		// update beam status for tired oracles
+		for (int i = 0; i < state_machine->oracles.size(); i++)
+		{
 			if (state_machine->oracles[i]->energy <= 2)
 				state_machine->is_beam_active[i] = false;
 		}
@@ -456,6 +472,7 @@ namespace sc2 {
 		{
 			if (state_machine->oracles[i]->engaged_target_tag == unit->tag)
 			{
+				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " took " + std::to_string(health) + " damage from orale", Point2D(.2, .4 + .02 * i), Color(0, 255, 0), 20);
 				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
 				state_machine->has_attacked[i] = true;
 			}
@@ -467,8 +484,9 @@ namespace sc2 {
 		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
 		for (int i = 0; i < state_machine->oracles.size(); i++)
 		{
-			if (state_machine->oracles[i]->engaged_target_tag == unit->tag)
+			if (state_machine->oracles[i]->engaged_target_tag == unit->tag || state_machine->oracles[i]->engaged_target_tag == 0)
 			{
+				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " desroyed by oracle", Point2D(.2, .45 + .02 * i), Color(0, 255, 0), 20);
 				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
 				state_machine->has_attacked[i] = true;
 			}
@@ -597,11 +615,14 @@ namespace sc2 {
 
 	State* OracleHarassAttackMineralLine::TestTransitions()
 	{
-		for (const auto &oracle : state_machine->oracles)
+		if (!lost_oracle)
 		{
-			if (Distance2D(oracle->pos, exit_pos) > 1)
+			for (const auto &oracle : state_machine->oracles)
 			{
-				return NULL;
+				if (Distance2D(oracle->pos, exit_pos) > 2)
+				{
+					return NULL;
+				}
 			}
 		}
 		if (state_machine->harass_direction)
@@ -745,6 +766,15 @@ namespace sc2 {
 	void OracleHarassAttackMineralLine::OnUnitDestroyedListener(const Unit* unit)
 	{
 		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		for (int i = 0; i < state_machine->oracles.size(); i++)
+		{
+			if (unit == state_machine->oracles[i])
+			{
+				state_machine->oracles.erase(state_machine->oracles.begin() + i);
+				lost_oracle = true;
+				return;
+			}
+		}
 		if (target_drone != NULL && unit->tag == target_drone->tag)
 		{
 			target_drone = NULL;
@@ -780,18 +810,16 @@ namespace sc2 {
 		{
 			agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, exfil_path[i], i > 0);
 		}
-		// revert
-		//agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, agent->locations->start_location, true);
+		agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, agent->locations->start_location, true);
 	}
 
 	State* OracleHarassReturnToBase::TestTransitions()
 	{
-		// revert
-		/*for (const auto &oracle : state_machine->oracles)
+		for (const auto &oracle : state_machine->oracles)
 		{
 			if (Distance2D(oracle->pos, agent->locations->start_location) > 20)
 				return NULL;
-		}*/
+		}
 		if (state_machine->attached_army_group == NULL)
 			return NULL;
 		return new OracleDefendArmyGroup(agent, state_machine);
