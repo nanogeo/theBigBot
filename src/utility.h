@@ -5,6 +5,7 @@
 
 #include "sc2api/sc2_unit_filters.h"
 
+
 namespace sc2
 {
 
@@ -64,6 +65,8 @@ public:
 
 	static std::string UnitTypeIdToString(UNIT_TYPEID);
 	static std::string AbilityIdToString(ABILITY_ID);
+
+	static long long GetUniqueId();
 };
 
 }

@@ -24,19 +24,19 @@ class TossBot;
 
 struct OnUnitDamagedEvent
 {
-    std::vector<std::function<void(const Unit*, float, float)>> listeners;
+    std::map<long long, std::function<void(const Unit*, float, float)>> listeners;
     OnUnitDamagedEvent() {};
 };
 
 struct OnUnitDestroyedEvent
 {
-    std::vector<std::function<void(const Unit*)>> listeners;
+	std::map<int, std::function<void(const Unit*)>> listeners;
     OnUnitDestroyedEvent() {};
 };
 
 struct OnUnitCreatedEvent
 {
-    std::vector<std::function<void(const Unit*)>> listeners;
+	std::map<int, std::function<void(const Unit*)>> listeners;
     OnUnitCreatedEvent() {};
 };
 
@@ -233,7 +233,7 @@ public:
 	WorkerManager worker_manager;
 	ActionManager action_manager;
 	BuildOrderManager build_order_manager;
-    bool debug_mode = true;
+    bool debug_mode = false;
 	int frames_passed = 0;
     ScoutInfoZerg scout_info_zerg;
     ScoutInfoTerran scout_info_terran;
@@ -286,11 +286,14 @@ public:
     void ProcessFSMs();
 
     // Events
-    void AddListenerToOnUnitDamagedEvent(std::function<void(const Unit*, float, float)>);
+    void AddListenerToOnUnitDamagedEvent(long long, std::function<void(const Unit*, float, float)>);
+	void RemoveListenerToOnUnitDamagedEvent(long long);
     void CallOnUnitDamagedEvent(const Unit*, float, float);
-    void AddListenerToOnUnitDestroyedEvent(std::function<void(const Unit*)>);
+    void AddListenerToOnUnitDestroyedEvent(long long, std::function<void(const Unit*)>);
+	void RemoveListenerToOnUnitDestroyedEvent(long long);
     void CallOnUnitDestroyedEvent(const Unit*);
-	void AddListenerToOnUnitCreatedEvent(std::function<void(const Unit*)>);
+	void AddListenerToOnUnitCreatedEvent(long long, std::function<void(const Unit*)>);
+	void RemoveListenerToOnUnitCreatedEvent(long long);
 	void CallOnUnitCreatedEvent(const Unit*);
 
     // To strings

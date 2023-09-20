@@ -142,6 +142,7 @@ public:
 	bool Contain(BuildOrderResultArgData);
 	bool StalkerOraclePressure(BuildOrderResultArgData);
 	bool MicroOracles(BuildOrderResultArgData);
+	bool OracleHarass(BuildOrderResultArgData);
 	bool SpawnUnits(BuildOrderResultArgData);
 	bool ResearchAttackOne(BuildOrderResultArgData);
 	bool ContinueWarpingInStalkers(BuildOrderResultArgData);

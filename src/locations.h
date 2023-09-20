@@ -10,9 +10,30 @@
 
 namespace sc2 {
 
+struct OraclePath
+{
+	Point2D entrance_point;
+	Point2D exit_point;
+	std::vector<Point2D> entrance_points;
+	std::vector<Point2D> exit_points;
+	std::vector<Point2D> base_points;
+	std::vector<std::vector<Point2D>> exfi_paths;
+	OraclePath() {};
+	OraclePath(Point2D entrance_point, Point2D exit_point, std::vector<Point2D> entrance_points, std::vector<Point2D> exit_points, std::vector<Point2D> base_points, std::vector<std::vector<Point2D>> exfi_paths)
+	{
+		this->entrance_point = entrance_point;
+		this->exit_point = exit_point;
+		this->entrance_points = entrance_points;
+		this->exit_points = exit_points;
+		this->base_points = base_points;
+		this->exfi_paths = exfi_paths;
+	}
+};
+
 class Locations
 {
 public:
+	Point2D start_location;
     std::vector<Point2D> nexi_locations;
     std::vector<Point2D> pylon_locations;
     Point2D first_pylon_location_zerg;
@@ -43,6 +64,8 @@ public:
     std::vector<Point2D> natural_scout_path;
     std::vector<Point2D> possible_3rds;
     Point2D enemy_natural;
+
+	OraclePath oracle_path;
 
 	Point2D first_pylon_cannon_rush;
 	std::vector<Point2D> pylon_locations_cannon_rush;

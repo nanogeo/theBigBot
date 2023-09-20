@@ -540,7 +540,7 @@ namespace sc2 {
 				agent->Actions()->UnitCommand(adept, ABILITY_ID::GENERAL_HOLDPOSITION, true);
 			}
 		}
-		StateMachine* oracle_fsm = new StateMachine(agent, new OracleDefend(agent, oracles, base_location), "Oracles");
+		StateMachine* oracle_fsm = new OracleHarassStateMachine(agent, oracles, base_location, "Oracles");
 		agent->active_FSMs.push_back(oracle_fsm);
 	}
 
@@ -556,7 +556,7 @@ namespace sc2 {
 		std::function<void(const Unit*)> onStalkerCreated = [=](const Unit* unit) {
 			this->OnStalkerCreatedListener(unit);
 		};
-		agent->AddListenerToOnUnitCreatedEvent(onStalkerCreated);
+		agent->AddListenerToOnUnitCreatedEvent(event_id, onStalkerCreated);
 	}
 
 	void ArmyGroup::OnStalkerCreatedListener(const Unit* unit)

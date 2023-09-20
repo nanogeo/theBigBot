@@ -6,6 +6,9 @@
 #include "action_manager.h"
 #include "army_group.h"
 
+#include <algorithm>
+#include <vector>
+
 namespace sc2
 {
 
@@ -523,11 +526,21 @@ bool BuildOrderManager::Contain(BuildOrderResultArgData data)
 bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 {
 	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
-	for (const auto &unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE)))
+	Units oracles = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE));
+	for (const auto &fsm : agent->active_FSMs)
 	{
-		if (agent->UnitIsOccupied(unit))
-			continue;
-		army->AddNewUnit(unit);
+		if (dynamic_cast<OracleHarassStateMachine*>(fsm))
+		{
+			OracleHarassStateMachine* state_machine = dynamic_cast<OracleHarassStateMachine*>(fsm);
+			for (const auto &oracle : oracles)
+			{
+				if (std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle) == state_machine->oracles.end())
+				{
+					state_machine->AddOracle(oracle);
+				}
+			}
+			state_machine->attached_army_group = army;
+		}
 	}
 	for (const auto &unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)))
 	{
@@ -543,8 +556,28 @@ bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 
 bool BuildOrderManager::MicroOracles(BuildOrderResultArgData data)
 {
-	StateMachine* oracle_fsm = new StateMachine(agent, new OracleDefend(agent, agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE)), agent->GetLocations(UNIT_TYPEID::PROTOSS_NEXUS)[2]), "Oracles");
-	agent->active_FSMs.push_back(oracle_fsm);
+	//StateMachine* oracle_fsm = new StateMachine(agent, new OracleDefend(agent, agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE)), agent->GetLocations(UNIT_TYPEID::PROTOSS_NEXUS)[2]), "Oracles");
+	//agent->active_FSMs.push_back(oracle_fsm);
+	return true;
+}
+
+bool BuildOrderManager::OracleHarass(BuildOrderResultArgData data)
+{
+	Units oracles = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE));
+	for (const auto &fsm : agent->active_FSMs)
+	{
+		if (dynamic_cast<OracleHarassStateMachine*>(fsm))
+		{
+			OracleHarassStateMachine* state_machine = dynamic_cast<OracleHarassStateMachine*>(fsm);
+			for (const auto &oracle : oracles)
+			{
+				if (std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle) == state_machine->oracles.end())
+				{
+					state_machine->AddOracle(oracle);
+				}
+			}
+		}
+	}
 	return true;
 }
 
@@ -858,55 +891,55 @@ void BuildOrderManager::SetBlinkProxyRoboPressureBuild()
 void BuildOrderManager::SetOracleGatewaymanPvZ()
 {
 	build_order = { BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(6.5f),										&BuildOrderManager::BuildFirstPylon,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(17.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(34.0f),										&BuildOrderManager::Scout,						BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(33.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(48.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(48.0f),										&BuildOrderManager::ImmediatelySaturateGasses,	BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(68.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(95.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(102.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(123.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(124.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-				BuildOrderData(&BuildOrderManager::HasBuildingStarted,	BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STARGATE),				&BuildOrderManager::TrainAdept,					BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(130.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(134.0f),										&BuildOrderManager::ResearchWarpgate,			BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(149.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(156.0f),										&BuildOrderManager::TrainAdept,					BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(156.0f),										&BuildOrderManager::SetDoorGuard,				BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STARGATE),				&BuildOrderManager::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(173.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(186.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(191.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(202.0f),										&BuildOrderManager::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(203.0f),										&BuildOrderManager::DefendThirdBase,			BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(205.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_PYLON})),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(230.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(236.0f),										&BuildOrderManager::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(240.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(240.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL, UNIT_TYPEID::PROTOSS_FORGE})),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(250.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
-				BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ResearchBlink,				BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ChronoTillFinished,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
-				BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&BuildOrderManager::ResearchAttackOne,			BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_FORGE)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(270.0f),										&BuildOrderManager::ContinueBuildingPylons,		BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(270.0f),										&BuildOrderManager::ContinueMakingWorkers,		BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(270.0f),										&BuildOrderManager::ContinueWarpingInStalkers,	BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(300.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(305.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_FORGE)),
-				BuildOrderData(&BuildOrderManager::HasUnits,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STALKER, 7),			&BuildOrderManager::StalkerOraclePressure,		BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(330.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(335.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(340.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(355.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_FORGE)),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(355.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR, UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(375.0f),										&BuildOrderManager::ContinueChronos,			BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(375.0f),										&BuildOrderManager::ContinueExpanding,			BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(380.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_FORGE})),
-				BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(400.0f),										&BuildOrderManager::ContinueUpgrades,			BuildOrderResultArgData()),
-				BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),		&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSBAY)),
-		//BuildOrderData(&BuildOrderManager::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ResearchCharge,				BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(17.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(34.0f),										&BuildOrderManager::Scout,						BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(33.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(48.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(48.0f),										&BuildOrderManager::ImmediatelySaturateGasses,	BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(68.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE})),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(95.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(102.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(123.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(124.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+					BuildOrderData(&BuildOrderManager::HasBuildingStarted,	BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STARGATE),				&BuildOrderManager::TrainAdept,					BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(130.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(134.0f),										&BuildOrderManager::ResearchWarpgate,			BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(149.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(156.0f),										&BuildOrderManager::TrainAdept,					BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ADEPT)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(156.0f),										&BuildOrderManager::SetDoorGuard,				BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STARGATE),				&BuildOrderManager::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(173.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(186.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(191.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(202.0f),										&BuildOrderManager::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(203.0f),										&BuildOrderManager::DefendThirdBase,			BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(205.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_PYLON})),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(230.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(236.0f),										&BuildOrderManager::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(236.0f),										&BuildOrderManager::OracleHarass,				BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(240.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(240.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL, UNIT_TYPEID::PROTOSS_FORGE})),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(250.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
+					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ResearchBlink,				BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ChronoTillFinished,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&BuildOrderManager::ResearchAttackOne,			BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_FORGE)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(270.0f),										&BuildOrderManager::ContinueBuildingPylons,		BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(270.0f),										&BuildOrderManager::ContinueMakingWorkers,		BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(270.0f),										&BuildOrderManager::ContinueWarpingInStalkers,	BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(300.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(305.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_FORGE)),
+					BuildOrderData(&BuildOrderManager::HasUnits,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STALKER, 7),			&BuildOrderManager::StalkerOraclePressure,		BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(330.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(335.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(340.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(355.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_FORGE)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(355.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR, UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(375.0f),										&BuildOrderManager::ContinueChronos,			BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(375.0f),										&BuildOrderManager::ContinueExpanding,			BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(380.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_FORGE})),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(400.0f),										&BuildOrderManager::ContinueUpgrades,			BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY),		&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSBAY)),
 	};
 }
 

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <functional>
 #include <array>
+#include <chrono>
 
 #include "sc2api/sc2_interfaces.h"
 #include "sc2api/sc2_agent.h"
@@ -2032,5 +2033,12 @@ std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
 	}
 }
 
+
+long long Utility::GetUniqueId()
+{
+	return std::chrono::duration_cast<std::chrono::milliseconds>(
+		std::chrono::system_clock::now().time_since_epoch()
+		).count();
+}
 
 }

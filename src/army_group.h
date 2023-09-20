@@ -5,6 +5,8 @@
 #include "sc2api/sc2_map_info.h"
 #include "sc2api/sc2_unit_filters.h"
 
+#include "utility.h"
+
 
 
 namespace sc2
@@ -43,6 +45,8 @@ public:
 	int high_ground_index;
 
 	std::vector<bool> blink_ready;
+
+	long long event_id;
 
 	ArmyGroup() {};
 	ArmyGroup(TossBot* agent)
@@ -98,6 +102,7 @@ public:
 		attack_path = path;
 		current_attack_index = 3;
 		high_ground_index = index;
+		event_id = Utility::GetUniqueId();
 	}
 
 	void AddUnit(const Unit* unit);

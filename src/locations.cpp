@@ -23,6 +23,8 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 
 	bool swap = start_location.x == 40.5 && start_location.y == 131.5;
 
+	this->start_location = start_location;
+
 	nexi_locations = { convert_location(Point2D(143.5, 32.5), swap),
 						convert_location(Point2D(145.5, 61.5), swap),
 						convert_location(Point2D(147.5, 94.5), swap),
@@ -247,10 +249,30 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 							convert_location(Point2D(29, 97), swap),
 							convert_location(Point2D(42, 96), swap), };
 
-	enemy_natural = convert_location(Point2D(38, 102), swap);
-
 	possible_3rds = { convert_location(Point2D(36.5, 69.5), swap),
 					convert_location(Point2D(64.5, 110.5), swap), };
+
+	enemy_natural = convert_location(Point2D(38, 102), swap);
+
+
+	Point2D entrance_point = convert_location(Point2D(75, 144), swap);
+	Point2D exit_point = convert_location(Point2D(28, 46), swap);
+	std::vector<Point2D> entrance_points = { convert_location(Point2D(48, 143), swap),
+											 convert_location(Point2D(28, 111), swap),
+											 convert_location(Point2D(32, 82), swap) };
+	std::vector<Point2D> exit_points = { convert_location(Point2D(27, 124), swap),
+										convert_location(Point2D(40, 90), swap),
+										convert_location(Point2D(33, 56), swap) };;
+	std::vector<Point2D> base_points = { convert_location(Point2D(40.5, 131.5), swap),
+										convert_location(Point2D(38, 102), swap),
+										convert_location(Point2D(36.5, 69.5), swap) };;
+	std::vector<std::vector<Point2D>> exfi_paths = { {convert_location(Point2D(24, 124), swap),
+														convert_location(Point2D(26, 145), swap),
+														convert_location(Point2D(52, 147), swap)},
+														{ convert_location(Point2D(24, 85), swap),
+														convert_location(Point2D(24, 55), swap)} };
+
+	oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
 
 
 

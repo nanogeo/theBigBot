@@ -35,7 +35,7 @@ namespace sc2 {
 		SetUpUnitTypeInfo();
 		if (debug_mode)
 		{
-			Debug()->DebugGiveAllResources();
+			//Debug()->DebugGiveAllResources();
 			Debug()->DebugFastBuild();
 		}
     }
@@ -69,7 +69,7 @@ namespace sc2 {
 				Units oracles = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE));
 				if (oracles.size() == 0)
 					return;
-				OracleHarassStateMachine* oracleFSM = new OracleHarassStateMachine(this, oracles, Point2D(60, 60));
+				OracleHarassStateMachine* oracleFSM = new OracleHarassStateMachine(this, oracles, Point2D(60, 60), "Oracles");
 				active_FSMs.push_back(oracleFSM);
 				tests_set_up = true;
 
@@ -375,11 +375,11 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
-        //DisplayDebugHud();
+        DisplayDebugHud();
 		std::chrono::microseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
-        //Debug()->SendDebug();
+        Debug()->SendDebug();
 		std::chrono::microseconds postSendDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
@@ -1073,41 +1073,58 @@ namespace sc2 {
 
 #pragma region Events
 
-    void TossBot::AddListenerToOnUnitDamagedEvent(std::function<void(const Unit*, float, float)> func)
+    void TossBot::AddListenerToOnUnitDamagedEvent(long long id, std::function<void(const Unit*, float, float)> func)
     {
-        on_unit_damaged_event.listeners.push_back(func);
+        on_unit_damaged_event.listeners[id] = func;
     }
+
+	void TossBot::RemoveListenerToOnUnitDamagedEvent(long long id)
+	{
+		on_unit_damaged_event.listeners.erase(id);
+	}
 
     void TossBot::CallOnUnitDamagedEvent(const Unit* unit, float health, float shields)
     {
         for (const auto &func : on_unit_damaged_event.listeners)
         {
-            func(unit, health, shields);
+            func.second(unit, health, shields);
         }
     }
 
-    void TossBot::AddListenerToOnUnitDestroyedEvent(std::function<void(const Unit*)> func)
+    void TossBot::AddListenerToOnUnitDestroyedEvent(long long id, std::function<void(const Unit*)> func)
     {
-        on_unit_destroyed_event.listeners.push_back(func);
+        on_unit_destroyed_event.listeners[id] = func;
     }
+
+	void TossBot::RemoveListenerToOnUnitDestroyedEvent(long long id)
+	{
+		on_unit_destroyed_event.listeners.erase(id);
+	}
 
     void TossBot::CallOnUnitDestroyedEvent(const Unit* unit)
     {
-        for (const auto &func : on_unit_destroyed_event.listeners)
+        for (const auto &listener : on_unit_destroyed_event.listeners)
         {
+			auto func = listener.second;
             func(unit);
         }
     }
 
-	void TossBot::AddListenerToOnUnitCreatedEvent(std::function<void(const Unit*)> func)
+	void TossBot::AddListenerToOnUnitCreatedEvent(long long id, std::function<void(const Unit*)> func)
 	{
-		on_unit_created_event.listeners.push_back(func);
+		on_unit_created_event.listeners[id] = func;
+	}
+
+	void TossBot::RemoveListenerToOnUnitCreatedEvent(long long id)
+	{
+		on_unit_created_event.listeners.erase(id);
 	}
 
 	void TossBot::CallOnUnitCreatedEvent(const Unit* unit)
 	{
-		for (const auto &func : on_unit_created_event.listeners)
+		for (const auto &listener : on_unit_created_event.listeners)
 		{
+			auto func = listener.second;
 			func(unit);
 		}
 	}
