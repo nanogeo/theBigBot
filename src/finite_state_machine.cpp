@@ -225,15 +225,14 @@ namespace sc2 {
 	void OracleDefendArmyGroup::TickState()
 	{
 		Point2D center = Utility::MedianCenter(state_machine->attached_army_group->all_units);
-		agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, center);
 
-		Units enemy_units = agent->Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
+		Units enemy_units = agent->Observation()->GetUnits(IsUnits(Utility::GetBurrowedUnitTypes()));
 
 		// revelate when units are burrowing
 		const Unit* unit_to_revelate = NULL;
 		for (const auto &unit : enemy_units)
 		{
-			if (unit->is_burrowed && Utility::DistanceToClosest(state_machine->oracles, unit->pos) <= 9)
+			if (Utility::DistanceToClosest(state_machine->oracles, unit->pos) <= 9)
 			{
 				if (std::find(unit->buffs.begin(), unit->buffs.end(), BUFF_ID::ORACLEREVELATION) == unit->buffs.end())
 				{
@@ -277,7 +276,7 @@ namespace sc2 {
 			if (Utility::DistanceToClosest(state_machine->attached_army_group->all_units, ling->pos) < 2)
 				num_close_lings++;
 		}
-		if (num_close_lings > 4)
+		if (true) //(num_close_lings > 4)
 		{
 			int num_stalkers_with_blink = 0;
 			for (const auto &blink_ready : state_machine->attached_army_group->blink_ready)
@@ -285,7 +284,9 @@ namespace sc2 {
 				if (blink_ready)
 					num_stalkers_with_blink++;
 			}
-			float percent_stalkers_with_blink = num_stalkers_with_blink / state_machine->attached_army_group->blink_ready.size();
+			float percent_stalkers_with_blink = 1;
+			if (state_machine->attached_army_group->blink_ready.size() > 0)
+				percent_stalkers_with_blink = static_cast<float>(num_stalkers_with_blink) / static_cast<float>(state_machine->attached_army_group->blink_ready.size());
 
 			int num_oracles_needed = 0;
 			if (percent_stalkers_with_blink < .25)
@@ -302,33 +303,22 @@ namespace sc2 {
 					num_oracles_active++;
 			}
 
-			if (num_oracles_active < num_oracles_needed) // deactivate oracles
+			agent->Debug()->DebugTextOut(std::to_string(num_oracles_active), Point2D(.2, .2), Color(0, 255, 255), 20);
+			agent->Debug()->DebugTextOut(std::to_string(num_oracles_needed), Point2D(.2, .25), Color(0, 255, 255), 20);
+			agent->Debug()->DebugTextOut(std::to_string(percent_stalkers_with_blink), Point2D(.2, .3), Color(0, 255, 255), 20);
+			agent->Debug()->DebugTextOut(std::to_string(num_stalkers_with_blink), Point2D(.2, .35), Color(0, 255, 255), 20);
+			agent->Debug()->DebugTextOut(std::to_string(state_machine->attached_army_group->blink_ready.size()), Point2D(.2, .4), Color(0, 255, 255), 20);
+
+			for (int i = 0; i < state_machine->oracles.size(); i++)
 			{
-				Units oracles = Units(state_machine->oracles);
-				std::sort(oracles.begin(), oracles.end(), [](const Unit* &a, const Unit* &b) -> bool
-				{
-					return a->energy < b->energy;
-				});
-				for (const auto &oracle : oracles)
-				{
-					if (num_oracles_active == num_oracles_needed)
-						break;
-					if (oracle->energy > 10)
-					{
-						auto found = std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle);
-						if (found != state_machine->oracles.end())
-						{
-							if (state_machine->is_beam_active[found - state_machine->oracles.begin()] == true)
-							{
-								state_machine->is_beam_active[found - state_machine->oracles.begin()] = false;
-								agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
-								num_oracles_active--;
-							}
-						}
-					}
-				}
+				if (state_machine->is_beam_active[i])
+					agent->Debug()->DebugTextOut(std::to_string(state_machine->oracles[i]->energy), Point2D(.2, .42 + .02 * i), Color(0, 255, 0), 20);
+				else
+					agent->Debug()->DebugTextOut(std::to_string(state_machine->oracles[i]->energy), Point2D(.2, .42 + .02 * i), Color(255, 0, 255), 20);
+
 			}
-			else if (num_oracles_active > num_oracles_needed) // activate more oracles
+
+			if (num_oracles_active > num_oracles_needed) // deactivate oracles
 			{
 				Units oracles = Units(state_machine->oracles);
 				std::sort(oracles.begin(), oracles.end(), [](const Unit* &a, const Unit* &b) -> bool
@@ -339,14 +329,42 @@ namespace sc2 {
 				{
 					if (num_oracles_active == num_oracles_needed)
 						break;
+					if (oracle->energy > 10)
+					{
+						auto found = std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle);
+						if (found != state_machine->oracles.end())
+						{
+							int index = found - state_machine->oracles.begin();
+							if (state_machine->is_beam_active[index] == true)
+							{
+								state_machine->is_beam_active[index] = false;
+								agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+								num_oracles_active--;
+							}
+						}
+					}
+				}
+			}
+			else if (num_oracles_active < num_oracles_needed) // activate more oracles
+			{
+				Units oracles = Units(state_machine->oracles);
+				std::sort(oracles.begin(), oracles.end(), [](const Unit* &a, const Unit* &b) -> bool
+				{
+					return a->energy < b->energy;
+				});
+				for (const auto &oracle : oracles)
+				{
+					if (num_oracles_active == num_oracles_needed)
+						break;
 					if (oracle->energy > 40)
 					{
 						auto found = std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle);
 						if (found != state_machine->oracles.end())
 						{
-							if (state_machine->is_beam_active[found - state_machine->oracles.begin()] == false)
+							int index = found - state_machine->oracles.begin();
+							if (state_machine->is_beam_active[index] == false)
 							{
-								state_machine->is_beam_active[found - state_machine->oracles.begin()] = true;
+								state_machine->is_beam_active[index] = true;
 								agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
 								num_oracles_active++;
 							}
@@ -355,10 +373,47 @@ namespace sc2 {
 				}
 			}
 		}
-
-		// update beam status for tired oracles
+		// add oracle to volley or agnore units targetted in volley?
+		// add event listeners for oracle
 		for (int i = 0; i < state_machine->oracles.size(); i++)
 		{
+			const Unit* oracle = state_machine->oracles[i];
+			if (state_machine->is_beam_active[i] == false)
+			{
+				agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, center);
+				continue;
+			}
+			float now = agent->Observation()->GetGameLoop() / 22.4;
+			bool weapon_ready = now - state_machine->time_last_attacked[i] > .8; //.61
+
+			if (weapon_ready)
+			{
+				const Unit* closest_unit = Utility::ClosestTo(enemy_lings, oracle->pos);
+				if (Distance2D(closest_unit->pos, oracle->pos) > 6)
+				{
+					agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, center);
+					continue;
+				}
+
+
+				agent->Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit);
+
+				state_machine->time_last_attacked[i] = agent->Observation()->GetGameLoop() / 22.4;
+				state_machine->has_attacked[i] = false;
+				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
+			}
+			else if (state_machine->has_attacked[0])
+			{
+				agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, center);
+				//agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
+
+				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
+			}
+			else
+			{
+				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
+			}
+			// update beam status for tired oracles
 			if (state_machine->oracles[i]->energy <= 2)
 				state_machine->is_beam_active[i] = false;
 		}
@@ -725,16 +780,18 @@ namespace sc2 {
 		{
 			agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, exfil_path[i], i > 0);
 		}
-		agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, agent->locations->start_location, true);
+		// revert
+		//agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, agent->locations->start_location, true);
 	}
 
 	State* OracleHarassReturnToBase::TestTransitions()
 	{
-		for (const auto &oracle : state_machine->oracles)
+		// revert
+		/*for (const auto &oracle : state_machine->oracles)
 		{
 			if (Distance2D(oracle->pos, agent->locations->start_location) > 20)
 				return NULL;
-		}
+		}*/
 		if (state_machine->attached_army_group == NULL)
 			return NULL;
 		return new OracleDefendArmyGroup(agent, state_machine);

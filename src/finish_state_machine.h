@@ -612,6 +612,20 @@ public:
 		}
 		current_state->EnterState();
 	}
+	OracleHarassStateMachine(TossBot* agent, Units oracles, std::string name)
+	{
+		this->agent = agent;
+		this->oracles = oracles;
+		this->name = name;
+		current_state = new OracleHarassReturnToBase(agent, this, { Point2D(59, 114) });
+		for (int i = 0; i < oracles.size(); i++)
+		{
+			time_last_attacked.push_back(0);
+			has_attacked.push_back(true);
+			is_beam_active.push_back(false);
+		}
+		current_state->EnterState();
+	}
 	void AddOracle(const Unit* oracle)
 	{
 		oracles.push_back(oracle);

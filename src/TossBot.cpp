@@ -43,9 +43,6 @@ namespace sc2 {
     void TossBot::OnStep()
     {
 
-
-
-
 		std::chrono::microseconds startTime = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
@@ -61,19 +58,8 @@ namespace sc2 {
             {
                 build_order_manager.SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
-				Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, Point2D(100, 100), 2, 2); // team num
 
             }
-			if (Observation()->GetGameLoop() > 1 && !tests_set_up)
-			{
-				Units oracles = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE));
-				if (oracles.size() == 0)
-					return;
-				OracleHarassStateMachine* oracleFSM = new OracleHarassStateMachine(this, oracles, Point2D(60, 60), "Oracles");
-				active_FSMs.push_back(oracleFSM);
-				tests_set_up = true;
-
-			}
             if (Observation()->GetGameLoop() > 1)
             {
                 /*for (int i = 0; i < grid_map.size(); i++)
@@ -140,7 +126,7 @@ namespace sc2 {
                 Point3D end = Point3D(path[0].x, path[0].y, Observation()->TerrainHeight(path[0]) + .1);
                 Debug()->DebugLineOut(start, end, Color(0, 255, 0));*/
 
-				/*UpdateEnemyUnitPositions();
+				UpdateEnemyUnitPositions();
 				UpdateEnemyWeaponCooldowns();
 				for (const auto &unit : enemy_unit_saved_position)
 				{
@@ -161,20 +147,16 @@ namespace sc2 {
 				{
 					RunTests();
 				}
-				for (const auto &point : locations->attack_path_line.GetPoints())
-				{
-					Debug()->DebugSphereOut(Point3D(point.x, point.y, Observation()->TerrainHeight(point)), .4, Color(255, 255, 255));
-				}*/
 
             }
-			/*if (Observation()->GetGameLoop() > 10 && !tests_set_up)
+			if (Observation()->GetGameLoop() > 10 && !tests_set_up)
 			{
 				SetUpArmies();
 			}
             if (Observation()->GetGameLoop() % 1000 == 0)
             {
                 std::cout << "1000\n";
-            }*/
+            }
 
 
 			action_manager.ProcessActions();
@@ -375,11 +357,11 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
-        DisplayDebugHud();
+        //DisplayDebugHud();
 		std::chrono::microseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
-        Debug()->SendDebug();
+        //Debug()->SendDebug();
 		std::chrono::microseconds postSendDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
@@ -500,7 +482,7 @@ namespace sc2 {
 		//Debug()->DebugFastBuild();
 		//Debug()->DebugGiveAllResources();
 		Debug()->DebugShowMap();
-		//Debug()->DebugGiveAllUpgrades();
+		Debug()->DebugGiveAllUpgrades();
 		SpawnArmies();
 		initial_set_up = true;
 	}
@@ -555,23 +537,26 @@ namespace sc2 {
 	void TossBot::SpawnArmies()
 	{
 		Debug()->DebugEnemyControl();
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 2);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 10);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 4);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 32);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 2, 8);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 2, 1);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, enemy_army_spawn, 2, 1);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 2, 8);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 2, 1);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, enemy_army_spawn, 2, 1);
 
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, enemy_army_spawn, 2, 8);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, friendly_army_spawn, 1, 6);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_WARPPRISM, friendly_army_spawn, 1, 1);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, fallback_point, 1, 7);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, fallback_point, 1, 3);
 	}
 
 	void TossBot::SetUpArmies()
 	{
-		//test_army = ArmyGroup(Observation()->GetUnits(Unit::Alliance::Self), enemy_army_spawn, fallback_point);
+		OracleHarassStateMachine* state_machine = new OracleHarassStateMachine(this, Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE)), "Oracles");
+		active_FSMs.push_back(state_machine);
+		BuildOrderResultArgData data = BuildOrderResultArgData();
+		build_order_manager.StalkerOraclePressure(data);
 		tests_set_up = true;
 	}
 

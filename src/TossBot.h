@@ -201,7 +201,7 @@ public:
 
 	virtual void OnGameStart()
 	{
-		//Debug()->DebugGiveAllUpgrades();
+		Debug()->DebugGiveAllUpgrades();
 		Debug()->SendDebug();
 	}
 
@@ -233,7 +233,7 @@ public:
 	WorkerManager worker_manager;
 	ActionManager action_manager;
 	BuildOrderManager build_order_manager;
-    bool debug_mode = false;
+    bool debug_mode = true;
 	int frames_passed = 0;
     ScoutInfoZerg scout_info_zerg;
     ScoutInfoTerran scout_info_terran;

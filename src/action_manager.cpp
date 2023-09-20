@@ -433,11 +433,15 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 
 	Point2D attack_point = army->attack_path[army->current_attack_index];
 
-	for (const auto &unit : army->new_units)
+	for (int i = 0; i < army->new_units.size(); i++)
 	{
+		const Unit* unit = army->new_units[i];
 		agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, fallback_point);
 		if (Distance2D(unit->pos, fallback_point) < 5)
+		{
 			army->AddUnit(unit);
+			i--;
+		}
 	}
 
 	new_units = std::chrono::duration_cast<std::chrono::microseconds>(
