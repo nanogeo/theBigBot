@@ -596,6 +596,8 @@ public:
 	std::map<const Unit*, float> time_last_attacked;
 	std::map<const Unit*, bool> has_attacked;
 	std::map<const Unit*, bool> is_beam_active;
+	std::map<const Unit*, bool> casting;
+	std::map<const Unit*, float> casting_energy;
 	bool harass_direction = true;
 	int harass_index = 0;
 	ArmyGroup* attached_army_group = NULL;
@@ -610,6 +612,8 @@ public:
 			time_last_attacked[oracles[i]] = 0;
 			has_attacked[oracles[i]] = true;
 			is_beam_active[oracles[i]] = false;
+			casting[oracles[i]] = false;
+			casting_energy[oracles[i]] = 0;
 		}
 		current_state->EnterState();
 	}
@@ -624,6 +628,8 @@ public:
 			time_last_attacked[oracles[i]] = 0;
 			has_attacked[oracles[i]] = true;
 			is_beam_active[oracles[i]] = false;
+			casting[oracles[i]] = false;
+			casting_energy[oracles[i]] = 0;
 		}
 		current_state->EnterState();
 	}
@@ -633,6 +639,8 @@ public:
 		time_last_attacked[oracle] = 0;
 		has_attacked[oracle] = true;
 		is_beam_active[oracle] = false;
+		casting[oracle] = false;
+		casting_energy[oracle] = 0;
 	}
 };
 

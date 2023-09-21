@@ -228,50 +228,62 @@ namespace sc2 {
 
 		Units enemy_units = agent->Observation()->GetUnits(IsUnits(Utility::GetBurrowedUnitTypes()));
 
-		// revelate when units are burrowing
-		const Unit* unit_to_revelate = NULL;
-		for (const auto &unit : enemy_units)
+		bool revelation_cast = false;
+		for (const auto &oracle : state_machine->oracles)
 		{
-			if (Utility::DistanceToClosest(state_machine->oracles, unit->pos) <= 9)
+			if (state_machine->casting[oracle])
 			{
-				if (std::find(unit->buffs.begin(), unit->buffs.end(), BUFF_ID::ORACLEREVELATION) == unit->buffs.end())
-				{
-					unit_to_revelate = unit;
-					break;
-				}
+				revelation_cast = true;
+				break;
 			}
 		}
-		if (unit_to_revelate != NULL)
+		// revelate when units are burrowing
+		if (!revelation_cast)
 		{
-			const Unit* highest_over_75 = NULL;
-			const Unit* lowest_over_25 = NULL;
-			for (const auto &oracle : state_machine->oracles)
+			const Unit* unit_to_revelate = NULL;
+			for (const auto &unit : enemy_units)
 			{
-				if (oracle->energy > 75)
+				if (Utility::DistanceToClosest(state_machine->oracles, unit->pos) <= 9)
 				{
-					if (highest_over_75 == NULL || highest_over_75->energy < oracle->energy)
-						highest_over_75 = oracle;
-				}
-				else if (oracle->energy > 25)
-				{
-					if (lowest_over_25 == NULL || lowest_over_25->energy > oracle->energy)
-						lowest_over_25 = oracle;
+					if (std::find(unit->buffs.begin(), unit->buffs.end(), BUFF_ID::ORACLEREVELATION) == unit->buffs.end())
+					{
+						unit_to_revelate = unit;
+						break;
+					}
 				}
 			}
-			if (highest_over_75 != NULL)
+			if (unit_to_revelate != NULL)
 			{
-				agent->Actions()->UnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
-				state_machine->time_last_attacked[highest_over_75] = agent->Observation()->GetGameLoop() / 22.4;
-				state_machine->has_attacked[highest_over_75] = false;
-				agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
+				const Unit* highest_over_75 = NULL;
+				const Unit* lowest_over_25 = NULL;
+				for (const auto &oracle : state_machine->oracles)
+				{
+					if (oracle->energy > 75)
+					{
+						if (highest_over_75 == NULL || highest_over_75->energy < oracle->energy)
+							highest_over_75 = oracle;
+					}
+					else if (oracle->energy > 25)
+					{
+						if (lowest_over_25 == NULL || lowest_over_25->energy > oracle->energy)
+							lowest_over_25 = oracle;
+					}
+				}
+				if (highest_over_75 != NULL)
+				{
+					agent->Actions()->UnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
+					state_machine->casting[highest_over_75] = true;
+					state_machine->casting_energy[highest_over_75] = highest_over_75->energy;
+					agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
 
-			}
-			else if (lowest_over_25 != NULL)
-			{
-				agent->Actions()->UnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
-				state_machine->time_last_attacked[lowest_over_25] = agent->Observation()->GetGameLoop() / 22.4;
-				state_machine->has_attacked[lowest_over_25] = false;
-				agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
+				}
+				else if (lowest_over_25 != NULL)
+				{
+					agent->Actions()->UnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
+					state_machine->casting[lowest_over_25] = true;
+					state_machine->casting_energy[lowest_over_25] = lowest_over_25->energy;
+					agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
+				}
 			}
 		}
 
@@ -283,7 +295,7 @@ namespace sc2 {
 			if (Utility::DistanceToClosest(state_machine->attached_army_group->all_units, ling->pos) < 4)
 				num_close_lings++;
 		}
-		if (true) //(num_close_lings > 4)
+		if (num_close_lings > 4)
 		{
 			int num_stalkers_with_blink = 0;
 			for (const auto &blink_ready : state_machine->attached_army_group->blink_ready)
@@ -386,6 +398,17 @@ namespace sc2 {
 		// add event listeners for oracle
 		for (const auto &oracle : state_machine->oracles)
 		{
+			if (state_machine->casting[oracle])
+			{
+				if (state_machine->casting_energy[oracle] > oracle->energy || state_machine->casting_energy[oracle] + 5 < oracle->energy)
+				{
+					state_machine->casting[oracle] = false;
+				}
+				else
+				{
+					continue;
+				}
+			}
 			if (state_machine->is_beam_active[oracle] == false)
 			{
 				agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, center);
