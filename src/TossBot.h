@@ -201,13 +201,13 @@ public:
 
 	virtual void OnGameStart()
 	{
-		Debug()->DebugGiveAllUpgrades();
-		Debug()->SendDebug();
+		//Debug()->DebugGiveAllUpgrades();
+		//Debug()->SendDebug();
 	}
 
 	virtual void OnStep()
 	{
-		for (const auto &unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ROACH)))
+		/*for (const auto &unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ROACH)))
 		{
 			if (Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)).size() == 0)
 				return;
@@ -222,7 +222,7 @@ public:
 			text += " weapon cooldown: " + std::to_string(unit->weapon_cooldown) + "\n";
 			Debug()->DebugTextOut(text, unit->pos, Color(0, 255, 255), 20);
 			Debug()->SendDebug();
-		}
+		}*/
 	}
 };
 

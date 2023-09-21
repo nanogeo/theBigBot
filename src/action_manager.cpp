@@ -436,8 +436,11 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	for (int i = 0; i < army->new_units.size(); i++)
 	{
 		const Unit* unit = army->new_units[i];
-		agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0]);
-		agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, fallback_point, true);
+		if (unit->orders.size() == 0)
+		{
+			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0]);
+			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, fallback_point, true);
+		}
 		if (Distance2D(unit->pos, fallback_point) < 5)
 		{
 			army->AddUnit(unit);

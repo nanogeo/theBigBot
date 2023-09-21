@@ -397,9 +397,11 @@ namespace sc2 {
 		if (stalkers.size() > 0)
 		{
 			bool all_ready = true;
+			Units stalkers_ready;
+			Units stalkers_not_ready;
 			for (const auto &stalker : stalkers)
 			{
-				if (stalker->weapon_cooldown > 0 || attack_status[stalker] == true)
+				if (stalker->weapon_cooldown == 0 && attack_status[stalker] == false)
 				{
 					// ignore units inside prisms
 					if (warp_prisms.size() > 0)
@@ -419,22 +421,25 @@ namespace sc2 {
 								break;
 						}
 						if (in_prism)
-							continue;
+							stalkers_not_ready.push_back(stalker);
 					}
-					all_ready = false;
-					break;
+					stalkers_ready.push_back(stalker);
+				}
+				else
+				{
+					stalkers_not_ready.push_back(stalker);
 				}
 			}
-			if (all_ready)
+			if (static_cast<float>(stalkers_ready.size()) / static_cast<float>(stalkers.size()) > .5)
 			{
 				start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count();
 
-				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers, {}, 0);
+				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers_ready, {}, 0);
 				if (found_targets.size() == 0)
 				{
-					found_targets = agent->FindTargets(stalkers, {}, 2);
+					found_targets = agent->FindTargets(stalkers_ready, {}, 2);
 					std::cout << "extra distance\n";
 				}
 				find_targets = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -451,7 +456,7 @@ namespace sc2 {
 					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count() - start_time;
 
-				for (const auto &stalker : stalkers)
+				for (const auto &stalker : stalkers_ready)
 				{
 					if (found_targets.size() == 0)
 					{
@@ -468,11 +473,14 @@ namespace sc2 {
 					}*/
 				}
 			}
-			else
+			if (stalkers_not_ready.size() > 0)
 			{
 				for (int i = 0; i < stalkers.size(); i++)
 				{
 					const Unit* stalker = stalkers[i];
+					if (std::find(stalkers_not_ready.begin(), stalkers_not_ready.end(), stalker) == stalkers_not_ready.end())
+						continue;
+
 					int danger = agent->IncomingDamage(stalker);
 					if (danger > 0)
 					{

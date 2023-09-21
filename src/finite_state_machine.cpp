@@ -59,12 +59,11 @@ namespace sc2 {
 	{
 		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), denfensive_position) < 10)
 		{
-			for (int i = 0; i < state_machine->oracles.size(); i++)
+			for (const auto &oracle : state_machine->oracles)
 			{
-				const Unit* oracle = state_machine->oracles[i];
 				float now = agent->Observation()->GetGameLoop() / 22.4;
-				bool weapon_ready = now - state_machine->time_last_attacked[i] > .61;
-				bool beam_active = state_machine->is_beam_active[i];
+				bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .61;
+				bool beam_active = state_machine->is_beam_active[oracle];
 				bool beam_activatable = false;
 
 				if (!beam_active && oracle->energy >= 40)
@@ -81,11 +80,11 @@ namespace sc2 {
 					else if (weapon_ready)
 					{
 						agent->Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit, false);
-						state_machine->time_last_attacked[i] = now;
-						state_machine->has_attacked[i] = false;
+						state_machine->time_last_attacked[oracle] = now;
+						state_machine->has_attacked[oracle] = false;
 						agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 255, 0));
 					}
-					else if (state_machine->has_attacked[i])
+					else if (state_machine->has_attacked[oracle])
 					{
 						agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
 						agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
@@ -100,7 +99,7 @@ namespace sc2 {
 					if (Distance2D(oracle->pos, closest_unit->pos) < 3)
 					{
 						agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
-						state_machine->is_beam_active[i] = true;
+						state_machine->is_beam_active[oracle] = true;
 					}
 					else
 					{
@@ -112,20 +111,19 @@ namespace sc2 {
 					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
 					agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
 				}
-				agent->Debug()->DebugTextOut(std::to_string(now - state_machine->time_last_attacked[i]), Point2D(.7, .7), Color(0, 255, 255), 20);
+				agent->Debug()->DebugTextOut(std::to_string(now - state_machine->time_last_attacked[oracle]), Point2D(.7, .7), Color(0, 255, 255), 20);
 				agent->Debug()->DebugTextOut(std::to_string(agent->Observation()->GetGameLoop()), Point2D(.7, .75), Color(0, 255, 255), 20);
 
 			}
 		}
 		else
 		{
-			for (int i = 0; i < state_machine->oracles.size(); i++)
+			for (const auto &oracle : state_machine->oracles)
 			{
-				const Unit* oracle = state_machine->oracles[i];
-				if (state_machine->is_beam_active[i])
+				if (state_machine->is_beam_active[oracle])
 				{
 					agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
-					state_machine->is_beam_active[i] = false;
+					state_machine->is_beam_active[oracle] = false;
 				}
 
 				if (Distance2D(oracle->pos, denfensive_position) > 1)
@@ -188,12 +186,12 @@ namespace sc2 {
 	void OracleDefendLocation::OnUnitDamagedListener(const Unit* unit, float health, float shields)
 	{
 		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
-		for (int i = 0; i < state_machine->oracles.size(); i++)
+		for (const auto &oracle : state_machine->oracles)
 		{
-			if (state_machine->oracles[i]->engaged_target_tag == unit->tag)
+			if (oracle->engaged_target_tag == unit->tag)
 			{
 				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
-				state_machine->has_attacked[i] = true;
+				state_machine->has_attacked[oracle] = true;
 			}
 		}
 	}
@@ -201,12 +199,12 @@ namespace sc2 {
 	void OracleDefendLocation::OnUnitDestroyedListener(const Unit* unit)
 	{
 		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
-		for (int i = 0; i < state_machine->oracles.size(); i++)
+		for (const auto &oracle : state_machine->oracles)
 		{
-			if (state_machine->oracles[i]->engaged_target_tag == unit->tag)
+			if (oracle->engaged_target_tag == unit->tag)
 			{
 				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
-				state_machine->has_attacked[i] = true;
+				state_machine->has_attacked[oracle] = true;
 			}
 		}
 	}
@@ -263,10 +261,17 @@ namespace sc2 {
 			if (highest_over_75 != NULL)
 			{
 				agent->Actions()->UnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
+				state_machine->time_last_attacked[highest_over_75] = agent->Observation()->GetGameLoop() / 22.4;
+				state_machine->has_attacked[highest_over_75] = false;
+				agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
+
 			}
 			else if (lowest_over_25 != NULL)
 			{
 				agent->Actions()->UnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
+				state_machine->time_last_attacked[lowest_over_25] = agent->Observation()->GetGameLoop() / 22.4;
+				state_machine->has_attacked[lowest_over_25] = false;
+				agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
 			}
 		}
 
@@ -312,7 +317,7 @@ namespace sc2 {
 			int num_oracles_active = 0;
 			for (const auto &beam_active : state_machine->is_beam_active)
 			{
-				if (beam_active)
+				if (beam_active.second)
 					num_oracles_active++;
 			}
 			/*
@@ -345,16 +350,11 @@ namespace sc2 {
 						break;
 					if (oracle->energy > 10 && Utility::DistanceToClosest(enemy_lings, oracle->pos) > 5)
 					{
-						auto found = std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle);
-						if (found != state_machine->oracles.end())
+						if (state_machine->is_beam_active.count(oracle) && state_machine->is_beam_active[oracle] == true)
 						{
-							int index = found - state_machine->oracles.begin();
-							if (state_machine->is_beam_active[index] == true)
-							{
-								state_machine->is_beam_active[index] = false;
-								agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
-								num_oracles_active--;
-							}
+							state_machine->is_beam_active[oracle] = false;
+							agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+							num_oracles_active--;
 						}
 					}
 				}
@@ -372,16 +372,11 @@ namespace sc2 {
 						break;
 					if (oracle->energy > 40)
 					{
-						auto found = std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle);
-						if (found != state_machine->oracles.end())
+						if (state_machine->is_beam_active.count(oracle) && state_machine->is_beam_active[oracle] == false)
 						{
-							int index = found - state_machine->oracles.begin();
-							if (state_machine->is_beam_active[index] == false)
-							{
-								state_machine->is_beam_active[index] = true;
-								agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
-								num_oracles_active++;
-							}
+							state_machine->is_beam_active[oracle] = true;
+							agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
+							num_oracles_active++;
 						}
 					}
 				}
@@ -389,16 +384,15 @@ namespace sc2 {
 		}
 		// add oracle to volley or agnore units targetted in volley?
 		// add event listeners for oracle
-		for (int i = 0; i < state_machine->oracles.size(); i++)
+		for (const auto &oracle : state_machine->oracles)
 		{
-			const Unit* oracle = state_machine->oracles[i];
-			if (state_machine->is_beam_active[i] == false)
+			if (state_machine->is_beam_active[oracle] == false)
 			{
 				agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, center);
 				continue;
 			}
 			float now = agent->Observation()->GetGameLoop() / 22.4;
-			bool weapon_ready = now - state_machine->time_last_attacked[i] > .8; //.61
+			bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .8; //.61
 
 			if (weapon_ready)
 			{
@@ -412,8 +406,8 @@ namespace sc2 {
 
 				agent->Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit);
 
-				state_machine->time_last_attacked[i] = agent->Observation()->GetGameLoop() / 22.4;
-				state_machine->has_attacked[i] = false;
+				state_machine->time_last_attacked[oracle] = agent->Observation()->GetGameLoop() / 22.4;
+				state_machine->has_attacked[oracle] = false;
 				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
 			}
 			else if (state_machine->has_attacked[0])
@@ -428,10 +422,10 @@ namespace sc2 {
 			}
 		}
 		// update beam status for tired oracles
-		for (int i = 0; i < state_machine->oracles.size(); i++)
+		for (const auto &oracle : state_machine->oracles)
 		{
-			if (state_machine->oracles[i]->energy <= 2)
-				state_machine->is_beam_active[i] = false;
+			if (oracle->energy <= 2)
+				state_machine->is_beam_active[oracle] = false;
 		}
 
 	}
@@ -468,13 +462,13 @@ namespace sc2 {
 	void OracleDefendArmyGroup::OnUnitDamagedListener(const Unit* unit, float health, float shields)
 	{
 		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
-		for (int i = 0; i < state_machine->oracles.size(); i++)
+		for (const auto &oracle : state_machine->oracles)
 		{
-			if (state_machine->oracles[i]->engaged_target_tag == unit->tag)
+			if (oracle->engaged_target_tag == unit->tag)
 			{
 				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " took " + std::to_string(health) + " damage from orale", Point2D(.2, .4 + .02 * i), Color(0, 255, 0), 20);
 				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
-				state_machine->has_attacked[i] = true;
+				state_machine->has_attacked[oracle] = true;
 			}
 		}
 	}
@@ -482,13 +476,13 @@ namespace sc2 {
 	void OracleDefendArmyGroup::OnUnitDestroyedListener(const Unit* unit)
 	{
 		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
-		for (int i = 0; i < state_machine->oracles.size(); i++)
+		for (const auto &oracle : state_machine->oracles)
 		{
-			if (state_machine->oracles[i]->engaged_target_tag == unit->tag || state_machine->oracles[i]->engaged_target_tag == 0)
+			if (oracle->engaged_target_tag == unit->tag || oracle->engaged_target_tag == 0)
 			{
 				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " desroyed by oracle", Point2D(.2, .45 + .02 * i), Color(0, 255, 0), 20);
 				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
-				state_machine->has_attacked[i] = true;
+				state_machine->has_attacked[oracle] = true;
 			}
 		}
 	}
@@ -634,11 +628,10 @@ namespace sc2 {
 	void OracleHarassAttackMineralLine::TickState()
 	{
 		bool weapons_ready = true;
-		for (int i = 0; i < state_machine->oracles.size(); i++)
+		for (const auto &oracle : state_machine->oracles)
 		{
-			const Unit* oracle = state_machine->oracles[i];
 			float now = agent->Observation()->GetGameLoop() / 22.4;
-			bool weapon_ready = now - state_machine->time_last_attacked[i] > .8; //.61
+			bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .8; //.61
 			if (!weapon_ready)
 			{
 				weapons_ready = false;
@@ -727,11 +720,10 @@ namespace sc2 {
 			agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::ATTACK_ATTACK, target_drone);
 
 
-			for (int i = 0; i < state_machine->oracles.size(); i++)
+			for (const auto &oracle : state_machine->oracles)
 			{
-				state_machine->time_last_attacked[i] = agent->Observation()->GetGameLoop() / 22.4;
-				state_machine->has_attacked[i] = false;
-				const Unit* oracle = state_machine->oracles[i];
+				state_machine->time_last_attacked[oracle] = agent->Observation()->GetGameLoop() / 22.4;
+				state_machine->has_attacked[oracle] = false;
 				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
 			}
 		}
@@ -743,16 +735,16 @@ namespace sc2 {
 				agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, exit_pos);
 			//agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
 
-			for (int i = 0; i < state_machine->oracles.size(); i++)
+			for (const auto &oracle : state_machine->oracles)
 			{
-				agent->Debug()->DebugSphereOut(state_machine->oracles[i]->pos, 2, Color(0, 0, 255));
+				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 			}
 		}
 		else
 		{
-			for (int i = 0; i < state_machine->oracles.size(); i++)
+			for (const auto &oracle : state_machine->oracles)
 			{
-				agent->Debug()->DebugSphereOut(state_machine->oracles[i]->pos, 2, Color(0, 255, 0));
+				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
 			}
 		}
 	}
@@ -778,10 +770,9 @@ namespace sc2 {
 		if (target_drone != NULL && unit->tag == target_drone->tag)
 		{
 			target_drone = NULL;
-			for (int i = 0; i < state_machine->oracles.size(); i++)
+			for (const auto &oracle : state_machine->oracles)
 			{
-
-				state_machine->has_attacked[i] = true;
+				state_machine->has_attacked[oracle] = true;
 				/*
 				if (state_machine->oracles[i]->engaged_target_tag == unit->tag || state_machine->oracles[i]->engaged_target_tag == 0)
 				{

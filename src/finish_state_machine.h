@@ -593,9 +593,9 @@ class OracleHarassStateMachine : public StateMachine
 {
 public:
 	Units oracles;
-	std::vector<float> time_last_attacked;
-	std::vector<bool> has_attacked;
-	std::vector<bool> is_beam_active;
+	std::map<const Unit*, float> time_last_attacked;
+	std::map<const Unit*, bool> has_attacked;
+	std::map<const Unit*, bool> is_beam_active;
 	bool harass_direction = true;
 	int harass_index = 0;
 	ArmyGroup* attached_army_group = NULL;
@@ -607,9 +607,9 @@ public:
 		current_state = new OracleDefendLocation(agent, this, denfensive_position);
 		for (int i = 0; i < oracles.size(); i++)
 		{
-			time_last_attacked.push_back(0);
-			has_attacked.push_back(true);
-			is_beam_active.push_back(false);
+			time_last_attacked[oracles[i]] = 0;
+			has_attacked[oracles[i]] = true;
+			is_beam_active[oracles[i]] = false;
 		}
 		current_state->EnterState();
 	}
@@ -621,18 +621,18 @@ public:
 		current_state = new OracleHarassReturnToBase(agent, this, { Point2D(59, 114) });
 		for (int i = 0; i < oracles.size(); i++)
 		{
-			time_last_attacked.push_back(0);
-			has_attacked.push_back(true);
-			is_beam_active.push_back(false);
+			time_last_attacked[oracles[i]] = 0;
+			has_attacked[oracles[i]] = true;
+			is_beam_active[oracles[i]] = false;
 		}
 		current_state->EnterState();
 	}
 	void AddOracle(const Unit* oracle)
 	{
 		oracles.push_back(oracle);
-		time_last_attacked.push_back(0);
-		has_attacked.push_back(true);
-		is_beam_active.push_back(false);
+		time_last_attacked[oracle] = 0;
+		has_attacked[oracle] = true;
+		is_beam_active[oracle] = false;
 	}
 };
 
