@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     coordinator.SetMultithreaded(true);
     // Add the custom bot, it will control the players.
     sc2::TossBot bot1;
-	
+	/*
     coordinator.SetParticipants({
 		CreateParticipant(sc2::Race::Protoss, &bot1),
 		CreateComputer(sc2::Race::Zerg, sc2::Difficulty::Hard, sc2::AIBuild::Macro)
@@ -105,19 +105,19 @@ int main(int argc, char* argv[])
     coordinator.SetRealtime(true);
 
     coordinator.LaunchStarcraft();
-    coordinator.StartGame("LightShadeLE.SC2Map");
+    coordinator.StartGame("LightShadeLE.SC2Map");*/
 	
-	/*
+	
 	sc2::BlankBot bot2;
 
 	coordinator.SetParticipants({
-		CreateParticipant(sc2::Race::Zerg, &bot2),
-		CreateParticipant(sc2::Race::Protoss, &bot1)
+		CreateParticipant(sc2::Race::Protoss, &bot1),
+		CreateParticipant(sc2::Race::Zerg, &bot2)
 		});
 	coordinator.SetRealtime(true);
 
 	coordinator.LaunchStarcraft();
-	coordinator.StartGame("LightShadeLE.SC2Map");*/
+	coordinator.StartGame("EternalEmpireLE.SC2Map");
 	//EternalEmpireLE
 
     while (coordinator.Update()) {

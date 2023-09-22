@@ -33,19 +33,19 @@ namespace sc2 {
     {
         std::cout << "Hello World!" << std::endl;
 		SetUpUnitTypeInfo();
-		Debug()->DebugShowMap();
-		Debug()->DebugEnemyControl();
 		Debug()->SendDebug();
 		if (debug_mode)
 		{
-			//Debug()->DebugGiveAllResources();
+			Debug()->DebugGiveAllResources();
 			Debug()->DebugFastBuild();
+			Debug()->SendDebug();
 		}
     }
 
     void TossBot::OnStep()
     {
-
+		std::cout << std::to_string(Observation()->GetGameLoop()) << std::endl;
+		
 		std::chrono::microseconds startTime = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
@@ -57,11 +57,11 @@ namespace sc2 {
         {
 
 
-            if (Observation()->GetGameLoop() == 1) 
+            if (!started)
             {
-                build_order_manager.SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
+                build_order_manager.SetBuildOrder(BuildOrder::testing);
 				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
-
+				started = true;
             }
             if (Observation()->GetGameLoop() > 1)
             {
@@ -129,9 +129,10 @@ namespace sc2 {
                 Point3D end = Point3D(path[0].x, path[0].y, Observation()->TerrainHeight(path[0]) + .1);
                 Debug()->DebugLineOut(start, end, Color(0, 255, 0));*/
 
+
 				UpdateEnemyUnitPositions();
 				UpdateEnemyWeaponCooldowns();
-				for (const auto &unit : enemy_unit_saved_position)
+				/*for (const auto &unit : enemy_unit_saved_position)
 				{
 					Color col = Color(255, 255, 0);
 					if (unit.second.frames > 0)
@@ -140,7 +141,7 @@ namespace sc2 {
 					}
 					Debug()->DebugSphereOut(unit.first->pos, .7, col);
 					Debug()->DebugTextOut(std::to_string(unit.second.frames), unit.first->pos, col, 20);
-				}
+				}*/
 
 				if (!initial_set_up)
 				{
@@ -162,6 +163,7 @@ namespace sc2 {
             }
 
 
+			build_order_manager.CheckBuildOrder();
 			action_manager.ProcessActions();
 			ProcessFSMs();
 			DisplayEnemyAttacks();
@@ -540,9 +542,9 @@ namespace sc2 {
 	void TossBot::SpawnArmies()
 	{
 		Debug()->DebugEnemyControl();
-		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, enemy_army_spawn, 2, 10);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, locations->attack_path[locations->attack_path.size() - 1], 2, 10);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, enemy_army_spawn, 2, 32);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, locations->attack_path[locations->attack_path.size() - 1], 2, 32);
 
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 2, 8);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 2, 1);
@@ -550,16 +552,17 @@ namespace sc2 {
 
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, enemy_army_spawn, 2, 8);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, fallback_point, 1, 7);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, fallback_point, 1, 3);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, locations->attack_path[0], 1, 1);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, locations->attack_path[0], 1, 7);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, locations->attack_path[0], 1, 3);
 	}
 
 	void TossBot::SetUpArmies()
 	{
-		OracleHarassStateMachine* state_machine = new OracleHarassStateMachine(this, Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE)), "Oracles");
+		/*OracleHarassStateMachine* state_machine = new OracleHarassStateMachine(this, Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE)), "Oracles");
 		active_FSMs.push_back(state_machine);
 		BuildOrderResultArgData data = BuildOrderResultArgData();
-		build_order_manager.StalkerOraclePressure(data);
+		build_order_manager.StalkerOraclePressure(data);*/
 		tests_set_up = true;
 	}
 
@@ -1217,7 +1220,7 @@ namespace sc2 {
 				enemy_weapon_cooldown[Eunit] = 0;
 				enemy_unit_saved_position[Eunit].frames = -1;
 			}
-			Debug()->DebugTextOut(std::to_string(enemy_weapon_cooldown[Eunit]), Eunit->pos + Point3D(0, 0, .2), Color(255, 0, 255), 20);
+			//Debug()->DebugTextOut(std::to_string(enemy_weapon_cooldown[Eunit]), Eunit->pos + Point3D(0, 0, .2), Color(255, 0, 255), 20);
 		}
 	}
 

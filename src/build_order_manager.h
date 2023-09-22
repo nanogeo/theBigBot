@@ -73,6 +73,7 @@ struct BuildOrderData;
 
 enum BuildOrder {
 	blank,
+	testing,
 	blink_proxy_robo_pressure,
 	oracle_gatewayman_pvz,
 	chargelot_allin,
@@ -162,6 +163,7 @@ public:
 
 	void SetBuildOrder(BuildOrder);
 	void SetBlank();
+	void SetTesting();
 	void SetBlinkProxyRoboPressureBuild();
 	void SetOracleGatewaymanPvZ();
 	void SetChargelotAllin();

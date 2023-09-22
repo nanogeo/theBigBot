@@ -821,6 +821,9 @@ void BuildOrderManager::SetBuildOrder(BuildOrder build)
 	case BuildOrder::blank:
 		SetBlank();
 		break;
+	case BuildOrder::testing:
+		SetTesting();
+		break;
 	case BuildOrder::blink_proxy_robo_pressure:
 		SetBlinkProxyRoboPressureBuild();
 		break;
@@ -852,6 +855,16 @@ void BuildOrderManager::SetBlank()
 	build_order = {};
 }
 
+
+void BuildOrderManager::SetTesting()
+{
+	build_order = {BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(1.0f),										&BuildOrderManager::CutWorkers,				BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(3.0f),										&BuildOrderManager::DefendThirdBase,			BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(4.0f),										&BuildOrderManager::OracleHarass,				BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(5.0f),										&BuildOrderManager::StalkerOraclePressure,		BuildOrderResultArgData()),
+	};
+}
+
 void BuildOrderManager::SetBlinkProxyRoboPressureBuild()
 {
 	build_order = { BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(6.5f),										&BuildOrderManager::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
@@ -877,7 +890,7 @@ void BuildOrderManager::SetBlinkProxyRoboPressureBuild()
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(171.0f),										&BuildOrderManager::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(176.5f),										&BuildOrderManager::BuildBuilding,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
 					BuildOrderData(&BuildOrderManager::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ResearchBlink,			BuildOrderResultArgData(UPGRADE_ID::BLINKTECH)),
-					BuildOrderData(&BuildOrderManager::IsResearching,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+					BuildOrderData(&BuildOrderManager::IsResearching,	BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ChronoTillFinished,		BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(185.0f),										&BuildOrderManager::UncutWorkers,				BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(185.0f),										&BuildOrderManager::WarpInAtProxy,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(205.0f),										&BuildOrderManager::BuildProxy,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)),

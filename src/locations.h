@@ -87,9 +87,15 @@ public:
         {
             SetLightshadeLocations(start_location, build_order);
         }
+
+		else if (map_name == "Eternal Empire LE")
+		{
+			SetTestingLocations(start_location, build_order);
+		}
     }
 
     void SetLightshadeLocations(Point3D, BuildOrder);
+	void SetTestingLocations(Point3D, BuildOrder);
 };
 
 

@@ -316,5 +316,44 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 	natural_door_open = convert_location(Point2D(138.5, 66.5), swap);
 }
 
+void Locations::SetTestingLocations(Point3D start_location, BuildOrder build_order)
+{
+
+	auto convert_location = [](Point2D point, bool swap)
+	{
+		if (swap)
+			return Point2D(176, 172) - point;
+		else
+			return point;
+	};
+
+	bool swap = start_location.x == 142.5 && start_location.y == 140.5;
+
+	this->start_location = start_location;
+
+	attack_path = { convert_location(Point2D(34, 139), swap),
+					convert_location(Point2D(59, 114.5), swap),
+					convert_location(Point2D(85, 89), swap),
+					convert_location(Point2D(112, 62.5), swap),
+					convert_location(Point2D(142, 33), swap) };
+
+	third_base_pylon_gap = convert_location(Point2D(34, 139), swap);
+
+	nexi_locations = { convert_location(Point2D(0, 0), swap),
+						convert_location(Point2D(0, 0), swap),
+						convert_location(Point2D(0, 0), swap) };
+
+	Point2D entrance_point = convert_location(Point2D(34, 139), swap);
+	Point2D exit_point = convert_location(Point2D(34, 139), swap);
+	std::vector<Point2D> entrance_points = { convert_location(Point2D(34, 139), swap) };
+	std::vector<Point2D> exit_points = { convert_location(Point2D(34, 139), swap) };
+	std::vector<Point2D> base_points = { convert_location(Point2D(34, 139), swap) };
+	std::vector<std::vector<Point2D>> exfi_paths = { {convert_location(Point2D(34, 139), swap) } };
+
+	oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
+
+}
+
+
 }
 
