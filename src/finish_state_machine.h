@@ -595,6 +595,7 @@ public:
 	Units oracles;
 	std::map<const Unit*, float> time_last_attacked;
 	std::map<const Unit*, bool> has_attacked;
+	std::map<const Unit*, uint64_t> target;
 	std::map<const Unit*, bool> is_beam_active;
 	std::map<const Unit*, bool> casting;
 	std::map<const Unit*, float> casting_energy;

@@ -165,7 +165,7 @@ namespace sc2 {
 
 	State* OracleDefendLocation::TestTransitions()
 	{
-		if (state_machine->oracles.size() > 1)
+		if (state_machine->oracles.size() >= 1) //> 1
 		{
 			if (true) //(agent->Observation()->GetGameLoop() % 2 == 0)
 			{
@@ -417,6 +417,11 @@ namespace sc2 {
 			float now = agent->Observation()->GetGameLoop() / 22.4;
 			bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .8; //.61
 
+			agent->Debug()->DebugTextOut("weapon ready " + std::to_string(weapon_ready), Point2D(.2, .35), Color(0, 255, 0), 20);
+			agent->Debug()->DebugTextOut("has attacked " + std::to_string(state_machine->has_attacked[oracle]), Point2D(.2, .37), Color(0, 255, 0), 20);
+			agent->Debug()->DebugTextOut("target " + std::to_string(state_machine->target[oracle]), Point2D(.2, .39), Color(0, 255, 0), 20);
+
+
 			if (weapon_ready)
 			{
 				const Unit* closest_unit = Utility::ClosestTo(enemy_lings, oracle->pos);
@@ -428,12 +433,14 @@ namespace sc2 {
 
 
 				agent->Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit);
+				agent->Debug()->DebugSphereOut(closest_unit->pos, .75, Color(0, 255, 255));
 
+				state_machine->target[oracle] = closest_unit->tag;
 				state_machine->time_last_attacked[oracle] = agent->Observation()->GetGameLoop() / 22.4;
 				state_machine->has_attacked[oracle] = false;
 				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
 			}
-			else if (state_machine->has_attacked[0])
+			else if (state_machine->has_attacked[oracle])
 			{
 				agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, center);
 
@@ -485,28 +492,35 @@ namespace sc2 {
 	void OracleDefendArmyGroup::OnUnitDamagedListener(const Unit* unit, float health, float shields)
 	{
 		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
+		int i = 0;
+		agent->Debug()->DebugTextOut(std::to_string(unit->tag), Point2D(.1, .35), Color(0, 255, 0), 20);
+
 		for (const auto &oracle : state_machine->oracles)
 		{
-			if (oracle->engaged_target_tag == unit->tag)
+			if (state_machine->target[oracle] == unit->tag)
 			{
-				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " took " + std::to_string(health) + " damage from orale", Point2D(.2, .4 + .02 * i), Color(0, 255, 0), 20);
+				agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " took " + std::to_string(health) + " damage from orale", Point2D(.2, .4 + .02 * i), Color(0, 255, 0), 20);
 				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
 				state_machine->has_attacked[oracle] = true;
 			}
+			i++;
 		}
 	}
 
 	void OracleDefendArmyGroup::OnUnitDestroyedListener(const Unit* unit)
 	{
 		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		int i = 0;
+		agent->Debug()->DebugTextOut(std::to_string(unit->tag), Point2D(.1, .39), Color(0, 255, 255), 20);
 		for (const auto &oracle : state_machine->oracles)
 		{
-			if (oracle->engaged_target_tag == unit->tag || oracle->engaged_target_tag == 0)
+			if (state_machine->target[oracle] == unit->tag)
 			{
-				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " desroyed by oracle", Point2D(.2, .45 + .02 * i), Color(0, 255, 0), 20);
+				agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " desroyed by oracle", Point2D(.2, .45 + .02 * i), Color(0, 255, 0), 20);
 				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
 				state_machine->has_attacked[oracle] = true;
 			}
+			i++;
 		}
 	}
 

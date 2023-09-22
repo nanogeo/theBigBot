@@ -44,8 +44,6 @@ namespace sc2 {
 
     void TossBot::OnStep()
     {
-		std::cout << std::to_string(Observation()->GetGameLoop()) << std::endl;
-		
 		std::chrono::microseconds startTime = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
