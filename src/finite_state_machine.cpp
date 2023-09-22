@@ -165,7 +165,7 @@ namespace sc2 {
 
 	State* OracleDefendLocation::TestTransitions()
 	{
-		if (state_machine->oracles.size() >= 1) //> 1
+		if (state_machine->oracles.size() > 1) //> 1
 		{
 			if (true) //(agent->Observation()->GetGameLoop() % 2 == 0)
 			{
@@ -390,6 +390,25 @@ namespace sc2 {
 							agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
 							num_oracles_active++;
 						}
+					}
+				}
+			}
+		}
+		else
+		{
+			Units oracles = Units(state_machine->oracles);
+			std::sort(oracles.begin(), oracles.end(), [](const Unit* &a, const Unit* &b) -> bool
+			{
+				return a->energy > b->energy;
+			});
+			for (const auto &oracle : oracles)
+			{
+				if (oracle->energy > 10 && Utility::DistanceToClosest(enemy_lings, oracle->pos) > 5)
+				{
+					if (state_machine->is_beam_active.count(oracle) && state_machine->is_beam_active[oracle] == true)
+					{
+						state_machine->is_beam_active[oracle] = false;
+						agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 					}
 				}
 			}

@@ -770,4 +770,80 @@ void WorkerManager::SetNewBase(const Unit* nexus)
 	new_base = nexus;
 }
 
+void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
+{
+	if (mineral_patches.count(spent_patch) > 0)
+	{
+		Units assigned_workers;
+		mineral_patch_data spent_patch_data = mineral_patches[spent_patch];
+		for (int i = 0; i < 3; i++)
+		{
+			const Unit* worker = spent_patch_data.workers[i];
+			if (worker != NULL)
+			{
+				assigned_workers.push_back(worker);
+				mineral_patches_reversed.erase(worker);
+			}
+			else
+			{
+				if (i < 2)
+				{
+					for (const auto &space : first_2_mineral_patch_spaces)
+					{
+						if (space->mineral_patch == spent_patch)
+						{
+							first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), space), first_2_mineral_patch_spaces.end());
+							break;
+						}
+					}
+				}
+				else if (spent_patch_data.is_close)
+				{
+					for (const auto &space : close_3_mineral_patch_spaces)
+					{
+						if (space->mineral_patch == spent_patch)
+						{
+							close_3_mineral_patch_spaces.erase(std::remove(close_3_mineral_patch_spaces.begin(), close_3_mineral_patch_spaces.end(), space), close_3_mineral_patch_spaces.end());
+							break;
+						}
+					}
+					for (const auto &space : close_3_mineral_patch_extras)
+					{
+						if (space->mineral_patch == spent_patch)
+						{
+							close_3_mineral_patch_extras.erase(std::remove(close_3_mineral_patch_extras.begin(), close_3_mineral_patch_extras.end(), space), close_3_mineral_patch_extras.end());
+							break;
+						}
+					}
+				}
+				else 
+				{
+					for (const auto &space : far_3_mineral_patch_spaces)
+					{
+						if (space->mineral_patch == spent_patch)
+						{
+							far_3_mineral_patch_spaces.erase(std::remove(far_3_mineral_patch_spaces.begin(), far_3_mineral_patch_spaces.end(), space), far_3_mineral_patch_spaces.end());
+							break;
+						}
+					}
+					for (const auto &space : far_3_mineral_patch_extras)
+					{
+						if (space->mineral_patch == spent_patch)
+						{
+							far_3_mineral_patch_extras.erase(std::remove(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), space), far_3_mineral_patch_extras.end());
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		mineral_patches.erase(spent_patch);
+		for (const auto &worker : assigned_workers)
+		{
+			PlaceWorker(worker);
+		}
+	}
+}
+
 }

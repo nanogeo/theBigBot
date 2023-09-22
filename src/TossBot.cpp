@@ -451,6 +451,8 @@ namespace sc2 {
     void TossBot::OnUnitDestroyed(const Unit *unit)
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		if (unit->mineral_contents > 0)
+			worker_manager.RemoveSpentMineralPatch(unit);
 		if (enemy_unit_saved_position.find(unit) != enemy_unit_saved_position.end())
 			enemy_unit_saved_position.erase(unit);
 		if (enemy_weapon_cooldown.find(unit) != enemy_weapon_cooldown.end())

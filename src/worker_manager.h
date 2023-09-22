@@ -109,6 +109,7 @@ public:
 
 	void AddAssimilator(const Unit*);
 	void SetNewBase(const Unit*);
+	void RemoveSpentMineralPatch(const Unit*);
 
 };
 
