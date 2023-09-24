@@ -58,11 +58,11 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 									convert_location(Point2D(51, 100), swap),
 									convert_location(Point2D(54, 94), swap) };
 
-	first_pylon_location_zerg = convert_location(Point2D(142, 63), swap);
+	first_pylon_location_zerg = convert_location(Point2D(141, 65), swap);
 	first_pylon_location_protoss = convert_location(Point2D(135, 47), swap);
 	first_pylon_location_terran = convert_location(Point2D(131, 45), swap);
 
-	gateway_locations = { convert_location(Point2D(141.5, 68.5), swap),
+	gateway_locations = { convert_location(Point2D(138.5, 66.5), swap),
 							convert_location(Point2D(136.5, 62.5), swap),
 							convert_location(Point2D(136.5, 49.5), swap),
 							convert_location(Point2D(128.5, 43.5), swap),
@@ -101,7 +101,7 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 								convert_location(Point2D(116.5, 46.5), swap) };
 
 
-	cyber_core_locations = { convert_location(Point2D(139.5, 64.5), swap),
+	cyber_core_locations = { convert_location(Point2D(141.5, 68.5), swap),
 								convert_location(Point2D(137.5, 46.5), swap),
 								convert_location(Point2D(132.5, 47.5), swap) };
 
@@ -312,8 +312,8 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 										convert_location(Point2D(), swap) };
 
 	third_base_pylon_gap = convert_location(Point2D(147, 97.5), swap);
-	natural_door_closed = convert_location(Point2D(140.5, 66.5), swap);
-	natural_door_open = convert_location(Point2D(138.5, 66.5), swap);
+	natural_door_closed = convert_location(Point2D(137.5, 64.5), swap);
+	natural_door_open = convert_location(Point2D(135.5, 64.5), swap);
 }
 
 void Locations::SetTestingLocations(Point3D start_location, BuildOrder build_order)

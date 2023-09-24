@@ -729,8 +729,15 @@ namespace sc2 {
 			Point2D exit_vector = Point2D(exit_pos.x - ideal_pos.x, exit_pos.y - ideal_pos.y);
 			agent->Debug()->DebugSphereOut(agent->ToPoint3D(ideal_pos), 1, Color(255, 255, 0));
 
+			for (const auto &extractor : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_EXTRACTOR)))
+			{
+				agent->Debug()->DebugSphereOut(extractor->pos, 3, Color(255, 0, 255));
+			}
+
 			for (const auto &drone : drones)
 			{
+				if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_EXTRACTOR)), drone->pos) < 3)
+					continue;
 				Point2D drone_vector = Point2D(drone->pos.x - ideal_pos.x, drone->pos.y - ideal_pos.y);
 				float dot_product = exit_vector.x * drone_vector.x + exit_vector.y * drone_vector.y;
 				float exit_mag = sqrt(pow(exit_vector.x, 2) + pow(exit_vector.y, 2));
@@ -783,7 +790,7 @@ namespace sc2 {
 				agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
 			}
 		}
-		else if (state_machine->has_attacked[0])
+		else if (state_machine->has_attacked[state_machine->oracles[0]])
 		{
 			if (Distance2D(oracle_center, exit_pos) > 4)
 				agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4));

@@ -518,6 +518,8 @@ void WorkerManager::AddNewBase()
 			return;
 		}
 	}
+	if (close_minerals.size() > 0)
+		agent->Actions()->UnitCommand(new_base, ABILITY_ID::SMART, close_minerals[0]);
 	for (const auto &mineral_field : close_minerals)
 	{
 		bool is_close = mineral_field->mineral_contents == 1800;
