@@ -28,7 +28,7 @@ namespace sc2 {
 			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
 			{
 				stalkers.push_back(unit);
-				blink_ready.push_back(true);
+				last_time_blinked[unit] = 0;
 			}
 			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
 				adepts.push_back(unit);
@@ -77,7 +77,7 @@ namespace sc2 {
 		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
 		{
 			stalkers.push_back(unit);
-			blink_ready.push_back(true);
+			last_time_blinked[unit] = 0;
 		}
 		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
 			adepts.push_back(unit);
@@ -134,7 +134,9 @@ namespace sc2 {
 				std::cout << "Error trying to remove stalker not in stalkers in RemoveUnit\n";
 			else
 			{
-				blink_ready.erase(blink_ready.begin() + (index - stalkers.begin()));
+				stalkers.erase(std::remove(stalkers.begin(), stalkers.end(), unit), stalkers.end());
+				if (last_time_blinked.count(unit))
+					last_time_blinked.erase(unit);
 			}
 		}
 		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
@@ -537,7 +539,10 @@ namespace sc2 {
 					{
 						if (danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
 						{
-							if (blink_ready[i])
+							float now = agent->Observation()->GetGameLoop() / 22.4;
+							bool blink_off_cooldown = now - last_time_blinked[stalker] > 7;
+
+							if (agent->has_blink && blink_off_cooldown)
 							{
 								if (stalker->orders.size() > 0 && stalker->orders[0].ability_id == ABILITY_ID::ATTACK && stalker->weapon_cooldown == 0)
 									agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7), true); // TODO adjustable blink distance
@@ -545,7 +550,7 @@ namespace sc2 {
 									agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7)); // TODO adjustable blink distance
 								//agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point, true);
 								attack_status[stalker] = false;
-								blink_ready[i] = false;
+								last_time_blinked[stalker] = now;
 								continue;
 							}
 						}

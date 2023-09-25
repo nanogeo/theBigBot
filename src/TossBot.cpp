@@ -477,6 +477,27 @@ namespace sc2 {
 		}
     }
 
+	void TossBot::OnUpgradeCompleted(UPGRADE_ID upgrade)
+	{
+		switch (upgrade)
+		{
+		case sc2::UPGRADE_ID::BLINKTECH:
+			has_blink = true;
+			break;
+		case sc2::UPGRADE_ID::CHARGE:
+			has_charge = true;
+			break;
+		case sc2::UPGRADE_ID::DARKTEMPLARBLINKUPGRADE:
+			has_dt_blink = true;
+			break;
+		case sc2::UPGRADE_ID::PSISTORMTECH:
+			has_storm = true;
+			break;
+		default:
+			break;
+		}
+	}
+
 
 #pragma endregion
 
@@ -691,7 +712,7 @@ namespace sc2 {
             bool in_energy_field = (type == UNIT_TYPEID::PROTOSS_PYLON || type == UNIT_TYPEID::PROTOSS_ASSIMILATOR || type == UNIT_TYPEID::PROTOSS_NEXUS);
             for (const auto &building : Observation()->GetUnits(IsBuilding()))
             {
-                if (Point2D(building->pos) == point)
+                if (Distance2D(building->pos, point) < 1)
                 {
                     blocked = true;
                     break;

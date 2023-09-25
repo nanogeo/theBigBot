@@ -44,7 +44,7 @@ public:
 	int current_attack_index;
 	int high_ground_index;
 
-	std::vector<bool> blink_ready;
+	std::map<const Unit*, float> last_time_blinked;
 
 	int event_id;
 

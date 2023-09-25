@@ -249,6 +249,11 @@ public:
 	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
 	int current_unique_id = 0;
 
+	bool has_blink = false;
+	bool has_charge = false;
+	bool has_storm = false;
+	bool has_dt_blink = false;
+
 	// testing
 	Point2D enemy_army_spawn = Point2D(34, 139);
 	Point2D friendly_army_spawn = Point2D(59, 114);
@@ -307,6 +312,7 @@ public:
     virtual void OnUnitCreated(const Unit*);
     virtual void OnUnitDamaged(const Unit*, float, float);
     virtual void OnUnitDestroyed(const Unit*);
+	virtual void OnUpgradeCompleted(UPGRADE_ID);
     virtual void OnStep();
     virtual void OnGameStart();
 

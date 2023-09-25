@@ -298,14 +298,15 @@ namespace sc2 {
 		if (num_close_lings > 4)
 		{
 			int num_stalkers_with_blink = 0;
-			for (const auto &blink_ready : state_machine->attached_army_group->blink_ready)
+			float now = agent->Observation()->GetGameLoop() / 22.4;
+			for (const auto &last_blink_time : state_machine->attached_army_group->last_time_blinked)
 			{
-				if (blink_ready)
+				if (now - last_blink_time.second > 7)
 					num_stalkers_with_blink++;
 			}
 			float percent_stalkers_with_blink = 1;
-			if (state_machine->attached_army_group->blink_ready.size() > 0)
-				percent_stalkers_with_blink = static_cast<float>(num_stalkers_with_blink) / static_cast<float>(state_machine->attached_army_group->blink_ready.size());
+			if (state_machine->attached_army_group->last_time_blinked.size() > 0)
+				percent_stalkers_with_blink = static_cast<float>(num_stalkers_with_blink) / static_cast<float>(state_machine->attached_army_group->last_time_blinked.size());
 
 			int num_oracles_needed = 0;
 
