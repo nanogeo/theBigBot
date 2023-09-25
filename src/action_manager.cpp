@@ -549,6 +549,37 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	return false;
 }
 
+bool ActionManager::ActionZealotDoubleprong(ActionArgData* data)
+{
+	ArmyGroup* army = data->army_group;
+
+	for (const auto &unit : army->new_units)
+	{
+		if (unit->orders.size() == 0)
+		{
+			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0]);
+		}
+		if (Distance2D(unit->pos, army->attack_path[0]) < 2)
+		{
+			army->AddUnit(unit);
+		}
+	}
+	if (army->zealots.size() > 10)
+	{
+		for (const auto &unit : army->zealots)
+		{
+			if (unit->orders.size() == 0)
+			{
+				for (const auto &point : army->attack_path)
+				{
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
+				}
+			}
+		}
+	}
+	return false;
+}
+
 bool ActionManager::ActionContinueWarpingInStalkers(ActionArgData* data)
 {
 	bool all_gates_ready = true;

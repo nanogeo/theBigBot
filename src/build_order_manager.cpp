@@ -561,9 +561,24 @@ bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 			continue;
 		army->AddNewUnit(unit);
 	}
-	army->AutoAddStalkers();
+	army->AutoAddUnits({ UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_WARPPRISM, UNIT_TYPEID::PROTOSS_COLOSSUS });
 	agent->army_groups.push_back(army);
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionStalkerOraclePressure, new ActionArgData(army)));
+	return true;
+}
+
+bool BuildOrderManager::ZealotDoubleprong(BuildOrderResultArgData data)
+{
+	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path_alt, agent->locations->high_ground_index_alt);
+	for (const auto &unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ZEALOT)))
+	{
+		if (agent->UnitIsOccupied(unit))
+			continue;
+		army->AddNewUnit(unit);
+	}
+	army->AutoAddUnits({ UNIT_TYPEID::PROTOSS_ZEALOT });
+	agent->army_groups.push_back(army);
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionZealotDoubleprong, new ActionArgData(army)));
 	return true;
 }
 
@@ -980,6 +995,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(400.0f),										&BuildOrderManager::ContinueUpgrades,			BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(400.0f),										&BuildOrderManager::ContinueChronos,			BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(400.0f),										&BuildOrderManager::ContinueExpanding,			BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::HasUnits,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 12),			&BuildOrderManager::ZealotDoubleprong,			BuildOrderResultArgData()),
 	};
 }
 

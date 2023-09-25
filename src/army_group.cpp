@@ -483,7 +483,7 @@ namespace sc2 {
 					stalkers_not_ready.push_back(stalker);
 				}
 			}
-			if (static_cast<float>(stalkers_ready.size()) / static_cast<float>(stalkers.size()) > .5)
+			if (static_cast<float>(stalkers_ready.size()) / static_cast<float>(stalkers.size()) > .75)
 			{
 				start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 					std::chrono::high_resolution_clock::now().time_since_epoch()
@@ -615,17 +615,18 @@ namespace sc2 {
 	}
 
 
-	void ArmyGroup::AutoAddStalkers()
+	void ArmyGroup::AutoAddUnits(std::vector<UNIT_TYPEID> unit_types)
 	{
-		std::function<void(const Unit*)> onStalkerCreated = [=](const Unit* unit) {
-			this->OnStalkerCreatedListener(unit);
+		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
+			this->OnUnitCreatedListener(unit);
 		};
-		agent->AddListenerToOnUnitCreatedEvent(event_id, onStalkerCreated);
+		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
+		this->unit_types = unit_types;
 	}
 
-	void ArmyGroup::OnStalkerCreatedListener(const Unit* unit)
+	void ArmyGroup::OnUnitCreatedListener(const Unit* unit)
 	{
-		if (unit->unit_type == UNIT_TYPEID::PROTOSS_STALKER || unit->unit_type == UNIT_TYPEID::PROTOSS_IMMORTAL || unit->unit_type == UNIT_TYPEID::PROTOSS_OBSERVER || unit->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
+		if (std::find(unit_types.begin(), unit_types.end(), unit->unit_type) != unit_types.end())
 			AddNewUnit(unit);
 	}
 

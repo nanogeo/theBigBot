@@ -95,6 +95,7 @@ public:
 	bool ActionTrainFromProxyRobo(ActionArgData*);
 	bool ActionContain(ActionArgData*);
 	bool ActionStalkerOraclePressure(ActionArgData*);
+	bool ActionZealotDoubleprong(ActionArgData*);
 	bool ActionContinueWarpingInStalkers(ActionArgData*);
 	bool ActionContinueWarpingInZealots(ActionArgData*);
 	bool ActionPullOutOfGas(ActionArgData*);

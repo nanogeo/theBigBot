@@ -47,6 +47,7 @@ public:
 	std::map<const Unit*, float> last_time_blinked;
 
 	int event_id;
+	std::vector<UNIT_TYPEID> unit_types;
 
 	ArmyGroup() {};
 	ArmyGroup(TossBot* agent)
@@ -73,8 +74,8 @@ public:
 
 	void MicroUnits();
 
-	void AutoAddStalkers();
-	void OnStalkerCreatedListener(const Unit*);
+	void AutoAddUnits(std::vector<UNIT_TYPEID>);
+	void OnUnitCreatedListener(const Unit*);
 
 
 };
