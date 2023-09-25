@@ -27,7 +27,7 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 
 	nexi_locations = { convert_location(Point2D(143.5, 32.5), swap),
 						convert_location(Point2D(145.5, 61.5), swap),
-						convert_location(Point2D(147.5, 94.5), swap),
+						convert_location(Point2D(147.3, 94.7), swap),
 						convert_location(Point2D(119.5, 53.5), swap),
 						convert_location(Point2D(104.5, 27.5), swap),
 						convert_location(Point2D(148.5, 125.5), swap),
@@ -35,7 +35,7 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 
 	pylon_locations = { convert_location(Point2D(140, 36), swap),
 						convert_location(Point2D(124, 29), swap),
-						convert_location(Point2D(147, 99), swap),
+						convert_location(Point2D(146.8, 99), swap),
 						convert_location(Point2D(146, 91), swap),
 						convert_location(Point2D(135, 36), swap),
 						convert_location(Point2D(116, 50), swap),
@@ -101,7 +101,7 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 								convert_location(Point2D(116.5, 46.5), swap) };
 
 
-	cyber_core_locations = { convert_location(Point2D(141.5, 68.5), swap),
+	cyber_core_locations = { convert_location(Point2D(141.7, 68.3), swap),
 								convert_location(Point2D(137.5, 46.5), swap),
 								convert_location(Point2D(132.5, 47.5), swap) };
 

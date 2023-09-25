@@ -30,7 +30,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	const Unit *builder = data->unit;
 	for (const auto &building : agent->Observation()->GetUnits(IsUnit(buildingId)))
 	{
-		if (Distance2D(Point2D(building->pos), pos) < 1 && building->display_type != Unit::DisplayType::Placeholder)
+		if (Distance2D(building->pos, pos) < 1 && building->display_type != Unit::DisplayType::Placeholder)
 		{
 			agent->worker_manager.PlaceWorker(builder);
 			// finished buildings.remove building.tag
@@ -64,7 +64,7 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	const Unit *builder = data->unit;
 	for (const auto &building : agent->Observation()->GetUnits(IsUnit(buildingId)))
 	{
-		if (Point2D(building->pos) == pos && building->display_type != Unit::DisplayType::Placeholder)
+		if (Distance2D(building->pos, pos) < 1 && building->display_type != Unit::DisplayType::Placeholder)
 		{
 			// finished buildings.remove building.tag
 			data->index++;
