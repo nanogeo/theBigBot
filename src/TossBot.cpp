@@ -477,9 +477,9 @@ namespace sc2 {
 		}
     }
 
-	void TossBot::OnUpgradeCompleted(UPGRADE_ID upgrade)
+	void TossBot::OnUpgradeCompleted(UpgradeID upgrade)
 	{
-		switch (upgrade)
+		switch (upgrade.ToType())
 		{
 		case sc2::UPGRADE_ID::BLINKTECH:
 			has_blink = true;
@@ -492,7 +492,6 @@ namespace sc2 {
 			break;
 		case sc2::UPGRADE_ID::PSISTORMTECH:
 			has_storm = true;
-			break;
 		default:
 			break;
 		}

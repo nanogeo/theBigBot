@@ -312,7 +312,7 @@ public:
     virtual void OnUnitCreated(const Unit*);
     virtual void OnUnitDamaged(const Unit*, float, float);
     virtual void OnUnitDestroyed(const Unit*);
-	virtual void OnUpgradeCompleted(UPGRADE_ID);
+	virtual void OnUpgradeCompleted(UpgradeID);
     virtual void OnStep();
     virtual void OnGameStart();
 
