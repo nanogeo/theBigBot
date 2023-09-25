@@ -360,11 +360,11 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
-        //DisplayDebugHud();
+        DisplayDebugHud();
 		std::chrono::microseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
-        //Debug()->SendDebug();
+        Debug()->SendDebug();
 		std::chrono::microseconds postSendDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
@@ -1064,12 +1064,12 @@ namespace sc2 {
 
 #pragma region Events
 
-    void TossBot::AddListenerToOnUnitDamagedEvent(long long id, std::function<void(const Unit*, float, float)> func)
+    void TossBot::AddListenerToOnUnitDamagedEvent(int id, std::function<void(const Unit*, float, float)> func)
     {
         on_unit_damaged_event.listeners[id] = func;
     }
 
-	void TossBot::RemoveListenerToOnUnitDamagedEvent(long long id)
+	void TossBot::RemoveListenerToOnUnitDamagedEvent(int id)
 	{
 		on_unit_damaged_event.listeners.erase(id);
 	}
@@ -1082,12 +1082,12 @@ namespace sc2 {
         }
     }
 
-    void TossBot::AddListenerToOnUnitDestroyedEvent(long long id, std::function<void(const Unit*)> func)
+    void TossBot::AddListenerToOnUnitDestroyedEvent(int id, std::function<void(const Unit*)> func)
     {
         on_unit_destroyed_event.listeners[id] = func;
     }
 
-	void TossBot::RemoveListenerToOnUnitDestroyedEvent(long long id)
+	void TossBot::RemoveListenerToOnUnitDestroyedEvent(int id)
 	{
 		on_unit_destroyed_event.listeners.erase(id);
 	}
@@ -1101,12 +1101,12 @@ namespace sc2 {
         }
     }
 
-	void TossBot::AddListenerToOnUnitCreatedEvent(long long id, std::function<void(const Unit*)> func)
+	void TossBot::AddListenerToOnUnitCreatedEvent(int id, std::function<void(const Unit*)> func)
 	{
 		on_unit_created_event.listeners[id] = func;
 	}
 
-	void TossBot::RemoveListenerToOnUnitCreatedEvent(long long id)
+	void TossBot::RemoveListenerToOnUnitCreatedEvent(int id)
 	{
 		on_unit_created_event.listeners.erase(id);
 	}
@@ -1564,6 +1564,14 @@ namespace sc2 {
 		float height = Observation()->TerrainHeight(point);
 		return Point3D(point.x, point.y, height);
 	}
+
+	int TossBot::GetUniqueId()
+	{
+		current_unique_id++;
+		return current_unique_id;
+	}
+
+
 
 	Polygon TossBot::CreateNewBlocker(const Unit* unit)
 	{

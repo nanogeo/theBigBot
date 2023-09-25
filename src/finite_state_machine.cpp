@@ -403,7 +403,7 @@ namespace sc2 {
 			});
 			for (const auto &oracle : oracles)
 			{
-				if (oracle->energy > 10 && Utility::DistanceToClosest(enemy_lings, oracle->pos) > 5)
+				if (oracle->energy > 10 && (enemy_lings.size() == 0 || Utility::DistanceToClosest(enemy_lings, oracle->pos)))
 				{
 					if (state_machine->is_beam_active.count(oracle) && state_machine->is_beam_active[oracle] == true)
 					{
@@ -821,15 +821,6 @@ namespace sc2 {
 	void OracleHarassAttackMineralLine::OnUnitDestroyedListener(const Unit* unit)
 	{
 		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
-		for (int i = 0; i < state_machine->oracles.size(); i++)
-		{
-			if (unit == state_machine->oracles[i])
-			{
-				state_machine->oracles.erase(state_machine->oracles.begin() + i);
-				lost_oracle = true;
-				return;
-			}
-		}
 		if (target_drone != NULL && unit->tag == target_drone->tag)
 		{
 			target_drone = NULL;
@@ -1633,6 +1624,36 @@ namespace sc2 {
 	std::string DoorClosed::toString()
 	{
 		return "door closed";
+	}
+
+#pragma endregion
+
+
+#pragma region OracleHarassStateMachine
+
+	void OracleHarassStateMachine::AddOracle(const Unit* oracle)
+	{
+		oracles.push_back(oracle);
+		time_last_attacked[oracle] = 0;
+		has_attacked[oracle] = true;
+		is_beam_active[oracle] = false;
+		casting[oracle] = false;
+		casting_energy[oracle] = 0;
+	}
+
+	void OracleHarassStateMachine::OnUnitDestroyedListener(const Unit* oracle)
+	{
+		auto found = std::find(oracles.begin(), oracles.end(), oracle);
+		if (found != oracles.end())
+		{
+			int index = found - oracles.begin();
+			oracles.erase(oracles.begin() + index);
+			OracleHarassAttackMineralLine* state = dynamic_cast<OracleHarassAttackMineralLine*>(current_state);
+			if (state != NULL)
+			{
+				state->lost_oracle = true;
+			}
+		}
 	}
 
 #pragma endregion

@@ -24,7 +24,7 @@ class TossBot;
 
 struct OnUnitDamagedEvent
 {
-    std::map<long long, std::function<void(const Unit*, float, float)>> listeners;
+    std::map<int, std::function<void(const Unit*, float, float)>> listeners;
     OnUnitDamagedEvent() {};
 };
 
@@ -247,6 +247,7 @@ public:
 	std::map<const Unit*, float> enemy_weapon_cooldown;
 	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
 	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
+	int current_unique_id = 0;
 
 	// testing
 	Point2D enemy_army_spawn = Point2D(34, 139);
@@ -287,14 +288,14 @@ public:
     void ProcessFSMs();
 
     // Events
-    void AddListenerToOnUnitDamagedEvent(long long, std::function<void(const Unit*, float, float)>);
-	void RemoveListenerToOnUnitDamagedEvent(long long);
+    void AddListenerToOnUnitDamagedEvent(int, std::function<void(const Unit*, float, float)>);
+	void RemoveListenerToOnUnitDamagedEvent(int);
     void CallOnUnitDamagedEvent(const Unit*, float, float);
-    void AddListenerToOnUnitDestroyedEvent(long long, std::function<void(const Unit*)>);
-	void RemoveListenerToOnUnitDestroyedEvent(long long);
+    void AddListenerToOnUnitDestroyedEvent(int, std::function<void(const Unit*)>);
+	void RemoveListenerToOnUnitDestroyedEvent(int);
     void CallOnUnitDestroyedEvent(const Unit*);
-	void AddListenerToOnUnitCreatedEvent(long long, std::function<void(const Unit*)>);
-	void RemoveListenerToOnUnitCreatedEvent(long long);
+	void AddListenerToOnUnitCreatedEvent(int, std::function<void(const Unit*)>);
+	void RemoveListenerToOnUnitCreatedEvent(int);
 	void CallOnUnitCreatedEvent(const Unit*);
 
     // To strings
@@ -321,6 +322,7 @@ public:
 	void PrintAttacks(std::map<const Unit*, const Unit*>);
 	bool UnitIsOccupied(const Unit*);
 	Point3D ToPoint3D(Point2D);
+	int GetUniqueId();
 
 
     // Pathing

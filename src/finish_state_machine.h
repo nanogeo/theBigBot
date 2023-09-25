@@ -67,13 +67,13 @@ class OracleDefendLocation : public State {
 public:
 	OracleHarassStateMachine* state_machine;
 	Point2D denfensive_position;
-	long long event_id;
+	int event_id;
 	OracleDefendLocation(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D denfensive_position)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
 		this->denfensive_position = denfensive_position;
-		event_id = Utility::GetUniqueId();
+		event_id = agent->GetUniqueId();
 	}
 	virtual std::string toString() override;
 	void TickState() override;
@@ -88,12 +88,12 @@ public:
 class OracleDefendArmyGroup : public State {
 public:
 	OracleHarassStateMachine* state_machine;
-	long long event_id;
+	int event_id;
 	OracleDefendArmyGroup(TossBot* agent, OracleHarassStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
-		event_id = Utility::GetUniqueId();
+		event_id = agent->GetUniqueId();
 	}
 	virtual std::string toString() override;
 	void TickState() override;
@@ -144,14 +144,14 @@ public:
 	OracleHarassStateMachine* state_machine;
 	Point2D exit_pos;
 	const Unit* target_drone = NULL;
-	long long event_id;
+	int event_id;
 	bool lost_oracle = false;
 	OracleHarassAttackMineralLine(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D exit_pos)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
 		this->exit_pos = exit_pos;
-		event_id = Utility::GetUniqueId();
+		event_id = agent->GetUniqueId();
 	}
 	virtual std::string toString() override;
 	void TickState() override;
@@ -602,11 +602,18 @@ public:
 	bool harass_direction = true;
 	int harass_index = 0;
 	ArmyGroup* attached_army_group = NULL;
+	int event_id;
 	OracleHarassStateMachine(TossBot* agent, Units oracles, Point2D denfensive_position, std::string name)
 	{
 		this->agent = agent;
 		this->oracles = oracles;
 		this->name = name;
+		event_id = agent->GetUniqueId();
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
 		current_state = new OracleDefendLocation(agent, this, denfensive_position);
 		for (int i = 0; i < oracles.size(); i++)
 		{
@@ -623,6 +630,12 @@ public:
 		this->agent = agent;
 		this->oracles = oracles;
 		this->name = name;
+		event_id = agent->GetUniqueId();
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
 		current_state = new OracleHarassReturnToBase(agent, this, { Point2D(59, 114) });
 		for (int i = 0; i < oracles.size(); i++)
 		{
@@ -634,15 +647,12 @@ public:
 		}
 		current_state->EnterState();
 	}
-	void AddOracle(const Unit* oracle)
+	~OracleHarassStateMachine()
 	{
-		oracles.push_back(oracle);
-		time_last_attacked[oracle] = 0;
-		has_attacked[oracle] = true;
-		is_beam_active[oracle] = false;
-		casting[oracle] = false;
-		casting_energy[oracle] = 0;
+		agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
 	}
+	void AddOracle(const Unit*);
+	void OnUnitDestroyedListener(const Unit*);
 };
 
 class ChargelotAllInStateMachine : public StateMachine

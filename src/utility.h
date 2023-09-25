@@ -67,7 +67,6 @@ public:
 	static std::string UnitTypeIdToString(UNIT_TYPEID);
 	static std::string AbilityIdToString(ABILITY_ID);
 
-	static long long GetUniqueId();
 };
 
 }

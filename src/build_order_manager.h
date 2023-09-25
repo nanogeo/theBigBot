@@ -146,7 +146,9 @@ public:
 	bool OracleHarass(BuildOrderResultArgData);
 	bool SpawnUnits(BuildOrderResultArgData);
 	bool ResearchAttackOne(BuildOrderResultArgData);
+	bool ResearchAttackTwo(BuildOrderResultArgData);
 	bool ContinueWarpingInStalkers(BuildOrderResultArgData);
+	bool StopWarpingInStalkers(BuildOrderResultArgData);
 	bool ContinueWarpingInZealots(BuildOrderResultArgData);
 	bool WarpInUnits(BuildOrderResultArgData);
 	bool PullOutOfGas(BuildOrderResultArgData);

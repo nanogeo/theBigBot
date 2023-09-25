@@ -46,7 +46,7 @@ public:
 
 	std::vector<bool> blink_ready;
 
-	long long event_id;
+	int event_id;
 
 	ArmyGroup() {};
 	ArmyGroup(TossBot* agent)
@@ -54,56 +54,7 @@ public:
 		this->agent = agent;
 	}
 
-	ArmyGroup(TossBot* agent, Units all_units, std::vector<Point2D> path, int index)
-	{
-		this->agent = agent;
-		this->all_units = all_units;
-
-		for (const auto &unit : all_units)
-		{
-			if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
-				zealots.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
-			{
-				stalkers.push_back(unit);
-				blink_ready.push_back(true);
-			}
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
-				adepts.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_SENTRY)
-				sentries.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_HIGHTEMPLAR)
-				high_templar.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DARKTEMPLAR)
-				dark_templar.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ARCHON)
-				archons.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_IMMORTAL)
-				immortals.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_COLOSSUS)
-				collossi.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DISRUPTOR)
-				disrupter.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_OBSERVER)
-				observers.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_WARPPRISM)
-				warp_prisms.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_PHOENIX)
-				phoenixes.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_VOIDRAY)
-				void_rays.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ORACLE)
-				oracles.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_CARRIER)
-				carriers.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_TEMPEST)
-				tempests.push_back(unit);
-		}
-		attack_path = path;
-		current_attack_index = 3;
-		high_ground_index = index;
-		event_id = Utility::GetUniqueId();
-	}
+	ArmyGroup(TossBot*, Units, std::vector<Point2D>, int);
 
 	void AddUnit(const Unit* unit);
 	void AddNewUnit(const Unit* unit);
