@@ -439,9 +439,8 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		if (unit->orders.size() == 0)
 		{
 			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0]);
-			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, fallback_point, true);
 		}
-		if (Distance2D(unit->pos, fallback_point) < 5)
+		if (Distance2D(unit->pos, army->attack_path[0]) < 5)
 		{
 			army->AddUnit(unit);
 			i--;
@@ -654,6 +653,18 @@ bool ActionManager::ActionContinueWarpingInZealots(ActionArgData* data)
 				agent->Debug()->DebugSphereOut(pos, 1, Color(255, 0, 255));
 				agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_ZEALOT, spots[i]);
 			}
+		}
+	}
+	return false;
+}
+
+bool ActionManager::ActionContinueBuildingCarriers(ActionArgData* data)
+{
+	for (const auto &stargate : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
+	{
+		if (stargate->orders.size() == 0 && Utility::CanAfford(UNIT_TYPEID::PROTOSS_CARRIER, 1, agent->Observation()))
+		{
+			agent->Actions()->UnitCommand(stargate, ABILITY_ID::TRAIN_CARRIER);
 		}
 	}
 	return false;

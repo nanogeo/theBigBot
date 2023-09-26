@@ -630,6 +630,17 @@ namespace sc2 {
     Point2D TossBot::GetLocation(UNIT_TYPEID type)
     {
 		std::vector<Point2D> possible_locations;
+		int pending_buildings = 0;
+		for (const auto &action : action_manager.active_actions)
+		{
+			if (action->action == &ActionManager::ActionBuildBuilding)
+			{
+				if (action->action_arg->unitId == type)
+				{
+					pending_buildings++;
+				}
+			}
+		}
 
 		if (build_order_manager.current_build_order == BuildOrder::recessed_cannon_rush)
 		{
@@ -726,8 +737,11 @@ namespace sc2 {
                 if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS && Distance2D(building->pos, point) < 22)
                     in_base = true;
             }
-            if (in_base && !blocked && in_energy_field)
-                return point;
+			if (in_base && !blocked && in_energy_field)
+				if (pending_buildings == 0)
+					return point;
+				else
+					pending_buildings--;
             
         }
         std::cout << "Error no viable point found in GetLocation" << std::endl;

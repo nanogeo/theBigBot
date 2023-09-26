@@ -51,7 +51,10 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 						convert_location(Point2D(106, 31), swap),
 						convert_location(Point2D(110, 21), swap),
 						convert_location(Point2D(99, 20), swap),
-						convert_location(Point2D(134, 26), swap) };
+						convert_location(Point2D(134, 26), swap),
+						convert_location(Point2D(140, 38), swap),
+						convert_location(Point2D(145, 39), swap),
+						convert_location(Point2D(126, 29), swap) };
 
 	pylon_locations_cannon_rush = { convert_location(Point2D(46, 90), swap),
 									convert_location(Point2D(47, 92), swap),
@@ -90,10 +93,7 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 							convert_location(Point2D(139.5, 30.5), swap),
 							convert_location(Point2D(137.5, 36.5), swap),
 							convert_location(Point2D(142.5, 36.5), swap),
-							convert_location(Point2D(145.5, 36.5), swap),
-							convert_location(Point2D(134.5, 38.5), swap),
-							convert_location(Point2D(137.5, 39.5), swap),
-							convert_location(Point2D(142.5, 39.5), swap), };
+							convert_location(Point2D(145.5, 36.5), swap) };
 
 	assimilator_locations = { convert_location(Point2D(150.5, 35.5), swap),
 								convert_location(Point2D(139.5, 25.5), swap),
@@ -113,7 +113,10 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 						convert_location(Point2D(142.5, 36.5), swap),
 						convert_location(Point2D(137.5, 36.5), swap),
 						convert_location(Point2D(136.5, 33.5), swap),
-						convert_location(Point2D(145.5, 36.5), swap) };
+						convert_location(Point2D(145.5, 36.5), swap),
+						convert_location(Point2D(134.5, 38.5), swap),
+						convert_location(Point2D(137.5, 39.5), swap),
+						convert_location(Point2D(142.5, 39.5), swap) };
 
 	proxy_pylon_locations = { convert_location(Point2D(75.0, 136.0), swap),
 								convert_location(Point2D(32.0, 66.0), swap) };

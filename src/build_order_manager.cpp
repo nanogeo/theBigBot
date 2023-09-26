@@ -429,6 +429,19 @@ bool BuildOrderManager::ResearchAttackTwo(BuildOrderResultArgData data)
 	return false;
 }
 
+bool BuildOrderManager::ResearchShieldsOne(BuildOrderResultArgData data)
+{
+	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
+	{
+		if (forge->orders.size() == 0 && Utility::CanAffordUpgrade(UPGRADE_ID::PROTOSSSHIELDSLEVEL1, agent->Observation()))
+		{
+			agent->Actions()->UnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSSHIELDSLEVEL1);
+			return true;
+		}
+	}
+	return false;
+}
+
 bool BuildOrderManager::ChronoTillFinished(BuildOrderResultArgData data)
 {
 	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(data.unitId)))
@@ -561,7 +574,7 @@ bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 			continue;
 		army->AddNewUnit(unit);
 	}
-	army->AutoAddUnits({ UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_WARPPRISM, UNIT_TYPEID::PROTOSS_COLOSSUS });
+	army->AutoAddUnits({ UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_WARPPRISM, UNIT_TYPEID::PROTOSS_COLOSSUS, UNIT_TYPEID::PROTOSS_CARRIER });
 	agent->army_groups.push_back(army);
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionStalkerOraclePressure, new ActionArgData(army)));
 	return true;
@@ -636,6 +649,24 @@ bool BuildOrderManager::StopWarpingInStalkers(BuildOrderResultArgData data)
 bool BuildOrderManager::ContinueWarpingInZealots(BuildOrderResultArgData data)
 {
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueWarpingInZealots, new ActionArgData()));
+	return true;
+}
+
+bool BuildOrderManager::StopWarpingInZealots(BuildOrderResultArgData data)
+{
+	for (const auto &action : agent->action_manager.active_actions)
+	{
+		if (action->action == &ActionManager::ActionContinueWarpingInZealots)
+		{
+			agent->action_manager.active_actions.erase(std::remove(agent->action_manager.active_actions.begin(), agent->action_manager.active_actions.end(), action), agent->action_manager.active_actions.end());
+			return true;
+		}
+	}
+}
+
+bool BuildOrderManager::ContinueBuildingCarriers(BuildOrderResultArgData data)
+{
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingCarriers, new ActionArgData()));
 	return true;
 }
 
@@ -987,15 +1018,23 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					
 					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ResearchCharge,				BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ChronoTillFinished,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(370.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(370.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(370.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(370.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(390.0f),										&BuildOrderManager::StopWarpingInStalkers,		BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(390.0f),										&BuildOrderManager::ContinueWarpingInZealots,	BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(370.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
-					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&BuildOrderManager::ResearchAttackTwo,			BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(390.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY})),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(390.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(390.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
+					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&BuildOrderManager::ResearchShieldsOne,			BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(400.0f),										&BuildOrderManager::ContinueUpgrades,			BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(400.0f),										&BuildOrderManager::ContinueChronos,			BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(400.0f),										&BuildOrderManager::ContinueExpanding,			BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(410.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_STARGATE, UNIT_TYPEID::PROTOSS_STARGATE})),
+					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FLEETBEACON),			&BuildOrderManager::ContinueBuildingCarriers,	BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::HasUnits,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_ZEALOT, 12),			&BuildOrderManager::ZealotDoubleprong,			BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(390.0f),										&BuildOrderManager::StopWarpingInZealots,		BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(390.0f),										&BuildOrderManager::ContinueWarpingInStalkers,	BuildOrderResultArgData()),
 	};
 }
 

@@ -62,7 +62,7 @@ namespace sc2 {
 				tempests.push_back(unit);
 		}
 		attack_path = path;
-		current_attack_index = 3;
+		current_attack_index = 2;
 		high_ground_index = index;
 		event_id = agent->GetUniqueId();
 	}
@@ -446,9 +446,19 @@ namespace sc2 {
 		unsigned long long not_ready = 0;
 		unsigned long long pick_up = 0;
 
+
 		std::map<const Unit*, int> units_requesting_pickup;
 		if (stalkers.size() > 0)
 		{
+			Point2D center = Utility::MedianCenter(stalkers);
+			for (const auto &carrier : carriers)
+			{
+				if (Distance2D(carrier->pos, center) > 2)
+					agent->Actions()->UnitCommand(carrier, ABILITY_ID::MOVE_MOVE, center);
+				else
+					agent->Actions()->UnitCommand(carrier, ABILITY_ID::ATTACK_ATTACK, attack_point);
+			}
+
 			bool all_ready = true;
 			Units stalkers_ready;
 			Units stalkers_not_ready;
@@ -483,7 +493,8 @@ namespace sc2 {
 					stalkers_not_ready.push_back(stalker);
 				}
 			}
-			if (static_cast<float>(stalkers_ready.size()) / static_cast<float>(stalkers.size()) > .75)
+			bool enough_stalkers_ready = true;
+			if (static_cast<float>(stalkers_ready.size()) / static_cast<float>(stalkers.size()) >= 1)
 			{
 				start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 					std::chrono::high_resolution_clock::now().time_since_epoch()
@@ -526,12 +537,15 @@ namespace sc2 {
 					}*/
 				}
 			}
+			else
+			{
+				enough_stalkers_ready = false;
+			}
 			if (stalkers_not_ready.size() > 0)
 			{
-				for (int i = 0; i < stalkers.size(); i++)
+				for (const auto &stalker : stalkers)
 				{
-					const Unit* stalker = stalkers[i];
-					if (std::find(stalkers_not_ready.begin(), stalkers_not_ready.end(), stalker) == stalkers_not_ready.end())
+					if (enough_stalkers_ready == true && std::find(stalkers_not_ready.begin(), stalkers_not_ready.end(), stalker) == stalkers_not_ready.end())
 						continue;
 
 					int danger = agent->IncomingDamage(stalker);

@@ -98,11 +98,12 @@ public:
 	bool ActionZealotDoubleprong(ActionArgData*);
 	bool ActionContinueWarpingInStalkers(ActionArgData*);
 	bool ActionContinueWarpingInZealots(ActionArgData*);
+	bool ActionContinueBuildingCarriers(ActionArgData*);
 	bool ActionPullOutOfGas(ActionArgData*);
-	bool ActionRemoveScoutToProxy(ActionArgData*);
-	bool ActionDTHarassTerran(ActionArgData*);
+	bool ActionRemoveScoutToProxy(ActionArgData*); // tostring
+	bool ActionDTHarassTerran(ActionArgData*); // tostring
 	bool ActionUseProxyDoubleRobo(ActionArgData*);
-	bool ActionAllIn(ActionArgData*);
+	bool ActionAllIn(ActionArgData*); // tostring
 };
 
 struct ActionData
@@ -156,6 +157,18 @@ struct ActionData
 		{
 			str += "Continue building pylons";
 		}
+		else if (action == &ActionManager::ActionContinueUpgrades)
+		{
+			str += "Continue getting upgrades";
+		}
+		else if (action == &ActionManager::ActionContinueChronos)
+		{
+			str += "Continue chronoing";
+		}
+		else if (action == &ActionManager::ActionContinueExpanding)
+		{
+			str += "Continue expanding";
+		}
 		else if (action == &ActionManager::ActionChronoTillFinished)
 		{
 			str += "Chrono ";
@@ -183,6 +196,10 @@ struct ActionData
 		{
 			str += "Stalker Oracle pressure";
 		}
+		else if (action == &ActionManager::ActionZealotDoubleprong)
+		{
+			str += "Zealot double prong";
+		}
 		else if (action == &ActionManager::ActionContinueWarpingInStalkers)
 		{
 			str += "Continue warping in stalkers";
@@ -190,6 +207,10 @@ struct ActionData
 		else if (action == &ActionManager::ActionContinueWarpingInZealots)
 		{
 			str += "Continue warping in zealots";
+		}
+		else if (action == &ActionManager::ActionContinueBuildingCarriers)
+		{
+			str += "Continue building carriers";
 		}
 		else if (action == &ActionManager::ActionPullOutOfGas)
 		{

@@ -114,8 +114,8 @@ public:
 	bool BuildFirstPylon(BuildOrderResultArgData);
 	bool BuildBuildingMulti(BuildOrderResultArgData);
 	bool Scout(BuildOrderResultArgData);
-	bool CannonRushProbe1(BuildOrderResultArgData);
-	bool CannonRushProbe2(BuildOrderResultArgData);
+	bool CannonRushProbe1(BuildOrderResultArgData); // tostring
+	bool CannonRushProbe2(BuildOrderResultArgData); // tostring
 	bool CutWorkers(BuildOrderResultArgData);
 	bool UncutWorkers(BuildOrderResultArgData);
 	bool ImmediatelySaturateGasses(BuildOrderResultArgData);
@@ -148,9 +148,12 @@ public:
 	bool SpawnUnits(BuildOrderResultArgData);
 	bool ResearchAttackOne(BuildOrderResultArgData);
 	bool ResearchAttackTwo(BuildOrderResultArgData);
+	bool ResearchShieldsOne(BuildOrderResultArgData);
 	bool ContinueWarpingInStalkers(BuildOrderResultArgData);
 	bool StopWarpingInStalkers(BuildOrderResultArgData);
 	bool ContinueWarpingInZealots(BuildOrderResultArgData);
+	bool StopWarpingInZealots(BuildOrderResultArgData);
+	bool ContinueBuildingCarriers(BuildOrderResultArgData);
 	bool WarpInUnits(BuildOrderResultArgData);
 	bool PullOutOfGas(BuildOrderResultArgData);
 	bool IncreaseExtraPylons(BuildOrderResultArgData);
@@ -198,6 +201,7 @@ struct BuildOrderData
 		std::string str = "When ";
 		if (condition == &BuildOrderManager::TimePassed)
 		{
+			str = "At ";
 			int mins = std::floor(condition_arg.time / 60);
 			int seconds = (int)condition_arg.time % 60;
 			str += std::to_string(mins);
@@ -205,7 +209,7 @@ struct BuildOrderData
 			if (seconds < 10)
 				str += '0';
 			str += std::to_string(seconds);
-			str += " time have passed, ";
+			str += ", ";
 		}
 		else if (condition == &BuildOrderManager::NumWorkers)
 		{
@@ -216,88 +220,18 @@ struct BuildOrderData
 		else if (condition == &BuildOrderManager::HasBuilding)
 		{
 			str += "a ";
-			switch (condition_arg.unitId)
-			{
-			case UNIT_TYPEID::PROTOSS_PYLON:
-				str += "pylon";
-				break;
-			case UNIT_TYPEID::PROTOSS_NEXUS:
-				str += "nexus";
-				break;
-			case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-				str += "assimilator";
-				break;
-			case UNIT_TYPEID::PROTOSS_GATEWAY:
-				str += "gateway";
-				break;
-			case UNIT_TYPEID::PROTOSS_FORGE:
-				str += "forge";
-				break;
-			case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-				str += "cyber core";
-				break;
-			case UNIT_TYPEID::PHOTONCANNONWEAPON:
-				str += "cannon";
-				break;
-			case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
-				str += "shield battery";
-				break;
-			case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
-				str += "twitlight";
-				break;
-			case UNIT_TYPEID::PROTOSS_STARGATE:
-				str += "stargate";
-				break;
-			case UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
-				str += "robo";
-				break;
-			case UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
-				str += "robo bay";
-				break;
-			case UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
-				str += "templar archive";
-				break;
-			case UNIT_TYPEID::PROTOSS_DARKSHRINE:
-				str += "dark shrine";
-				break;
-			case UNIT_TYPEID::PROTOSS_FLEETBEACON:
-				str += "fleet beacon";
-				break;
-			default:
-				str += "unknow building";
-				break;
-			}
+			str += Utility::UnitTypeIdToString(condition_arg.unitId);
 			str += " is built, ";
+		}
+		else if (condition == &BuildOrderManager::HasBuildingStarted)
+		{
+			str += "a ";
+			str += Utility::UnitTypeIdToString(condition_arg.unitId);
+			str += " has started building, ";
 		}
 		else if (condition == &BuildOrderManager::IsResearching)
 		{
-			switch (condition_arg.unitId)
-			{
-			case UNIT_TYPEID::PROTOSS_FORGE:
-				str += "forge";
-				break;
-			case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-				str += "cyber core";
-				break;
-			case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
-				str += "twitlight";
-				break;
-			case UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
-				str += "robo bay";
-				break;
-			case UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
-				str += "templar archive";
-				break;
-			case UNIT_TYPEID::PROTOSS_DARKSHRINE:
-				str += "dark shrine";
-				break;
-			case UNIT_TYPEID::PROTOSS_FLEETBEACON:
-				str += "fleet beacon";
-				break;
-			default:
-				str += "unknow building";
-				break;
-			}
+			str += Utility::UnitTypeIdToString(condition_arg.unitId);
 			str += " is researching, ";
 		}
 		else if (condition == &BuildOrderManager::HasGas)
@@ -306,10 +240,19 @@ struct BuildOrderData
 			str += std::to_string(condition_arg.amount);
 			str += ", ";
 		}
+		else if (condition == &BuildOrderManager::HasUnits)
+		{
+			str += std::to_string(condition_arg.amount);
+			str += " ";
+			str += Utility::UnitTypeIdToString(condition_arg.unitId);
+			str += "s are made, ";
+		}
 		else
 		{
 			str += "unknown condition, ";
 		}
+
+
 
 		// Result
 		if (result == &BuildOrderManager::BuildBuilding)
@@ -324,17 +267,6 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::BuildBuildingMulti)
 		{
 			str += "build a ";
-			for (const auto &building : result_arg.unitIds)
-			{
-				str += Utility::UnitTypeIdToString(building);
-				str += ", ";
-			}
-			str.pop_back();
-			str.pop_back();
-		}
-		else if (result == &BuildOrderManager::BuildProxyMulti)
-		{
-			str += "build a proxy ";
 			for (const auto &building : result_arg.unitIds)
 			{
 				str += Utility::UnitTypeIdToString(building);
@@ -371,6 +303,10 @@ struct BuildOrderData
 		{
 			str += "build an oracle";
 		}
+		else if (result == &BuildOrderManager::TrainPrism)
+		{
+			str += "build a warp prism";
+		}
 		else if (result == &BuildOrderManager::ChronoBuilding)
 		{
 			str += "chrono ";
@@ -384,6 +320,17 @@ struct BuildOrderData
 		{
 			str += "build a proxy ";
 			str += Utility::UnitTypeIdToString(result_arg.unitId);
+		}
+		else if (result == &BuildOrderManager::BuildProxyMulti)
+		{
+			str += "build a proxy ";
+			for (const auto &building : result_arg.unitIds)
+			{
+				str += Utility::UnitTypeIdToString(building);
+				str += ", ";
+			}
+			str.pop_back();
+			str.pop_back();
 		}
 		else if (result == &BuildOrderManager::ResearchBlink)
 		{
@@ -419,6 +366,18 @@ struct BuildOrderData
 		{
 			str += "macro workers";
 		}
+		else if (result == &BuildOrderManager::ContinueUpgrades)
+		{
+		str += "macro upgrades";
+		}
+		else if (result == &BuildOrderManager::ContinueChronos)
+		{
+		str += "macro chrono";
+		}
+		else if (result == &BuildOrderManager::ContinueExpanding)
+		{
+		str += "macro expanding";
+		}
 		else if (result == &BuildOrderManager::TrainFromProxy)
 		{
 			str += "train units from proxy ";
@@ -436,9 +395,17 @@ struct BuildOrderData
 		{
 			str += "stalker oracle pressure";
 		}
+		else if (result == &BuildOrderManager::ZealotDoubleprong)
+		{
+		str += "zealot double prong";
+		}
 		else if (result == &BuildOrderManager::MicroOracles)
 		{
 			str += "micro oracles";
+		}
+		else if (result == &BuildOrderManager::OracleHarass)
+		{
+		str += "oracle harass";
 		}
 		else if (result == &BuildOrderManager::SpawnUnits)
 		{
@@ -449,13 +416,33 @@ struct BuildOrderData
 		{
 			str += "research +1 attack";
 		}
+		else if (result == &BuildOrderManager::ResearchAttackTwo)
+		{
+		str += "research +2 attack";
+		}
+		else if (result == &BuildOrderManager::ResearchShieldsOne)
+		{
+		str += "research +1 shields";
+		}
 		else if (result == &BuildOrderManager::ContinueWarpingInStalkers)
 		{
 			str += "continue warping in stalkers";
 		}
+		else if (result == &BuildOrderManager::StopWarpingInStalkers)
+		{
+		str += "stop warping in stalkers";
+		}
 		else if (result == &BuildOrderManager::ContinueWarpingInZealots)
 		{
 			str += "continue warping in zealots";
+		}
+		else if (result == &BuildOrderManager::StopWarpingInZealots)
+		{
+		str += "stop warping in zealots";
+		}
+		else if (result == &BuildOrderManager::ContinueBuildingCarriers)
+		{
+		str += "continue building carriers";
 		}
 		else if (result == &BuildOrderManager::WarpInUnits)
 		{
@@ -499,6 +486,14 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::MicroImmortalDrop)
 		{
 			str += "micro immortal drop";
+		}
+		else if (result == &BuildOrderManager::DefendThirdBase)
+		{
+		str += "defend third base";
+		}
+		else if (result == &BuildOrderManager::SetDoorGuard)
+		{
+		str += "set door guard";
 		}
 
 		return str;
