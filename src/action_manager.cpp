@@ -199,7 +199,7 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 {
 	// TODO make global upgrade tracker
-	std::vector<ABILITY_ID> upgrades = { ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS, ABILITY_ID::RESEARCH_PROTOSSSHIELDS, ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR};
+	std::vector<ABILITY_ID> upgrades = { ABILITY_ID::RESEARCH_PROTOSSSHIELDS, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS, ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR};
 	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
 	{
 		int upgrade_value = 9;
@@ -221,6 +221,31 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 		{
 			agent->Actions()->UnitCommand(forge, upgrades[upgrade_value]);
 			upgrades.erase(upgrades.begin() + upgrade_value);
+		}
+	}
+
+	std::vector<ABILITY_ID> airUpgrades = { ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONS, ABILITY_ID::RESEARCH_PROTOSSAIRARMOR };
+	for (const auto &cyber : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)))
+	{
+		int upgrade_value = 9;
+		if (cyber->orders.size() == 0)
+		{
+			AvailableAbilities abilities = agent->Query()->GetAbilitiesForUnit(cyber);
+			for (const auto &ability : abilities.abilities)
+			{
+				auto found = std::find(airUpgrades.begin(), airUpgrades.end(), ability.ability_id);
+				if (found != airUpgrades.end())
+				{
+					int index = found - airUpgrades.begin();
+					if (index < upgrade_value)
+						upgrade_value = index;
+				}
+			}
+		}
+		if (upgrade_value < 9)
+		{
+			agent->Actions()->UnitCommand(cyber, airUpgrades[upgrade_value]);
+			airUpgrades.erase(airUpgrades.begin() + upgrade_value);
 		}
 	}
 	return false;
@@ -436,7 +461,7 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	for (int i = 0; i < army->new_units.size(); i++)
 	{
 		const Unit* unit = army->new_units[i];
-		if (unit->orders.size() == 0)
+		if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
 		{
 			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0]);
 		}

@@ -149,6 +149,7 @@ public:
 	bool ResearchAttackOne(BuildOrderResultArgData);
 	bool ResearchAttackTwo(BuildOrderResultArgData);
 	bool ResearchShieldsOne(BuildOrderResultArgData);
+	bool ResearchAirAttackOne(BuildOrderResultArgData);
 	bool ContinueWarpingInStalkers(BuildOrderResultArgData);
 	bool StopWarpingInStalkers(BuildOrderResultArgData);
 	bool ContinueWarpingInZealots(BuildOrderResultArgData);
@@ -423,6 +424,10 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::ResearchShieldsOne)
 		{
 		str += "research +1 shields";
+		}
+		else if (result == &BuildOrderManager::ResearchAirAttackOne)
+		{
+		str += "research +1 air weapons";
 		}
 		else if (result == &BuildOrderManager::ContinueWarpingInStalkers)
 		{

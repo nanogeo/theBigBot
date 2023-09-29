@@ -53,7 +53,7 @@ public:
 	static AbilityID UnitToWarpInAbility(UNIT_TYPEID);
 	static bool IsFacing(const Unit*, const Unit*);
 	static float GetFacingAngle(const Unit*, const Unit*);
-	static const Unit* AimingAt(const Unit*, const ObservationInterface*);
+	static const Unit* AimingAt(const Unit*, Units);
 	static float BuildingSize(UNIT_TYPEID);
 	static bool CanBuildBuilding(UNIT_TYPEID, const ObservationInterface*);
 	static const Unit* GetLeastFullPrism(Units);

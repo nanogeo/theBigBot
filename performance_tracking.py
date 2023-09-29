@@ -60,7 +60,7 @@ def display_times(info, indent):
 			action_time = read_file('action_time.txt')
 			#print('   |' * (indent + 1) + 'Action Time')
 			display_times(action_time, indent + 1)
-		elif info[0][i] == 'ApplyPressure':
+		if info[0][i] == 'ApplyPressure':
 			pressure_time = read_file('pressure_time.txt')
 			#print('   |' * (indent + 1) + 'Pressure Time')
 			display_times(pressure_time, indent + 1)
@@ -75,6 +75,14 @@ def display_times(info, indent):
 			debug_hud = read_file('debug_hud_time.txt')
 			#print('   |' * (indent + 1) + 'Pressure Time')
 			display_times(debug_hud, indent + 1)
+		"""elif info[0][i] == 'Update enemy weapon cd':
+			enemy_weapon_cd = read_file('update_weapon_cd_time.txt')
+			#print('   |' * (indent + 1) + 'Pressure Time')
+			display_times(enemy_weapon_cd, indent + 1)
+		elif info[0][i] == 'Aiming at':
+			aiming_at = read_file('aiming_at_time.txt')
+			#print('   |' * (indent + 1) + 'Pressure Time')
+			display_times(aiming_at, indent + 1)"""
 
 	print('   |' * indent + '{:<25} {:>8}'.format('Total', "{:.0f}".format(total)))
 

@@ -5,6 +5,7 @@
 #include <functional>
 #include <array>
 #include <chrono>
+#include <fstream>
 
 #include "sc2api/sc2_interfaces.h"
 #include "sc2api/sc2_agent.h"
@@ -995,6 +996,15 @@ float Utility::RealGroundRange(const Unit* attacking_unit, const Unit * target)
 	case UNIT_TYPEID::ZERG_BROODLING:
 		range += 0;
 		break;
+	case UNIT_TYPEID::ZERG_LARVA:
+		range += 0;
+		break;
+	case UNIT_TYPEID::ZERG_OVERLORD:
+		range += 0;
+		break;
+	case UNIT_TYPEID::ZERG_EGG:
+		range += 0;
+		break;
 	default:
 		std::cout << "Error invalid unit type in RealGroundRange\n";
 		range += 0;
@@ -1437,21 +1447,26 @@ float Utility::GetFacingAngle(const Unit* unit, const Unit* target)
 	return std::abs(angle - unit->facing);
 }
 
-const Unit* Utility::AimingAt(const Unit* unit, const ObservationInterface* observation)
+const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 {
 	float smallest_angle = 180;
 	const Unit* target = NULL;
-	for (const auto Funit : observation->GetUnits(Unit::Alliance::Self))
+
+	for (const auto Funit : allied_units)
 	{
 		if (Distance2D(unit->pos, Funit->pos) >= RealGroundRange(unit, Funit))
+		{
 			continue;
+		}
 		float angle = GetFacingAngle(unit, Funit);
+
 		if (angle < smallest_angle)
 		{
 			smallest_angle = angle;
 			target = Funit;
 		}
 	}
+
 	return target;
 }
 
@@ -1743,6 +1758,24 @@ bool Utility::CanAffordUpgrade(UPGRADE_ID upgrade, const ObservationInterface* o
 		break;
 	case UPGRADE_ID::PROTOSSSHIELDSLEVEL3:
 		cost = UnitCost(300, 300, 0);
+		break;
+	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL1:
+		cost = UnitCost(150, 150, 0);
+		break;
+	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL2:
+		cost = UnitCost(225, 225, 0);
+		break;
+	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL3:
+		cost = UnitCost(300, 300, 0);
+		break;
+	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1:
+		cost = UnitCost(100, 100, 0);
+		break;
+	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL2:
+		cost = UnitCost(175, 175, 0);
+		break;
+	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL3:
+		cost = UnitCost(250, 250, 0);
 		break;
 	default:
 		std::cout << "Error invalid upgrade id in CanAffordUpgrade";

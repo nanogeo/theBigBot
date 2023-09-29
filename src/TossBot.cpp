@@ -33,6 +33,7 @@ namespace sc2 {
     {
         std::cout << "Hello World!" << std::endl;
 		SetUpUnitTypeInfo();
+
 		Debug()->SendDebug();
 		if (debug_mode)
 		{
@@ -60,6 +61,11 @@ namespace sc2 {
                 build_order_manager.SetBuildOrder(BuildOrder::testing);
 				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
 				started = true;
+
+				std::ofstream frame_time_file;
+				frame_time_file.open("frame_time.txt", std::ios_base::out);
+				frame_time_file << "Build order,Actions,FSM,Update pos,Update weapons,Enemy attacks,Allied attacks,Complete attacks,Hud,Send debug\n";
+				frame_time_file.close();
             }
             if (Observation()->GetGameLoop() > 1)
             {
@@ -128,8 +134,6 @@ namespace sc2 {
                 Debug()->DebugLineOut(start, end, Color(0, 255, 0));*/
 
 
-				UpdateEnemyUnitPositions();
-				UpdateEnemyWeaponCooldowns();
 				/*for (const auto &unit : enemy_unit_saved_position)
 				{
 					Color col = Color(255, 255, 0);
@@ -155,20 +159,86 @@ namespace sc2 {
 			{
 				SetUpArmies();
 			}
-            if (Observation()->GetGameLoop() % 1000 == 0)
-            {
-                std::cout << "1000\n";
-            }
 
+			std::chrono::microseconds start = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				);
 
 			build_order_manager.CheckBuildOrder();
+
+			std::chrono::microseconds build_order = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				);
+
 			action_manager.ProcessActions();
+
+			std::chrono::microseconds actions = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				);
+
 			ProcessFSMs();
-			DisplayEnemyAttacks();
-			DisplayAlliedAttackStatus();
+
+			std::chrono::microseconds fsm = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				);
+
+			UpdateEnemyUnitPositions();
+
+			std::chrono::microseconds update_pos = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				);
+
+			UpdateEnemyWeaponCooldowns();
+
+			std::chrono::microseconds update_weawpons = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				);
+
+			//DisplayEnemyAttacks();
+
+			std::chrono::microseconds enemy_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				);
+
+			//DisplayAlliedAttackStatus();
+
+			std::chrono::microseconds allied_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				);
+
 			RemoveCompletedAtacks();
-			DisplayDebugHud();
-			Debug()->SendDebug();
+
+			std::chrono::microseconds complete_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				);
+
+			//DisplayDebugHud();
+
+			std::chrono::microseconds hud = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				);
+
+			//Debug()->SendDebug();
+
+			std::chrono::microseconds end = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				);
+
+			std::ofstream frame_time_file;
+			frame_time_file.open("frame_time.txt", std::ios_base::app);
+			frame_time_file << build_order.count() - start.count() << ", ";
+			frame_time_file << actions.count() - build_order.count() << ", ";
+			frame_time_file << fsm.count() - actions.count() << ", ";
+			frame_time_file << update_pos.count() - fsm.count() << ", ";
+			frame_time_file << update_weawpons.count() - update_pos.count() << ", ";
+			frame_time_file << enemy_attacks.count() - update_weawpons.count() << ", ";
+			frame_time_file << allied_attacks.count() - enemy_attacks.count() << ", ";
+			frame_time_file << complete_attacks.count() - allied_attacks.count() << ", ";
+			frame_time_file << hud.count() - complete_attacks.count() << ", ";
+			frame_time_file << end.count() - hud.count() << "\n";
+
+			frame_time_file.close();
+
             return;
         }
 
@@ -198,7 +268,7 @@ namespace sc2 {
         {
 			std::ofstream frame_time_file;
 			frame_time_file.open("frame_time.txt", std::ios_base::out);
-			frame_time_file << "Distribute workers,New base,Update enemy pos,Update enemy weapon cd,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug\n";
+			frame_time_file << "Distribute workers,New base,Update enemy pos,Update enemy weapon cd,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug,Dist test\n";
 			frame_time_file.close();
 
 			std::ofstream action_time_file;
@@ -230,6 +300,21 @@ namespace sc2 {
 			debug_hud_file.open("debug_hud_time.txt", std::ios_base::out);
 			debug_hud_file << "Worker status,Build order,Active actions,Active FSM,Building status,Army groups,Supply info\n";
 			debug_hud_file.close();
+
+			std::ofstream update_weapon_cd_file;
+			update_weapon_cd_file.open("update_weapon_cd_time.txt", std::ios_base::out);
+			update_weapon_cd_file << "Get allied units,Get enemy units,Melee unit,Aiming at,Add attack,Total time\n";
+			update_weapon_cd_file.close();
+
+			std::ofstream aiming_at_file;
+			aiming_at_file.open("aiming_at_time.txt", std::ios_base::out);
+			aiming_at_file << "Setup,Distance,Get facing angle,End unit,Loop total\n";
+			aiming_at_file.close();
+
+			std::ofstream real_range_file;
+			real_range_file.open("real_range_file.txt", std::ios_base::out);
+			real_range_file << "Radius,Switch\n";
+			real_range_file.close();
 
             auto infos = Observation()->GetGameInfo().player_info;
             if (infos.size() > 0)
@@ -369,6 +454,34 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
+		Units enemy_units = Observation()->GetUnits(Unit::Alliance::Enemy);
+		Units friendly_units = Observation()->GetUnits(Unit::Alliance::Self);
+		float total = 0;
+		for (const auto &Eunit : enemy_units)
+		{
+			if (Eunit->is_building)
+				continue;
+			for (const auto &Funit : friendly_units)
+			{
+				// > DistanceSquared2D(Eunit->pos, Funit->pos)
+				if (Utility::RealGroundRange(Eunit, Funit) < DistanceSquared2D(Eunit->pos, Funit->pos))
+				{
+					total += 1;
+				}
+				else
+				{
+					total -= 1;
+				}
+			}
+
+		}
+
+		std::chrono::microseconds postDist = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
+
+
+
 		std::ofstream frame_time_file;
 		frame_time_file.open("frame_time.txt", std::ios_base::app);
 		frame_time_file << postDistributeWorkers.count() - startTime.count() << ", ";
@@ -380,7 +493,8 @@ namespace sc2 {
 		frame_time_file << postProcessActions.count() - postCheckBuildOrder.count() << ", ";
 		frame_time_file << postProcessFSM.count() - postProcessActions.count() << ", ";
 		frame_time_file << postDisplayDebug.count() - postProcessFSM.count() << ", ";
-		frame_time_file << postSendDebug.count() - postDisplayDebug.count() << "\n";
+		frame_time_file << postSendDebug.count() - postDisplayDebug.count() << ", ";
+		frame_time_file << postDist.count() - postSendDebug.count() << "\n";
 
 		frame_time_file.close();
     }
@@ -575,6 +689,7 @@ namespace sc2 {
 		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, locations->attack_path[0], 1, 1);
 		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, locations->attack_path[0], 1, 7);
 		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, locations->attack_path[0], 1, 3);
+		Debug()->SendDebug();
 	}
 
 	void TossBot::SetUpArmies()
@@ -1195,10 +1310,18 @@ namespace sc2 {
 
 	void TossBot::UpdateEnemyWeaponCooldowns()
 	{
+
 		Units allied_units = Observation()->GetUnits(Unit::Alliance::Self);
+
+
 		Units enemy_attacking_units = Observation()->GetUnits(Unit::Alliance::Enemy); // TODO only ranged units
+
+
+		int loop = Observation()->GetGameLoop();
+
 		for (const auto &Eunit : enemy_attacking_units)
 		{
+
 			if (!unit_type_info[Eunit->unit_type.ToType()].is_army_unit)
 				continue;
 
@@ -1207,9 +1330,9 @@ namespace sc2 {
 			{
 				for (const auto &Funit : allied_units)
 				{
-					if (Distance2D(Eunit->pos, Funit->pos) < Utility::RealGroundRange(Eunit, Funit) && Utility::IsFacing(Eunit, Funit))
+					if (Distance2D(Eunit->pos, Funit->pos) < Utility::RealGroundRange(Eunit, Funit)/* && Utility::IsFacing(Eunit, Funit)*/)
 					{
-						EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop());
+						EnemyAttack attack = EnemyAttack(Eunit, loop);
 						if (enemy_attacks.count(Funit) == 0)
 							enemy_attacks[Funit] = { attack };
 						else
@@ -1222,7 +1345,8 @@ namespace sc2 {
 			if (enemy_weapon_cooldown.count(Eunit) == 0)
 				enemy_weapon_cooldown[Eunit] = 0;
 
-			const Unit* target = Utility::AimingAt(Eunit, Observation());
+			const Unit* target = Utility::AimingAt(Eunit, allied_units);
+
 
 			if (target != NULL && enemy_weapon_cooldown[Eunit] == 0 && enemy_unit_saved_position[Eunit].frames > Utility::GetDamagePoint(Eunit) * 22.4)
 			{
@@ -1247,6 +1371,7 @@ namespace sc2 {
 				}
 			}
 
+
 			if (enemy_weapon_cooldown[Eunit] > 0)
 				enemy_weapon_cooldown[Eunit] -= 1 / 22.4;
 			if (enemy_weapon_cooldown[Eunit] < 0)
@@ -1255,7 +1380,9 @@ namespace sc2 {
 				enemy_unit_saved_position[Eunit].frames = -1;
 			}
 			//Debug()->DebugTextOut(std::to_string(enemy_weapon_cooldown[Eunit]), Eunit->pos + Point3D(0, 0, .2), Color(255, 0, 255), 20);
+
 		}
+
 	}
 
 	void TossBot::RemoveCompletedAtacks()

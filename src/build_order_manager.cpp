@@ -442,6 +442,19 @@ bool BuildOrderManager::ResearchShieldsOne(BuildOrderResultArgData data)
 	return false;
 }
 
+bool BuildOrderManager::ResearchAirAttackOne(BuildOrderResultArgData data)
+{
+	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)))
+	{
+		if (forge->orders.size() == 0 && Utility::CanAffordUpgrade(UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1, agent->Observation()))
+		{
+			agent->Actions()->UnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONSLEVEL1);
+			return true;
+		}
+	}
+	return false;
+}
+
 bool BuildOrderManager::ChronoTillFinished(BuildOrderResultArgData data)
 {
 	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(data.unitId)))
