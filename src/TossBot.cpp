@@ -170,8 +170,10 @@ namespace sc2 {
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
 
-			action_manager.ProcessActions();
-
+			if (Observation()->GetGameLoop() % 2 == 0)
+			{
+				action_manager.ProcessActions();
+			}
 			std::chrono::microseconds actions = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
@@ -268,7 +270,7 @@ namespace sc2 {
         {
 			std::ofstream frame_time_file;
 			frame_time_file.open("frame_time.txt", std::ios_base::out);
-			frame_time_file << "Distribute workers,New base,Update enemy pos,Update enemy weapon cd,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug,Dist test\n";
+			frame_time_file << "Distribute workers,New base,Update enemy pos,Update enemy weapon cd,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug\n";
 			frame_time_file.close();
 
 			std::ofstream action_time_file;
@@ -337,7 +339,7 @@ namespace sc2 {
                 //SaturateGas(building->tag);
             }
             
-			build_order_manager.SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
+			build_order_manager.SetBuildOrder(BuildOrder::testing);
 
         }
 
@@ -454,31 +456,6 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
-		Units enemy_units = Observation()->GetUnits(Unit::Alliance::Enemy);
-		Units friendly_units = Observation()->GetUnits(Unit::Alliance::Self);
-		float total = 0;
-		for (const auto &Eunit : enemy_units)
-		{
-			if (Eunit->is_building)
-				continue;
-			for (const auto &Funit : friendly_units)
-			{
-				// > DistanceSquared2D(Eunit->pos, Funit->pos)
-				if (Utility::RealGroundRange(Eunit, Funit) < DistanceSquared2D(Eunit->pos, Funit->pos))
-				{
-					total += 1;
-				}
-				else
-				{
-					total -= 1;
-				}
-			}
-
-		}
-
-		std::chrono::microseconds postDist = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
 
 
 
@@ -493,8 +470,7 @@ namespace sc2 {
 		frame_time_file << postProcessActions.count() - postCheckBuildOrder.count() << ", ";
 		frame_time_file << postProcessFSM.count() - postProcessActions.count() << ", ";
 		frame_time_file << postDisplayDebug.count() - postProcessFSM.count() << ", ";
-		frame_time_file << postSendDebug.count() - postDisplayDebug.count() << ", ";
-		frame_time_file << postDist.count() - postSendDebug.count() << "\n";
+		frame_time_file << postSendDebug.count() - postDisplayDebug.count() << "\n";
 
 		frame_time_file.close();
     }

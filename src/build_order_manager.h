@@ -168,6 +168,8 @@ public:
 	bool DefendThirdBase(BuildOrderResultArgData);
 	bool SetDoorGuard(BuildOrderResultArgData);
 
+	bool RemoveProbe(BuildOrderResultArgData);
+
 	void SetBuildOrder(BuildOrder);
 	void SetBlank();
 	void SetTesting();

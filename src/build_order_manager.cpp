@@ -894,6 +894,18 @@ bool BuildOrderManager::SetDoorGuard(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::RemoveProbe(BuildOrderResultArgData data)
+{
+
+	const Unit* builder = agent->worker_manager.GetBuilder(Point2D(0, 0));
+	if (builder == NULL)
+	{
+		std::cout << "Error could not find builder in RemoveProbe" << std::endl;
+		return false;
+	}
+	agent->worker_manager.RemoveWorker(builder);
+	return true;
+}
 
 
 void BuildOrderManager::SetBuildOrder(BuildOrder build)
@@ -942,10 +954,11 @@ void BuildOrderManager::SetBlank()
 
 void BuildOrderManager::SetTesting()
 {
-	build_order = {BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(1.0f),										&BuildOrderManager::CutWorkers,				BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(3.0f),										&BuildOrderManager::DefendThirdBase,			BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(4.0f),										&BuildOrderManager::OracleHarass,				BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(5.0f),										&BuildOrderManager::StalkerOraclePressure,		BuildOrderResultArgData()),
+	build_order = { BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(1.0f),										&BuildOrderManager::CutWorkers,				BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(3.0f),										&BuildOrderManager::DefendThirdBase,		BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(4.0f),										&BuildOrderManager::OracleHarass,			BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(5.0f),										&BuildOrderManager::StalkerOraclePressure,	BuildOrderResultArgData()),
+
 	};
 }
 
@@ -1014,9 +1027,9 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(230.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(236.0f),										&BuildOrderManager::TrainOracle,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STARGATE)),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(236.0f),										&BuildOrderManager::OracleHarass,				BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(240.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(240.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(240.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL, UNIT_TYPEID::PROTOSS_FORGE})),
-					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(250.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
+					//BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(250.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_GATEWAY})),
 					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ResearchBlink,				BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ChronoTillFinished,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
 					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_FORGE),					&BuildOrderManager::ResearchAttackOne,			BuildOrderResultArgData()),

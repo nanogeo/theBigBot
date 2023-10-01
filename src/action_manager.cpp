@@ -463,9 +463,12 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		const Unit* unit = army->new_units[i];
 		if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
 		{
-			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0]);
+			for (const auto &point : army->attack_path)
+			{
+				agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
+			}
 		}
-		if (Distance2D(unit->pos, army->attack_path[0]) < 5)
+		if ((army->stalkers.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(army->stalkers)) < 5) || (army->stalkers.size() == 0 && Distance2D(unit->pos, army->attack_path[0]) < 2))
 		{
 			army->AddUnit(unit);
 			i--;
@@ -476,8 +479,8 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
 
-	agent->Debug()->DebugSphereOut(Point3D(fallback_point.x, fallback_point.y, agent->Observation()->TerrainHeight(fallback_point)), 3, Color(255, 0, 0));
-	agent->Debug()->DebugSphereOut(Point3D(attack_point.x, attack_point.y, agent->Observation()->TerrainHeight(attack_point)), 3, Color(0, 255, 0));
+	//agent->Debug()->DebugSphereOut(Point3D(fallback_point.x, fallback_point.y, agent->Observation()->TerrainHeight(fallback_point)), 3, Color(255, 0, 0));
+	//agent->Debug()->DebugSphereOut(Point3D(attack_point.x, attack_point.y, agent->Observation()->TerrainHeight(attack_point)), 3, Color(0, 255, 0));
 
 	if (army->stalkers.size() == 0)
 		return false;
@@ -499,8 +502,8 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	//Point2D retreating_concave_origin = Utility::PointBetween(Utility::ClosestPointOnLine(closest_unit_to_enemies->pos, attack_point, fallback_point), fallback_point, unit_size + unit_dispersion);
 	Point2D retreating_concave_origin = Utility::PointBetween(Utility::ClosestPointOnLine(closest_enemy->pos, attack_point, fallback_point), fallback_point, Utility::RealGroundRange(closest_enemy, closest_unit_to_enemies) + 2);
 
-	agent->Debug()->DebugSphereOut(Point3D(attacking_concave_origin.x, attacking_concave_origin.y, agent->Observation()->TerrainHeight(attacking_concave_origin)), .625, Color(0, 255, 128));
-	agent->Debug()->DebugSphereOut(Point3D(retreating_concave_origin.x, retreating_concave_origin.y, agent->Observation()->TerrainHeight(retreating_concave_origin)), .625, Color(255, 0, 128));
+	//agent->Debug()->DebugSphereOut(Point3D(attacking_concave_origin.x, attacking_concave_origin.y, agent->Observation()->TerrainHeight(attacking_concave_origin)), .625, Color(0, 255, 128));
+	//agent->Debug()->DebugSphereOut(Point3D(retreating_concave_origin.x, retreating_concave_origin.y, agent->Observation()->TerrainHeight(retreating_concave_origin)), .625, Color(255, 0, 128));
 
 	std::vector<Point2D> attacking_concave_positions = army->FindConcaveFromBack(attacking_concave_origin, fallback_point, army->stalkers.size(), .625, unit_dispersion);
 	std::vector<Point2D> retreating_concave_positions = army->FindConcave(retreating_concave_origin, fallback_point, army->stalkers.size(), .625, unit_dispersion);
@@ -518,16 +521,16 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 
 	for (const auto &pos : attacking_concave_positions)
 	{
-		agent->Debug()->DebugSphereOut(Point3D(pos.x, pos.y, agent->Observation()->TerrainHeight(pos)), .625, Color(255, 0, 0));
+		//agent->Debug()->DebugSphereOut(Point3D(pos.x, pos.y, agent->Observation()->TerrainHeight(pos)), .625, Color(255, 0, 0));
 	}
 	for (const auto &pos : retreating_concave_positions)
 	{
-		agent->Debug()->DebugSphereOut(Point3D(pos.x, pos.y, agent->Observation()->TerrainHeight(pos)), .625, Color(0, 255, 0));
+		//agent->Debug()->DebugSphereOut(Point3D(pos.x, pos.y, agent->Observation()->TerrainHeight(pos)), .625, Color(0, 255, 0));
 	}
 
 	for (const auto &unit : retreating_unit_positions)
 	{
-		agent->Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, agent->Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
+		//agent->Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, agent->Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
 		//Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
 	}
 	debug  = std::chrono::duration_cast<std::chrono::microseconds>(

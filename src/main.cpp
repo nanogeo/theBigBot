@@ -97,27 +97,33 @@ int main(int argc, char* argv[])
     coordinator.SetMultithreaded(true);
     // Add the custom bot, it will control the players.
     sc2::TossBot bot1;
+	sc2::BlankBot bot2;
 	
-    coordinator.SetParticipants({
-		CreateParticipant(sc2::Race::Protoss, &bot1),
-		CreateComputer(sc2::Race::Zerg, sc2::Difficulty::CheatInsane, sc2::AIBuild::Macro)
-    });
-    coordinator.SetRealtime(true);
+	if (false)
+	{
+		coordinator.SetParticipants({
+			CreateParticipant(sc2::Race::Protoss, &bot1),
+			CreateComputer(sc2::Race::Zerg, sc2::Difficulty::VeryHard, sc2::AIBuild::Macro)
+			});
+		coordinator.SetRealtime(true);
 
-    coordinator.LaunchStarcraft();
-    coordinator.StartGame("LightShadeLE.SC2Map");
+		coordinator.LaunchStarcraft();
+		coordinator.StartGame("LightShadeLE.SC2Map");
+	}
+	else
+	{
+
+		coordinator.SetParticipants({
+			CreateParticipant(sc2::Race::Protoss, &bot1),
+			CreateParticipant(sc2::Race::Zerg, &bot2)
+			});
+		coordinator.SetRealtime(true);
+
+		coordinator.LaunchStarcraft();
+		coordinator.StartGame("EternalEmpireLE.SC2Map");
+	}
+	// LightShadeLE, AncientCisternAIE, DragonScalesAIE, GoldenAuraAIE, GresvanAIE, InfestationStationAIE, RoyalBloodAIE
 	
-	
-	/*sc2::BlankBot bot2;
-
-	coordinator.SetParticipants({
-		CreateParticipant(sc2::Race::Protoss, &bot1),
-		CreateParticipant(sc2::Race::Zerg, &bot2)
-		});
-	coordinator.SetRealtime(false);
-
-	coordinator.LaunchStarcraft();
-	coordinator.StartGame("EternalEmpireLE.SC2Map");*/
 	//EternalEmpireLE
 
     while (coordinator.Update()) {
