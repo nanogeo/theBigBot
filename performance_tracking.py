@@ -11,6 +11,8 @@ def read_file(file_name):
 	categories = []
 	element_high_percentile = []
 	element_low_percentile = []
+	element_very_high_percentile = []
+	element_highest = []
 
 	first_row = True
 	element_list = []
@@ -21,6 +23,8 @@ def read_file(file_name):
 			element_counts = numpy.zeros(len(row), int)
 			element_high_percentile = numpy.zeros(len(row), int)
 			element_low_percentile = numpy.zeros(len(row), int)
+			element_very_high_percentile = numpy.zeros(len(row), int)
+			element_highest = numpy.zeros(len(row), int)
 			element_list = [[] for i in range(len(row))]
 			first_row = False
 			categories = row
@@ -39,13 +43,19 @@ def read_file(file_name):
 		high = row[high_index]
 		low_index = int(len(row) * .05)
 		low = row[low_index]
+		very_high_index = int(len(row) * .999)
+		very_high = row[very_high_index]
+		highest_index = int(len(row) - 1)
+		highest = row[highest_index]
 		element_high_percentile[element_index] = high
 		element_low_percentile[element_index] = low
+		element_very_high_percentile[element_index] = very_high
+		element_highest[element_index] = highest
 		element_index = element_index + 1
 
 
 
-	return (categories, elements, element_counts, element_low_percentile, element_high_percentile)
+	return (categories, elements, element_counts, element_low_percentile, element_high_percentile, element_very_high_percentile, element_highest)
 
 def display_times(info, indent):
 	total = 0
@@ -55,7 +65,7 @@ def display_times(info, indent):
 			avg = info[1][i] / info[2][i]
 		
 		total = total + avg
-		print('   |' * indent + '{:<25} {:>8} {:>8} {:>8}'.format(info[0][i], "{:.0f}".format(avg), "{:.0f}".format(info[3][i]), "{:.0f}".format(info[4][i])))
+		print('   |' * indent + '{:<25} {:>8} {:>8} {:>8} {:>8} {:>8}'.format(info[0][i], "{:.0f}".format(avg), "{:.0f}".format(info[3][i]), "{:.0f}".format(info[4][i]), "{:.0f}".format(info[5][i]), "{:.0f}".format(info[6][i])))
 		if info[0][i] == 'Process actions':
 			action_time = read_file('action_time.txt')
 			#print('   |' * (indent + 1) + 'Action Time')

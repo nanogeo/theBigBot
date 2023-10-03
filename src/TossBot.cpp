@@ -275,7 +275,7 @@ namespace sc2 {
 
 			std::ofstream action_time_file;
 			action_time_file.open("action_time.txt", std::ios_base::out);
-			action_time_file << "New units,Closest units,Concaves,Positions,Debug,ApplyPressure,UpdateIndex\n";
+			action_time_file << "New units,Critical points,Close targets,Concave origins,Positions,Apply pressure\n";
 			action_time_file.close();
 
 			std::ofstream find_targets_time_file;

@@ -446,21 +446,17 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 
 
 	unsigned long long new_units = 0;
-	unsigned long long closest_units = 0;
-	unsigned long long concaves = 0;
+	unsigned long long critical_points = 0;
+	unsigned long long close_targets = 0;
+	unsigned long long concave_origins = 0;
 	unsigned long long positions = 0;
-	unsigned long long debug = 0;
 	unsigned long long apply_pressure = 0;
-	unsigned long long update_index = 0;
 
 	float unit_size = .625;
 	float unit_dispersion = 0;
 
 	ArmyGroup* army = data->army_group;
 
-	Point2D fallback_point = army->attack_path[army->current_attack_index - 2];
-
-	Point2D attack_point = army->attack_path[army->current_attack_index];
 
 	for (int i = 0; i < army->new_units.size(); i++)
 	{
@@ -488,7 +484,7 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 
 	for (const auto &pos : agent->locations->attack_path_line.GetPoints())
 	{
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
+		//agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
 	}
 
 	if (army->stalkers.size() == 0)
@@ -499,6 +495,9 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	Point2D stalkers_center = Utility::MedianCenter(army->stalkers);
 	Point2D stalker_line_pos = agent->locations->attack_path_line.FindClosestPoint(stalkers_center);
 	
+	critical_points = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
 
 	Units close_enemies = Utility::NClosestUnits(enemies, stalkers_center, 5);
 	// remove far enemies
@@ -511,8 +510,12 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		}
 	}
 
+	close_targets = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
 	Point2D concave_target = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 8, true);
-	float max_range = 9;
+	float max_range = 7;
 	if (close_enemies.size() > 0)
 	{
 		concave_target = Utility::MedianCenter(close_enemies);
@@ -525,16 +528,42 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 
 	Point2D attack_concave_origin = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * unit_size + unit_dispersion, true);
 
-	agent->Debug()->DebugSphereOut(agent->ToPoint3D(stalkers_center), 2, Color(255, 0, 0));
+	concave_origins = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+	/*agent->Debug()->DebugSphereOut(agent->ToPoint3D(stalkers_center), 2, Color(255, 0, 0));
 	agent->Debug()->DebugSphereOut(agent->ToPoint3D(stalker_line_pos), 2, Color(0, 255, 0));
 	agent->Debug()->DebugSphereOut(agent->ToPoint3D(concave_target), 2, Color(0, 255, 255));
 	agent->Debug()->DebugSphereOut(agent->ToPoint3D(retreat_concave_origin), 1.5, Color(0, 0, 255));
-	agent->Debug()->DebugSphereOut(agent->ToPoint3D(attack_concave_origin), 1.5, Color(255, 0, 255));
+	agent->Debug()->DebugSphereOut(agent->ToPoint3D(attack_concave_origin), 1.5, Color(255, 0, 255));*/
 
 
+	std::vector<Point2D> attack_concave_positions = army->FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, army->stalkers.size(), .625, unit_dispersion);
+	std::vector<Point2D> retreat_concave_positions = army->FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, army->stalkers.size(), .625, unit_dispersion);
+
+	std::map<const Unit*, Point2D> attack_unit_positions = army->AssignUnitsToPositions(army->stalkers, attack_concave_positions);
+	std::map<const Unit*, Point2D> retreat_unit_positions = army->AssignUnitsToPositions(army->stalkers, retreat_concave_positions);
 
 
+	positions = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
 
+	/*for (const auto &pos : attack_concave_positions)
+	{
+		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(255, 0, 0));
+	}
+	for (const auto &pos : retreat_concave_positions)
+	{
+		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(0, 255, 0));
+	}*/
+
+	army->ApplyPressureGrouped(concave_target, (2 * retreat_concave_origin) - concave_target, retreat_unit_positions, attack_unit_positions);
+
+	apply_pressure = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
 
 	/*
 	const Unit* closest_enemy = Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), Utility::MedianCenter(army->stalkers));
@@ -617,12 +646,11 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	std::ofstream action_time;
 	action_time.open("action_time.txt", std::ios_base::app);
 	action_time << new_units - start_time << ", ";
-	action_time << closest_units - new_units << ", ";
-	action_time << concaves - closest_units << ", ";
-	action_time << positions - concaves << ", ";
-	action_time << debug - positions << ", ";
-	action_time << apply_pressure - debug << ", ";
-	action_time << update_index - apply_pressure << "\n";
+	action_time << critical_points - new_units << ", ";
+	action_time << close_targets - critical_points << ", ";
+	action_time << concave_origins - close_targets << ", ";
+	action_time << positions - concave_origins << ", ";
+	action_time << apply_pressure - positions << "\n";
 
 	action_time.close();
 
