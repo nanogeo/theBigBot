@@ -28,6 +28,7 @@ class Utility
 public:
 	static const Unit* ClosestTo(Units, Point2D);
 	static const Unit* NthClosestTo(Units, Point2D, int);
+	static Units NClosestUnits(Units, Point2D, int);
 	static Point2D ClosestTo(std::vector<Point2D>, Point2D);
 	static Point2D NthClosestTo(std::vector<Point2D>, Point2D, int);
 	static const Unit* FurthestFrom(Units, Point2D);
@@ -44,7 +45,9 @@ public:
 	static int GetDamage(const Unit*, const Unit*, const ObservationInterface*);
 	static int GetArmor(const Unit*);
 	static int GetCargoSize(const Unit*);
+	static float GetRange(const Unit *);
 	static float RealGroundRange(const Unit *, const Unit *);
+	static float GetMaxRange(Units);
 	static float GetDamagePoint(const Unit*);
 	static int GetProjectileTime(const Unit*, float dist);
 	static float GetWeaponCooldown(const Unit*);

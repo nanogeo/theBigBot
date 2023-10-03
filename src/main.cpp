@@ -99,13 +99,13 @@ int main(int argc, char* argv[])
     sc2::TossBot bot1;
 	sc2::BlankBot bot2;
 	
-	if (false)
+	if (true)
 	{
 		coordinator.SetParticipants({
 			CreateParticipant(sc2::Race::Protoss, &bot1),
 			CreateComputer(sc2::Race::Zerg, sc2::Difficulty::VeryHard, sc2::AIBuild::Macro)
 			});
-		coordinator.SetRealtime(true);
+		coordinator.SetRealtime(false);
 
 		coordinator.LaunchStarcraft();
 		coordinator.StartGame("LightShadeLE.SC2Map");

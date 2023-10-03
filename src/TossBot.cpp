@@ -339,7 +339,7 @@ namespace sc2 {
                 //SaturateGas(building->tag);
             }
             
-			build_order_manager.SetBuildOrder(BuildOrder::testing);
+			build_order_manager.SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 
         }
 

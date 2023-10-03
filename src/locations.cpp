@@ -13,6 +13,8 @@ namespace sc2 {
 
 void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_order)
 {
+	Point2D center_point = Point2D(92, 82);
+
 	auto convert_location = [](Point2D point, bool swap)
 	{
 		if (swap)
@@ -142,11 +144,11 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 					convert_location(Point2D(44, 114), swap),
 					convert_location(Point2D(43, 124), swap) };
 
-	attack_path_line = PathManager({new LineSegmentLinearY(-1 / .95, -33, 74, 34, 62.4),
-									new LineSegmentCurveY(.0926, -13.056, 500.894, 62.4, 75.5),
-									new LineSegmentLinearY(1, 0, -32.5, 75.5, 81.5),
-									new LineSegmentCurveY(-1/14, 12.607, -504.04, 81.5, 95),
-									new LineSegmentLinearY(-1, 0, 144, 95, 99), });
+	attack_path_line = PathManager({new LineSegmentLinearY(-1, 108.5, 34, 65.5, swap, center_point),
+									new LineSegmentCurveY(.0926, -13.056, 500.894, 65.5, 75.5, swap, center_point),
+									new LineSegmentLinearY(1, -32.5, 75.5, 81.5, swap, center_point),
+									new LineSegmentCurveY(-.071425, 12.607, -504.04, 81.5, 95, swap, center_point),
+									new LineSegmentLinearY(-1, 144, 95, 99, swap, center_point), }, false, !swap);
 
 	high_ground_index = 8;
 

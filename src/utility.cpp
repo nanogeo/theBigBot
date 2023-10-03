@@ -57,6 +57,19 @@ const Unit* Utility::NthClosestTo(Units units, Point2D position, int n)
 	return units[0];
 }
 
+Units Utility::NClosestUnits(Units units, Point2D position, int n)
+{
+	std::sort(units.begin(), units.end(), [&position](const Unit* &a, const Unit* &b)
+	{
+		return Distance2D(a->pos, position) < Distance2D(b->pos, position);
+	});
+	if (units.size() > n)
+	{
+		return std::vector<const Unit*>(units.begin(), units.begin() + n);
+	}
+	return units;
+}
+
 Point2D Utility::ClosestTo(std::vector<Point2D> points, Point2D position)
 {
 	Point2D current_closest;
@@ -826,190 +839,148 @@ int Utility::GetCargoSize(const Unit* unit)
 
 }
 
+float Utility::GetRange(const Unit* unit)
+{
+	switch (unit->unit_type.ToType())
+	{
+	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
+		return 7;
+	case UNIT_TYPEID::PROTOSS_PROBE:
+		return .1;
+	case UNIT_TYPEID::PROTOSS_ZEALOT:
+		return .1;
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		return 5;
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		return 6;
+	case UNIT_TYPEID::PROTOSS_ADEPT:
+		return 4;
+	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		return 6;
+	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		return .1;
+	case UNIT_TYPEID::PROTOSS_ARCHON:
+		return 3;
+	case UNIT_TYPEID::PROTOSS_IMMORTAL:
+		return 6;
+	case UNIT_TYPEID::PROTOSS_COLOSSUS: // TODO extended thermal lance
+		return 7;
+	case UNIT_TYPEID::PROTOSS_PHOENIX: // TODO anion pulse crystals
+		return 5;
+	case UNIT_TYPEID::PROTOSS_VOIDRAY:
+		return 6;
+	case UNIT_TYPEID::PROTOSS_ORACLE:
+		return 4;
+	case UNIT_TYPEID::PROTOSS_CARRIER:
+		return 14;
+	case UNIT_TYPEID::PROTOSS_TEMPEST: // air 14
+		return  10;
+	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+		return 7;
+	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS: // terran hi sec auto tracking
+		return 6;
+	case UNIT_TYPEID::TERRAN_MISSILETURRET:
+		return 6;
+	case UNIT_TYPEID::TERRAN_SCV:
+		return .1;
+	case UNIT_TYPEID::TERRAN_MULE:
+		return 0;
+	case UNIT_TYPEID::TERRAN_MARINE:
+		return 5;
+	case UNIT_TYPEID::TERRAN_MARAUDER:
+		return 6;
+	case UNIT_TYPEID::TERRAN_REAPER:
+		return 5;
+	case UNIT_TYPEID::TERRAN_GHOST:
+		return 6;
+	case UNIT_TYPEID::TERRAN_HELLION:
+		return 5;
+	case UNIT_TYPEID::TERRAN_HELLIONTANK:
+		return 2;
+	case UNIT_TYPEID::TERRAN_SIEGETANK:
+		return 7;
+	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+		return 13;
+	case UNIT_TYPEID::TERRAN_CYCLONE:
+		return 5;
+	case UNIT_TYPEID::TERRAN_THOR: // flying 10
+		return 7;
+	case UNIT_TYPEID::TERRAN_THORAP: // flying 11
+		return 7;
+	case UNIT_TYPEID::TERRAN_AUTOTURRET:
+		return 6;
+	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+		return 9;
+	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+		return 6;
+	case UNIT_TYPEID::TERRAN_LIBERATOR: // flying
+		return  5;
+	case UNIT_TYPEID::TERRAN_LIBERATORAG:
+		return 0;
+	case UNIT_TYPEID::TERRAN_BANSHEE:
+		return 6;
+	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
+		return 6;
+	case UNIT_TYPEID::ZERG_SPINECRAWLER: // zerg
+		return 7;
+	case UNIT_TYPEID::ZERG_SPORECRAWLER:
+		return 7;
+	case UNIT_TYPEID::ZERG_DRONE:
+		return .1;
+	case UNIT_TYPEID::ZERG_QUEEN: // flying 7
+		return 5;
+	case UNIT_TYPEID::ZERG_ZERGLING:
+		return .1;
+	case UNIT_TYPEID::ZERG_BANELING:
+		return 2.5;
+	case UNIT_TYPEID::ZERG_ROACH:
+		return 4;
+	case UNIT_TYPEID::ZERG_RAVAGER:
+		return  6;
+	case UNIT_TYPEID::ZERG_HYDRALISK: // grooved spines
+		return 6;
+	case UNIT_TYPEID::ZERG_LURKERMP: // seismic spine
+		return 8;
+	case UNIT_TYPEID::ZERG_ULTRALISK:
+		return .1;
+	case UNIT_TYPEID::ZERG_MUTALISK:
+		return 3;
+	case UNIT_TYPEID::ZERG_CORRUPTOR:
+		return 6;
+	case UNIT_TYPEID::ZERG_BROODLORD:
+		return 10;
+	case UNIT_TYPEID::ZERG_LOCUSTMP:
+		return 3;
+	case UNIT_TYPEID::ZERG_BROODLING:
+		return 0;
+	case UNIT_TYPEID::ZERG_LARVA:
+		return 0;
+	case UNIT_TYPEID::ZERG_OVERLORD:
+		return 0;
+	case UNIT_TYPEID::ZERG_EGG:
+		return 0;
+	default:
+		std::cout << "Error invalid unit type in RealGroundRange\n";
+		return 0;
+	}
+}
+
 float Utility::RealGroundRange(const Unit* attacking_unit, const Unit * target)
 {
 	float range = attacking_unit->radius + target->radius;
-	switch (attacking_unit->unit_type.ToType())
-	{
-	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
-		range += 7;
-		break;
-	case UNIT_TYPEID::PROTOSS_PROBE:
-		range += .1;
-		break;
-	case UNIT_TYPEID::PROTOSS_ZEALOT:
-		range += .1;
-		break;
-	case UNIT_TYPEID::PROTOSS_SENTRY:
-		range += 5;
-		break;
-	case UNIT_TYPEID::PROTOSS_STALKER:
-		range += 6;
-		break;
-	case UNIT_TYPEID::PROTOSS_ADEPT:
-		range += 4;
-		break;
-	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
-		range += 6;
-		break;
-	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
-		range += .1;
-		break;
-	case UNIT_TYPEID::PROTOSS_ARCHON:
-		range += 3;
-		break;
-	case UNIT_TYPEID::PROTOSS_IMMORTAL:
-		range += 6;
-		break;
-	case UNIT_TYPEID::PROTOSS_COLOSSUS: // TODO extended thermal lance
-		range += 7;
-		break;
-	case UNIT_TYPEID::PROTOSS_PHOENIX: // TODO anion pulse crystals
-		range += 5;
-		break;
-	case UNIT_TYPEID::PROTOSS_VOIDRAY:
-		range += 6;
-		break;
-	case UNIT_TYPEID::PROTOSS_ORACLE:
-		range += 4;
-		break;
-	case UNIT_TYPEID::PROTOSS_CARRIER:
-		range += 14;
-		break;
-	case UNIT_TYPEID::PROTOSS_TEMPEST: // air 14
-		range += 10;
-		break;
-	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
-		range += 7;
-		break;
-	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS: // terran hi sec auto tracking
-		range += 6;
-		break;
-	case UNIT_TYPEID::TERRAN_MISSILETURRET:
-		range += 6;
-		break;
-	case UNIT_TYPEID::TERRAN_SCV:
-		range += .1;
-		break;
-	case UNIT_TYPEID::TERRAN_MULE:
-		range += 0;
-		break;
-	case UNIT_TYPEID::TERRAN_MARINE:
-		range += 5;
-		break;
-	case UNIT_TYPEID::TERRAN_MARAUDER:
-		range += 6;
-		break;
-	case UNIT_TYPEID::TERRAN_REAPER:
-		range += 5;
-		break;
-	case UNIT_TYPEID::TERRAN_GHOST:
-		range += 6;
-		break;
-	case UNIT_TYPEID::TERRAN_HELLION:
-		range += 5;
-		break;
-	case UNIT_TYPEID::TERRAN_HELLIONTANK:
-		range += 2;
-		break;
-	case UNIT_TYPEID::TERRAN_SIEGETANK:
-		range += 7;
-		break;
-	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
-		range += 13;
-		break;
-	case UNIT_TYPEID::TERRAN_CYCLONE:
-		range += 5;
-		break;
-	case UNIT_TYPEID::TERRAN_THOR: // flying 10
-		range += 7;
-		break;
-	case UNIT_TYPEID::TERRAN_THORAP: // flying 11
-		range += 7;
-		break;
-	case UNIT_TYPEID::TERRAN_AUTOTURRET:
-		range += 6;
-		break;
-	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
-		range += 9;
-		break;
-	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
-		range += 6;
-		break;
-	case UNIT_TYPEID::TERRAN_LIBERATOR: // flying
-		range += 5;
-		break;
-	case UNIT_TYPEID::TERRAN_LIBERATORAG:
-		range += 0;
-		break;
-	case UNIT_TYPEID::TERRAN_BANSHEE:
-		range += 6;
-		break;
-	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
-		range += 6;
-		break;
-	case UNIT_TYPEID::ZERG_SPINECRAWLER: // zerg
-		range += 7;
-		break;
-	case UNIT_TYPEID::ZERG_SPORECRAWLER:
-		range += 7;
-		break;
-	case UNIT_TYPEID::ZERG_DRONE:
-		range += .1;
-		break;
-	case UNIT_TYPEID::ZERG_QUEEN: // flying 7
-		range += 5;
-		break;
-	case UNIT_TYPEID::ZERG_ZERGLING:
-		range += .1;
-		break;
-	case UNIT_TYPEID::ZERG_BANELING:
-		range += 2.5;
-		break;
-	case UNIT_TYPEID::ZERG_ROACH:
-		range += 4;
-		break;
-	case UNIT_TYPEID::ZERG_RAVAGER:
-		range += 6;
-		break;
-	case UNIT_TYPEID::ZERG_HYDRALISK: // grooved spines
-		range += 6;
-		break;
-	case UNIT_TYPEID::ZERG_LURKERMP: // seismic spine
-		range += 8;
-		break;
-	case UNIT_TYPEID::ZERG_ULTRALISK:
-		range += .1;
-		break;
-	case UNIT_TYPEID::ZERG_MUTALISK:
-		range += 3;
-		break;
-	case UNIT_TYPEID::ZERG_CORRUPTOR:
-		range += 6;
-		break;
-	case UNIT_TYPEID::ZERG_BROODLORD:
-		range += 10;
-		break;
-	case UNIT_TYPEID::ZERG_LOCUSTMP:
-		range += 3;
-		break;
-	case UNIT_TYPEID::ZERG_BROODLING:
-		range += 0;
-		break;
-	case UNIT_TYPEID::ZERG_LARVA:
-		range += 0;
-		break;
-	case UNIT_TYPEID::ZERG_OVERLORD:
-		range += 0;
-		break;
-	case UNIT_TYPEID::ZERG_EGG:
-		range += 0;
-		break;
-	default:
-		std::cout << "Error invalid unit type in RealGroundRange\n";
-		range += 0;
-	}
+	range += GetRange(attacking_unit);
 	return range;
+}
+
+float Utility::GetMaxRange(Units units)
+{
+	float highest_range = 0;
+	for (const auto &unit : units)
+	{
+		if (GetRange(unit) > highest_range)
+			highest_range = GetRange(unit);
+	}
+	return highest_range;
 }
 
 float Utility::GetDamagePoint(const Unit* unit)
