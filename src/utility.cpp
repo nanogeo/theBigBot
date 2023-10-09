@@ -13,6 +13,7 @@
 
 #include "sc2api/sc2_unit_filters.h"
 
+#include "TossBot.h"
 #include "utility.h"
 
 namespace sc2
@@ -140,6 +141,16 @@ float Utility::DistanceToClosest(std::vector<Point2D> points, Point2D position)
 	return Distance2D(closest_point, position);
 }
 
+float Utility::AnyUnitWithin(Units units, Point2D position, float dist)
+{
+	for (const auto &unit : units)
+	{
+		if (Distance2D(unit->pos, position) <= dist)
+			return true;
+	}
+	return false;
+}
+
 Point2D Utility::ClosestPointOnLine(Point2D point, Point2D start, Point2D end)
 {
 	// undefined / 0 slope
@@ -253,7 +264,7 @@ int Utility::DangerLevel(const Unit* unit, const ObservationInterface* observati
 int Utility::DangerLevelAt(const Unit* unit, Point2D pos, const ObservationInterface* observation)
 {
 	int possible_damage = 0;
-	for (const auto &enemy_unit : observation->GetUnits(Unit::Alliance::Enemy))
+	for (const auto &enemy_unit : observation->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)))
 	{
 		if (!enemy_unit->is_building && Distance2D(pos, enemy_unit->pos) <= RealGroundRange(enemy_unit, unit))
 			possible_damage += GetDamage(enemy_unit, unit, observation);
@@ -959,8 +970,12 @@ float Utility::GetRange(const Unit* unit)
 		return 0;
 	case UNIT_TYPEID::ZERG_EGG:
 		return 0;
+	case UNIT_TYPEID::ZERG_INFESTOR:
+		return 0;
+	case UNIT_TYPEID::ZERG_INFESTORBURROWED:
+		return 0;
 	default:
-		std::cout << "Error invalid unit type in RealGroundRange\n";
+		std::cout << "Error invalid unit type in GetRange\n";
 		return 0;
 	}
 }
@@ -1420,15 +1435,34 @@ float Utility::GetFacingAngle(const Unit* unit, const Unit* target)
 
 const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 {
+	std::ofstream amaing_at_time;
+	amaing_at_time.open("amaing_at_time.txt", std::ios_base::app);
+
+	unsigned long long distance_check_total = 0;
+	unsigned long long angle_check_total = 0;
+	unsigned long long total = 0;
+
 	float smallest_angle = 180;
 	const Unit* target = NULL;
 
+
 	for (const auto Funit : allied_units)
-	{
+	{ // try flipped
+		unsigned long long unit_start = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
 		if (Distance2D(unit->pos, Funit->pos) >= RealGroundRange(unit, Funit))
 		{
+			/*unsigned long long dist_check = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count();
+			distance_check_total += dist_check - unit_start;*/
 			continue;
 		}
+		unsigned long long dist_check = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
 		float angle = GetFacingAngle(unit, Funit);
 
 		if (angle < smallest_angle)
@@ -1436,7 +1470,17 @@ const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 			smallest_angle = angle;
 			target = Funit;
 		}
+		unsigned long long angle_check = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
+		distance_check_total += dist_check - unit_start;
+		angle_check_total += angle_check - dist_check;
 	}
+
+	amaing_at_time << distance_check_total << ", ";
+	amaing_at_time << angle_check_total << "\n";
+	amaing_at_time.close();
 
 	return target;
 }
@@ -2031,10 +2075,20 @@ std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
 		return "research blink";
 	case ABILITY_ID::RESEARCH_CHARGE:
 		return "research charge";
+	case ABILITY_ID::RESEARCH_ADEPTRESONATINGGLAIVES:
+		return "research glaives";
 	case ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS:
 		return "research ground attack";
 	case ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1:
 		return "research +1 attack";
+	case ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR:
+		return "research ground armor";
+	case ABILITY_ID::RESEARCH_PROTOSSSHIELDS:
+		return "research plasma shields";
+	case ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONS:
+		return "research air weapons";
+	case ABILITY_ID::RESEARCH_PROTOSSAIRARMOR:
+		return "research air armor";
 	case ABILITY_ID::MORPH_WARPGATE:
 		return "morph into warpgate";
 	default:

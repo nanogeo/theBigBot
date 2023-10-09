@@ -707,7 +707,7 @@ bool BuildOrderManager::WarpInUnits(BuildOrderResultArgData data)
 	}
 	if (gates.size() > 0 && gates_ready >= warp_ins && Utility::CanAfford(type, warp_ins, agent->Observation()))
 	{
-		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0]);
+		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
 		if (spots.size() >= warp_ins)
 		{
 			for (int i = 0; i < warp_ins; i++)
@@ -1037,10 +1037,10 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(270.0f),										&BuildOrderManager::ContinueBuildingPylons,		BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(270.0f),										&BuildOrderManager::ContinueMakingWorkers,		BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(270.0f),										&BuildOrderManager::ContinueWarpingInStalkers,	BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(300.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_PYLON })), // try just 1 pylon
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(300.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(305.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_FORGE)),
 					BuildOrderData(&BuildOrderManager::HasUnits,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STALKER, 7),			&BuildOrderManager::StalkerOraclePressure,		BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(300.0f),										&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_PYLON })),
 					
 					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ResearchCharge,				BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL),		&BuildOrderManager::ChronoTillFinished,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),

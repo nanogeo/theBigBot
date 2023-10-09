@@ -151,6 +151,10 @@ bool ActionManager::ActionScoutZerg(ActionArgData* data)
 
 bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 {
+	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
 	int num_workers = agent->Observation()->GetFoodWorkers();
 	int num_nexi = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
 	int num_assimilators = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
@@ -162,11 +166,25 @@ bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 	{
 		agent->worker_manager.should_build_workers = true;
 	}
+	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+	std::ofstream make_workers;
+	make_workers.open("make_workers.txt", std::ios_base::app);
+
+	make_workers << end_time - start_time << "\n";
+	make_workers.close();
+
 	return false;
 }
 
 bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 {
+	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
 	int build_pylon_actions = 0;
 	for (const auto &action : active_actions)
 	{
@@ -194,11 +212,25 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 	if (supply_used >= supply_cap)
 		agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_PYLON);
 
+	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+	std::ofstream build_pylons;
+	build_pylons.open("build_pylons.txt", std::ios_base::app);
+
+	build_pylons << end_time - start_time << "\n";
+	build_pylons.close();
+
 	return false;
 }
 
 bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 {
+	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
 	// TODO make global upgrade tracker
 	std::vector<ABILITY_ID> upgrades = { ABILITY_ID::RESEARCH_PROTOSSSHIELDS, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS, ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR};
 	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
@@ -249,11 +281,24 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 			airUpgrades.erase(airUpgrades.begin() + upgrade_value);
 		}
 	}
+	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+	std::ofstream get_upgrades;
+	get_upgrades.open("get_upgrades.txt", std::ios_base::app);
+
+	get_upgrades << end_time - start_time << "\n";
+	get_upgrades.close();
 	return false;
 }
 
 bool ActionManager::ActionContinueChronos(ActionArgData* data)
 {
+	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
 	Units need_chrono;
 	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSBAY)))
 	{
@@ -286,11 +331,24 @@ bool ActionManager::ActionContinueChronos(ActionArgData* data)
 			need_chrono.erase(need_chrono.begin());
 		}
 	}
+	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+	std::ofstream chronoing;
+	chronoing.open("chronoing.txt", std::ios_base::app);
+
+	chronoing << end_time - start_time << "\n";
+	chronoing.close();
 	return false;
 }
 
 bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 {
+	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
 	if (agent->worker_manager.far_3_mineral_patch_extras.size() > 0)
 	{
 		for (const auto &pylon : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
@@ -308,6 +366,15 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 
 		agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_NEXUS);
 	}
+	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+	std::ofstream expanding;
+	expanding.open("expanding.txt", std::ios_base::app);
+
+	expanding << end_time - start_time << "\n";
+	expanding.close();
 }
 
 bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
@@ -338,12 +405,38 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 
 bool ActionManager::ActionConstantChrono(ActionArgData* data)
 {
+	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
 	const Unit* building = data->unit;
 	for (const auto &buff : building->buffs)
 	{
 		if (buff == BUFF_ID::CHRONOBOOSTENERGYCOST)
+		{
+
+			unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count();
+
+			std::ofstream constant_chrono;
+			constant_chrono.open("constant_chrono.txt", std::ios_base::app);
+
+			constant_chrono << end_time - start_time << "\n";
+			constant_chrono.close();
 			return false;
+		}
 	}
+
+	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+	std::ofstream constant_chrono;
+	constant_chrono.open("constant_chrono.txt", std::ios_base::app);
+
+	constant_chrono << end_time - start_time << "\n";
+	constant_chrono.close();
 }
 
 bool ActionManager::ActionWarpInAtProxy(ActionArgData* data)
@@ -484,7 +577,7 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 
 	for (const auto &pos : agent->locations->attack_path_line.GetPoints())
 	{
-		//agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
+		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
 	}
 
 	if (army->stalkers.size() == 0)
@@ -550,14 +643,14 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
 
-	/*for (const auto &pos : attack_concave_positions)
+	for (const auto &pos : attack_concave_positions)
 	{
 		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(255, 0, 0));
 	}
 	for (const auto &pos : retreat_concave_positions)
 	{
 		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(0, 255, 0));
-	}*/
+	}
 
 	army->ApplyPressureGrouped(concave_target, (2 * retreat_concave_origin) - concave_target, retreat_unit_positions, attack_unit_positions);
 
@@ -714,7 +807,7 @@ bool ActionManager::ActionContinueWarpingInStalkers(ActionArgData* data)
 		std::cout << "warp in stalkers/n";
 		std::cout << "all gates ready " << all_gates_ready << "\n";
 
-		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0]);
+		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
 		std::cout << "spots " << spots.size() << "\n";
 		if (spots.size() >= gates.size())
 		{
@@ -730,6 +823,10 @@ bool ActionManager::ActionContinueWarpingInStalkers(ActionArgData* data)
 
 bool ActionManager::ActionContinueWarpingInZealots(ActionArgData* data)
 {
+	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
 	bool all_gates_ready = true;
 	//if (Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() > 0)
 	//    return false;
@@ -751,9 +848,13 @@ bool ActionManager::ActionContinueWarpingInZealots(ActionArgData* data)
 			break;
 		}
 	}
+	unsigned long long get_abilities = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
 	if (gates.size() > 0 && all_gates_ready && Utility::CanAfford(UNIT_TYPEID::PROTOSS_ZEALOT, gates.size(), agent->Observation()))
 	{
-		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0]);
+		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
 		if (spots.size() >= gates.size())
 		{
 			for (int i = 0; i < gates.size(); i++)
@@ -764,6 +865,16 @@ bool ActionManager::ActionContinueWarpingInZealots(ActionArgData* data)
 			}
 		}
 	}
+	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+	std::ofstream zealot_warp;
+	zealot_warp.open("zealot_warp.txt", std::ios_base::app);
+
+	zealot_warp << get_abilities - start_time << ", ";
+	zealot_warp << end_time - get_abilities << "\n";
+	zealot_warp.close();
 	return false;
 }
 

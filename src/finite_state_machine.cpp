@@ -970,7 +970,7 @@ namespace sc2 {
 		}
 		if (gates.size() > 0 && all_gates_ready && Utility::CanAfford(UNIT_TYPEID::PROTOSS_ZEALOT, gates.size(), agent->Observation()))
 		{
-			std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0]);
+			std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
 			if (spots.size() >= gates.size())
 			{
 				for (int i = 0; i < gates.size(); i++)

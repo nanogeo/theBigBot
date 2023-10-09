@@ -305,7 +305,7 @@ namespace sc2 {
 
 			std::ofstream update_weapon_cd_file;
 			update_weapon_cd_file.open("update_weapon_cd_time.txt", std::ios_base::out);
-			update_weapon_cd_file << "Get allied units,Get enemy units,Melee unit,Aiming at,Add attack,Total time\n";
+			update_weapon_cd_file << "Get allied units,Get enemy units,Melee unit,Count,Aiming at,Add attack,Total time\n";
 			update_weapon_cd_file.close();
 
 			std::ofstream aiming_at_file;
@@ -317,6 +317,53 @@ namespace sc2 {
 			real_range_file.open("real_range_file.txt", std::ios_base::out);
 			real_range_file << "Radius,Switch\n";
 			real_range_file.close();
+
+			std::ofstream make_workers;
+			make_workers.open("make_workers.txt", std::ios_base::out);
+			make_workers << "Make workers\n";
+			make_workers.close();
+
+			std::ofstream build_pylons;
+			build_pylons.open("build_pylons.txt", std::ios_base::out);
+			build_pylons << "Build pylons\n";
+			build_pylons.close();
+
+			std::ofstream get_upgrades;
+			get_upgrades.open("get_upgrades.txt", std::ios_base::out);
+			get_upgrades << "Continue upgrades\n";
+			get_upgrades.close();
+
+			std::ofstream chronoing;
+			chronoing.open("chronoing.txt", std::ios_base::out);
+			chronoing << "Constant chronos\n";
+			chronoing.close();
+
+			std::ofstream expanding;
+			expanding.open("expanding.txt", std::ios_base::out);
+			expanding << "Continue expanding\n";
+			expanding.close();
+
+			std::ofstream constant_chrono;
+			constant_chrono.open("constant_chrono.txt", std::ios_base::out);
+			constant_chrono << "Constant chrono\n";
+			constant_chrono.close();
+
+			std::ofstream zealot_warp;
+			zealot_warp.open("zealot_warp.txt", std::ios_base::out);
+			zealot_warp << "Z - Get abilities,Z - All gates ready\n";
+			zealot_warp.close();
+
+			std::ofstream wind_spots;
+			wind_spots.open("wind_spots.txt", std::ios_base::out);
+			wind_spots << "Find,- Initial check,- Blocked check,- Spot check,Prism spots,Sort spots\n";
+			wind_spots.close();
+
+			std::ofstream amaing_at_time;
+			amaing_at_time.open("amaing_at_time.txt", std::ios_base::out);
+			amaing_at_time << "Distance check,Angle check\n";
+			amaing_at_time.close();
+
+
 
             auto infos = Observation()->GetGameInfo().player_info;
             if (infos.size() > 0)
@@ -1032,18 +1079,38 @@ namespace sc2 {
         return text;
     }
 
-    std::vector<Point2D> TossBot::FindWarpInSpots(Point2D close_to)
+    std::vector<Point2D> TossBot::FindWarpInSpots(Point2D close_to, int num)
     {
+		// order pylons first
+		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
+		unsigned long long initial_check = 0;
+		unsigned long long blocked_check = 0;
+		unsigned long long spot_check = 0;
+
+
         std::vector<Point2D> spots;
         for (const auto &pylon : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_PYLON)))
         {
+			if (Utility::AnyUnitWithin(Observation()->GetUnits(Unit::Alliance::Enemy), pylon->pos, 6))
+				continue;
             for (int i = -7; i <= 6; i += 1)
             {
                 for (int j = -7; j <= 6; j += 1)
                 {
+					unsigned long long check_start = std::chrono::duration_cast<std::chrono::microseconds>(
+						std::chrono::high_resolution_clock::now().time_since_epoch()
+						).count();
+
                     Point2D pos = Point2D(pylon->pos.x + i + .5, pylon->pos.y + j + .5);
-                    if (Observation()->IsPathable(pos) && Distance2D(pos, pylon->pos) <= 6 && Utility::DistanceToClosest(Observation()->GetUnits(), pos) > 1.5)
+                    if (Observation()->IsPathable(pos) && Distance2D(pos, pylon->pos) <= 6)
                     {
+						unsigned long long initial = std::chrono::duration_cast<std::chrono::microseconds>(
+							std::chrono::high_resolution_clock::now().time_since_epoch()
+							).count();
+
                         bool blocked = false;
                         for (const auto &building : Observation()->GetUnits(IsBuilding()))
                         {
@@ -1071,8 +1138,10 @@ namespace sc2 {
                                     break;
                                 }
                             }
-
                         }
+						unsigned long long block = std::chrono::duration_cast<std::chrono::microseconds>(
+							std::chrono::high_resolution_clock::now().time_since_epoch()
+							).count();
 						for (const auto &spot : spots)
 						{
 							if (Distance2D(pos, spot) < 1.5)
@@ -1081,12 +1150,36 @@ namespace sc2 {
 								break;
 							}
 						}
-                        if (!blocked)
+                        if (!blocked && !Utility::AnyUnitWithin(Observation()->GetUnits(Unit::Alliance::Self), pos, 1.5) && !Utility::AnyUnitWithin(Observation()->GetUnits(Unit::Alliance::Neutral), pos, 1.5))
                             spots.push_back(pos);
+
+						unsigned long long spot = std::chrono::duration_cast<std::chrono::microseconds>(
+							std::chrono::high_resolution_clock::now().time_since_epoch()
+							).count();
+
+						initial_check += initial - check_start;
+						blocked_check += block - initial;
+						spot_check += spot - block;
                     }
+					else
+					{
+						unsigned long long initial = std::chrono::duration_cast<std::chrono::microseconds>(
+							std::chrono::high_resolution_clock::now().time_since_epoch()
+							).count();
+
+						initial_check += initial - check_start;
+					}
+					if (spots.size() >= num)
+						break;
                 }
+				if (spots.size() >= num)
+					break;
             }
         }
+
+		unsigned long long end_find = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
 
         for (const auto &prism : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)))
         {
@@ -1102,11 +1195,32 @@ namespace sc2 {
                 }
             }
         }
+
+		unsigned long long prism_spots = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
         sort(spots.begin(), spots.end(),
             [close_to](const Point2D & a, const Point2D & b) -> bool
         {
             return Distance2D(a, close_to) < Distance2D(b, close_to);
         });
+
+		unsigned long long sort_spots = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
+		std::ofstream wind_spots;
+		wind_spots.open("wind_spots.txt", std::ios_base::app);
+
+		wind_spots << end_find - start_time << ", ";
+		wind_spots << initial_check << ", ";
+		wind_spots << blocked_check << ", ";
+		wind_spots << spot_check << ", ";
+		wind_spots << prism_spots - end_find << ", ";
+		wind_spots << sort_spots - prism_spots << "\n";
+		wind_spots.close();
+
         return spots;
     }
 
@@ -1286,17 +1400,46 @@ namespace sc2 {
 
 	void TossBot::UpdateEnemyWeaponCooldowns()
 	{
+		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
+		std::ofstream update_weapon_cd_file;
+		update_weapon_cd_file.open("update_weapon_cd_time.txt", std::ios_base::app);
+
+		unsigned long long get_allied = 0;
+		unsigned long long get_enemy = 0;
+		unsigned long long melee_units = 0;
+		unsigned long long count = 0;
+		unsigned long long aiming_at = 0;
+		unsigned long long add_attack = 0;
+		unsigned long long total_time = 0;
+
+		unsigned long long melee_units_total = 0;
+		unsigned long long count_total = 0;
+		unsigned long long aiming_at_total = 0;
+		unsigned long long add_attack_total = 0;
 
 		Units allied_units = Observation()->GetUnits(Unit::Alliance::Self);
 
+		get_allied = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
 
-		Units enemy_attacking_units = Observation()->GetUnits(Unit::Alliance::Enemy); // TODO only ranged units
+		Units enemy_attacking_units = Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)); // TODO only ranged units
+
+		get_enemy = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
 
 
 		int loop = Observation()->GetGameLoop();
 
 		for (const auto &Eunit : enemy_attacking_units)
 		{
+			unsigned long long unit_start = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count();
 
 			if (!unit_type_info[Eunit->unit_type.ToType()].is_army_unit)
 				continue;
@@ -1318,11 +1461,22 @@ namespace sc2 {
 				continue;
 			}
 
+			melee_units = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count();
+
 			if (enemy_weapon_cooldown.count(Eunit) == 0)
 				enemy_weapon_cooldown[Eunit] = 0;
 
+			count = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count();
+
 			const Unit* target = Utility::AimingAt(Eunit, allied_units);
 
+			aiming_at = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count();
 
 			if (target != NULL && enemy_weapon_cooldown[Eunit] == 0 && enemy_unit_saved_position[Eunit].frames > Utility::GetDamagePoint(Eunit) * 22.4)
 			{
@@ -1347,6 +1501,14 @@ namespace sc2 {
 				}
 			}
 
+			add_attack = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count();
+
+			melee_units_total += melee_units - unit_start;
+			count_total += count - melee_units;
+			aiming_at_total += aiming_at - count;
+			add_attack_total += add_attack - aiming_at;
 
 			if (enemy_weapon_cooldown[Eunit] > 0)
 				enemy_weapon_cooldown[Eunit] -= 1 / 22.4;
@@ -1359,6 +1521,18 @@ namespace sc2 {
 
 		}
 
+		total_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
+		update_weapon_cd_file << get_allied - start_time << ", ";
+		update_weapon_cd_file << get_enemy - get_allied << ", ";
+		update_weapon_cd_file << melee_units_total << ", ";
+		update_weapon_cd_file << count_total << ", ";
+		update_weapon_cd_file << aiming_at_total << ", ";
+		update_weapon_cd_file << add_attack_total << ", ";
+		update_weapon_cd_file << total_time - start_time << "\n";
+		update_weapon_cd_file.close();
 	}
 
 	void TossBot::RemoveCompletedAtacks()

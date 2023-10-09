@@ -34,6 +34,7 @@ public:
 	static const Unit* FurthestFrom(Units, Point2D);
 	static float DistanceToClosest(Units, Point2D);
 	static float DistanceToClosest(std::vector<Point2D>, Point2D);
+	static float AnyUnitWithin(Units, Point2D, float);
 	static Point2D ClosestPointOnLine(Point2D, Point2D, Point2D);
 	static Units CloserThan(Units, float, Point2D);
 	static bool HasBuff(const Unit*, BUFF_ID);

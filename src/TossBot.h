@@ -286,7 +286,7 @@ public:
     Point2D GetLocation(UNIT_TYPEID);
 	Point2D GetProxyLocation(UNIT_TYPEID);
     std::vector<Point2D> GetProxyLocations(UNIT_TYPEID);
-    std::vector<Point2D> FindWarpInSpots(Point2D);
+    std::vector<Point2D> FindWarpInSpots(Point2D, int);
     std::vector<Point2D> FindProxyWarpInSpots();
     void OraclesCoverStalkers(Units, Units);
 

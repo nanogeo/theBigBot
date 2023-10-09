@@ -74,25 +74,57 @@ def display_times(info, indent):
 			pressure_time = read_file('pressure_time.txt')
 			#print('   |' * (indent + 1) + 'Pressure Time')
 			display_times(pressure_time, indent + 1)
-		elif info[0][i] == 'Find targets':
+		if info[0][i] == 'Find targets':
 			find_targets = read_file('find_targets.txt')
 			#print('   |' * (indent + 1) + 'Find Targets Time')
 			display_times(find_targets, indent + 1)
 			fire_control = read_file('fire_control_time.txt')
 			print('   |' * (indent + 1) + 'Fire Control Time')
 			display_times(fire_control, indent + 1)
-		elif info[0][i] == 'Display debug':
+		if info[0][i] == 'Display debug':
 			debug_hud = read_file('debug_hud_time.txt')
 			#print('   |' * (indent + 1) + 'Pressure Time')
 			display_times(debug_hud, indent + 1)
-		"""elif info[0][i] == 'Update enemy weapon cd':
+		if info[0][i] == 'Update enemy weapon cd':
 			enemy_weapon_cd = read_file('update_weapon_cd_time.txt')
 			#print('   |' * (indent + 1) + 'Pressure Time')
 			display_times(enemy_weapon_cd, indent + 1)
-		elif info[0][i] == 'Aiming at':
-			aiming_at = read_file('aiming_at_time.txt')
+		if info[0][i] == 'Process actions':
+			make_workers = read_file('make_workers.txt')
+			#print('   |' * (indent + 1) + 'Action Time')
+			display_times(make_workers, indent + 1)
+		if info[0][i] == 'Process actions':
+			build_pylons = read_file('build_pylons.txt')
+			#print('   |' * (indent + 1) + 'Action Time')
+			display_times(build_pylons, indent + 1)
+		if info[0][i] == 'Process actions':
+			get_upgrades = read_file('get_upgrades.txt')
+			#print('   |' * (indent + 1) + 'Action Time')
+			display_times(get_upgrades, indent + 1)
+		if info[0][i] == 'Process actions':
+			chronoing = read_file('chronoing.txt')
+			#print('   |' * (indent + 1) + 'Action Time')
+			display_times(chronoing, indent + 1)
+		if info[0][i] == 'Process actions':
+			expanding = read_file('expanding.txt')
+			#print('   |' * (indent + 1) + 'Action Time')
+			display_times(expanding, indent + 1)
+		"""if info[0][i] == 'Process actions':
+			constant_chrono = read_file('constant_chrono.txt')
+			#print('   |' * (indent + 1) + 'Action Time')
+			display_times(constant_chrono, indent + 1)"""
+		if info[0][i] == 'Process actions':
+			zealot_warp = read_file('zealot_warp.txt')
+			#print('   |' * (indent + 1) + 'Action Time')
+			display_times(zealot_warp, indent + 1)
+		if info[0][i] == 'Z - All gates ready':
+			wind_spots = read_file('wind_spots.txt')
+			#print('   |' * (indent + 1) + 'Action Time')
+			display_times(wind_spots, indent + 1)
+		if info[0][i] == 'Aiming at':
+			aiming_at = read_file('amaing_at_time.txt')
 			#print('   |' * (indent + 1) + 'Pressure Time')
-			display_times(aiming_at, indent + 1)"""
+			display_times(aiming_at, indent + 1)
 
 	print('   |' * indent + '{:<25} {:>8}'.format('Total', "{:.0f}".format(total)))
 
