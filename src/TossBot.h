@@ -195,6 +195,18 @@ struct UnitTypeInfo
 	}
 };
 
+struct WarpgateStatus
+{
+	bool used;
+	int frame_ready;
+	WarpgateStatus() {};
+	WarpgateStatus(int curr_frame)
+	{
+		used = false;
+		frame_ready = curr_frame + 1;
+	}
+};
+
 class BlankBot : public sc2::Agent {
 public:
 	BlankBot() : Agent() {};
@@ -246,6 +258,7 @@ public:
 	std::map<const Unit*, EnemyUnitPosition> enemy_unit_saved_position;
 	std::map<const Unit*, float> enemy_weapon_cooldown;
 	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
+	std::map<const Unit*, WarpgateStatus> warpgate_status;
 	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
 	int current_unique_id = 0;
 
@@ -253,6 +266,11 @@ public:
 	bool has_charge = false;
 	bool has_storm = false;
 	bool has_dt_blink = false;
+	int upgrade_ground_weapon = 0;
+	int upgrade_ground_armor = 0;
+	int upgrade_shields = 0;
+	int upgrade_air_weapon = 0;
+	int upgrade_air_armor = 0;
 
 	// testing
 	Point2D enemy_army_spawn = Point2D(34, 139);
@@ -329,6 +347,7 @@ public:
 	bool UnitIsOccupied(const Unit*);
 	Point3D ToPoint3D(Point2D);
 	int GetUniqueId();
+	void UpdateWarpgateStatus();
 
 
     // Pathing

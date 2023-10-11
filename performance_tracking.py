@@ -70,7 +70,7 @@ def display_times(info, indent):
 			action_time = read_file('action_time.txt')
 			#print('   |' * (indent + 1) + 'Action Time')
 			display_times(action_time, indent + 1)
-		if info[0][i] == 'ApplyPressure':
+		if info[0][i] == 'Apply pressure':
 			pressure_time = read_file('pressure_time.txt')
 			#print('   |' * (indent + 1) + 'Pressure Time')
 			display_times(pressure_time, indent + 1)

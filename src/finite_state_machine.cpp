@@ -953,16 +953,7 @@ namespace sc2 {
 		Units gates = agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
 		for (const auto &warpgate : gates)
 		{
-			bool gate_ready = false;
-			for (const auto &ability : agent->Query()->GetAbilitiesForUnit(warpgate).abilities)
-			{
-				if (ability.ability_id == ABILITY_ID::TRAINWARP_ZEALOT)
-				{
-					gate_ready = true;
-					break;
-				}
-			}
-			if (!gate_ready)
+			if (agent->warpgate_status[warpgate].frame_ready > 0)
 			{
 				all_gates_ready = false;
 				break;
@@ -978,6 +969,8 @@ namespace sc2 {
 					Point3D pos = Point3D(gates[i]->pos.x, gates[i]->pos.y, agent->Observation()->TerrainHeight(gates[i]->pos));
 					agent->Debug()->DebugSphereOut(pos, 1, Color(255, 0, 255));
 					agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_ZEALOT, spots[i]);
+					agent->warpgate_status[gates[i]].used = true;
+					agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(20 * 22.4);
 					state_machine->last_warp_in_time = agent->Observation()->GetGameLoop() / 22.4;
 				}
 			}

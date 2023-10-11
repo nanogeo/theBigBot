@@ -270,7 +270,7 @@ namespace sc2 {
         {
 			std::ofstream frame_time_file;
 			frame_time_file.open("frame_time.txt", std::ios_base::out);
-			frame_time_file << "Distribute workers,New base,Update enemy pos,Update enemy weapon cd,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug\n";
+			frame_time_file << "Distribute workers,New base,Update enemy pos,Update enemy weapon cd,Update warpgate status,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug,TOTAL\n";
 			frame_time_file.close();
 
 			std::ofstream action_time_file;
@@ -462,6 +462,12 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
+		UpdateWarpgateStatus();
+
+		std::chrono::microseconds postUpdateWarpgateStatus = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
+
 		std::chrono::microseconds postBuildWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);;
@@ -472,22 +478,18 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);;
 
-        if (Observation()->GetGameLoop() % 2 == 0)
-        {
-			
-            worker_manager.BuildWorkers();
-			postBuildWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-			build_order_manager.CheckBuildOrder();
-			postCheckBuildOrder = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-			action_manager.ProcessActions();
-			postProcessActions = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-        }
+        worker_manager.BuildWorkers();
+		postBuildWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
+		build_order_manager.CheckBuildOrder();
+		postCheckBuildOrder = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
+		action_manager.ProcessActions();
+		postProcessActions = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			);
 
         ProcessFSMs();
 		std::chrono::microseconds postProcessFSM = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -512,12 +514,14 @@ namespace sc2 {
 		frame_time_file << postNewBase.count() - postDistributeWorkers.count() << ", ";
 		frame_time_file << postUpdateEnemyUnitPositions.count() - postNewBase.count() << ", ";
 		frame_time_file << postUpdateEnemyWeaponCooldowns.count() - postUpdateEnemyUnitPositions.count() << ", ";
+		frame_time_file << postUpdateWarpgateStatus.count() - postUpdateEnemyWeaponCooldowns.count() << ", ";
 		frame_time_file << postBuildWorkers.count() - postUpdateEnemyWeaponCooldowns.count() << ", ";
 		frame_time_file << postCheckBuildOrder.count() - postBuildWorkers.count() << ", ";
 		frame_time_file << postProcessActions.count() - postCheckBuildOrder.count() << ", ";
 		frame_time_file << postProcessFSM.count() - postProcessActions.count() << ", ";
 		frame_time_file << postDisplayDebug.count() - postProcessFSM.count() << ", ";
-		frame_time_file << postSendDebug.count() - postDisplayDebug.count() << "\n";
+		frame_time_file << postSendDebug.count() - postDisplayDebug.count() << ", ";
+		frame_time_file << postSendDebug.count() - startTime.count() << "\n";
 
 		frame_time_file.close();
     }
@@ -629,6 +633,36 @@ namespace sc2 {
 			break;
 		case sc2::UPGRADE_ID::PSISTORMTECH:
 			has_storm = true;
+		case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1:
+			upgrade_ground_weapon = 1;
+		case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2:
+			upgrade_ground_weapon = 2;
+		case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL3:
+			upgrade_ground_weapon = 3;
+		case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL1:
+			upgrade_ground_armor = 1;
+		case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL2:
+			upgrade_ground_armor = 2;
+		case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL3:
+			upgrade_ground_armor = 3;
+		case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL1:
+			upgrade_shields = 1;
+		case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL2:
+			upgrade_shields = 2;
+		case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL3:
+			upgrade_shields = 3;
+		case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1:
+			upgrade_air_weapon = 1;
+		case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL2:
+			upgrade_air_weapon = 2;
+		case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL3:
+			upgrade_air_weapon = 3;
+		case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL1:
+			upgrade_air_armor = 1;
+		case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL2:
+			upgrade_air_armor = 2;
+		case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL3:
+			upgrade_air_armor = 3;
 		default:
 			break;
 		}
@@ -1882,6 +1916,40 @@ namespace sc2 {
 		return current_unique_id;
 	}
 
+	void TossBot::UpdateWarpgateStatus()
+	{
+		for (const auto &warpgate : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPGATE)))
+		{
+			if (warpgate_status.count(warpgate) == 0)
+			{
+				warpgate_status[warpgate] = WarpgateStatus(true);
+			}
+			if (warpgate_status[warpgate].used)
+			{
+				bool gate_ready = false;
+				for (const auto &ability : Query()->GetAbilitiesForUnit(warpgate).abilities)
+				{
+					if (ability.ability_id == ABILITY_ID::TRAINWARP_ZEALOT)
+					{
+						gate_ready = true;
+						break;
+					}
+				}
+				if (gate_ready)
+				{
+					warpgate_status[warpgate].frame_ready = 0;
+				}
+				warpgate_status[warpgate].used = false;
+			}
+			if (warpgate_status[warpgate].frame_ready > 0)
+			{
+				// TODO deal with warpgates being chrono'd
+				if (warpgate_status[warpgate].frame_ready <= Observation()->GetGameLoop())
+					warpgate_status[warpgate].frame_ready = 0;
+			}
+		}
+	}
+
 
 
 	Polygon TossBot::CreateNewBlocker(const Unit* unit)
@@ -2120,17 +2188,24 @@ namespace sc2 {
             {
                 std::string info = Utility::UnitTypeIdToString(building_type) + " ";
                 Color text_color = Color(0, 255, 0);
-                /*if (building_type == UNIT_TYPEID::PROTOSS_WARPGATE)
+				
+                if (building_type == UNIT_TYPEID::PROTOSS_WARPGATE)
                 {
-                    for (const auto & ability : Query()->GetAbilitiesForUnit(building).abilities)
-                    {
-                        if (ability.ability_id.ToType() == ABILITY_ID::TRAINWARP_ZEALOT)
-                        {
-                            text_color = Color(255, 0, 0);
-                        }
-                    }
+					if (warpgate_status.count(building) > 0 && warpgate_status[building].frame_ready == 0)
+					{
+						text_color = Color(255, 0, 0);
+					}
+					else
+					{
+						int curr_frame = Observation()->GetGameLoop();
+						int start_frame = warpgate_status[building].frame_ready - 720;
+						int percent = floor((curr_frame - start_frame) / 72);
+						std::string completed(percent, '|');
+						std::string todo(10 - percent, '-');
+						info += " <" + completed + todo + "> ";
+					}
                 }
-                else */if (building->orders.empty())
+                else if (building->orders.empty())
                 {
                     text_color = Color(255, 0, 0);
                 }
@@ -2178,6 +2253,7 @@ namespace sc2 {
     void TossBot::DisplaySupplyInfo()
     {
         std::string supply_message = "";
+		supply_message += std::to_string(Observation()->GetGameLoop()) + " - " + std::to_string(Observation()->GetGameLoop() / 22.4) + '\n';
         int cap = Observation()->GetFoodCap();
         int used = Observation()->GetFoodUsed();
         supply_message += "supply: " + std::to_string(used) + '/' + std::to_string(cap) + '\n';

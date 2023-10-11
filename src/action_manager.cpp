@@ -193,7 +193,41 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 			build_pylon_actions++;
 		}
 	}
-	int pending_pylons = 0;
+
+	int supply_used = agent->Observation()->GetFoodUsed();
+	int supply_cap = agent->Observation()->GetFoodCap() + 8 * (build_pylon_actions - agent->extra_pylons);
+
+	for (const auto &building : agent->Observation()->GetUnits(Unit::Alliance::Self))
+	{
+		if (supply_cap >= 200)
+			return false;
+		if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
+		{
+			if (building->build_progress < 1)
+				supply_cap += 8;
+		}
+		else if(building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
+		{
+			supply_used += 1;
+		}
+		else if (building->unit_type == UNIT_TYPEID::PROTOSS_GATEWAY)
+		{
+			supply_used += 2;
+		}
+		else if (building->unit_type == UNIT_TYPEID::PROTOSS_WARPGATE)
+		{
+			supply_used += 2;
+		}
+		else if (building->unit_type == UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)
+		{
+			supply_used += 3;
+		}
+		else if (building->unit_type == UNIT_TYPEID::PROTOSS_STARGATE)
+		{
+			supply_used += 4;
+		}
+	}
+	/*
 	for (const auto &pylon : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PYLON)))
 	{
 		if (pylon->build_progress < 1)
@@ -209,6 +243,7 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 	supply_used += 2 * agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size();
 	supply_used += 3 * agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)).size();
 	supply_used += 3 * agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size();
+	*/
 	if (supply_used >= supply_cap)
 		agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_PYLON);
 
@@ -232,55 +267,54 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 		).count();
 
 	// TODO make global upgrade tracker
-	std::vector<ABILITY_ID> upgrades = { ABILITY_ID::RESEARCH_PROTOSSSHIELDS, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS, ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR};
+	std::vector<ABILITY_ID> upgrades = {};
+	if (agent->upgrade_shields < 3)
+		upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSSHIELDS);
+	if (agent->upgrade_ground_weapon < 3)
+		upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS);
+	if (agent->upgrade_ground_armor < 3)
+		upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR);
+
+	Units idle_forges;
 	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
 	{
-		int upgrade_value = 9;
-		if (forge->orders.size() == 0)
+		if (forge->orders.size() > 0)
+			upgrades.erase(std::remove(upgrades.begin(), upgrades.end(), forge->orders[0].ability_id), upgrades.end());
+		else
+			idle_forges.push_back(forge);
+	}
+	if (idle_forges.size() > 0 && upgrades.size() > 0)
+	{
+		for (const auto &forge : idle_forges)
 		{
-			AvailableAbilities abilities = agent->Query()->GetAbilitiesForUnit(forge);
-			for (const auto &ability : abilities.abilities)
-			{
-				auto found = std::find(upgrades.begin(), upgrades.end(), ability.ability_id);
-				if (found != upgrades.end())
-				{
-					int index = found - upgrades.begin();
-					if (index < upgrade_value)
-						upgrade_value = index;
-				}
-			}
-		}
-		if (upgrade_value < 9)
-		{
-			agent->Actions()->UnitCommand(forge, upgrades[upgrade_value]);
-			upgrades.erase(upgrades.begin() + upgrade_value);
+			agent->Actions()->UnitCommand(forge, upgrades[0]);
+			upgrades.erase(upgrades.begin());
 		}
 	}
 
-	std::vector<ABILITY_ID> airUpgrades = { ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONS, ABILITY_ID::RESEARCH_PROTOSSAIRARMOR };
+	std::vector<ABILITY_ID> air_upgrades = {};
+	if (agent->upgrade_air_weapon < 3)
+		air_upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONS);
+	if (agent->upgrade_air_armor < 3)
+		air_upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSAIRARMOR);
+
+	Units idle_cybers;
 	for (const auto &cyber : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)))
 	{
-		int upgrade_value = 9;
-		if (cyber->orders.size() == 0)
+		if (cyber->orders.size() > 0)
+			air_upgrades.erase(std::remove(air_upgrades.begin(), air_upgrades.end(), cyber->orders[0].ability_id), air_upgrades.end());
+		else
+			idle_cybers.push_back(cyber);
+	}
+	if (idle_cybers.size() > 0 && air_upgrades.size() > 0)
+	{
+		for (const auto &cyber : idle_cybers)
 		{
-			AvailableAbilities abilities = agent->Query()->GetAbilitiesForUnit(cyber);
-			for (const auto &ability : abilities.abilities)
-			{
-				auto found = std::find(airUpgrades.begin(), airUpgrades.end(), ability.ability_id);
-				if (found != airUpgrades.end())
-				{
-					int index = found - airUpgrades.begin();
-					if (index < upgrade_value)
-						upgrade_value = index;
-				}
-			}
-		}
-		if (upgrade_value < 9)
-		{
-			agent->Actions()->UnitCommand(cyber, airUpgrades[upgrade_value]);
-			airUpgrades.erase(airUpgrades.begin() + upgrade_value);
+			agent->Actions()->UnitCommand(cyber, air_upgrades[0]);
+			air_upgrades.erase(air_upgrades.begin());
 		}
 	}
+
 	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
@@ -391,14 +425,19 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 	}
 	for (const auto &nexus : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 	{
-		for (const auto &ability : agent->Query()->GetAbilitiesForUnit(nexus).abilities)
+		if (nexus->energy >= 50)
+		{
+			agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
+			return false;
+		}
+		/*for (const auto &ability : agent->Query()->GetAbilitiesForUnit(nexus).abilities)
 		{
 			if (ability.ability_id == ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST)
 			{
 				agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
 				return false;
 			}
-		}
+		}*/
 	}
 	return false;
 }
@@ -446,17 +485,12 @@ bool ActionManager::ActionWarpInAtProxy(ActionArgData* data)
 		return false;
 	for (const auto &warpgate : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE)))
 	{
-		for (const auto &ability : agent->Query()->GetAbilitiesForUnit(warpgate).abilities)
+		if (agent->warpgate_status[warpgate].frame_ready == 0)
 		{
-			if (ability.ability_id == ABILITY_ID::TRAINWARP_ZEALOT)
-			{
-				if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, 1, agent->Observation()))
-				{
-					agent->Actions()->UnitCommand(warpgate, ABILITY_ID::TRAINWARP_STALKER, possible_spots.back());
-					possible_spots.pop_back();
-					break;
-				}
-			}
+			agent->Actions()->UnitCommand(warpgate, ABILITY_ID::TRAINWARP_STALKER, possible_spots.back());
+			agent->warpgate_status[warpgate].used = true;
+			agent->warpgate_status[warpgate].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
+			possible_spots.pop_back();
 		}
 		if (possible_spots.size() == 0)
 			break;
@@ -787,16 +821,7 @@ bool ActionManager::ActionContinueWarpingInStalkers(ActionArgData* data)
 	Units gates = agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
 	for (const auto &warpgate : gates)
 	{
-		bool gate_ready = false;
-		for (const auto &ability : agent->Query()->GetAbilitiesForUnit(warpgate).abilities)
-		{
-			if (ability.ability_id == ABILITY_ID::TRAINWARP_STALKER)
-			{
-				gate_ready = true;
-				break;
-			}
-		}
-		if (!gate_ready)
+		if (agent->warpgate_status[warpgate].frame_ready > 0)
 		{
 			all_gates_ready = false;
 			break;
@@ -815,6 +840,8 @@ bool ActionManager::ActionContinueWarpingInStalkers(ActionArgData* data)
 			{
 				std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
 				agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_STALKER, spots[i]);
+				agent->warpgate_status[gates[i]].used = true;
+				agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
 			}
 		}
 	}
@@ -833,16 +860,7 @@ bool ActionManager::ActionContinueWarpingInZealots(ActionArgData* data)
 	Units gates = agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
 	for (const auto &warpgate : gates)
 	{
-		bool gate_ready = false;
-		for (const auto &ability : agent->Query()->GetAbilitiesForUnit(warpgate).abilities)
-		{
-			if (ability.ability_id == ABILITY_ID::TRAINWARP_ZEALOT)
-			{
-				gate_ready = true;
-				break;
-			}
-		}
-		if (!gate_ready)
+		if (agent->warpgate_status[warpgate].frame_ready > 0)
 		{
 			all_gates_ready = false;
 			break;
@@ -862,6 +880,9 @@ bool ActionManager::ActionContinueWarpingInZealots(ActionArgData* data)
 				Point3D pos = Point3D(gates[i]->pos.x, gates[i]->pos.y, agent->Observation()->TerrainHeight(gates[i]->pos));
 				agent->Debug()->DebugSphereOut(pos, 1, Color(255, 0, 255));
 				agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_ZEALOT, spots[i]);
+				agent->warpgate_status[gates[i]].used = true;
+				agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(20 * 22.4);
+
 			}
 		}
 	}
@@ -993,13 +1014,15 @@ bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 
 			for (const auto &nexus : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 			{
-				for (const auto &ability : agent->Query()->GetAbilitiesForUnit(nexus).abilities)
+				if (nexus->energy >= 50)
+					agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, robo);
+				/*for (const auto &ability : agent->Query()->GetAbilitiesForUnit(nexus).abilities)
 				{
 					if (ability.ability_id == ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST)
 					{
 						agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, robo);
 					}
-				}
+				}*/
 			}
 		}
 	}

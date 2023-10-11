@@ -236,14 +236,19 @@ bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 		{
 			if (gateway->build_progress == 1 && gateway->orders.size() == 0)
 			{
-				for (const auto & ability : agent->Query()->GetAbilitiesForUnit(gateway).abilities)
+				if (agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0)
+				{
+					agent->Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_STALKER);
+					return true;
+				}
+				/*for (const auto & ability : agent->Query()->GetAbilitiesForUnit(gateway).abilities)
 				{
 					if (ability.ability_id.ToType() == ABILITY_ID::TRAIN_STALKER)
 					{
 						agent->Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_STALKER);
 						return true;
 					}
-				}
+				}*/
 			}
 		}
 	}
@@ -258,14 +263,19 @@ bool BuildOrderManager::TrainAdept(BuildOrderResultArgData data)
 		{
 			if (gateway->build_progress == 1 && gateway->orders.size() == 0)
 			{
-				for (const auto & ability : agent->Query()->GetAbilitiesForUnit(gateway).abilities)
+				if (agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0)
+				{
+					agent->Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_ADEPT);
+					return true;
+				}
+				/*for (const auto & ability : agent->Query()->GetAbilitiesForUnit(gateway).abilities)
 				{
 					if (ability.ability_id.ToType() == ABILITY_ID::TRAIN_ADEPT)
 					{
 						agent->Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_ADEPT);
 						return true;
 					}
-				}
+				}*/
 			}
 		}
 	}
@@ -302,14 +312,16 @@ bool BuildOrderManager::TrainPrism(BuildOrderResultArgData data)
 		{
 			if (robo->build_progress == 1 && robo->orders.size() == 0)
 			{
-				for (const auto & ability : agent->Query()->GetAbilitiesForUnit(robo).abilities)
+				agent->Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
+				return true;
+				/*for (const auto & ability : agent->Query()->GetAbilitiesForUnit(robo).abilities)
 				{
 					if (ability.ability_id.ToType() == ABILITY_ID::TRAIN_WARPPRISM)
 					{
 						agent->Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
 						return true;
 					}
-				}
+				}*/
 			}
 		}
 	}
@@ -324,14 +336,19 @@ bool BuildOrderManager::ChronoBuilding(BuildOrderResultArgData data)
 		{
 			for (const auto &nexus : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 			{
-				for (const auto &ability : agent->Query()->GetAbilitiesForUnit(nexus).abilities)
+				if (nexus->energy >= 50)
+				{
+					agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
+					return true;
+				}
+				/*for (const auto &ability : agent->Query()->GetAbilitiesForUnit(nexus).abilities)
 				{
 					if (ability.ability_id == ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST)
 					{
 						agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
 						return true;
 					}
-				}
+				}*/
 			}
 		}
 	}
@@ -689,10 +706,12 @@ bool BuildOrderManager::WarpInUnits(BuildOrderResultArgData data)
 	UnitTypeID type = data.unitId;
 	AbilityID warp_ability = Utility::UnitToWarpInAbility(type);
 	int gates_ready = 0;
-	Units gates = agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
-	for (const auto &warpgate : gates)
+	Units gates;
+	for (const auto &warpgate : agent->warpgate_status)
 	{
-		for (const auto &ability : agent->Query()->GetAbilitiesForUnit(warpgate).abilities)
+		if (warpgate.second.frame_ready == 0)
+			gates.push_back(warpgate.first);
+		/*for (const auto &ability : agent->Query()->GetAbilitiesForUnit(warpgate).abilities)
 		{
 			if (ability.ability_id == warp_ability)
 			{
@@ -703,7 +722,7 @@ bool BuildOrderManager::WarpInUnits(BuildOrderResultArgData data)
 		if (gates_ready >= warp_ins)
 		{
 			break;
-		}
+		}*/
 	}
 	if (gates.size() > 0 && gates_ready >= warp_ins && Utility::CanAfford(type, warp_ins, agent->Observation()))
 	{
@@ -798,11 +817,14 @@ bool BuildOrderManager::SafeRallyPoint(BuildOrderResultArgData data)
 {
 	for (const auto &building : agent->Observation()->GetUnits(IsUnit(data.unitId)))
 	{
-		for (const auto & ability : agent->Query()->GetAbilitiesForUnit(building).abilities)
+		Point2D pos = Utility::PointBetween(building->pos, agent->Observation()->GetStartLocation(), 2);
+		agent->Actions()->UnitCommand(building, ABILITY_ID::SMART, pos);
+
+		/*for (const auto & ability : agent->Query()->GetAbilitiesForUnit(building).abilities)
 		{
 			Point2D pos = Utility::PointBetween(building->pos, agent->Observation()->GetStartLocation(), 2);
 			agent->Actions()->UnitCommand(building, ABILITY_ID::SMART, pos);
-		}
+		}*/
 	}
 	return true;
 }
