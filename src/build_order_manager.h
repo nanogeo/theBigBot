@@ -76,6 +76,7 @@ enum BuildOrder {
 	testing,
 	blink_proxy_robo_pressure,
 	oracle_gatewayman_pvz,
+	four_gate_blink,
 	chargelot_allin,
 	chargelot_allin_old,
 	four_gate_adept_pressure,
@@ -123,6 +124,7 @@ public:
 	bool TrainAdept(BuildOrderResultArgData);
 	bool TrainOracle(BuildOrderResultArgData);
 	bool TrainPrism(BuildOrderResultArgData);
+	bool TrainObserver(BuildOrderResultArgData);
 	bool ChronoBuilding(BuildOrderResultArgData);
 	bool ResearchWarpgate(BuildOrderResultArgData);
 	bool BuildProxy(BuildOrderResultArgData);
@@ -150,10 +152,12 @@ public:
 	bool ResearchAttackTwo(BuildOrderResultArgData);
 	bool ResearchShieldsOne(BuildOrderResultArgData);
 	bool ResearchAirAttackOne(BuildOrderResultArgData);
-	bool ContinueWarpingInStalkers(BuildOrderResultArgData);
+	bool ConntinueWarpingInStalkers(BuildOrderResultArgData);
 	bool StopWarpingInStalkers(BuildOrderResultArgData);
-	bool ContinueWarpingInZealots(BuildOrderResultArgData);
-	bool StopWarpingInZealots(BuildOrderResultArgData);
+	bool ConntinueVolleyWarpingInStalkers(BuildOrderResultArgData);
+	bool StopVolleyWarpingInStalkers(BuildOrderResultArgData);
+	bool ContinueVolleyWarpingInZealots(BuildOrderResultArgData);
+	bool StopVolleyWarpingInZealots(BuildOrderResultArgData);
 	bool ContinueBuildingCarriers(BuildOrderResultArgData);
 	bool WarpInUnits(BuildOrderResultArgData);
 	bool PullOutOfGas(BuildOrderResultArgData);
@@ -175,6 +179,7 @@ public:
 	void SetTesting();
 	void SetBlinkProxyRoboPressureBuild();
 	void SetOracleGatewaymanPvZ();
+	void Set4GateBlink();
 	void SetChargelotAllin();
 	void SetChargelotAllinOld();
 	void Set4GateAdept();
@@ -431,19 +436,19 @@ struct BuildOrderData
 		{
 		str += "research +1 air weapons";
 		}
-		else if (result == &BuildOrderManager::ContinueWarpingInStalkers)
+		else if (result == &BuildOrderManager::ConntinueVolleyWarpingInStalkers)
 		{
 			str += "continue warping in stalkers";
 		}
-		else if (result == &BuildOrderManager::StopWarpingInStalkers)
+		else if (result == &BuildOrderManager::StopVolleyWarpingInStalkers)
 		{
 		str += "stop warping in stalkers";
 		}
-		else if (result == &BuildOrderManager::ContinueWarpingInZealots)
+		else if (result == &BuildOrderManager::ContinueVolleyWarpingInZealots)
 		{
 			str += "continue warping in zealots";
 		}
-		else if (result == &BuildOrderManager::StopWarpingInZealots)
+		else if (result == &BuildOrderManager::StopVolleyWarpingInZealots)
 		{
 		str += "stop warping in zealots";
 		}

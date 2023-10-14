@@ -610,6 +610,8 @@ int Utility::GetArmor(const Unit* unit)
 		break;
 	case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
 		break;
+	case UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED:
+		break;
 	case UNIT_TYPEID::TERRAN_REFINERY:
 		break;
 	case UNIT_TYPEID::TERRAN_BARRACKS:
@@ -1799,6 +1801,16 @@ bool Utility::CanAffordUpgrade(UPGRADE_ID upgrade, const ObservationInterface* o
 	bool enough_minerals = observation->GetMinerals() >= cost.mineral_cost;
 	bool enough_vespene = observation->GetVespene() >= cost.vespene_cost;
 	return enough_minerals && enough_vespene;
+}
+
+int Utility::MaxCanAfford(UNIT_TYPEID unit, int max, const ObservationInterface* observation)
+{
+	for (int i = 1; i < max + 1; i++)
+	{
+		if (CanAfford(unit, i, observation) == false)
+			return i - 1;
+	}
+	return max;
 }
 
 std::vector<UNIT_TYPEID> Utility::GetBurrowedUnitTypes()

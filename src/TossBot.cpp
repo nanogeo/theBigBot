@@ -256,7 +256,7 @@ namespace sc2 {
             std::cout << "add new base\n";
             std::cout << worker_manager.new_base->pos.x << ' ' << worker_manager.new_base->pos.y << '\n';;
             worker_manager.AddNewBase();
-            if (Observation()->GetGameLoop() < 5)
+            if (Observation()->GetGameLoop() < 10)
             {
                 worker_manager.SplitWorkers();
             }
@@ -363,7 +363,12 @@ namespace sc2 {
 			amaing_at_time << "Distance check,Angle check\n";
 			amaing_at_time.close();
 
+			std::ofstream update_warpgates;
+			update_warpgates.open("update_warpgates.txt", std::ios_base::out);
+			update_warpgates << "Zero,Used,Ready,Total\n";
+			update_warpgates.close();
 
+			
 
             auto infos = Observation()->GetGameInfo().player_info;
             if (infos.size() > 0)
@@ -386,7 +391,7 @@ namespace sc2 {
                 //SaturateGas(building->tag);
             }
             
-			build_order_manager.SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
+			build_order_manager.SetBuildOrder(curr_build_order);
 
         }
 
@@ -468,26 +473,18 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
+        worker_manager.BuildWorkers();
 		std::chrono::microseconds postBuildWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);;
+			);
+
+		build_order_manager.CheckBuildOrder();
 		std::chrono::microseconds postCheckBuildOrder = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);;
-		std::chrono::microseconds postProcessActions = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);;
+			);
 
-        worker_manager.BuildWorkers();
-		postBuildWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-		build_order_manager.CheckBuildOrder();
-		postCheckBuildOrder = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
 		action_manager.ProcessActions();
-		postProcessActions = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::microseconds postProcessActions = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
@@ -515,7 +512,7 @@ namespace sc2 {
 		frame_time_file << postUpdateEnemyUnitPositions.count() - postNewBase.count() << ", ";
 		frame_time_file << postUpdateEnemyWeaponCooldowns.count() - postUpdateEnemyUnitPositions.count() << ", ";
 		frame_time_file << postUpdateWarpgateStatus.count() - postUpdateEnemyWeaponCooldowns.count() << ", ";
-		frame_time_file << postBuildWorkers.count() - postUpdateEnemyWeaponCooldowns.count() << ", ";
+		frame_time_file << postBuildWorkers.count() - postUpdateWarpgateStatus.count() << ", ";
 		frame_time_file << postCheckBuildOrder.count() - postBuildWorkers.count() << ", ";
 		frame_time_file << postProcessActions.count() - postCheckBuildOrder.count() << ", ";
 		frame_time_file << postProcessFSM.count() - postProcessActions.count() << ", ";
@@ -1918,12 +1915,29 @@ namespace sc2 {
 
 	void TossBot::UpdateWarpgateStatus()
 	{
+		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
+		unsigned long long zero_total = 0;
+		unsigned long long used_total = 0;
+		unsigned long long ready_total = 0;
+
 		for (const auto &warpgate : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPGATE)))
 		{
+			unsigned long long gate_start = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count();
+
 			if (warpgate_status.count(warpgate) == 0)
 			{
 				warpgate_status[warpgate] = WarpgateStatus(true);
 			}
+
+			unsigned long long zero = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count();
+
 			if (warpgate_status[warpgate].used)
 			{
 				bool gate_ready = false;
@@ -1941,13 +1955,38 @@ namespace sc2 {
 				}
 				warpgate_status[warpgate].used = false;
 			}
+
+			unsigned long long used = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count();
+
 			if (warpgate_status[warpgate].frame_ready > 0)
 			{
 				// TODO deal with warpgates being chrono'd
 				if (warpgate_status[warpgate].frame_ready <= Observation()->GetGameLoop())
 					warpgate_status[warpgate].frame_ready = 0;
 			}
+			unsigned long long ready = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+				).count();
+			
+			zero_total += zero - gate_start;
+			used_total += used - zero;
+			ready_total += ready - used;
 		}
+
+		unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
+		std::ofstream update_warpgates;
+		update_warpgates.open("update_warpgates.txt", std::ios_base::app);
+
+		update_warpgates << zero_total << ", ";
+		update_warpgates << used_total << ", ";
+		update_warpgates << ready_total << ", ";
+		update_warpgates << end_time - start_time << "\n";
+		update_warpgates.close();
 	}
 
 

@@ -125,6 +125,10 @@ def display_times(info, indent):
 			aiming_at = read_file('amaing_at_time.txt')
 			#print('   |' * (indent + 1) + 'Pressure Time')
 			display_times(aiming_at, indent + 1)
+		if info[0][i] == 'Update warpgate status':
+			update_warpgates = read_file('update_warpgates.txt')
+			#print('   |' * (indent + 1) + 'Pressure Time')
+			display_times(update_warpgates, indent + 1)
 
 	print('   |' * indent + '{:<25} {:>8}'.format('Total', "{:.0f}".format(total)))
 

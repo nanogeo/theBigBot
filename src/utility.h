@@ -66,6 +66,7 @@ public:
 	static int BuildingsReady(UNIT_TYPEID, const ObservationInterface*);
 	static bool CanAfford(UNIT_TYPEID, int, const ObservationInterface*);
 	static bool CanAffordUpgrade(UPGRADE_ID, const ObservationInterface*);
+	static int MaxCanAfford(UNIT_TYPEID, int, const ObservationInterface*);
 	static std::vector<UNIT_TYPEID> GetBurrowedUnitTypes();
 
 	static std::string UnitTypeIdToString(UNIT_TYPEID);

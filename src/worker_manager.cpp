@@ -106,6 +106,7 @@ const Unit* WorkerManager::GetWorker()
 
 const Unit* WorkerManager::GetBuilder(Point2D position)
 {
+	// TODO check for buff CARRYMINERALFIELDMINERALS
 	Units mineral_fields = agent->Observation()->GetUnits(IsMineralPatch());
 	Units mineral_patches_reversed_keys;
 	Units far_only_mineral_patches_reversed_keys;
@@ -737,20 +738,28 @@ void WorkerManager::BuildWorkers()
 	{
 		for (const auto &nexus : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 		{
-			bool probe_queued = false;
-			for (const auto &order : nexus->orders)
+			if (nexus->orders.size() > 0)
 			{
-				if (order.ability_id == ABILITY_ID::TRAIN_PROBE && order.progress == 0)
+				if (nexus->orders[0].progress > .95)
 				{
-					probe_queued = true;
-					break;
+					if (nexus->orders.size() == 1)
+					{
+						agent->Actions()->UnitCommand(nexus, ABILITY_ID::TRAIN_PROBE);
+					}
+					else if (nexus->orders.size() > 2)
+					{
+						agent->Actions()->UnitCommand(nexus, ABILITY_ID::CANCEL_LAST);
+					}
+				}
+				else
+				{
+					if (nexus->orders.size() > 1)
+					{
+						agent->Actions()->UnitCommand(nexus, ABILITY_ID::CANCEL_LAST);
+					}
 				}
 			}
-			if (probe_queued)
-			{
-				agent->Actions()->UnitCommand(nexus, ABILITY_ID::CANCELSLOT_QUEUEPASSIVE);
-			}
-			if (nexus->orders.empty())
+			else if (nexus->orders.size() == 0)
 			{
 				agent->Actions()->UnitCommand(nexus, ABILITY_ID::TRAIN_PROBE);
 			}

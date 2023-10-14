@@ -359,7 +359,7 @@ bool ActionManager::ActionContinueChronos(ActionArgData* data)
 	{
 		if (need_chrono.size() == 0)
 			break;
-		if (nexus->energy >= 50)
+		if (nexus->energy >= 50 && nexus->build_progress == 1)
 		{
 			agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, need_chrono[0]);
 			need_chrono.erase(need_chrono.begin());
@@ -425,7 +425,7 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 	}
 	for (const auto &nexus : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 	{
-		if (nexus->energy >= 50)
+		if (nexus->energy >= 50 && nexus->build_progress == 1)
 		{
 			agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
 			return false;
@@ -817,6 +817,36 @@ bool ActionManager::ActionZealotDoubleprong(ActionArgData* data)
 
 bool ActionManager::ActionContinueWarpingInStalkers(ActionArgData* data)
 {
+	Units gates_ready;
+	Units gates = agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
+	for (const auto &warpgate : gates)
+	{
+		if (agent->warpgate_status[warpgate].frame_ready == 0)
+		{
+			gates_ready.push_back(warpgate);
+		}
+	}
+
+	if (gates_ready.size() > 0)
+	{
+		int max_warpins = std::min(int(gates_ready.size()), Utility::MaxCanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates_ready.size(), agent->Observation()));
+		if (max_warpins == 0)
+			return false;
+		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], max_warpins);
+		std::cout << "spots " << spots.size() << "\n";
+		for (int i = 0; i < spots.size(); i++)
+		{
+			std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
+			agent->Actions()->UnitCommand(gates_ready[i], ABILITY_ID::TRAINWARP_STALKER, spots[i]);
+			agent->warpgate_status[gates_ready[i]].used = true;
+			agent->warpgate_status[gates_ready[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
+		}
+	}
+	return false;
+}
+
+bool ActionManager::ActionContinueVolleyWarpingInStalkers(ActionArgData* data)
+{
 	bool all_gates_ready = true;
 	Units gates = agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
 	for (const auto &warpgate : gates)
@@ -848,7 +878,7 @@ bool ActionManager::ActionContinueWarpingInStalkers(ActionArgData* data)
 	return false;
 }
 
-bool ActionManager::ActionContinueWarpingInZealots(ActionArgData* data)
+bool ActionManager::ActionContinueVolleyWarpingInZealots(ActionArgData* data)
 {
 	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
@@ -1014,7 +1044,7 @@ bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 
 			for (const auto &nexus : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 			{
-				if (nexus->energy >= 50)
+				if (nexus->energy >= 50 && nexus->build_progress == 1)
 					agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, robo);
 				/*for (const auto &ability : agent->Query()->GetAbilitiesForUnit(nexus).abilities)
 				{

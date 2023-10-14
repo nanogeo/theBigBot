@@ -36,6 +36,7 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 						convert_location(Point2D(124.5, 120.5), swap) };
 
 	pylon_locations = { convert_location(Point2D(140, 36), swap),
+						convert_location(Point2D(141, 65), swap),
 						convert_location(Point2D(124, 29), swap),
 						convert_location(Point2D(146.8, 99), swap),
 						convert_location(Point2D(146, 91), swap),

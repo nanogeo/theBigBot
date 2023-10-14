@@ -97,7 +97,8 @@ public:
 	bool ActionStalkerOraclePressure(ActionArgData*);
 	bool ActionZealotDoubleprong(ActionArgData*);
 	bool ActionContinueWarpingInStalkers(ActionArgData*);
-	bool ActionContinueWarpingInZealots(ActionArgData*);
+	bool ActionContinueVolleyWarpingInStalkers(ActionArgData*);
+	bool ActionContinueVolleyWarpingInZealots(ActionArgData*);
 	bool ActionContinueBuildingCarriers(ActionArgData*);
 	bool ActionPullOutOfGas(ActionArgData*);
 	bool ActionRemoveScoutToProxy(ActionArgData*); // tostring
@@ -200,11 +201,11 @@ struct ActionData
 		{
 			str += "Zealot double prong";
 		}
-		else if (action == &ActionManager::ActionContinueWarpingInStalkers)
+		else if (action == &ActionManager::ActionContinueVolleyWarpingInStalkers)
 		{
 			str += "Continue warping in stalkers";
 		}
-		else if (action == &ActionManager::ActionContinueWarpingInZealots)
+		else if (action == &ActionManager::ActionContinueVolleyWarpingInZealots)
 		{
 			str += "Continue warping in zealots";
 		}

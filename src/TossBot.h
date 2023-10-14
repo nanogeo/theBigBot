@@ -243,6 +243,7 @@ class TossBot : public sc2::Agent
 public:
 	TossBot() : Agent(), worker_manager(this), action_manager(this), build_order_manager(this) {};
 	bool started = false;
+	BuildOrder curr_build_order = BuildOrder::four_gate_blink;
 	WorkerManager worker_manager;
 	ActionManager action_manager;
 	BuildOrderManager build_order_manager;
