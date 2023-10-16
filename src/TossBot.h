@@ -52,16 +52,28 @@ struct ScoutInfoZerg
     float roach_warren_timing = 0;
 };
 
+
+enum FirstRaxProduction {
+	idle,
+	marine,
+	reaper,
+	reactor,
+	techlab
+};
+
 struct ScoutInfoTerran
 {
     float natural_timing = 0;
     float third_timing = 0;
     float gas_timing = 0;
+	Point3D gas_pos;
+	float second_gas_timing = 0;
     int gas_mined = 0;
     float barrackes_timing = 0;
     bool factory_timing = 0;
     int scv_count = 0;
     int num_barracks = 0;
+	FirstRaxProduction first_rax_production = FirstRaxProduction::idle;
 };
 
 struct BaseInfo
@@ -310,6 +322,7 @@ public:
     void OraclesCoverStalkers(Units, Units);
 
     void ProcessFSMs();
+	void RemoveStateMachine(StateMachine*);
 
     // Events
     void AddListenerToOnUnitDamagedEvent(int, std::function<void(const Unit*, float, float)>);

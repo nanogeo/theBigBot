@@ -80,6 +80,10 @@ public:
 	Point2D natural_door_closed;
 	Point2D natural_door_open;
 
+	Point2D main_early_dead_space;
+	std::vector<Point2D> natural_front;
+	
+
     Locations() {}
     Locations(Point3D start_location, BuildOrder build_order, std::string map_name)
     {

@@ -114,13 +114,13 @@ int main(int argc, char* argv[])
 	{
 
 		coordinator.SetParticipants({
-			CreateParticipant(sc2::Race::Protoss, &bot1),
-			CreateParticipant(sc2::Race::Zerg, &bot2)
+			CreateParticipant(sc2::Race::Terran, &bot2),
+			CreateParticipant(sc2::Race::Protoss, &bot1)
 			});
 		coordinator.SetRealtime(true);
 
 		coordinator.LaunchStarcraft();
-		coordinator.StartGame("EternalEmpireLE.SC2Map");
+		coordinator.StartGame("LightShadeLE.SC2Map");
 	}
 	// LightShadeLE, AncientCisternAIE, DragonScalesAIE, GoldenAuraAIE, GresvanAIE, InfestationStationAIE, RoyalBloodAIE
 	

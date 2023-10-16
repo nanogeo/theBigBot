@@ -171,6 +171,7 @@ public:
 	bool ProxyDoubleRoboAllIn(BuildOrderResultArgData);
 	bool DefendThirdBase(BuildOrderResultArgData);
 	bool SetDoorGuard(BuildOrderResultArgData);
+	bool AdeptDefendBaseTerran(BuildOrderResultArgData);
 
 	bool RemoveProbe(BuildOrderResultArgData);
 

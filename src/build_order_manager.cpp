@@ -950,6 +950,18 @@ bool BuildOrderManager::SetDoorGuard(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::AdeptDefendBaseTerran(BuildOrderResultArgData data)
+{
+	if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ADEPT)).size() > 0)
+	{
+		const Unit* adept = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ADEPT))[0];
+		AdeptBaseDefenseTerran* adept_defense_fsm = new AdeptBaseDefenseTerran(agent, "Adept base defense", adept, agent->locations->main_early_dead_space, agent->locations->natural_front);
+		agent->active_FSMs.push_back(adept_defense_fsm);
+		return true;
+	}
+	return false;
+}
+
 bool BuildOrderManager::RemoveProbe(BuildOrderResultArgData data)
 {
 
@@ -1137,6 +1149,7 @@ void BuildOrderManager::Set4GateBlink()
 					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
 					BuildOrderData(&BuildOrderManager::HasBuilding,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&BuildOrderManager::ResearchWarpgate,			BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(135.0f),										&BuildOrderManager::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(135.0f),										&BuildOrderManager::AdeptDefendBaseTerran,		BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(135.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(148.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(155.0f),										&BuildOrderManager::TrainStalker,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_STALKER)),
@@ -1157,7 +1170,9 @@ void BuildOrderManager::Set4GateBlink()
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(250.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(253.0f),										&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL)),
 					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(260.0f),										&BuildOrderManager::ContinueBuildingPylons,		BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(270.0f),										&BuildOrderManager::StopWarpingInStalkers,		BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::HasUnits,			BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_STALKER, 8),			&BuildOrderManager::StopWarpingInStalkers,		BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(290.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR)),
+					BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(335.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_NEXUS)),
 	};
 }
 

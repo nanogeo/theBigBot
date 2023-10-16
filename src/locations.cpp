@@ -324,6 +324,11 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 	third_base_pylon_gap = convert_location(Point2D(147, 97.5), swap);
 	natural_door_closed = convert_location(Point2D(137.5, 64.5), swap);
 	natural_door_open = convert_location(Point2D(135.5, 64.5), swap);
+
+	main_early_dead_space = convert_location(Point2D(125, 32), swap);
+	natural_front = { convert_location(Point2D(135, 65), swap),
+						convert_location(Point2D(140, 70), swap) };
+
 }
 
 void Locations::SetTestingLocations(Point3D start_location, BuildOrder build_order)

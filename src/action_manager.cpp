@@ -817,6 +817,8 @@ bool ActionManager::ActionZealotDoubleprong(ActionArgData* data)
 
 bool ActionManager::ActionContinueWarpingInStalkers(ActionArgData* data)
 {
+	if (agent->Observation()->GetGameLoop() % 2 == 0)
+		return false;
 	Units gates_ready;
 	Units gates = agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
 	for (const auto &warpgate : gates)

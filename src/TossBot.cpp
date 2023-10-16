@@ -50,6 +50,9 @@ namespace sc2 {
 			);
 
 		Units bla = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ADEPT));
+		Units funits = Observation()->GetUnits(Unit::Alliance::Self);
+		Units nunits = Observation()->GetUnits(Unit::Alliance::Neutral);
+		Units eunits = Observation()->GetUnits(Unit::Alliance::Enemy);
 		frames_passed++;
         //std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
         if (debug_mode)
@@ -473,7 +476,8 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
-        worker_manager.BuildWorkers();
+		if (Observation()->GetGameLoop() % 5 == 0)
+	        worker_manager.BuildWorkers();
 		std::chrono::microseconds postBuildWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
@@ -1330,6 +1334,11 @@ namespace sc2 {
 		fsm_time_file.close();
     }
 
+	void TossBot::RemoveStateMachine(StateMachine* state_machine)
+	{
+		active_FSMs.erase(std::remove(active_FSMs.begin(), active_FSMs.end(), state_machine), active_FSMs.end());
+	}
+
 #pragma endregion
 
 #pragma region Events
@@ -1931,7 +1940,7 @@ namespace sc2 {
 
 			if (warpgate_status.count(warpgate) == 0)
 			{
-				warpgate_status[warpgate] = WarpgateStatus(true);
+				warpgate_status[warpgate] = WarpgateStatus(Observation()->GetGameLoop());
 			}
 
 			unsigned long long zero = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -2266,6 +2275,7 @@ namespace sc2 {
                 Debug()->DebugTextOut(new_lines + info, Point2D(0, .5), text_color, 20);
                 new_lines += "\n";
             }
+			new_lines += "\n";
         }
 
     }

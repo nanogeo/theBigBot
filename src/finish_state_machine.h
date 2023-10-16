@@ -341,6 +341,39 @@ public:
     virtual State* TestTransitions() override;
 };
 
+class ScoutTScoutRax : public State
+{
+public:
+	const Unit* rax;
+	ScoutTerranStateMachine* state_machine;
+	ScoutTScoutRax(TossBot* agent, ScoutTerranStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class ScoutTReturnToBase : public State
+{
+public:
+	ScoutTerranStateMachine* state_machine;
+	ScoutTReturnToBase(TossBot* agent, ScoutTerranStateMachine* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
 #pragma endregion
 
 #pragma region ImmortalDrop
@@ -541,6 +574,61 @@ public:
 
 #pragma endregion
 
+#pragma region AdeptBaseDefenseTerran
+
+class AdeptBaseDefenseTerranClearBase : public State
+{
+public:
+	class AdeptBaseDefenseTerran* state_machine;
+	bool checked_dead_space = false;
+	AdeptBaseDefenseTerranClearBase(TossBot* agent, AdeptBaseDefenseTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class AdeptBaseDefenseTerranDefendFront : public State
+{
+public:
+	class AdeptBaseDefenseTerran* state_machine;
+	bool forward = true;
+	AdeptBaseDefenseTerranDefendFront(TossBot* agent, AdeptBaseDefenseTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class AdeptBaseDefenseTerranMoveAcross : public State
+{
+public:
+	class AdeptBaseDefenseTerran* state_machine;
+	AdeptBaseDefenseTerranMoveAcross(TossBot* agent, AdeptBaseDefenseTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+
+#pragma endregion
+
 class StateMachine
 {
 public:
@@ -564,7 +652,8 @@ public:
             current_state = new_state;
             current_state->EnterState();
         }
-        current_state->TickState();
+		if (current_state != NULL)
+	        current_state->TickState();
     }
 
     virtual void StartStateMachine()
@@ -581,6 +670,13 @@ public:
     {
         return name + " - " + current_state->toString();
     }
+
+	void CloseStateMachine()
+	{
+		delete current_state;
+		current_state = NULL;
+		agent->RemoveStateMachine(this);
+	}
 };
 
 class OraclePvZStateMachine : public StateMachine
@@ -785,6 +881,13 @@ public:
         CheckScoutingInfo();
     }
 
+	void CloseStateMachine()
+	{
+		delete current_state;
+		current_state = NULL;
+		agent->worker_manager.PlaceWorker(scout);
+		agent->RemoveStateMachine(this);
+	}
 
     void CheckScoutingInfo()
     {
@@ -807,10 +910,19 @@ public:
                     std::cout << "natural built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
                     agent->scout_info_terran.natural_timing = Utility::GetTimeBuilt(unit, agent->Observation());
                 }
-                else if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_REFINERY && agent->scout_info_terran.gas_timing == 0)
+                else if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_REFINERY)
                 {
-                    std::cout << "gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-                    agent->scout_info_terran.gas_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+					if (agent->scout_info_terran.gas_timing == 0)
+					{
+						std::cout << "gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+						agent->scout_info_terran.gas_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+						agent->scout_info_terran.gas_pos = unit->pos;
+					}
+					else if (agent->scout_info_terran.second_gas_timing == 0 && unit->pos != agent->scout_info_terran.gas_pos)
+					{
+						std::cout << "second gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+						agent->scout_info_terran.second_gas_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+					}
                 }
             }
         }
@@ -901,6 +1013,48 @@ public:
 		this->door_closed_pos = door_closed_pos;
 		current_state->EnterState();
 	}
+};
+
+class AdeptBaseDefenseTerran : public StateMachine
+{
+public:
+	const Unit* adept;
+	int frame_shade_used = 0;
+	bool attack_status = false;
+	const Unit* shade = NULL;
+	Point2D dead_space_spot;
+	const Unit* target = NULL;
+	std::vector<Point2D> front_of_base;
+	int event_id;
+	AdeptBaseDefenseTerran(TossBot* agent, std::string name, const Unit* adept, Point2D dead_space_spot, std::vector<Point2D> front_of_base) {
+		this->agent = agent;
+		this->name = name;
+		current_state = new AdeptBaseDefenseTerranClearBase(agent, this);
+		this->adept = adept;
+		this->dead_space_spot = dead_space_spot;
+		this->front_of_base = front_of_base;
+
+		event_id = agent->GetUniqueId();
+		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
+			this->OnUnitCreatedListener(unit);
+		};
+		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
+
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
+		current_state->EnterState();
+	}
+	~AdeptBaseDefenseTerran()
+	{
+		agent->RemoveListenerToOnUnitCreatedEvent(event_id);
+		agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+	}
+	void OnUnitCreatedListener(const Unit*);
+	void OnUnitDestroyedListener(const Unit*);
+
 };
 
 }
