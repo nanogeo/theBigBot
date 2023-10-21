@@ -626,8 +626,221 @@ public:
 	virtual State* TestTransitions() override;
 };
 
+class AdeptBaseDefenseTerranScoutBase : public State
+{
+public:
+	class AdeptBaseDefenseTerran* state_machine;
+	Point2D shade_target;
+	Point2D adept_scout_shade;
+	Point2D adept_scout_runaway;
+	Point2D adept_scout_ramptop;
+	bool shields_regening = false;
+	std::vector<Point2D> adept_scout_nat_path;
+	std::vector<Point2D> adept_scout_base_spots;
+	int base_spots_index;
+	AdeptBaseDefenseTerranScoutBase(TossBot* agent, AdeptBaseDefenseTerran* state_machine, Point2D adept_scout_shade, Point2D adept_scout_runaway,
+		Point2D adept_scout_ramptop, std::vector<Point2D> adept_scout_nat_path, std::vector<Point2D> adept_scout_base_spots)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->adept_scout_shade = adept_scout_shade;
+		this->adept_scout_runaway = adept_scout_runaway;
+		this->adept_scout_ramptop = adept_scout_ramptop;
+		this->adept_scout_nat_path = adept_scout_nat_path;
+		this->adept_scout_base_spots = adept_scout_base_spots;
+		shade_target = adept_scout_ramptop;
+		base_spots_index = 1;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+	void UpdateShadeTarget();
+};
 
 #pragma endregion
+
+#pragma region StalkerBaseDefenseTerran
+
+class StalkerBaseDefenseTerranDefendFront : public State
+{
+public:
+	class StalkerBaseDefenseTerran* state_machine;
+	bool forward = true;
+	StalkerBaseDefenseTerranDefendFront(TossBot* agent, StalkerBaseDefenseTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class StalkerBaseDefenseTerranMoveAcross : public State
+{
+public:
+	class StalkerBaseDefenseTerran* state_machine;
+	StalkerBaseDefenseTerranMoveAcross(TossBot* agent, StalkerBaseDefenseTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class ScoutBaseDefenseTerranHarrassFront : public State
+{
+public:
+	class StalkerBaseDefenseTerran* state_machine;
+	Point2D attack_pos;
+	Point2D retreat_pos;
+	bool shields_regening = false;
+	ScoutBaseDefenseTerranHarrassFront(TossBot* agent, StalkerBaseDefenseTerran* state_machine, Point2D adept_scout_shade, Point2D adept_scout_runaway)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->attack_pos = adept_scout_shade;
+		this->retreat_pos = adept_scout_runaway;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+
+#pragma endregion
+
+
+#pragma region BlinkStalkerAttackTerran
+
+class BlinkStalkerAttackTerranMoveAcross : public State
+{
+public:
+	class BlinkStalkerAttackTerran* state_machine;
+	BlinkStalkerAttackTerranMoveAcross(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class BlinkStalkerAttackTerranWarpIn : public State
+{
+public:
+	class BlinkStalkerAttackTerran* state_machine;
+	bool warping_in = false;
+	int warp_in_time;
+	BlinkStalkerAttackTerranWarpIn(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class BlinkStalkerAttackTerranConsolidate : public State
+{
+public:
+	class BlinkStalkerAttackTerran* state_machine;
+	BlinkStalkerAttackTerranConsolidate(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class BlinkStalkerAttackTerranAttack : public State
+{
+public:
+	class BlinkStalkerAttackTerran* state_machine;
+	BlinkStalkerAttackTerranAttack(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class BlinkStalkerAttackTerranSnipeUnit : public State
+{
+public:
+	class BlinkStalkerAttackTerran* state_machine;
+	BlinkStalkerAttackTerranSnipeUnit(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class BlinkStalkerAttackTerranBlinkUp : public State
+{
+public:
+	class BlinkStalkerAttackTerran* state_machine;
+	BlinkStalkerAttackTerranBlinkUp(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class BlinkStalkerAttackTerranLeaveHighground : public State
+{
+public:
+	class BlinkStalkerAttackTerran* state_machine;
+	BlinkStalkerAttackTerranLeaveHighground(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+
+#pragma endregion
+
+
 
 class StateMachine
 {
@@ -1054,7 +1267,61 @@ public:
 	}
 	void OnUnitCreatedListener(const Unit*);
 	void OnUnitDestroyedListener(const Unit*);
+};
 
+class StalkerBaseDefenseTerran : public StateMachine
+{
+public:
+	const Unit* stalker;
+	bool attack_status = false;
+	const Unit* target = NULL;
+	std::vector<Point2D> front_of_base;
+	int event_id;
+	StalkerBaseDefenseTerran(TossBot* agent, std::string name, const Unit* stalker, std::vector<Point2D> front_of_base) {
+		this->agent = agent;
+		this->name = name;
+		current_state = new StalkerBaseDefenseTerranDefendFront(agent, this);
+		this->stalker = stalker;
+		this->front_of_base = front_of_base;
+
+		event_id = agent->GetUniqueId();
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
+		current_state->EnterState();
+	}
+	~StalkerBaseDefenseTerran()
+	{
+		agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+	}
+	void OnUnitDestroyedListener(const Unit*);
+};
+
+class BlinkStalkerAttackTerran : public StateMachine
+{
+public:
+	ArmyGroup* army_group;
+	bool attacking_main = false;
+	Point2D consolidation_pos;
+	Point2D prism_consolidation_pos;
+	Point2D blink_up_pos;
+
+	int event_id;
+	BlinkStalkerAttackTerran(TossBot* agent, std::string name, ArmyGroup* army, Point2D consolidation_pos, Point2D prism_consolidation_pos, Point2D blink_up_pos) {
+		this->agent = agent;
+		this->name = name;
+		this->army_group = army;
+		this->consolidation_pos = consolidation_pos;
+		this->prism_consolidation_pos = prism_consolidation_pos;
+		this->blink_up_pos = blink_up_pos;
+		current_state = new BlinkStalkerAttackTerranMoveAcross(agent, this);
+
+
+		current_state->EnterState();
+	}
 };
 
 }
+

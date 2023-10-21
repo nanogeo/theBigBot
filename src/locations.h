@@ -82,6 +82,21 @@ public:
 
 	Point2D main_early_dead_space;
 	std::vector<Point2D> natural_front;
+	Point2D base_defense_front;
+	Point2D base_defense_main;
+	Point2D base_defense_nat;
+	Point2D base_defense_center;
+
+	Point2D adept_scout_shade;
+	Point2D adept_scout_runaway;
+	Point2D adept_scout_ramptop;
+	std::vector<Point2D> adept_scout_nat_path;
+	std::vector<Point2D> adept_scout_base_spots;
+
+	Point2D blink_presure_consolidation;
+	Point2D blink_pressure_prism_consolidation;
+	Point2D blink_pressure_blink_up;
+	Point2D blink_pressure_blink_down;
 	
 
     Locations() {}

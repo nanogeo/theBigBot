@@ -328,7 +328,25 @@ void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_
 	main_early_dead_space = convert_location(Point2D(125, 32), swap);
 	natural_front = { convert_location(Point2D(135, 65), swap),
 						convert_location(Point2D(140, 70), swap) };
+	base_defense_front = convert_location(Point2D(137, 67), swap);
+	base_defense_main = convert_location(Point2D(126, 25), swap);
+	base_defense_nat = convert_location(Point2D(154, 71), swap);
+	base_defense_center = convert_location(Point2D(137, 44), swap);
 
+	adept_scout_shade = convert_location(Point2D(50, 94), swap);
+	adept_scout_runaway = convert_location(Point2D(47, 81), swap);
+	adept_scout_ramptop = convert_location(Point2D(45, 115), swap);
+	adept_scout_nat_path = { convert_location(Point2D(37, 99), swap),
+								convert_location(Point2D(37, 107), swap) };
+	adept_scout_base_spots = { convert_location(Point2D(30, 126), swap),
+								convert_location(Point2D(38, 138), swap),
+								convert_location(Point2D(49, 139), swap),
+								convert_location(Point2D(57, 134), swap) };
+
+	blink_presure_consolidation = convert_location(Point2D(67, 100), swap);
+	blink_pressure_prism_consolidation = convert_location(Point2D(71, 103), swap);
+	blink_pressure_blink_up = convert_location(Point2D(58, 115), swap);
+	blink_pressure_blink_down = convert_location(Point2D(56, 121), swap);
 }
 
 void Locations::SetTestingLocations(Point3D start_location, BuildOrder build_order)

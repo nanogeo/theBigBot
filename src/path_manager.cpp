@@ -367,7 +367,7 @@ Point2D PathManager::GetPointFrom(Point2D point, double dist, bool forward)
 	std::vector<Point2D> circle_intersections = FindCircleIntersection(point, dist);
 	if (circle_intersections.size() == 0)
 	{
-		std::cout << "Error no intersections found in PathManager::GetPointFrom";
+		std::cout << "Error no intersections found in PathManager::GetPointFrom\n";
 		circle_intersections = FindCircleIntersection(point, dist);
 		return Point2D(0, 0);
 	}

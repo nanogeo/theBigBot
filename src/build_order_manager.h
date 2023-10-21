@@ -152,12 +152,12 @@ public:
 	bool ResearchAttackTwo(BuildOrderResultArgData);
 	bool ResearchShieldsOne(BuildOrderResultArgData);
 	bool ResearchAirAttackOne(BuildOrderResultArgData);
-	bool ConntinueWarpingInStalkers(BuildOrderResultArgData);
-	bool StopWarpingInStalkers(BuildOrderResultArgData);
-	bool ConntinueVolleyWarpingInStalkers(BuildOrderResultArgData);
-	bool StopVolleyWarpingInStalkers(BuildOrderResultArgData);
-	bool ContinueVolleyWarpingInZealots(BuildOrderResultArgData);
-	bool StopVolleyWarpingInZealots(BuildOrderResultArgData);
+	bool ConntinueWarpingInStalkers(BuildOrderResultArgData); //tostring
+	bool StopWarpingInStalkers(BuildOrderResultArgData); //tostring
+	bool ConntinueVolleyWarpingInStalkers(BuildOrderResultArgData); //tostring
+	bool StopVolleyWarpingInStalkers(BuildOrderResultArgData); //tostring
+	bool ContinueVolleyWarpingInZealots(BuildOrderResultArgData); //tostring
+	bool StopVolleyWarpingInZealots(BuildOrderResultArgData); //tostring
 	bool ContinueBuildingCarriers(BuildOrderResultArgData);
 	bool WarpInUnits(BuildOrderResultArgData);
 	bool PullOutOfGas(BuildOrderResultArgData);
@@ -171,7 +171,9 @@ public:
 	bool ProxyDoubleRoboAllIn(BuildOrderResultArgData);
 	bool DefendThirdBase(BuildOrderResultArgData);
 	bool SetDoorGuard(BuildOrderResultArgData);
-	bool AdeptDefendBaseTerran(BuildOrderResultArgData);
+	bool AdeptDefendBaseTerran(BuildOrderResultArgData); //tostring
+	bool StalkerDefendBaseTerran(BuildOrderResultArgData); // tostring
+	bool StartFourGateBlinkPressure(BuildOrderResultArgData); // tostring
 
 	bool RemoveProbe(BuildOrderResultArgData);
 
