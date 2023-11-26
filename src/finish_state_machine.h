@@ -7,6 +7,7 @@
 
 #include "TossBot.h"
 #include "utility.h"
+#include "locations.h"
 
 namespace sc2 {
 
@@ -743,8 +744,6 @@ class BlinkStalkerAttackTerranWarpIn : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	bool warping_in = false;
-	int warp_in_time;
 	BlinkStalkerAttackTerranWarpIn(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->agent = agent;
@@ -809,10 +808,12 @@ class BlinkStalkerAttackTerranBlinkUp : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranBlinkUp(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	Units stalkers_to_blink;
+	BlinkStalkerAttackTerranBlinkUp(TossBot* agent, BlinkStalkerAttackTerran* state_machine, Units stalkers)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
+		stalkers_to_blink = stalkers;
 	}
 	virtual std::string toString() override;
 	void TickState() override;
@@ -840,7 +841,198 @@ public:
 
 #pragma endregion
 
+#pragma region CannonRushTerran
 
+class CannonRushTerranMoveAcross : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	CannonRushTerranMoveAcross(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class CannonRushTerranFindAvaibleCorner : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	int curr_index = 1;
+	Point2D current_target;
+	CannonRushTerranFindAvaibleCorner(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class CannonRushTerranScout : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	int index;
+	std::vector<Point2D> main_scout_path;
+	Point2D current_target;
+	bool gas_stolen;
+	CannonRushTerranScout(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, int index, std::vector<Point2D> main_scout_path, bool gas_stolen)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+		this->index = index;
+		this->main_scout_path = main_scout_path;
+		this->gas_stolen = gas_stolen;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class CannonRushTerranGasSteal : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	int scouting_index;
+	const Unit* gas;
+	CannonRushTerranGasSteal(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, int scouting_index, const Unit* gas)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+		this->scouting_index = scouting_index;
+		this->gas = gas;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class CannonRushTerranMoveAcross2 : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	CannonRushTerranMoveAcross2(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class CannonRushTerranFindWallOffSpot : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	int index;
+	CannonRushTerranFindWallOffSpot(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, int index)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+		this->index = index;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class CannonRushTerranWallOff : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	Point2D cannon_pos;
+	Point2D cannon_move_to;
+	std::vector<BuildingPlacement> wall_pos;
+	int index = 0;
+	CannonRushTerranWallOff(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos, Point2D cannon_move_to, std::vector<BuildingPlacement> wall_pos)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+		this->cannon_pos = cannon_pos;
+		this->cannon_move_to = cannon_move_to;
+		this->wall_pos = wall_pos;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class CannonRushTerranStandBy : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	Point2D stand_by_spot;
+	CannonRushTerranStandBy(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D stand_by_spot)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+		this->stand_by_spot = stand_by_spot;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class CannonRushTerranStandByLoop : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	std::vector<Point2D> loop_path;
+	int index = 0;
+	CannonRushTerranStandByLoop(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, std::vector<Point2D> loop_path)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+		this->loop_path = loop_path;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+#pragma endregion
 
 class StateMachine
 {
@@ -1303,24 +1495,74 @@ class BlinkStalkerAttackTerran : public StateMachine
 {
 public:
 	ArmyGroup* army_group;
+	const Unit* prism;
 	bool attacking_main = false;
 	Point2D consolidation_pos;
 	Point2D prism_consolidation_pos;
 	Point2D blink_up_pos;
+	Point2D blink_down_pos;
+	bool warping_in = false;
+	int warp_in_time;
+
 
 	int event_id;
-	BlinkStalkerAttackTerran(TossBot* agent, std::string name, ArmyGroup* army, Point2D consolidation_pos, Point2D prism_consolidation_pos, Point2D blink_up_pos) {
+	BlinkStalkerAttackTerran(TossBot* agent, std::string name, ArmyGroup* army, Point2D consolidation_pos, Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos) {
 		this->agent = agent;
 		this->name = name;
 		this->army_group = army;
+		this->prism = army->warp_prisms[0];
 		this->consolidation_pos = consolidation_pos;
 		this->prism_consolidation_pos = prism_consolidation_pos;
 		this->blink_up_pos = blink_up_pos;
+		this->blink_down_pos = blink_down_pos;
 		current_state = new BlinkStalkerAttackTerranMoveAcross(agent, this);
 
+		event_id = agent->GetUniqueId();
+		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
+			this->OnUnitCreatedListener(unit);
+		};
+		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
 
 		current_state->EnterState();
 	}
+
+	~BlinkStalkerAttackTerran()
+	{
+		agent->RemoveListenerToOnUnitCreatedEvent(event_id);
+	}
+	void OnUnitCreatedListener(const Unit*);
+};
+
+class CannonRushTerran : public StateMachine
+{
+public:
+	const Unit* probe;
+	Units pylons;
+
+	int event_id;
+	CannonRushTerran(TossBot* agent, std::string name, const Unit* probe, int variation) {
+		this->agent = agent;
+		this->name = name;
+		this->probe = probe;
+		if (variation == 1)
+			current_state = new CannonRushTerranMoveAcross(agent, this, probe);
+		else
+			current_state = new CannonRushTerranMoveAcross2(agent, this, probe);
+
+		event_id = agent->GetUniqueId();
+		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
+			this->OnUnitCreatedListener(unit);
+		};
+		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
+
+		current_state->EnterState();
+	}
+
+	~CannonRushTerran()
+	{
+		agent->RemoveListenerToOnUnitCreatedEvent(event_id);
+	}
+	void OnUnitCreatedListener(const Unit*);
 };
 
 }

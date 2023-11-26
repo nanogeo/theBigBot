@@ -16,6 +16,16 @@
 
 namespace sc2 {
 
+	ArmyGroup::ArmyGroup(TossBot* agent)
+	{
+		this->agent = agent;
+		event_id = agent->GetUniqueId();
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+	}
+
 	ArmyGroup::ArmyGroup(TossBot* agent, Units all_units, std::vector<Point2D> path, int index)
 	{
 		this->agent = agent;
@@ -429,13 +439,211 @@ namespace sc2 {
 		}
 	}
 
+	void ArmyGroup::FindStalkerPositions(std::map<const Unit*, Point2D>& attacking_unit_positions, std::map<const Unit*, Point2D>& retreating_unit_positions, float unit_size, float unit_dispersion)
+	{
+		Units enemies = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
+		Point2D stalkers_center = Utility::MedianCenter(stalkers);
+		Point2D stalker_line_pos = attack_path_line.FindClosestPoint(stalkers_center);
+
+
+		Units close_enemies = Utility::NClosestUnits(enemies, stalkers_center, 5);
+		// remove far enemies
+		for (int i = 0; i < close_enemies.size(); i++)
+		{
+			if (Distance2D(stalkers_center, close_enemies[i]->pos) > 12)
+			{
+				close_enemies.erase(close_enemies.begin() + i);
+				i--;
+			}
+		}
+
+
+		//Point2D concave_target = attack_path_line.GetPointFrom(stalker_line_pos, 8, true);
+		Point2D concave_target = agent->Observation()->GetGameInfo().enemy_start_locations[0];
+
+		float max_range = 7;
+		if (close_enemies.size() > 0)
+		{
+			concave_target = Utility::MedianCenter(close_enemies);
+			max_range = std::max(Utility::GetMaxRange(close_enemies) + 2, 6.0f);
+		}
+
+		Point2D retreat_concave_origin = attack_path_line.GetPointFrom(concave_target, max_range, false);
+		if (retreat_concave_origin == Point2D(0, 0))
+			retreat_concave_origin = attack_path_line.GetPointFrom(stalker_line_pos, 2 * unit_size + unit_dispersion, false);
+
+		Point2D attack_concave_origin = attack_path_line.GetPointFrom(stalker_line_pos, 2 * unit_size + unit_dispersion, true);
+
+
+
+		std::vector<Point2D> attack_concave_positions = FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, stalkers.size(), .625, unit_dispersion);
+		std::vector<Point2D> retreat_concave_positions = FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, stalkers.size(), .625, unit_dispersion);
+
+		attacking_unit_positions = AssignUnitsToPositions(stalkers, attack_concave_positions);
+		retreating_unit_positions = AssignUnitsToPositions(stalkers, retreat_concave_positions);
+
+
+		for (const auto &pos : attack_concave_positions)
+		{
+			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(255, 0, 0));
+		}
+		for (const auto &pos : retreat_concave_positions)
+		{
+			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(0, 255, 0));
+		}
+	}
+
+	void ArmyGroup::MicroStalkerAttack()
+	{
+		if (stalkers.size() == 0)
+			return;
+
+		for (const auto &pos : attack_path_line.GetPoints())
+		{
+			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
+		}
+
+		std::map<const Unit*, Point2D> attacking_unit_positions;
+		std::map<const Unit*, Point2D> retreating_unit_positions;
+		float unit_size = .625;
+		float unit_dispersion = .16;
+
+		FindStalkerPositions(attacking_unit_positions, retreating_unit_positions, unit_size, unit_dispersion);
+
+		Point2D center = Utility::MedianCenter(stalkers);
+		std::map<const Unit*, int> units_requesting_pickup;
+
+		bool all_ready = true;
+		Units stalkers_ready;
+		Units stalkers_not_ready;
+		for (const auto &stalker : stalkers)
+		{
+			if (stalker->weapon_cooldown == 0 && attack_status[stalker] == false)
+			{
+				// ignore units inside prisms
+				if (warp_prisms.size() > 0)
+				{
+					bool in_prism = false;
+					for (const auto &prism : warp_prisms)
+					{
+						for (const auto &passanger : prism->passengers)
+						{
+							if (passanger.tag == stalker->tag)
+							{
+								in_prism = true;
+								break;
+							}
+						}
+						if (in_prism)
+							break;
+					}
+					if (in_prism)
+						stalkers_not_ready.push_back(stalker);
+				}
+				stalkers_ready.push_back(stalker);
+			}
+			else
+			{
+				stalkers_not_ready.push_back(stalker);
+			}
+		}
+		bool enough_stalkers_ready = true;
+		if (static_cast<float>(stalkers_ready.size()) / static_cast<float>(stalkers.size()) >= 1)
+		{
+			std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers_ready, {}, 0);
+			if (found_targets.size() == 0)
+			{
+				found_targets = agent->FindTargets(stalkers_ready, {}, 2);
+				std::cout << "extra distance\n";
+			}
+
+			//agent->PrintAttacks(found_targets);
+
+			for (const auto &stalker : stalkers_ready)
+			{
+				if (found_targets.size() == 0)
+				{
+					agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attacking_unit_positions[stalker]);
+				}
+				if (found_targets.count(stalker) > 0)
+				{
+					agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, found_targets[stalker]);
+					attack_status[stalker] = true;
+				}
+			}
+		}
+		else
+		{
+			enough_stalkers_ready = false;
+		}
+
+		if (stalkers_not_ready.size() > 0)
+		{
+			for (const auto &stalker : stalkers)
+			{
+				if (enough_stalkers_ready == true && std::find(stalkers_not_ready.begin(), stalkers_not_ready.end(), stalker) == stalkers_not_ready.end())
+					continue;
+
+				int danger = agent->IncomingDamage(stalker);
+				if (danger > 0)
+				{
+					/*if (danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
+					{
+						float now = agent->Observation()->GetGameLoop() / 22.4;
+						bool blink_off_cooldown = now - last_time_blinked[stalker] > 7;
+
+						if (agent->has_blink && blink_off_cooldown)
+						{
+							if (stalker->orders.size() > 0 && stalker->orders[0].ability_id == ABILITY_ID::ATTACK && stalker->weapon_cooldown == 0)
+								agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7), true); // TODO adjustable blink distance
+							else
+								agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7)); // TODO adjustable blink distance
+							//agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point, true);
+							attack_status[stalker] = false;
+							last_time_blinked[stalker] = now;
+							continue;
+						}
+					}*/
+
+					units_requesting_pickup[stalker] = danger;
+				}
+
+				agent->Debug()->DebugSphereOut(stalker->pos, .5, Color(0, 255, 255));
+				agent->Debug()->DebugTextOut(std::to_string(danger), stalker->pos, Color(0, 255, 255), 15);
+
+				if (attack_status[stalker] == false)
+				{
+					// no order but no danger so just move back
+					agent->Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, retreating_unit_positions[stalker]);
+				}
+				else if (stalker->weapon_cooldown > 0)
+				{
+					// attack has gone off so reset order status
+					attack_status[stalker] = false;
+				}
+				else if (stalker->orders.size() == 0 || stalker->orders[0].ability_id == ABILITY_ID::MOVE_MOVE || stalker->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE)
+				{
+					// attack order is no longer valid
+					attack_status[stalker] = false;
+				}
+			}
+		}
+
+		for (const auto &prism : warp_prisms)
+		{
+			agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, center);
+			agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism->pos);
+		}
+
+		PickUpUnits(units_requesting_pickup);
+	}
 
 	void ArmyGroup::ApplyPressureGrouped(Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> retreating_unit_positions, std::map<const Unit*, Point2D> attacking_unit_positions)
 	{
 		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
-
+		
 		std::ofstream pressure_time;
 		pressure_time.open("pressure_time.txt", std::ios_base::app);
 
@@ -445,7 +653,7 @@ namespace sc2 {
 		unsigned long long give_targets = 0;
 		unsigned long long not_ready = 0;
 		unsigned long long pick_up = 0;
-
+		
 
 		std::map<const Unit*, int> units_requesting_pickup;
 		if (stalkers.size() > 0)
@@ -642,6 +850,12 @@ namespace sc2 {
 	{
 		if (std::find(unit_types.begin(), unit_types.end(), unit->unit_type) != unit_types.end())
 			AddNewUnit(unit);
+	}
+
+	void ArmyGroup::OnUnitDestroyedListener(const Unit* unit)
+	{
+		if (std::find(all_units.begin(), all_units.end(), unit) != all_units.end())
+			RemoveUnit(unit);
 	}
 
 }

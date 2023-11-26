@@ -92,6 +92,27 @@ Point2D Utility::ClosestTo(std::vector<Point2D> points, Point2D position)
 	return current_closest;
 }
 
+const Unit* Utility::ClosestUnitTo(Units units, Point2D position)
+{
+	const Unit* current_closest;
+	float current_distance = INFINITY;
+	for (const auto &unit : units)
+	{
+		float distance = Distance2D(unit->pos, position);
+		if (distance < current_distance)
+		{
+			current_closest = unit;
+			current_distance = distance;
+		}
+	}
+	if (units.size() == 0 || current_closest == NULL)
+	{
+		std::cout << "Error current closest is NULL\n";
+		return NULL;
+	}
+	return current_closest;
+}
+
 Point2D Utility::NthClosestTo(std::vector<Point2D> points, Point2D position, int n)
 {
 	if (n == 0)
@@ -1900,6 +1921,8 @@ std::string Utility::UnitTypeIdToString(UNIT_TYPEID typeId)
 		return "orbital command";
 	case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
 		return "supply depot";
+	case UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED:
+		return "supply depot lowered";
 	case UNIT_TYPEID::TERRAN_REFINERY:
 		return "refinery";
 	case UNIT_TYPEID::TERRAN_BARRACKS:
@@ -1926,6 +1949,18 @@ std::string Utility::UnitTypeIdToString(UNIT_TYPEID typeId)
 		return "teck lab";
 	case UNIT_TYPEID::TERRAN_REACTOR:
 		return "reactor";
+	case UNIT_TYPEID::TERRAN_BARRACKSTECHLAB:
+		return "teck lab";
+	case UNIT_TYPEID::TERRAN_BARRACKSREACTOR:
+		return "reactor";
+	case UNIT_TYPEID::TERRAN_FACTORYTECHLAB:
+		return "teck lab";
+	case UNIT_TYPEID::TERRAN_FACTORYREACTOR:
+		return "reactor";
+	case UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
+		return "teck lab";
+	case UNIT_TYPEID::TERRAN_STARPORTREACTOR:
+		return "reactor";
 	case UNIT_TYPEID::TERRAN_SCV:
 		return "SCV";
 	case UNIT_TYPEID::TERRAN_MULE:
@@ -1944,6 +1979,8 @@ std::string Utility::UnitTypeIdToString(UNIT_TYPEID typeId)
 		return "hellbat";
 	case UNIT_TYPEID::TERRAN_SIEGETANK:
 		return "siege tank";
+	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+		return "siege tank sieged";
 	case UNIT_TYPEID::TERRAN_CYCLONE:
 		return "cyclone";
 	case UNIT_TYPEID::TERRAN_WIDOWMINE:

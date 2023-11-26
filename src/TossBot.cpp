@@ -45,6 +45,17 @@ namespace sc2 {
 
     void TossBot::OnStep()
     {
+		for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
+		{
+			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 255, 255));
+			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type), unit->pos, Color(255, 255, 255), 15);
+		}
+		for (const auto &unit : enemy_unit_saved_position)
+		{
+			Debug()->DebugSphereOut(ToPoint3D(unit.second.pos), .5, Color(255, 0, 255));
+			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit.first->unit_type), ToPoint3D(unit.second.pos), Color(255, 0, 255), 15);
+		}
+
 		std::chrono::microseconds startTime = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
@@ -679,8 +690,8 @@ namespace sc2 {
 		//Debug()->DebugFastBuild();
 		//Debug()->DebugGiveAllResources();
 		Debug()->DebugShowMap();
-		Debug()->DebugGiveAllUpgrades();
-		SpawnArmies();
+		//Debug()->DebugGiveAllUpgrades();
+		//SpawnArmies();
 		initial_set_up = true;
 	}
 
@@ -734,19 +745,20 @@ namespace sc2 {
 	void TossBot::SpawnArmies()
 	{
 		Debug()->DebugEnemyControl();
-		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, locations->attack_path[locations->attack_path.size() - 1], 2, 10);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, locations->attack_path[locations->attack_path.size() - 1], 2, 10);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, locations->attack_path[locations->attack_path.size() - 1], 2, 32);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, locations->attack_path[locations->attack_path.size() - 1], 2, 32);
 
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 2, 8);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 2, 1);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, enemy_army_spawn, 2, 1);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 1, 8);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 1, 1);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, enemy_army_spawn, 1, 1);
 
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, enemy_army_spawn, 2, 8);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, locations->attack_path[0], 1, 1);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, locations->attack_path[0], 1, 7);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, locations->attack_path[0], 1, 3);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, locations->attack_path[0], 1, 1);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, locations->attack_path[0], 2, 12);
+		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_WARPPRISM, locations->attack_path[0], 2, 1);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, locations->attack_path[0], 1, 3);
 		Debug()->SendDebug();
 	}
 

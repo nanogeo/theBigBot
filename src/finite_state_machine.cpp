@@ -2397,7 +2397,7 @@ namespace sc2 {
 	{
 
 		agent->Actions()->UnitCommand(state_machine->army_group->stalkers, ABILITY_ID::MOVE_MOVE, state_machine->consolidation_pos);
-		agent->Actions()->UnitCommand(state_machine->army_group->warp_prisms[0], ABILITY_ID::MOVE_MOVE, state_machine->prism_consolidation_pos);
+		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->prism_consolidation_pos);
 	}
 
 	void BlinkStalkerAttackTerranMoveAcross::EnterState()
@@ -2421,14 +2421,14 @@ namespace sc2 {
 				break;
 			}
 		}
-		if (gates_almost_ready && agent->Observation()->IsPathable(state_machine->army_group->warp_prisms[0]->pos))
+		if (gates_almost_ready && agent->Observation()->IsPathable(state_machine->prism->pos) && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, agent->warpgate_status.size() - 1, agent->Observation()))
 		{
-			agent->Actions()->UnitCommand(state_machine->army_group->warp_prisms[0], ABILITY_ID::MOVE_MOVE, state_machine->army_group->warp_prisms[0]->pos);
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->prism->pos);
 			return new BlinkStalkerAttackTerranWarpIn(agent, state_machine);
 		}
 
 		if (Distance2D(Utility::FurthestFrom(state_machine->army_group->stalkers, state_machine->consolidation_pos)->pos, state_machine->consolidation_pos) < 4 && 
-			Distance2D(state_machine->army_group->warp_prisms[0]->pos, state_machine->prism_consolidation_pos) < 2)
+			Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 2)
 		{
 			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 		}
@@ -2446,7 +2446,7 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranWarpIn::TickState()
 	{
-		if (warping_in == false && state_machine->army_group->warp_prisms[0]->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)
+		if (state_machine->warping_in == false && state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)
 		{
 			// try to warp in
 			Units gates = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
@@ -2464,8 +2464,8 @@ namespace sc2 {
 						agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
 					}
 
-					warping_in = true;
-					warp_in_time = agent->Observation()->GetGameLoop();
+					state_machine->warping_in = true;
+					state_machine->warp_in_time = agent->Observation()->GetGameLoop();
 				}
 			}
 		}
@@ -2473,18 +2473,21 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranWarpIn::EnterState()
 	{
-		agent->Actions()->UnitCommand(state_machine->army_group->warp_prisms[0], ABILITY_ID::MORPH_WARPPRISMPHASINGMODE);
+		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMPHASINGMODE);
 	}
 
 	void BlinkStalkerAttackTerranWarpIn::ExitState()
 	{
-		agent->Actions()->UnitCommand(state_machine->army_group->warp_prisms[0], ABILITY_ID::MORPH_WARPPRISMTRANSPORTMODE);
+		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMTRANSPORTMODE);
 	}
 
 	State* BlinkStalkerAttackTerranWarpIn::TestTransitions()
 	{
-		if (warping_in && agent->Observation()->GetGameLoop() > warp_in_time + 90)
+		if (state_machine->warping_in && agent->Observation()->GetGameLoop() > state_machine->warp_in_time + 90)
+		{
+			state_machine->warping_in = false;
 			return new BlinkStalkerAttackTerranMoveAcross(agent, state_machine);
+		}
 		return NULL;
 	}
 
@@ -2499,7 +2502,62 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranConsolidate::TickState()
 	{
-		
+		if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM && Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 1)
+		{
+			bool gates_almost_ready = true;
+			for (const auto &gate_status : agent->warpgate_status)
+			{
+				if (agent->Observation()->GetGameLoop() + 112 < gate_status.second.frame_ready)
+				{
+					gates_almost_ready = false;
+					break;
+				}
+			}
+			if (gates_almost_ready)
+			{
+				agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMPHASINGMODE);
+			}
+		}
+		else if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISMPHASING && state_machine->warping_in == false)
+		{
+			bool gates_ready = true;
+			for (const auto &gate_status : agent->warpgate_status)
+			{
+				if (agent->Observation()->GetGameLoop() < gate_status.second.frame_ready)
+				{
+					gates_ready = false;
+					break;
+				}
+			}
+			if (gates_ready)
+			{
+				// try warp in
+				Units gates = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
+				if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates.size(), agent->Observation()))
+				{
+					std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
+					std::cout << "spots " << spots.size() << "\n";
+					if (spots.size() >= gates.size())
+					{
+						for (int i = 0; i < gates.size(); i++)
+						{
+							std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
+							agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_STALKER, spots[i]);
+							agent->warpgate_status[gates[i]].used = true;
+							agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
+						}
+
+						state_machine->warping_in = true;
+						state_machine->warp_in_time = agent->Observation()->GetGameLoop();
+					}
+				}
+			}
+		}
+		else if (state_machine->warping_in && agent->Observation()->GetGameLoop() > state_machine->warp_in_time + 90)
+		{
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMTRANSPORTMODE);
+			state_machine->warping_in = false;
+		}
 	}
 
 	void BlinkStalkerAttackTerranConsolidate::EnterState()
@@ -2514,6 +2572,25 @@ namespace sc2 {
 
 	State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 	{
+		if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
+		{
+			bool stalkers_healthy = true;
+			for (const auto &stalker : state_machine->army_group->stalkers)
+			{
+				if (stalker->shield < 70)
+				{
+					stalkers_healthy = false;
+					break;
+				}
+			}
+			if (stalkers_healthy)
+			{
+				if (state_machine->attacking_main)
+					return new BlinkStalkerAttackTerranBlinkUp(agent, state_machine, state_machine->army_group->stalkers);
+				else
+					return new BlinkStalkerAttackTerranAttack(agent, state_machine);
+			}
+		}
 		return NULL;
 	}
 
@@ -2523,6 +2600,589 @@ namespace sc2 {
 	}
 
 #pragma endregion
+
+#pragma region BlinkStalkerAttackTerranBlinkUp
+
+	void BlinkStalkerAttackTerranBlinkUp::TickState()
+	{
+		for (int i = 0; i < stalkers_to_blink.size(); i++)
+		{
+			if (Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_up_pos) < 2)
+			{
+				agent->Actions()->UnitCommand(stalkers_to_blink[i], ABILITY_ID::EFFECT_BLINK, state_machine->blink_down_pos);
+				state_machine->army_group->last_time_blinked[stalkers_to_blink[i]] = agent->Observation()->GetGameLoop();
+				stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
+				i--;
+			}
+		}
+	}
+
+	void BlinkStalkerAttackTerranBlinkUp::EnterState()
+	{
+		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->blink_down_pos);
+		agent->Actions()->UnitCommand(state_machine->army_group->stalkers, ABILITY_ID::ATTACK_ATTACK, state_machine->blink_up_pos);
+	}
+
+	void BlinkStalkerAttackTerranBlinkUp::ExitState()
+	{
+
+	}
+
+	State* BlinkStalkerAttackTerranBlinkUp::TestTransitions()
+	{
+		if (stalkers_to_blink.size() == 0)
+			return new BlinkStalkerAttackTerranAttack(agent, state_machine);
+		return NULL;
+	}
+
+	std::string BlinkStalkerAttackTerranBlinkUp::toString()
+	{
+		return "blink up";
+	}
+
+#pragma endregion
+
+#pragma region BlinkStalkerAttackTerranAttack
+
+	void BlinkStalkerAttackTerranAttack::TickState()
+	{
+		state_machine->army_group->MicroStalkerAttack();
+	}
+
+	void BlinkStalkerAttackTerranAttack::EnterState()
+	{
+		if (state_machine->attacking_main)
+			state_machine->army_group->attack_path_line = agent->locations->blink_main_attack_path_lines[0];
+		else
+			state_machine->army_group->attack_path_line = agent->locations->blink_nat_attacK_path_line;
+	}
+
+	void BlinkStalkerAttackTerranAttack::ExitState()
+	{
+
+	}
+
+	State* BlinkStalkerAttackTerranAttack::TestTransitions()
+	{
+		bool gates_almost_ready = true;
+		for (const auto &status : agent->warpgate_status)
+		{
+			if (status.second.frame_ready > agent->Observation()->GetGameLoop() + 45)
+			{
+				gates_almost_ready = false;
+				break;
+			}
+		}
+		if (gates_almost_ready && agent->Observation()->IsPathable(state_machine->prism->pos) && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, agent->warpgate_status.size() - 1, agent->Observation()))
+		{
+			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->prism->pos);
+			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
+		}
+
+		int stalkers_ok = 0;
+		for (const auto &stalker : state_machine->army_group->stalkers)
+		{
+			if (stalker->shield > 20)
+				stalkers_ok++;
+		}
+		if (stalkers_ok < 4)
+			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
+		return NULL;
+	}
+
+	std::string BlinkStalkerAttackTerranAttack::toString()
+	{
+		return "attack";
+	}
+
+#pragma endregion
+
+#pragma region BlinkStalkerAttackTerranSnipeUnit
+
+	void BlinkStalkerAttackTerranSnipeUnit::TickState()
+	{
+
+	}
+
+	void BlinkStalkerAttackTerranSnipeUnit::EnterState()
+	{
+
+	}
+
+	void BlinkStalkerAttackTerranSnipeUnit::ExitState()
+	{
+
+	}
+
+	State* BlinkStalkerAttackTerranSnipeUnit::TestTransitions()
+	{
+		return NULL;
+	}
+
+	std::string BlinkStalkerAttackTerranSnipeUnit::toString()
+	{
+		return "snipe unit";
+	}
+
+#pragma endregion
+
+#pragma region BlinkStalkerAttackTerranLeaveHighground
+
+	void BlinkStalkerAttackTerranLeaveHighground::TickState()
+	{
+
+	}
+
+	void BlinkStalkerAttackTerranLeaveHighground::EnterState()
+	{
+
+	}
+
+	void BlinkStalkerAttackTerranLeaveHighground::ExitState()
+	{
+
+	}
+
+	State* BlinkStalkerAttackTerranLeaveHighground::TestTransitions()
+	{
+		return NULL;
+	}
+
+	std::string BlinkStalkerAttackTerranLeaveHighground::toString()
+	{
+		return "leave high ground";
+	}
+
+#pragma endregion
+
+
+#pragma region CannonRushTerranMoveAcross
+
+	void CannonRushTerranMoveAcross::TickState()
+	{
+		agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, agent->locations->enemy_natural);
+	}
+
+	void CannonRushTerranMoveAcross::EnterState()
+	{
+		return;
+	}
+
+	void CannonRushTerranMoveAcross::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranMoveAcross::TestTransitions()
+	{
+		if (Distance2D(probe->pos, agent->locations->enemy_natural) < 15)
+			return new CannonRushTerranFindAvaibleCorner(agent, state_machine, probe);
+		return NULL;
+	}
+
+	std::string CannonRushTerranMoveAcross::toString()
+	{
+		return "move across 1";
+	}
+
+#pragma endregion
+
+#pragma region CannonRushTerranFindAvaibleCorner
+
+	void CannonRushTerranFindAvaibleCorner::TickState()
+	{
+		Point2D pos = agent->locations->cannon_rush_terran_positions[curr_index].initial_pylon;
+		agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, pos);
+
+		if (Distance2D(probe->pos, pos) < 6)
+		{
+			if (Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), pos) < 6)
+			{
+				curr_index++;
+				if (curr_index >= agent->locations->cannon_rush_terran_positions.size())
+					curr_index = 0;
+			}
+			else if (Distance2D(probe->pos, pos) < 1 && Utility::CanAfford(UNIT_TYPEID::PROTOSS_PYLON, 1, agent->Observation()))
+			{
+				agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pos);
+			}
+		}
+	}
+
+	void CannonRushTerranFindAvaibleCorner::EnterState()
+	{
+		return;
+	}
+
+	void CannonRushTerranFindAvaibleCorner::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranFindAvaibleCorner::TestTransitions()
+	{
+		Point2D pos = agent->locations->cannon_rush_terran_positions[curr_index].initial_pylon;
+		if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PYLON)), pos) < 1)
+			return new CannonRushTerranScout(agent, state_machine, probe, 0, agent->locations->main_scout_path, false);
+		return NULL;
+	}
+
+	std::string CannonRushTerranFindAvaibleCorner::toString()
+	{
+		return "find available corner";
+	}
+
+#pragma endregion
+
+#pragma region CannonRushTerranScout
+
+	void CannonRushTerranScout::TickState()
+	{
+		if (Distance2D(probe->pos, current_target) < 3)
+		{
+			index++;
+			if (index < main_scout_path.size())
+				current_target = main_scout_path[index];
+		}
+		agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, current_target);
+	}
+
+	void CannonRushTerranScout::EnterState()
+	{
+		current_target = main_scout_path[index];
+	}
+
+	void CannonRushTerranScout::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranScout::TestTransitions()
+	{
+		/*const Unit* closest_gas = Utility::ClosestTo(agent->Observation()->GetUnits(IsGeyser()), probe->pos);
+		if (Distance2D(closest_gas->pos, probe->pos) < 3)
+		{
+			if (gas_stolen == false && Utility::DistanceToClosest(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)), closest_gas->pos) > 1 &&
+				Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), closest_gas->pos) > 1.5)
+				return new CannonRushTerranGasSteal(agent, state_machine, probe, index, closest_gas);
+		}*/
+		return NULL;
+	}
+
+	std::string CannonRushTerranScout::toString()
+	{
+		return "scout";
+	}
+
+#pragma endregion
+
+#pragma region CannonRushTerranGasSteal
+
+	void CannonRushTerranGasSteal::TickState()
+	{
+		agent->Debug()->DebugSphereOut(gas->pos, 1.5, Color(255, 0, 0));
+		if (Distance2D(probe->pos, gas->pos) < 1.75)
+			agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_ASSIMILATOR, gas);
+	}
+
+	void CannonRushTerranGasSteal::EnterState()
+	{
+		agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, gas);
+	}
+
+	void CannonRushTerranGasSteal::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranGasSteal::TestTransitions()
+	{
+		if (Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), gas->pos) < 1.5)
+			return new CannonRushTerranScout(agent, state_machine, probe, scouting_index, agent->locations->main_scout_path, false);
+		
+		if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size() == 0)
+			return NULL;
+
+		const Unit* closest_gas = Utility::ClosestUnitTo(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)), gas->pos);
+		if (closest_gas->display_type != Unit::DisplayType::Placeholder && Distance2D(gas->pos, closest_gas->pos) < 1)
+			return new CannonRushTerranScout(agent, state_machine, probe, scouting_index, agent->locations->main_scout_path, true);
+
+		return NULL;
+	}
+
+	std::string CannonRushTerranGasSteal::toString()
+	{
+		return "steal gas";
+	}
+
+#pragma endregion
+
+#pragma region CannonRushTerranMoveAcross2
+
+	void CannonRushTerranMoveAcross2::TickState()
+	{
+		agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, agent->locations->enemy_natural);
+	}
+
+	void CannonRushTerranMoveAcross2::EnterState()
+	{
+		return;
+	}
+
+	void CannonRushTerranMoveAcross2::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranMoveAcross2::TestTransitions()
+	{
+		if (Distance2D(probe->pos, agent->locations->enemy_natural) < 15)
+			return new CannonRushTerranFindWallOffSpot(agent, state_machine, probe, 0);
+		return NULL;
+	}
+
+	std::string CannonRushTerranMoveAcross2::toString()
+	{
+		return "move across 2";
+	}
+
+#pragma endregion
+
+#pragma region CannonRushTerranFindWallOffSpot
+
+	void CannonRushTerranFindWallOffSpot::TickState()
+	{
+		CannonRushPosition pos = agent->locations->cannon_rush_terran_positions[index];
+		agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, pos.initial_pylon);
+		if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PYLON)), pos.initial_pylon) > 1)
+		{
+			index++;
+			if (index >= agent->locations->cannon_rush_terran_positions.size())
+				index = 0; // TODO maybe place another initial pylon or find a triple wall off instead?
+		}
+
+		
+	}
+
+	void CannonRushTerranFindWallOffSpot::EnterState()
+	{
+		return;
+	}
+
+	void CannonRushTerranFindWallOffSpot::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranFindWallOffSpot::TestTransitions()
+	{
+		CannonRushPosition pos = agent->locations->cannon_rush_terran_positions[index];
+		if (Distance2D(pos.initial_pylon, probe->pos) < 6)
+		{
+			Units enemy_units = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
+			for (int i = 0; i < pos.cannon_position.size(); i++)
+			{
+				if (Utility::DistanceToClosest(enemy_units, pos.cannon_position[i].cannon_pos) < 1.5)
+					break;
+				bool gate_wall_blocked = false;
+				for (int j = 0; j < pos.gateway_walloff_positions[i].size(); j++)
+				{
+					Point2D building_pos = pos.gateway_walloff_positions[i][j].building_pos;
+					if (floor(building_pos.x) == building_pos.x)
+					{
+						// its a pylon
+						if (Utility::DistanceToClosest(enemy_units, building_pos) < 1.5 + j)
+						{
+							gate_wall_blocked = true;
+							break;
+						}
+					}
+					else
+					{
+						// its a gate
+						if (Utility::DistanceToClosest(enemy_units, building_pos) < 2.5 + j)
+						{
+							gate_wall_blocked = true;
+							break;
+						}
+					}
+				}
+				if (!gate_wall_blocked)
+					return new CannonRushTerranWallOff(agent, state_machine, probe, pos.cannon_position[i].cannon_pos, pos.cannon_position[i].with_gate_walloff, pos.gateway_walloff_positions[i]);
+
+				bool pylon_wall_blocked = false;
+				for (int j = 0; j < pos.pylon_walloff_positions[i].size(); j++)
+				{
+					Point2D building_pos = pos.pylon_walloff_positions[i][j].building_pos;
+					if (Utility::DistanceToClosest(enemy_units, building_pos) < 1.5 + j)
+					{
+						gate_wall_blocked = true;
+						break;
+					}
+				}
+				if (!pylon_wall_blocked)
+					return new CannonRushTerranWallOff(agent, state_machine, probe, pos.cannon_position[i].cannon_pos, pos.cannon_position[i].with_pylon_wallof, pos.pylon_walloff_positions[i]);
+			}
+			index++;
+			if (index >= agent->locations->cannon_rush_terran_positions.size())
+				index = 0; // TODO maybe place another initial pylon or find a triple wall off instead?
+		}
+		return NULL;
+	}
+
+	std::string CannonRushTerranFindWallOffSpot::toString()
+	{
+		return "find walloff spot";
+	}
+
+#pragma endregion
+
+#pragma region CannonRushTerranWallOff
+
+	void CannonRushTerranWallOff::TickState()
+	{
+		Point2D building_pos;
+		Point2D move_to_pos;
+		if (index == wall_pos.size())
+		{
+			building_pos = cannon_pos;
+			move_to_pos = cannon_move_to;
+			agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, move_to_pos);
+			if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_PHOTONCANNON, 1, agent->Observation()) && Distance2D(probe->pos, move_to_pos) < .25)
+				agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, building_pos);
+		}
+		else
+		{
+			BuildingPlacement pos = wall_pos[index];
+			building_pos = pos.building_pos;
+			move_to_pos = pos.move_to_pos;
+			float dist = Distance2D(probe->pos, move_to_pos);
+			agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(probe->pos, move_to_pos, dist + .5));
+
+			if (pos.type == UNIT_TYPEID::PROTOSS_PYLON)
+			{
+				if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_PYLON, 1, agent->Observation()) && Distance2D(probe->pos, move_to_pos) < .1)
+					agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, building_pos);
+			}
+			else 
+			{
+
+				if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_GATEWAY, 1, agent->Observation()) && Distance2D(probe->pos, move_to_pos) < .1)
+					agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, building_pos);
+			}
+		}
+		const Unit* closest_building = Utility::ClosestUnitTo(agent->Observation()->GetUnits(IsUnits({ UNIT_TYPEID::PROTOSS_PHOTONCANNON, UNIT_TYPEID::PROTOSS_PYLON, UNIT_TYPEID::PROTOSS_GATEWAY })), building_pos);
+		if (closest_building->display_type != Unit::DisplayType::Placeholder && Distance2D(building_pos, closest_building->pos) < 1)
+			index++;
+	}
+
+	void CannonRushTerranWallOff::EnterState()
+	{
+		return;
+	}
+
+	void CannonRushTerranWallOff::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranWallOff::TestTransitions()
+	{
+		if (index > wall_pos.size())
+			return new CannonRushTerranStandBy(agent, state_machine, probe, agent->locations->cannon_rush_terran_stand_by);
+		return NULL;
+	}
+
+	std::string CannonRushTerranWallOff::toString()
+	{
+		return "walloff spot";
+	}
+
+#pragma endregion
+
+#pragma region CannonRushTerranStandBy
+
+	void CannonRushTerranStandBy::TickState()
+	{
+		agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, stand_by_spot);
+	}
+
+	void CannonRushTerranStandBy::EnterState()
+	{
+		return;
+	}
+
+	void CannonRushTerranStandBy::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranStandBy::TestTransitions()
+	{
+		int scv_attacking_probe = 0;
+		int scvs_attacking_pylon = 0;
+		int scv_attacking_cannons = 0;
+		for (const auto &scv : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_SCV)))
+		{
+			if (Distance2D(probe->pos, scv->pos) < 3 && Utility::IsFacing(scv, probe))
+				scv_attacking_probe++;
+			else
+			{
+				const Unit* closest_pylon = Utility::ClosestUnitTo(state_machine->pylons, scv->pos);
+			}
+		}
+		//if (threatening_scvs > 0)
+			//return new CannonRushTerranStandByLoop(agent, state_machine, probe, agent->locations->cannon_rush_terran_stand_by_loop);
+		return NULL;
+	}
+
+	std::string CannonRushTerranStandBy::toString()
+	{
+		return "stand by loop";
+	}
+
+#pragma endregion
+
+#pragma region CannonRushTerranStandByLoop
+
+	void CannonRushTerranStandByLoop::TickState()
+	{
+		agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, loop_path[index]);
+		if (Distance2D(probe->pos, loop_path[index]) < 2)
+			index++;
+	}
+
+	void CannonRushTerranStandByLoop::EnterState()
+	{
+		return;
+	}
+
+	void CannonRushTerranStandByLoop::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranStandByLoop::TestTransitions()
+	{
+		int threatening_scvs = 0;
+		for (const auto &scv : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_SCV)))
+		{
+			if (Distance2D(probe->pos, scv->pos) < 3 && Utility::IsFacing(scv, probe))
+				threatening_scvs++;
+		}
+		if (threatening_scvs == 0 || index >= loop_path.size())
+			return new CannonRushTerranStandBy(agent, state_machine, probe, agent->locations->cannon_rush_terran_stand_by);
+		return NULL;
+	}
+
+	std::string CannonRushTerranStandByLoop::toString()
+	{
+		return "stand by loop";
+	}
+
+#pragma endregion
+
+
 
 
 #pragma region OracleHarassStateMachine
@@ -2584,4 +3244,26 @@ namespace sc2 {
 	}
 
 #pragma endregion
+
+#pragma region BlinkStalkerAttackTerran
+
+	void BlinkStalkerAttackTerran::OnUnitCreatedListener(const Unit* unit)
+	{
+		if (unit->unit_type == UNIT_TYPEID::PROTOSS_STALKER)
+			army_group->AddUnit(unit);
+	}
+
+#pragma endregion
+
+#pragma region CannonRushTerran
+
+	void CannonRushTerran::OnUnitCreatedListener(const Unit* unit)
+	{
+		if (unit->unit_type == UNIT_TYPEID::PROTOSS_PYLON && Distance2D(unit->pos, agent->locations->start_location) > 30)
+			pylons.push_back(unit);
+	}
+
+#pragma endregion
+
+
 }

@@ -255,7 +255,7 @@ class TossBot : public sc2::Agent
 public:
 	TossBot() : Agent(), worker_manager(this), action_manager(this), build_order_manager(this) {};
 	bool started = false;
-	BuildOrder curr_build_order = BuildOrder::four_gate_blink;
+	BuildOrder curr_build_order = BuildOrder::cannon_rush_terran;
 	WorkerManager worker_manager;
 	ActionManager action_manager;
 	BuildOrderManager build_order_manager;
@@ -328,9 +328,11 @@ public:
     void AddListenerToOnUnitDamagedEvent(int, std::function<void(const Unit*, float, float)>);
 	void RemoveListenerToOnUnitDamagedEvent(int);
     void CallOnUnitDamagedEvent(const Unit*, float, float);
+
     void AddListenerToOnUnitDestroyedEvent(int, std::function<void(const Unit*)>);
 	void RemoveListenerToOnUnitDestroyedEvent(int);
     void CallOnUnitDestroyedEvent(const Unit*);
+
 	void AddListenerToOnUnitCreatedEvent(int, std::function<void(const Unit*)>);
 	void RemoveListenerToOnUnitCreatedEvent(int);
 	void CallOnUnitCreatedEvent(const Unit*);

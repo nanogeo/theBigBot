@@ -6,6 +6,7 @@
 #include "sc2api/sc2_unit_filters.h"
 
 #include "utility.h"
+#include "path_manager.h"
 
 
 
@@ -41,6 +42,7 @@ public:
 
 	std::map<const Unit*, bool> attack_status;
 	std::vector<Point2D> attack_path;
+	PathManager attack_path_line;
 	int current_attack_index;
 	int high_ground_index;
 
@@ -50,10 +52,7 @@ public:
 	std::vector<UNIT_TYPEID> unit_types;
 
 	ArmyGroup() {};
-	ArmyGroup(TossBot* agent)
-	{
-		this->agent = agent;
-	}
+	ArmyGroup(TossBot* agent);
 
 	ArmyGroup(TossBot*, Units, std::vector<Point2D>, int);
 
@@ -68,14 +67,20 @@ public:
 	void PickUpUnits(std::map<const Unit*, int>);
 	void DodgeShots();
 
+	void FindStalkerPositions(std::map<const Unit*, Point2D>&, std::map<const Unit*, Point2D>&, float, float);
+	
+	void MicroStalkerAttack();
 	void ApplyPressureGrouped(Point2D, Point2D, std::map<const Unit*, Point2D>, std::map<const Unit*, Point2D>);
 	void DefendFrontDoor(Point2D, Point2D);
 	void DefendExpansion(Point2D, Point2D);
 
+
 	void MicroUnits();
+
 
 	void AutoAddUnits(std::vector<UNIT_TYPEID>);
 	void OnUnitCreatedListener(const Unit*);
+	void OnUnitDestroyedListener(const Unit*);
 
 
 };

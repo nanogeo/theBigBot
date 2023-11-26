@@ -82,7 +82,8 @@ enum BuildOrder {
 	four_gate_adept_pressure,
 	fastest_dts,
 	proxy_double_robo,
-	recessed_cannon_rush
+	recessed_cannon_rush,
+	cannon_rush_terran
 };
 
 
@@ -122,6 +123,7 @@ public:
 	bool ImmediatelySaturateGasses(BuildOrderResultArgData);
 	bool TrainStalker(BuildOrderResultArgData);
 	bool TrainAdept(BuildOrderResultArgData);
+	bool TrainZealot(BuildOrderResultArgData);
 	bool TrainOracle(BuildOrderResultArgData);
 	bool TrainPrism(BuildOrderResultArgData);
 	bool TrainObserver(BuildOrderResultArgData);
@@ -174,6 +176,8 @@ public:
 	bool AdeptDefendBaseTerran(BuildOrderResultArgData); //tostring
 	bool StalkerDefendBaseTerran(BuildOrderResultArgData); // tostring
 	bool StartFourGateBlinkPressure(BuildOrderResultArgData); // tostring
+	bool SendCannonRushTerranProbe1(BuildOrderResultArgData); // tostring
+	bool SendCannonRushTerranProbe2(BuildOrderResultArgData); // tostring
 
 	bool RemoveProbe(BuildOrderResultArgData);
 
@@ -188,6 +192,8 @@ public:
 	void Set4GateAdept();
 	void SetFastestDTsPvT();
 	void SetProxyDoubleRobo();
+	void SetCannonRushTerran();
+
 	void SetRecessedCannonRush();
 
 };

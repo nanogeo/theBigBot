@@ -30,6 +30,65 @@ struct OraclePath
 	}
 };
 
+struct CannonRushTriplePylonWalloff
+{
+	Point2D pylon_1;
+	Point2D pylon_2;
+	Point2D pylon_3;
+	Point2D cannon;
+	CannonRushTriplePylonWalloff(Point2D pylon_1, Point2D pylon_2, Point2D pylon_3, Point2D cannon)
+	{
+		this->pylon_1 = pylon_1;
+		this->pylon_2 = pylon_2;
+		this->pylon_3 = pylon_3;
+		this->cannon = cannon;
+	}
+};
+
+struct BuildingPlacement
+{
+	UNIT_TYPEID type;
+	Point2D building_pos;
+	Point2D move_to_pos;
+	BuildingPlacement(UNIT_TYPEID type, Point2D building_pos, Point2D move_to_pos)
+	{
+		this->type = type;
+		this->building_pos = building_pos;
+		this->move_to_pos = move_to_pos;
+	}
+};
+
+struct CannonPosition
+{
+	Point2D cannon_pos;
+	Point2D with_gate_walloff;
+	Point2D with_pylon_wallof;
+	CannonPosition(Point2D cannon_pos, Point2D with_gate_walloff, Point2D with_pylon_wallof)
+	{
+		this->cannon_pos = cannon_pos;
+		this->with_gate_walloff = with_gate_walloff;
+		this->with_pylon_wallof = with_pylon_wallof;
+	}
+};
+
+struct CannonRushPosition
+{
+	Point2D initial_pylon;
+	std::vector<CannonPosition> cannon_position;
+	std::vector<std::vector<BuildingPlacement>> pylon_walloff_positions;
+	std::vector<std::vector<BuildingPlacement>> gateway_walloff_positions;
+	Point2D stand_by;
+	CannonRushPosition(Point2D initial_pylon, std::vector<CannonPosition> cannon_position, std::vector<std::vector<BuildingPlacement>> pylon_walloff_positions, 
+		std::vector<std::vector<BuildingPlacement>> gateway_walloff_positions, Point2D stand_by)
+	{
+		this->initial_pylon = initial_pylon;
+		this->cannon_position = cannon_position;
+		this->pylon_walloff_positions = pylon_walloff_positions;
+		this->gateway_walloff_positions = gateway_walloff_positions;
+		this->stand_by = stand_by;
+	}
+};
+
 class Locations
 {
 public:
@@ -97,7 +156,18 @@ public:
 	Point2D blink_pressure_prism_consolidation;
 	Point2D blink_pressure_blink_up;
 	Point2D blink_pressure_blink_down;
+
+	std::vector<PathManager> blink_main_attack_path_lines;
+	PathManager blink_nat_attacK_path_line;
 	
+	std::vector<CannonRushTriplePylonWalloff> cannon_rush_terran_pylon_walloffs;
+
+	std::vector<CannonRushPosition> cannon_rush_terran_positions;
+	Point2D cannon_rush_terran_stand_by;
+	Point2D cannon_rush_terran_stand_bya;
+	Point2D cannon_rush_terran_stand_bys;
+	Point2D cannon_rush_terran_stand_byd;
+	std::vector<Point2D> cannon_rush_terran_stand_by_loop;
 
     Locations() {}
     Locations(Point3D start_location, BuildOrder build_order, std::string map_name)
@@ -105,6 +175,7 @@ public:
         if (map_name == "Lightshade LE")
         {
             SetLightshadeLocations(start_location, build_order);
+			SetLightshadeLocations2(start_location, build_order);
         }
 
 		else if (map_name == "Eternal Empire LE")
@@ -114,6 +185,7 @@ public:
     }
 
     void SetLightshadeLocations(Point3D, BuildOrder);
+	void SetLightshadeLocations2(Point3D, BuildOrder);
 	void SetTestingLocations(Point3D, BuildOrder);
 };
 

@@ -282,6 +282,22 @@ bool BuildOrderManager::TrainAdept(BuildOrderResultArgData data)
 	return false;
 }
 
+bool BuildOrderManager::TrainZealot(BuildOrderResultArgData data)
+{
+	if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_ZEALOT, 1, agent->Observation()))
+	{
+		for (const auto &gateway : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)))
+		{
+			if (gateway->build_progress == 1 && gateway->orders.size() == 0)
+			{
+				agent->Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_ZEALOT);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 bool BuildOrderManager::TrainOracle(BuildOrderResultArgData data)
 {
 	if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_ORACLE, 1, agent->Observation()))
@@ -976,7 +992,7 @@ bool BuildOrderManager::StalkerDefendBaseTerran(BuildOrderResultArgData data)
 
 bool BuildOrderManager::StartFourGateBlinkPressure(BuildOrderResultArgData data)
 {
-	ArmyGroup* army = new ArmyGroup();
+	ArmyGroup* army = new ArmyGroup(agent);
 	for (const auto &unit : agent->Observation()->GetUnits(IsUnits({ UNIT_TYPEID::PROTOSS_WARPPRISM, UNIT_TYPEID::PROTOSS_STALKER })))
 	{
 		if (agent->UnitIsOccupied(unit))
@@ -984,10 +1000,43 @@ bool BuildOrderManager::StartFourGateBlinkPressure(BuildOrderResultArgData data)
 		army->AddUnit(unit);
 	}
 	BlinkStalkerAttackTerran* blink_fsm = new BlinkStalkerAttackTerran(agent, "4 gate blink pressure", army, agent->locations->blink_presure_consolidation, 
-		agent->locations->blink_pressure_prism_consolidation, agent->locations->blink_pressure_blink_up);
+		agent->locations->blink_pressure_prism_consolidation, agent->locations->blink_pressure_blink_up, agent->locations->blink_pressure_blink_down);
 	agent->active_FSMs.push_back(blink_fsm);
 	return true;
 }
+
+bool BuildOrderManager::SendCannonRushTerranProbe1(BuildOrderResultArgData data)
+{
+	Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
+	const Unit* cannoneer = agent->worker_manager.GetBuilder(pos);
+	if (cannoneer == NULL)
+	{
+		std::cout << "Error could not find builder in SendCannonRushTerranProbe1" << std::endl;
+		return false;
+	}
+	agent->worker_manager.RemoveWorker(cannoneer);
+	CannonRushTerran* cannon_fsm = new CannonRushTerran(agent, "cannon rush terran 1", cannoneer, 1);
+	agent->active_FSMs.push_back(cannon_fsm);
+	return true;
+}
+
+bool BuildOrderManager::SendCannonRushTerranProbe2(BuildOrderResultArgData data)
+{
+
+	Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
+	const Unit* cannoneer = agent->worker_manager.GetBuilder(pos);
+	if (cannoneer == NULL)
+	{
+		std::cout << "Error could not find builder in SendCannonRushTerranProbe1" << std::endl;
+		return false;
+	}
+	agent->worker_manager.RemoveWorker(cannoneer);
+	CannonRushTerran* cannon_fsm = new CannonRushTerran(agent, "cannon rush terran 2", cannoneer, 2);
+	agent->active_FSMs.push_back(cannon_fsm);
+	return true;
+}
+
+
 
 bool BuildOrderManager::RemoveProbe(BuildOrderResultArgData data)
 {
@@ -1039,6 +1088,9 @@ void BuildOrderManager::SetBuildOrder(BuildOrder build)
 	case BuildOrder::proxy_double_robo:
 		SetProxyDoubleRobo();
 		break;
+	case BuildOrder::cannon_rush_terran:
+		SetCannonRushTerran();
+		break;
 	default:
 		std::cout << "Error invalid build order in SetBuildOrder" << std::endl;
 	}
@@ -1052,10 +1104,8 @@ void BuildOrderManager::SetBlank()
 
 void BuildOrderManager::SetTesting()
 {
-	build_order = { BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(1.0f),										&BuildOrderManager::CutWorkers,				BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(3.0f),										&BuildOrderManager::DefendThirdBase,		BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(4.0f),										&BuildOrderManager::OracleHarass,			BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(5.0f),										&BuildOrderManager::StalkerOraclePressure,	BuildOrderResultArgData()),
+	build_order = { BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(1.0f),										&BuildOrderManager::CutWorkers,					BuildOrderResultArgData()),
+					//BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(2.0f),										&BuildOrderManager::StartFourGateBlinkPressure,	BuildOrderResultArgData()),
 
 	};
 }
@@ -1096,6 +1146,7 @@ void BuildOrderManager::SetBlinkProxyRoboPressureBuild()
 	};
 }
 
+// finished
 void BuildOrderManager::SetOracleGatewaymanPvZ()
 {
 	build_order = { BuildOrderData(&BuildOrderManager::TimePassed,			BuildOrderConditionArgData(6.5f),										&BuildOrderManager::BuildFirstPylon,			BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_PYLON)),
@@ -1372,6 +1423,21 @@ void BuildOrderManager::SetProxyDoubleRobo()
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(250.0f),										&BuildOrderManager::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(280.0f),										&BuildOrderManager::BuildBuilding,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(300.0f),										&BuildOrderManager::ProxyDoubleRoboAllIn,		BuildOrderResultArgData()),
+	};
+}
+
+void BuildOrderManager::SetCannonRushTerran()
+{
+	build_order = { BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(8.5f),										&BuildOrderManager::BuildFirstPylon,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_PYLON})),
+					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(16.0f),										&BuildOrderManager::SendCannonRushTerranProbe1,	BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(27.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_FORGE})),
+					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(35.0f),										&BuildOrderManager::SendCannonRushTerranProbe2,	BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_GATEWAY),				&BuildOrderManager::TrainZealot,				BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_GATEWAY),				&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+					BuildOrderData(&BuildOrderManager::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_GATEWAY),				&BuildOrderManager::BuildBuildingMulti,			BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_CYBERNETICSCORE, UNIT_TYPEID::PROTOSS_ASSIMILATOR, UNIT_TYPEID::PROTOSS_ASSIMILATOR})),
+					BuildOrderData(&BuildOrderManager::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&BuildOrderManager::TrainStalker,				BuildOrderResultArgData()),
+					BuildOrderData(&BuildOrderManager::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE),		&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),
+					
 	};
 }
 
