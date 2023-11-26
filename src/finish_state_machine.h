@@ -1032,6 +1032,26 @@ public:
 	virtual State* TestTransitions() override;
 };
 
+class CannonRushTerranExtraPylon : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	Point2D pylon_pos;
+	CannonRushTerranExtraPylon(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+	Point2D FindPylonPlacement();
+};
+
 #pragma endregion
 
 class StateMachine
@@ -1538,6 +1558,7 @@ class CannonRushTerran : public StateMachine
 public:
 	const Unit* probe;
 	Units pylons;
+	Units cannons;
 
 	int event_id;
 	CannonRushTerran(TossBot* agent, std::string name, const Unit* probe, int variation) {
@@ -1548,6 +1569,7 @@ public:
 			current_state = new CannonRushTerranMoveAcross(agent, this, probe);
 		else
 			current_state = new CannonRushTerranMoveAcross2(agent, this, probe);
+
 
 		event_id = agent->GetUniqueId();
 		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {

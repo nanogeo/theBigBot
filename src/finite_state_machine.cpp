@@ -2926,6 +2926,11 @@ namespace sc2 {
 
 	void CannonRushTerranMoveAcross2::EnterState()
 	{
+		for (const auto &unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+		{
+			if (Distance2D(unit->pos, agent->locations->start_location) > 30)
+				state_machine->pylons.push_back(unit);
+		}
 		return;
 	}
 
@@ -3120,19 +3125,26 @@ namespace sc2 {
 	State* CannonRushTerranStandBy::TestTransitions()
 	{
 		int scv_attacking_probe = 0;
-		int scvs_attacking_pylon = 0;
+		int scv_attacking_pylon = 0;
 		int scv_attacking_cannons = 0;
 		for (const auto &scv : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_SCV)))
 		{
 			if (Distance2D(probe->pos, scv->pos) < 3 && Utility::IsFacing(scv, probe))
+			{
 				scv_attacking_probe++;
+			}
 			else
 			{
 				const Unit* closest_pylon = Utility::ClosestUnitTo(state_machine->pylons, scv->pos);
+				if (Distance2D(closest_pylon->pos, scv->pos) < 1.5)
+					scv_attacking_pylon++;
+
 			}
 		}
-		//if (threatening_scvs > 0)
-			//return new CannonRushTerranStandByLoop(agent, state_machine, probe, agent->locations->cannon_rush_terran_stand_by_loop);
+		if (scv_attacking_pylon > 4)
+			return new CannonRushTerranExtraPylon(agent, state_machine, probe);
+		if (scv_attacking_probe > 0)
+			return new CannonRushTerranStandByLoop(agent, state_machine, probe, agent->locations->cannon_rush_terran_stand_by_loop);
 		return NULL;
 	}
 
@@ -3182,6 +3194,70 @@ namespace sc2 {
 
 #pragma endregion
 
+#pragma region CannonRushTerranExtraPylon
+
+	void CannonRushTerranExtraPylon::TickState()
+	{
+		if (Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), pylon_pos) < 2)
+		{
+			pylon_pos = FindPylonPlacement();
+			agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos);
+		}
+	}
+
+	void CannonRushTerranExtraPylon::EnterState()
+	{
+		pylon_pos = FindPylonPlacement();
+		agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos);
+		return;
+	}
+
+	void CannonRushTerranExtraPylon::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranExtraPylon::TestTransitions()
+	{
+		for (const auto &pylon : state_machine->pylons)
+		{
+			if (Distance2D(pylon->pos, pylon_pos) < 1 && pylon->display_type != Unit::DisplayType::Placeholder)
+				return new CannonRushTerranStandBy(agent, state_machine, probe, agent->locations->cannon_rush_terran_stand_by);
+		}
+		return NULL;
+	}
+
+	std::string CannonRushTerranExtraPylon::toString()
+	{
+		return "place extra pylon";
+	}
+
+	Point2D CannonRushTerranExtraPylon::FindPylonPlacement()
+	{
+		std::vector<Point2D> possible_positions;
+		Point2D cannon_pos = state_machine->cannons[0]->pos;
+		for (int i = -6; i <= 6; i += 2)
+		{
+			for (int j = -6; j <= 6; j += 2)
+			{
+				Point2D pos = Point2D(cannon_pos.x + i, cannon_pos.y + j);
+				if (agent->Observation()->IsPlacable(pos) && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), pos) > 2)
+					possible_positions.push_back(pos);
+			}
+		}
+		Point2D probe_pos = probe->pos;
+		sort(possible_positions.begin(), possible_positions.end(),
+			[probe_pos](const Point2D & a, const Point2D & b) -> bool
+		{
+			return Distance2D(a, probe_pos) < Distance2D(b, probe_pos);
+		});
+		if (possible_positions.size() > 0)
+			return possible_positions[0];
+		else
+			return Point2D(0, 0);
+	}
+
+#pragma endregion
 
 
 
@@ -3259,8 +3335,12 @@ namespace sc2 {
 
 	void CannonRushTerran::OnUnitCreatedListener(const Unit* unit)
 	{
+		if (unit->display_type == Unit::DisplayType::Placeholder)
+			return;
 		if (unit->unit_type == UNIT_TYPEID::PROTOSS_PYLON && Distance2D(unit->pos, agent->locations->start_location) > 30)
 			pylons.push_back(unit);
+		else if (unit->unit_type == UNIT_TYPEID::PROTOSS_PHOTONCANNON && Distance2D(unit->pos, agent->locations->start_location) > 30)
+			cannons.push_back(unit);
 	}
 
 #pragma endregion

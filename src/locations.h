@@ -164,9 +164,6 @@ public:
 
 	std::vector<CannonRushPosition> cannon_rush_terran_positions;
 	Point2D cannon_rush_terran_stand_by;
-	Point2D cannon_rush_terran_stand_bya;
-	Point2D cannon_rush_terran_stand_bys;
-	Point2D cannon_rush_terran_stand_byd;
 	std::vector<Point2D> cannon_rush_terran_stand_by_loop;
 
     Locations() {}
