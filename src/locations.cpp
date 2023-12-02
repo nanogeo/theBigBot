@@ -217,7 +217,7 @@ namespace sc2 {
 		air_graph = new Graph(air_path, links);
 
 
-		std::vector<std::vector<Point2D>> enemy_mineral_lines = { {convert_location(Point2D(40.5, 131.5), swap), convert_location(Point2D(32, 131), swap),convert_location(Point2D(42, 139), swap)},
+		 enemy_mineral_lines = { {convert_location(Point2D(40.5, 131.5), swap), convert_location(Point2D(32, 131), swap),convert_location(Point2D(42, 139), swap)},
 																{convert_location(Point2D(38.5, 102.5), swap), convert_location(Point2D(38, 95), swap),convert_location(Point2D(31.5, 105.5), swap)},
 																{convert_location(Point2D(36.5, 69.5), swap), convert_location(Point2D(32, 63), swap),convert_location(Point2D(32, 76), swap)},
 																{convert_location(Point2D(64.5, 110.5), swap), convert_location(Point2D(57.5, 107.5), swap),convert_location(Point2D(65, 118), swap)},

@@ -155,10 +155,11 @@ bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
 
+	int extra_workers = data->index;
 	int num_workers = agent->Observation()->GetFoodWorkers();
 	int num_nexi = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
 	int num_assimilators = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
-	if (num_workers >= std::min(num_nexi * 16 + num_assimilators * 3, 70))
+	if (num_workers >= std::min(num_nexi * 16 + num_assimilators * 3, 70) + extra_workers)
 	{
 		agent->worker_manager.should_build_workers = false;
 	}

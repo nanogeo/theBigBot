@@ -975,7 +975,8 @@ public:
 	Point2D cannon_move_to;
 	std::vector<BuildingPlacement> wall_pos;
 	int index = 0;
-	CannonRushTerranWallOff(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos, Point2D cannon_move_to, std::vector<BuildingPlacement> wall_pos)
+	CannonRushTerranWallOff(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos, 
+		Point2D cannon_move_to, std::vector<BuildingPlacement> wall_pos)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -983,6 +984,34 @@ public:
 		this->cannon_pos = cannon_pos;
 		this->cannon_move_to = cannon_move_to;
 		this->wall_pos = wall_pos;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class CannonRushTerranCannonFirstWallOff : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	Point2D cannon_pos;
+	std::vector<BuildingPlacement> pylon_wall_pos;
+	std::vector<BuildingPlacement> gateway_wall_pos;
+	bool cannon_placed = false;
+	std::vector<BuildingPlacement> wall = {};
+	bool wall_set = false;
+	CannonRushTerranCannonFirstWallOff(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos, 
+		std::vector<BuildingPlacement> pylon_wall_pos, std::vector<BuildingPlacement> gateway_wall_pos)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+		this->cannon_pos = cannon_pos;
+		this->pylon_wall_pos = pylon_wall_pos;
+		this->gateway_wall_pos = gateway_wall_pos;
 	}
 	virtual std::string toString() override;
 	void TickState() override;
@@ -1051,6 +1080,67 @@ public:
 	virtual State* TestTransitions() override;
 	Point2D FindPylonPlacement();
 };
+
+class CannonRushTerranExtraCannon : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	Point2D cannon_pos;
+	CannonRushTerranExtraCannon(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+	Point2D FindCannonPlacement();
+};
+
+class CannonRushTerranBuildGateway : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	Point2D gate_pos;
+	CannonRushTerranBuildGateway(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+	Point2D FindGatewayPlacement();
+};
+
+class CannonRushTerranBuildStargate : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	Point2D stargate_pos;
+	CannonRushTerranBuildStargate(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+	Point2D FindStargatePlacement();
+};
+
 
 #pragma endregion
 
@@ -1577,14 +1667,23 @@ public:
 		};
 		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
 
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
 		current_state->EnterState();
 	}
 
 	~CannonRushTerran()
 	{
 		agent->RemoveListenerToOnUnitCreatedEvent(event_id);
+		agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
 	}
 	void OnUnitCreatedListener(const Unit*);
+	void OnUnitDestroyedListener(const Unit*);
+
+
 };
 
 }

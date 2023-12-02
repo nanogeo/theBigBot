@@ -2084,6 +2084,14 @@ namespace sc2 {
 
 	}
 
+	IsNonPlaceholderUnit::IsNonPlaceholderUnit(UNIT_TYPEID type_) : m_type(type_) {
+	}
+
+	bool IsNonPlaceholderUnit::operator()(const Unit& unit_) const {
+		return unit_.unit_type == m_type && unit_.display_type != Unit::DisplayType::Placeholder;
+	}
+
+
 #pragma endregion
 
 #pragma region debug info

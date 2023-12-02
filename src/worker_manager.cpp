@@ -765,6 +765,16 @@ void WorkerManager::BuildWorkers()
 			}
 		}
 	}
+	else
+	{
+		for (const auto &nexus : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+		{
+			if (nexus->orders.size() > 0)
+			{
+				agent->Actions()->UnitCommand(nexus, ABILITY_ID::CANCEL_LAST);
+			}
+		}
+	}
 }
 
 void WorkerManager::AddAssimilator(const Unit* assimilator)

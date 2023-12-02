@@ -62,6 +62,10 @@ struct ActionArgData
 	{
 		unitIds = x;
 	}
+	ActionArgData(int x)
+	{
+		index = x;
+	}
 };
 
 struct ActionData;

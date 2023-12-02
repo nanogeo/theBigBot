@@ -164,6 +164,15 @@ private:
 	Unit::Alliance m_type;
 };
 
+struct IsNonPlaceholderUnit {
+	explicit IsNonPlaceholderUnit(UNIT_TYPEID type_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	UNIT_TYPEID m_type;
+};
+
 struct EnemyUnitPosition
 {
 	Point2D pos;
