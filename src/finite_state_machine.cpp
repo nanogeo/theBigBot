@@ -3306,11 +3306,14 @@ namespace sc2 {
 			if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
 				num_gasses++;
 		}
-		if ((agent->Observation()->GetMinerals() >= 150 || pulled_scvs == 0) && agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() > 0 && num_gasses < 2 && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)).size() > 0)
+		if (agent->Observation()->GetMinerals() >= 200 && agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() > 0 && num_gasses < 2 && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)).size() > 0)
 			agent->build_order_manager.BuildBuilding(BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR));
 
 		if (agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0 && agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0 && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STARGATE, 1, agent->Observation()))
 			return new CannonRushTerranBuildStargate(agent, state_machine, probe);
+
+		if (pulled_scvs == 0 && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)).size() > 0)
+			return new CannonRushTerranStandByPhase2(agent, state_machine, probe, stand_by_spot);
 
 		return NULL;
 	}
@@ -3607,7 +3610,6 @@ namespace sc2 {
 
 #pragma endregion
 
-
 #pragma region CannonRushTerranBuildStargate
 
 	void CannonRushTerranBuildStargate::TickState()
@@ -3691,6 +3693,317 @@ namespace sc2 {
 
 #pragma endregion
 
+#pragma region CannonRushTerranStandByPhase2
+
+	void CannonRushTerranStandByPhase2::TickState()
+	{
+		// build from stargate
+		if (next_unit == UNIT_TYPEID::VOIDSEEKER)
+		{
+			if (state_machine->stargates.size() > 0 && state_machine->stargates[0]->build_progress == 1)
+			{
+				if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_VOIDRAY, 1, agent->Observation()))
+				{
+					agent->Actions()->UnitCommand(state_machine->stargates[0], ABILITY_ID::TRAIN_VOIDRAY);
+					next_unit = UNIT_TYPEID::PROTOSS_FLEETBEACON;
+					return;
+				}
+			}
+		}
+		else if (next_unit == UNIT_TYPEID::PROTOSS_TEMPEST)
+		{
+			if (state_machine->stargates.size() > 0 && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON)).size() > 0)
+			{
+				for (const auto &stargate : state_machine->stargates)
+				{
+					if (stargate->build_progress == 1 && stargate->orders.size() == 0)
+					{
+						if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_TEMPEST, 1, agent->Observation()))
+						{
+							agent->Actions()->UnitCommand(state_machine->stargates[0], ABILITY_ID::TRAIN_TEMPEST);
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		if (probe->orders.size() > 0)
+			probe_busy = false;
+
+		if (probe->orders.size() > 0)
+		{
+			if (probe->orders[0].ability_id == ABILITY_ID::BUILD_FLEETBEACON)
+				next_unit = UNIT_TYPEID::PROTOSS_TEMPEST;
+			else if(probe->orders[0].ability_id == ABILITY_ID::BUILD_STARGATE)
+				next_unit = UNIT_TYPEID::VOIDSEEKER;
+			return;
+		}
+
+		if ((next_unit == UNIT_TYPEID::VOIDSEEKER || next_unit == UNIT_TYPEID::PROTOSS_FLEETBEACON) && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() > 0)
+		{
+			if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_FLEETBEACON, 1, agent->Observation()))
+			{
+				// build fleet beacon
+				Point2D pos = FindBuildingPlacement();
+				if (pos != Point2D(0, 0))
+				{
+					agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_FLEETBEACON, pos);
+					return;
+				}
+				else
+				{
+					// build pylon
+					Point2D pylon_pos = FindPylonPlacement();
+					if (pylon_pos != Point2D(0, 0))
+					{
+						if (state_machine->pylons[state_machine->pylons.size() - 1]->build_progress == 1)
+							agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pos);
+						return;
+					}
+				}
+			}
+		}
+		else if (next_unit == UNIT_TYPEID::PROTOSS_STARGATE && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0)
+		{
+			if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STARGATE, 1, agent->Observation()))
+			{
+				// build stargate
+				Point2D pos = FindBuildingPlacement();
+				if (pos != Point2D(0, 0))
+				{
+					agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_STARGATE, pos);
+					return;
+				}
+				else
+				{
+					// build pylon
+					Point2D pylon_pos = FindPylonPlacement();
+					if (pylon_pos != Point2D(0, 0))
+					{
+						if (state_machine->pylons[state_machine->pylons.size() - 1]->build_progress == 1)
+							agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos);
+						return;
+					}
+				}
+			}
+		}
+
+		// build extra cannons / batteries
+		int extra_minerals = agent->Observation()->GetMinerals() - Utility::GetCost(next_unit).mineral_cost;
+		if (extra_minerals < 100)
+		{
+			if (probe->orders.size() == 0)
+				agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, stand_by_spot);
+			return;
+		}
+
+		int num_pylons = state_machine->pylons.size();
+		int num_cannons = state_machine->cannons.size();
+		int num_batteries = state_machine->batteries.size();
+
+		if (num_pylons <= (num_cannons + num_batteries) / 5)
+		{
+			// build pylon
+			Point2D pylon_pos = FindPylonPlacement();
+			if (pylon_pos != Point2D(0, 0))
+			{
+				if (state_machine->pylons[state_machine->pylons.size() - 1]->build_progress == 1)
+					agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos);
+				return;
+			}
+
+		}
+		else
+		{
+			int total_battery_energy = 0;
+			for (const auto &battery : state_machine->batteries)
+			{
+				if (battery->build_progress < 1)
+					total_battery_energy += 50;
+				else
+					total_battery_energy += battery->energy;
+			}
+			if (agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0 && total_battery_energy < num_cannons * 100)
+			{
+				//build battery
+				Point2D pos = FindBatteryPlacement();
+				if (pos != Point2D(0, 0))
+				{
+					agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_SHIELDBATTERY, pos);
+					return;
+				}
+				else
+				{
+					// build pylon
+					Point2D pylon_pos = FindPylonPlacement();
+					if (pylon_pos != Point2D(0, 0))
+					{
+						if (state_machine->pylons[state_machine->pylons.size() - 1]->build_progress == 1)
+							agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos);
+						return;
+					}
+				}
+			}
+			else if (extra_minerals >= 150)
+			{
+				// build cannon
+				Point2D pos = FindCannonPlacement();
+				if (pos != Point2D(0, 0))
+				{
+					agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, pos);
+					return;
+				}
+				else
+				{
+					// build pylon
+					Point2D pylon_pos = FindPylonPlacement();
+					if (pylon_pos != Point2D(0, 0))
+					{
+						if (state_machine->pylons[state_machine->pylons.size() - 1]->build_progress == 1)
+							agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos);
+						return;
+					}
+				}
+			}
+		}
+		agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, stand_by_spot);
+	}
+
+	void CannonRushTerranStandByPhase2::EnterState()
+	{
+		int num_gasses = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
+		for (const auto &action : agent->action_manager.active_actions)
+		{
+			if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
+				num_gasses++;
+		}
+		for (int i = 0; i < 2 - num_gasses; i++)
+		{
+			agent->build_order_manager.BuildBuilding(BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR));
+		}
+
+		if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0)
+			next_unit = UNIT_TYPEID::PROTOSS_STARGATE;
+		else if (agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0)
+			next_unit = UNIT_TYPEID::VOIDSEEKER; // represents a void ray + fleet beacon
+		else if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON)).size() == 0)
+			next_unit = UNIT_TYPEID::PROTOSS_FLEETBEACON;
+		else
+			next_unit = UNIT_TYPEID::PROTOSS_TEMPEST;
+
+		return;
+	}
+
+	void CannonRushTerranStandByPhase2::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranStandByPhase2::TestTransitions()
+	{
+		return NULL;
+	}
+
+	std::string CannonRushTerranStandByPhase2::toString()
+	{
+		return "stand by phase 2";
+	}
+
+	Point2D CannonRushTerranStandByPhase2::FindBuildingPlacement()
+	{
+
+		std::vector<Point2D> possible_positions = state_machine->gateway_places;
+
+		Point2D enemy_base = agent->Observation()->GetGameInfo().enemy_start_locations[0];
+		sort(possible_positions.begin(), possible_positions.end(),
+			[enemy_base](const Point2D & a, const Point2D & b) -> bool
+		{
+			return Distance2D(a, enemy_base) > Distance2D(b, enemy_base);
+		});
+		if (possible_positions.size() > 0)
+		{
+			for (const auto pos : possible_positions)
+			{
+				if (agent->Query()->Placement(ABILITY_ID::BUILD_GATEWAY, pos))
+					return pos;
+			}
+		}
+
+		return Point2D(0, 0);
+	}
+	
+	Point2D CannonRushTerranStandByPhase2::FindBatteryPlacement()
+	{
+		std::vector<Point2D> possible_positions = state_machine->cannon_places;
+
+
+		Units batteries = state_machine->batteries;
+		sort(possible_positions.begin(), possible_positions.end(),
+			[batteries](const Point2D & a, const Point2D & b) -> bool
+		{
+			return Utility::DistanceToClosest(batteries, a) > Utility::DistanceToClosest(batteries, b);
+		});
+		if (possible_positions.size() > 0)
+		{
+			for (const auto pos : possible_positions)
+			{
+				if (Utility::DistanceToClosest(state_machine->pylons, pos) < 6.5 && agent->Query()->Placement(ABILITY_ID::BUILD_SHIELDBATTERY, pos))
+					return pos;
+			}
+		}
+
+		return Point2D(0, 0);
+	}
+
+	Point2D CannonRushTerranStandByPhase2::FindCannonPlacement()
+	{
+		std::vector<Point2D> possible_positions = state_machine->cannon_places;
+		
+		
+		Units cannons = state_machine->cannons;
+		sort(possible_positions.begin(), possible_positions.end(),
+			[cannons](const Point2D & a, const Point2D & b) -> bool
+		{
+			return Utility::DistanceToClosest(cannons, a) > Utility::DistanceToClosest(cannons, b);
+		});
+		if (possible_positions.size() > 0)
+		{
+			for (const auto pos : possible_positions)
+			{
+				if (Utility::DistanceToClosest(state_machine->pylons, pos) < 6.5 && agent->Query()->Placement(ABILITY_ID::BUILD_PHOTONCANNON, pos))
+					return pos;
+			}
+		}
+
+		return Point2D(0, 0);
+	}
+
+	Point2D CannonRushTerranStandByPhase2::FindPylonPlacement()
+	{
+		std::vector<Point2D> possible_positions = state_machine->cannon_places;
+
+
+		Units pylons = state_machine->pylons;
+		sort(possible_positions.begin(), possible_positions.end(),
+			[pylons](const Point2D & a, const Point2D & b) -> bool
+		{
+			return Utility::DistanceToClosest(pylons, a) > Utility::DistanceToClosest(pylons, b);
+		});
+		if (possible_positions.size() > 0)
+		{
+			for (const auto pos : possible_positions)
+			{
+				if (agent->Query()->Placement(ABILITY_ID::BUILD_PYLON, pos))
+					return pos;
+			}
+		}
+
+		return Point2D(0, 0);
+	}
+
+#pragma endregion
+
 
 #pragma region OracleHarassStateMachine
 
@@ -3764,14 +4077,75 @@ namespace sc2 {
 
 #pragma region CannonRushTerran
 
+	void CannonRushTerran::RunStateMachine()
+	{
+		__super::RunStateMachine();
+
+		for (const auto &pos : cannon_places)
+		{
+			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), 1, Color(255, 0, 0));
+		}
+		for (const auto &pos : gateway_places)
+		{
+			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), 1.5, Color(0, 255, 0));
+		}
+	}
+
 	void CannonRushTerran::OnUnitCreatedListener(const Unit* unit)
 	{
 		if (unit->display_type == Unit::DisplayType::Placeholder)
 			return;
 		if (unit->unit_type == UNIT_TYPEID::PROTOSS_PYLON && Distance2D(unit->pos, agent->locations->start_location) > 30)
+		{
 			pylons.push_back(unit);
+			for (int i = -7; i <= 7; i++)
+			{
+				for (int j = -7; j <= 7; j++)
+				{
+					Point2D pos = unit->pos + Point2D(i, j);
+					if (Distance2D(pos, unit->pos) < 7.5 && std::find(cannon_places.begin(), cannon_places.end(), pos) == cannon_places.end() && agent->Query()->Placement(ABILITY_ID::BUILD_PYLON, pos))
+					{
+						cannon_places.push_back(pos);
+					}
+				}
+			}
+			for (int i = -6; i <= 5; i++)
+			{
+				for (int j = -6; j <= 5; j++)
+				{
+					Point2D pos = unit->pos + Point2D(i, j) + Point2D(.5, .5);
+					if (Distance2D(pos, unit->pos) < 6.5 && std::find(gateway_places.begin(), gateway_places.end(), pos) == gateway_places.end() && agent->Query()->Placement(ABILITY_ID::BUILD_BARRACKS, pos))
+					{
+						gateway_places.push_back(pos);
+					}
+				}
+			}
+			SmallBuildingBlock(unit->pos);
+		}
 		else if (unit->unit_type == UNIT_TYPEID::PROTOSS_PHOTONCANNON && Distance2D(unit->pos, agent->locations->start_location) > 30)
+		{
 			cannons.push_back(unit);
+			SmallBuildingBlock(unit->pos);
+		}
+		else if (unit->unit_type == UNIT_TYPEID::PROTOSS_SHIELDBATTERY && Distance2D(unit->pos, agent->locations->start_location) > 30)
+		{
+			batteries.push_back(unit);
+			SmallBuildingBlock(unit->pos);
+		}
+		else if (unit->unit_type == UNIT_TYPEID::PROTOSS_GATEWAY)
+		{
+			gateways.push_back(unit);
+			BigBuildingBlock(unit->pos);
+		}
+		else if (unit->unit_type == UNIT_TYPEID::PROTOSS_STARGATE)
+		{
+			stargates.push_back(unit);
+			BigBuildingBlock(unit->pos);
+		}
+		else if (unit->unit_type == UNIT_TYPEID::PROTOSS_FLEETBEACON)
+		{
+			BigBuildingBlock(unit->pos);
+		}
 	}
 
 	void CannonRushTerran::OnUnitDestroyedListener(const Unit* unit)
@@ -3788,6 +4162,62 @@ namespace sc2 {
 		{
 			cannons.erase(cannon);
 			return;
+		}
+	}
+
+	void CannonRushTerran::SmallBuildingBlock(Point2D building_pos)
+	{
+		for (int i = -1; i <= 1; i++)
+		{
+			for (int j = -1; j <= 1; j++)
+			{
+				Point2D pos = building_pos + Point2D(i, j);
+				auto pos_it = std::find(cannon_places.begin(), cannon_places.end(), pos);
+				if (pos_it != cannon_places.end())
+				{
+					cannon_places.erase(pos_it);
+				}
+			}
+		}
+		for (int i = -2; i <= 1; i++)
+		{
+			for (int j = -2; j <= 1; j++)
+			{
+				Point2D pos = building_pos + Point2D(i, j) + Point2D(.5, .5);
+				auto pos_it = std::find(gateway_places.begin(), gateway_places.end(), pos);
+				if (pos_it != gateway_places.end())
+				{
+					gateway_places.erase(pos_it);
+				}
+			}
+		}
+	}
+
+	void CannonRushTerran::BigBuildingBlock(Point2D building_pos)
+	{
+		for (int i = -2; i <= 1; i++)
+		{
+			for (int j = -2; j <= 1; j++)
+			{
+				Point2D pos = building_pos + Point2D(i, j) + Point2D(.5, .5);
+				auto pos_it = std::find(cannon_places.begin(), cannon_places.end(), pos);
+				if (pos_it != cannon_places.end())
+				{
+					cannon_places.erase(pos_it);
+				}
+			}
+		}
+		for (int i = -2; i <= 2; i++)
+		{
+			for (int j = -2; j <= 2; j++)
+			{
+				Point2D pos = building_pos + Point2D(i, j);
+				auto pos_it = std::find(gateway_places.begin(), gateway_places.end(), pos);
+				if (pos_it != gateway_places.end())
+				{
+					gateway_places.erase(pos_it);
+				}
+			}
 		}
 	}
 

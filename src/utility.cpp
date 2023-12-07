@@ -1636,6 +1636,84 @@ ABILITY_ID Utility::GetTrainAbility(UNIT_TYPEID unitId)
 	}
 }
 
+UnitCost Utility::GetCost(UNIT_TYPEID unit_type)
+{
+	switch (unit_type)
+	{
+	case UNIT_TYPEID::PROTOSS_PYLON:
+		return UnitCost(100, 0, 0);
+	case UNIT_TYPEID::PROTOSS_NEXUS:
+		return UnitCost(400, 0, 0);
+	case UNIT_TYPEID::PROTOSS_GATEWAY:
+		return UnitCost(150, 0, 0);
+	case UNIT_TYPEID::PROTOSS_FORGE:
+		return UnitCost(150, 0, 0);
+	case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
+		return UnitCost(150, 0, 0);
+	case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
+		return UnitCost(150, 0, 0);
+	case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
+		return UnitCost(100, 0, 0);
+	case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
+		return UnitCost(150, 100, 0);
+	case UNIT_TYPEID::PROTOSS_STARGATE:
+		return UnitCost(150, 150, 0);
+	case UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
+		return UnitCost(150, 100, 0);
+	case UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
+		return UnitCost(150, 150, 0);
+	case UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
+		return UnitCost(150, 200, 0);
+	case UNIT_TYPEID::PROTOSS_DARKSHRINE:
+		return UnitCost(150, 150, 0);
+	case UNIT_TYPEID::PROTOSS_FLEETBEACON:
+		return UnitCost(300, 200, 0);
+	case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
+		return UnitCost(75, 0, 0);
+	case UNIT_TYPEID::PROTOSS_PROBE:
+		return UnitCost(50, 0, 1);
+	case UNIT_TYPEID::PROTOSS_ZEALOT:
+		return UnitCost(100, 0, 2);
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		return UnitCost(125, 50, 2);
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		return UnitCost(50, 150, 2);
+	case UNIT_TYPEID::PROTOSS_ADEPT:
+		return UnitCost(100, 25, 2);
+	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		return UnitCost(50, 150, 2);
+	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		return UnitCost(125, 125, 2);
+	case UNIT_TYPEID::PROTOSS_IMMORTAL:
+		return UnitCost(275, 100, 4);
+	case UNIT_TYPEID::PROTOSS_COLOSSUS:
+		return UnitCost(300, 200, 6);
+	case UNIT_TYPEID::PROTOSS_DISRUPTOR:
+		return UnitCost(150, 150, 3);
+	case UNIT_TYPEID::PROTOSS_OBSERVER:
+		return UnitCost(25, 75, 1);
+	case UNIT_TYPEID::PROTOSS_WARPPRISM:
+		return UnitCost(250, 0, 2);
+	case UNIT_TYPEID::PROTOSS_PHOENIX:
+		return UnitCost(150, 100, 2);
+	case UNIT_TYPEID::PROTOSS_VOIDRAY:
+		return UnitCost(250, 150, 4);
+	case UNIT_TYPEID::PROTOSS_ORACLE:
+		return UnitCost(150, 150, 3);
+	case UNIT_TYPEID::PROTOSS_CARRIER:
+		return UnitCost(350, 250, 6);
+	case UNIT_TYPEID::PROTOSS_TEMPEST:
+		return UnitCost(250, 175, 5);
+	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+		return UnitCost(400, 400, 8);
+	case UNIT_TYPEID::VOIDSEEKER: // represents void ray + fleet beacon
+		return UnitCost(550, 350, 4);
+	default:
+		std::cout << "Error invalid unit id in GetCost";
+		return UnitCost(0, 0, 0);
+	}
+}
+
 bool Utility::CanAfford(UNIT_TYPEID unit, int amount, const ObservationInterface* observation)
 {
 	UnitCost cost;

@@ -547,7 +547,7 @@ bool BuildOrderManager::ContinueBuildingPylons(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ContinueMakingWorkers(BuildOrderResultArgData data)
 {
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData(2)));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData(data.amount)));
 	return true;
 }
 
@@ -1432,7 +1432,7 @@ void BuildOrderManager::SetCannonRushTerran()
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(16.0f),										&BuildOrderManager::SendCannonRushTerranProbe1,	BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(27.0f),										&BuildOrderManager::BuildBuilding,				BuildOrderResultArgData({UNIT_TYPEID::PROTOSS_FORGE})),
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(35.0f),										&BuildOrderManager::SendCannonRushTerranProbe2,	BuildOrderResultArgData()),
-					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(35.0f),										&BuildOrderManager::ContinueMakingWorkers,		BuildOrderResultArgData(0)),
+					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(35.0f),										&BuildOrderManager::ContinueMakingWorkers,		BuildOrderResultArgData(2)),
 					BuildOrderData(&BuildOrderManager::TimePassed,		BuildOrderConditionArgData(35.0f),										&BuildOrderManager::ImmediatelySaturateGasses,	BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_GATEWAY),				&BuildOrderManager::TrainZealot,				BuildOrderResultArgData()),
 					BuildOrderData(&BuildOrderManager::HasBuilding,		BuildOrderConditionArgData(UNIT_TYPEID::PROTOSS_GATEWAY),				&BuildOrderManager::ChronoBuilding,				BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_GATEWAY)),

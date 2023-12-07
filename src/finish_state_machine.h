@@ -1141,6 +1141,32 @@ public:
 	Point2D FindStargatePlacement();
 };
 
+class CannonRushTerranStandByPhase2 : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	bool probe_busy = false;
+	Point2D stand_by_spot;
+	UNIT_TYPEID next_unit;
+	CannonRushTerranStandByPhase2(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D stand_by_spot)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
+		this->stand_by_spot = stand_by_spot;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+	Point2D FindBuildingPlacement();
+	Point2D FindBatteryPlacement();
+	Point2D FindCannonPlacement();
+	Point2D FindPylonPlacement();
+};
+
 
 #pragma endregion
 
@@ -1649,6 +1675,11 @@ public:
 	const Unit* probe;
 	Units pylons;
 	Units cannons;
+	Units batteries;
+	Units gateways;
+	Units stargates;
+	std::vector<Point2D> cannon_places;
+	std::vector<Point2D> gateway_places;
 
 	int event_id;
 	CannonRushTerran(TossBot* agent, std::string name, const Unit* probe, int variation) {
@@ -1680,9 +1711,14 @@ public:
 		agent->RemoveListenerToOnUnitCreatedEvent(event_id);
 		agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
 	}
+
+	virtual void RunStateMachine() override;
+	
+
 	void OnUnitCreatedListener(const Unit*);
 	void OnUnitDestroyedListener(const Unit*);
-
+	void SmallBuildingBlock(Point2D);
+	void BigBuildingBlock(Point2D);
 
 };
 

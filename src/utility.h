@@ -65,6 +65,7 @@ public:
 	static ABILITY_ID GetBuildAbility(UNIT_TYPEID);
 	static ABILITY_ID GetTrainAbility(UNIT_TYPEID);
 	static int BuildingsReady(UNIT_TYPEID, const ObservationInterface*);
+	static UnitCost GetCost(UNIT_TYPEID);
 	static bool CanAfford(UNIT_TYPEID, int, const ObservationInterface*);
 	static bool CanAffordUpgrade(UPGRADE_ID, const ObservationInterface*);
 	static int MaxCanAfford(UNIT_TYPEID, int, const ObservationInterface*);
