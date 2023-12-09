@@ -178,6 +178,7 @@ public:
 	bool StartFourGateBlinkPressure(BuildOrderResultArgData); // tostring
 	bool SendCannonRushTerranProbe1(BuildOrderResultArgData); // tostring
 	bool SendCannonRushTerranProbe2(BuildOrderResultArgData); // tostring
+	bool CannonRushAttack(BuildOrderResultArgData); // tostring
 
 	bool RemoveProbe(BuildOrderResultArgData);
 

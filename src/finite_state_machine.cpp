@@ -3489,23 +3489,8 @@ namespace sc2 {
 
 	Point2D CannonRushTerranExtraCannon::FindCannonPlacement()
 	{
-		std::vector<Point2D> possible_positions;
-		for (const auto &pylon : state_machine->pylons)
-		{
-			Point2D pylon_pos = pylon->pos;
-			for (int i = -6; i <= 6; i += 2)
-			{
-				for (int j = -6; j <= 6; j += 2)
-				{
-					Point2D pos = Point2D(pylon_pos.x + i, pylon_pos.y + j);
-					if (Distance2D(pos, pylon_pos) > 6)
-						continue;
-					if (agent->Observation()->IsPlacable(pos) && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), pos) > 2)
-						possible_positions.push_back(pos);
-				}
-			}
-		}
-		
+		std::vector<Point2D> possible_positions = state_machine->cannon_places;
+
 		Point2D probe_pos = probe->pos;
 		sort(possible_positions.begin(), possible_positions.end(),
 			[probe_pos](const Point2D & a, const Point2D & b) -> bool
@@ -3573,28 +3558,13 @@ namespace sc2 {
 
 	Point2D CannonRushTerranBuildGateway::FindGatewayPlacement()
 	{
-		std::vector<Point2D> possible_positions;
-		for (const auto &pylon : state_machine->pylons)
-		{
-			Point2D pylon_pos = pylon->pos;
-			for (int i = -6; i <= 6; i ++)
-			{
-				for (int j = -6; j <= 6; j ++)
-				{
-					Point2D pos = Point2D(pylon_pos.x + i, pylon_pos.y + j);
-					if (Distance2D(pos, pylon_pos) > 6)
-						continue;
-					if (agent->Observation()->IsPlacable(pos) && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), pos) > 3)
-						possible_positions.push_back(pos);
-				}
-			}
-		}
+		std::vector<Point2D> possible_positions = state_machine->gateway_places;
 
-		Point2D probe_pos = probe->pos;
+		Point2D enemy_base = agent->Observation()->GetGameInfo().enemy_start_locations[0];
 		sort(possible_positions.begin(), possible_positions.end(),
-			[probe_pos](const Point2D & a, const Point2D & b) -> bool
+			[enemy_base](const Point2D & a, const Point2D & b) -> bool
 		{
-			return Distance2D(a, probe_pos) < Distance2D(b, probe_pos);
+			return Distance2D(a, enemy_base) > Distance2D(b, enemy_base);
 		});
 		if (possible_positions.size() > 0)
 		{
@@ -3656,22 +3626,7 @@ namespace sc2 {
 
 	Point2D CannonRushTerranBuildStargate::FindStargatePlacement()
 	{
-		std::vector<Point2D> possible_positions;
-		for (const auto &pylon : state_machine->pylons)
-		{
-			Point2D pylon_pos = pylon->pos;
-			for (int i = -6; i <= 6; i++)
-			{
-				for (int j = -6; j <= 6; j++)
-				{
-					Point2D pos = Point2D(pylon_pos.x + i, pylon_pos.y + j);
-					if (Distance2D(pos, pylon_pos) > 6)
-						continue;
-					if (agent->Observation()->IsPlacable(pos) && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), pos) > 3)
-						possible_positions.push_back(pos);
-				}
-			}
-		}
+		std::vector<Point2D> possible_positions = state_machine->gateway_places;
 
 		Point2D enemy_base = agent->Observation()->GetGameInfo().enemy_start_locations[0];
 		sort(possible_positions.begin(), possible_positions.end(),
@@ -3758,7 +3713,7 @@ namespace sc2 {
 					if (pylon_pos != Point2D(0, 0))
 					{
 						if (state_machine->pylons[state_machine->pylons.size() - 1]->build_progress == 1)
-							agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pos);
+							agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos);
 						return;
 					}
 				}
@@ -3801,8 +3756,9 @@ namespace sc2 {
 		int num_pylons = state_machine->pylons.size();
 		int num_cannons = state_machine->cannons.size();
 		int num_batteries = state_machine->batteries.size();
+		int num_other = state_machine->gateways.size() + state_machine->stargates.size();
 
-		if (num_pylons <= (num_cannons + num_batteries) / 5)
+		if (num_pylons <= (num_cannons + num_batteries + num_other) / 4 || state_machine->cannon_places.size() < 5 || state_machine->gateway_places.size() < 5)
 		{
 			// build pylon
 			Point2D pylon_pos = FindPylonPlacement();
@@ -3912,7 +3868,6 @@ namespace sc2 {
 
 	Point2D CannonRushTerranStandByPhase2::FindBuildingPlacement()
 	{
-
 		std::vector<Point2D> possible_positions = state_machine->gateway_places;
 
 		Point2D enemy_base = agent->Observation()->GetGameInfo().enemy_start_locations[0];
@@ -3936,14 +3891,34 @@ namespace sc2 {
 	Point2D CannonRushTerranStandByPhase2::FindBatteryPlacement()
 	{
 		std::vector<Point2D> possible_positions = state_machine->cannon_places;
+		std::vector<std::tuple<Point2D, int>> buildings_in_range;
 
-
-		Units batteries = state_machine->batteries;
-		sort(possible_positions.begin(), possible_positions.end(),
-			[batteries](const Point2D & a, const Point2D & b) -> bool
+		for (const auto &pos : possible_positions)
 		{
-			return Utility::DistanceToClosest(batteries, a) > Utility::DistanceToClosest(batteries, b);
+			int in_range = 0;
+			for (const auto &building : state_machine->cannons)
+			{
+				if (Distance2D(pos, building->pos) <= 6)
+					in_range++;
+			}
+			buildings_in_range.push_back(std::make_tuple(pos, in_range));
+		}
+
+		sort(possible_positions.begin(), possible_positions.end(),
+			[buildings_in_range](const Point2D & a, const Point2D & b) -> bool
+		{
+			int near_a = 0;
+			int near_b = 0;
+			for (const auto &tup : buildings_in_range)
+			{
+				if (std::get<0>(tup) == a)
+					near_a = std::get<1>(tup);
+				else if (std::get<0>(tup) == b)
+					near_b = std::get<1>(tup);
+			}
+			return near_a > near_b;
 		});
+
 		if (possible_positions.size() > 0)
 		{
 			for (const auto pos : possible_positions)
@@ -3965,7 +3940,21 @@ namespace sc2 {
 		sort(possible_positions.begin(), possible_positions.end(),
 			[cannons](const Point2D & a, const Point2D & b) -> bool
 		{
-			return Utility::DistanceToClosest(cannons, a) > Utility::DistanceToClosest(cannons, b);
+			float aa = Utility::DistanceToClosest(cannons, a);
+			float bb = Utility::DistanceToClosest(cannons, b);
+			if (aa <= 6)
+			{
+				if (bb <= 6)
+					return aa > bb;
+				else
+					return true;
+			}
+			else
+			{
+				if (bb <= 6)
+					return false;
+				return aa < bb;
+			}
 		});
 		if (possible_positions.size() > 0)
 		{
@@ -3985,10 +3974,13 @@ namespace sc2 {
 
 
 		Units pylons = state_machine->pylons;
+		Point2D enemy_base = agent->Observation()->GetGameInfo().enemy_start_locations[0];
 		sort(possible_positions.begin(), possible_positions.end(),
-			[pylons](const Point2D & a, const Point2D & b) -> bool
+			[pylons, enemy_base](const Point2D & a, const Point2D & b) -> bool
 		{
-			return Utility::DistanceToClosest(pylons, a) > Utility::DistanceToClosest(pylons, b);
+			float aa = Utility::DistanceToClosest(pylons, a) - (Distance2D(a, enemy_base) / 2);
+			float bb = Utility::DistanceToClosest(pylons, b) - (Distance2D(b, enemy_base) / 2);
+			return aa > bb;
 		});
 		if (possible_positions.size() > 0)
 		{
@@ -4004,6 +3996,34 @@ namespace sc2 {
 
 #pragma endregion
 
+#pragma region CannonRushTerranUnitMicro
+
+	void CannonRushTerranUnitMicro::TickState()
+	{
+
+	}
+
+	void CannonRushTerranUnitMicro::EnterState()
+	{
+		return;
+	}
+
+	void CannonRushTerranUnitMicro::ExitState()
+	{
+		return;
+	}
+
+	State* CannonRushTerranUnitMicro::TestTransitions()
+	{
+		return NULL;
+	}
+
+	std::string CannonRushTerranUnitMicro::toString()
+	{
+		return "micro units";
+	}
+
+#pragma endregion
 
 #pragma region OracleHarassStateMachine
 

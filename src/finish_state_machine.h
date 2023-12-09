@@ -1167,6 +1167,29 @@ public:
 	Point2D FindPylonPlacement();
 };
 
+class CannonRushTerranUnitMicro : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	Units zealots;
+	Units stalkers;
+	Units adepts;
+	Units voidrays;
+	Units tempest;
+	Units oracles;
+	CannonRushTerranUnitMicro(TossBot* agent, CannonRushTerran* state_machine, const Unit* zealot)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		zealots.push_back(zealot);
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
 
 #pragma endregion
 
@@ -1688,8 +1711,10 @@ public:
 		this->probe = probe;
 		if (variation == 1)
 			current_state = new CannonRushTerranMoveAcross(agent, this, probe);
-		else
+		else if (variation == 2)
 			current_state = new CannonRushTerranMoveAcross2(agent, this, probe);
+		else
+			current_state = new CannonRushTerranUnitMicro(agent, this, probe);
 
 
 		event_id = agent->GetUniqueId();
