@@ -830,6 +830,13 @@ namespace sc2 {
 		agent->active_FSMs.push_back(oracle_fsm);
 	}
 
+	void ArmyGroup::CannonRushPressure()
+	{
+		for (const auto &tempest : tempests)
+		{
+
+		}
+	}
 
 	void ArmyGroup::MicroUnits()
 	{

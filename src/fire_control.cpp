@@ -218,6 +218,212 @@ namespace sc2 {
 		return attacks;
 	}
 
+
+#pragma region PersistentFireControl
+
+	void PersistentFireControl::OnUnitTakesDamageListener(const Unit* unit)
+	{
+		for (const auto &attack : outgoing_damage)
+		{
+			if (std::get<0>(attack) == unit)
+			{
+
+				return;
+			}
+		}
+	}
+
+	void PersistentFireControl::OnUnitDestroyedListener(const Unit* unit)
+	{
+		for (const auto &attack : outgoing_damage)
+		{
+			if (std::get<0>(attack) == unit)
+			{
+
+			}
+		}
+	}
+
+	void PersistentFireControl::OnUnitEntersVisionListener(const Unit* unit)
+	{
+		
+	}
+
+	EnemyUnitInfo* FireControl::GetEnemyUnitInfo(const Unit* unit)
+	{
+		for (auto &unit_info : enemy_units)
+		{
+			if (unit_info->unit == unit)
+				return unit_info;
+		}
+		return NULL;
+	}
+
+	FriendlyUnitInfo* FireControl::GetFriendlyUnitInfo(const Unit* unit)
+	{
+		for (auto &unit_info : friendly_units)
+		{
+			if (unit_info->unit == unit)
+				return unit_info;
+		}
+		return NULL;
+	}
+
+	int FireControl::GetDamage(const Unit* Funit, const Unit* Eunit)
+	{
+		return Utility::GetDamage(Funit, Eunit, agent->Observation());
+	}
+
+	bool FireControl::ApplyAttack(FriendlyUnitInfo* friendly_unit, EnemyUnitInfo* enemy_unit)
+	{
+		int damage = Utility::GetDamage(friendly_unit->unit, enemy_unit->unit, agent->Observation());
+		bool Eunit_died = ApplyDamage(enemy_unit, damage);
+		attacks[friendly_unit->unit] = enemy_unit->unit;
+		RemoveFriendlyUnit(friendly_unit);
+		return Eunit_died;
+	}
+
+	bool FireControl::ApplyDamage(EnemyUnitInfo* enemy_unit, int damage)
+	{
+		int new_health = enemy_unit->health -= damage;
+		if (new_health <= 0)
+		{
+			RemoveEnemyUnit(enemy_unit);
+			return true;
+		}
+		return false;
+	}
+
+	void FireControl::RemoveFriendlyUnit(FriendlyUnitInfo* friendly_unit)
+	{
+		for (const auto &Eunit : friendly_unit->units_in_range)
+		{
+			int damage = GetDamage(friendly_unit->unit, Eunit->unit);
+			Eunit->total_damage_possible -= damage;
+			Eunit->units_in_range.erase(std::remove(Eunit->units_in_range.begin(), Eunit->units_in_range.end(), friendly_unit), Eunit->units_in_range.end());
+		}
+		friendly_units.erase(std::remove(friendly_units.begin(), friendly_units.end(), friendly_unit), friendly_units.end());
+	}
+
+	void FireControl::RemoveEnemyUnit(EnemyUnitInfo* enemy_unit)
+	{
+		for (const auto &Funit : enemy_unit->units_in_range)
+		{
+			Funit->units_in_range.erase(std::remove(Funit->units_in_range.begin(), Funit->units_in_range.end(), enemy_unit), Funit->units_in_range.end());
+		}
+		enemy_units.erase(std::remove(enemy_units.begin(), enemy_units.end(), enemy_unit), enemy_units.end());
+	}
+
+	std::map<const Unit*, const Unit*> FireControl::FindAttacks()
+	{
+		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
+		std::ofstream fire_control_time;
+		fire_control_time.open("fire_control_time.txt", std::ios_base::app);
+
+		unsigned long long single_target = 0;
+		unsigned long long enemy_min_heap = 0;
+		unsigned long long friendly_min_heap = 0;
+
+		for (const auto &unit : friendly_units)
+		{
+			if (unit->units_in_range.size() == 1)
+				ApplyAttack(unit, unit->units_in_range[0]);
+		}
+
+		single_target = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count() - start_time;
+
+		start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
+		// order enemy units by number of friendly units that can hit them
+		EnemyMinHeap enemy_units_ordered = EnemyMinHeap(enemy_units.size());
+		for (const auto &unit : enemy_units)
+		{
+			enemy_units_ordered.Insert(unit);
+		}
+
+		while (enemy_units_ordered.size > 0)
+		{
+			EnemyUnitInfo* current_enemy = enemy_units_ordered.GetMin();
+			enemy_units_ordered.DeleteMinimum();
+
+			// remove any units that cant be killed
+			if (current_enemy->total_damage_possible < current_enemy->health)
+			{
+				continue;
+			}
+			else
+			{
+				// order friendly units that can hit the current enemy unit by number of enemies they can hit
+				// ApplyAttack
+				FriendlyMinHeap friendly_units_ordered = FriendlyMinHeap(current_enemy->units_in_range.size());
+				for (const auto &unit : current_enemy->units_in_range)
+				{
+					friendly_units_ordered.Insert(unit);
+				}
+				while (friendly_units_ordered.size > 0 && current_enemy->health > 0)
+				{
+					FriendlyUnitInfo* current_friendly = friendly_units_ordered.GetMin();
+					ApplyAttack(current_friendly, current_enemy);
+					friendly_units_ordered.DeleteMinimum();
+				}
+			}
+		}
+
+		enemy_min_heap = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count() - start_time;
+
+		start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
+		FriendlyMinHeap friendly_units_ordered = FriendlyMinHeap(friendly_units.size());
+		for (const auto &unit : friendly_units)
+		{
+			friendly_units_ordered.Insert(unit);
+		}
+		while (friendly_units_ordered.size > 0)
+		{
+			FriendlyUnitInfo* current_unit = friendly_units_ordered.GetMin();
+			friendly_units_ordered.DeleteMinimum();
+
+			if (current_unit->units_in_range.size() == 0)
+				RemoveFriendlyUnit(current_unit);
+			else
+			{
+				std::sort(current_unit->units_in_range.begin(), current_unit->units_in_range.end(),
+					[](const EnemyUnitInfo* a, const EnemyUnitInfo* b) -> bool
+				{
+					if (a->priority == b->priority)
+						return a->health < b->health;
+					return a->priority < b->priority;
+				});
+				ApplyAttack(current_unit, current_unit->units_in_range[0]);
+			}
+		}
+		friendly_min_heap = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count() - start_time;
+
+		fire_control_time << single_target << ", ";
+		fire_control_time << enemy_min_heap << ", ";
+		fire_control_time << friendly_min_heap << "\n";
+		fire_control_time.close();
+
+		return attacks;
+	}
+
+
+
+#pragma endregion
+
 #pragma region EnemyMinHeap
 
 	EnemyMinHeap::EnemyMinHeap(int capacity) {

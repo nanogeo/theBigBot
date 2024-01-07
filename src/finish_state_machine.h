@@ -1171,17 +1171,14 @@ class CannonRushTerranUnitMicro : public State
 {
 public:
 	class CannonRushTerran* state_machine;
-	Units zealots;
-	Units stalkers;
-	Units adepts;
-	Units voidrays;
-	Units tempest;
-	Units oracles;
+	ArmyGroup army;
+	int event_id;
 	CannonRushTerranUnitMicro(TossBot* agent, CannonRushTerran* state_machine, const Unit* zealot)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
-		zealots.push_back(zealot);
+		army = ArmyGroup(agent);
+		army.AddUnit(zealot);
 	}
 	virtual std::string toString() override;
 	void TickState() override;
@@ -1189,7 +1186,6 @@ public:
 	virtual void ExitState() override;
 	virtual State* TestTransitions() override;
 };
-
 
 #pragma endregion
 

@@ -25,6 +25,11 @@ struct EnemyUnitInfo
 	int total_damage_possible;
 };
 
+struct OutgoingDamage
+{
+
+};
+
 class FireControl
 {
 public:
@@ -46,6 +51,36 @@ public:
 	void RemoveEnemyUnit(EnemyUnitInfo*);
 
 	std::map<const Unit*, const Unit*> FindAttacks();
+};
+
+class PersistentFireControl
+{
+public:
+	TossBot* agent;
+	std::map<const Unit*, int> enemy_unit_hp;
+	std::vector<std::tuple<const Unit*, int, int>> outgoing_damage; // enemy unit, damage, frame
+
+	PersistentFireControl(TossBot* agent)
+	{
+		this->agent = agent;
+	}
+
+	void OnUnitCreatedListener(const Unit*);
+	void OnUnitTakesDamageListener(const Unit*);
+	void OnUnitEntersVisionListener(const Unit*);
+	void OnUnitDestroyedListener(const Unit*);
+
+	EnemyUnitInfo* GetEnemyUnitInfo(const Unit*);
+	FriendlyUnitInfo* GetFriendlyUnitInfo(const Unit*);
+	int GetDamage(const Unit*, const Unit*);
+
+	bool ApplyAttack(FriendlyUnitInfo*, EnemyUnitInfo*);
+	bool ApplyDamage(EnemyUnitInfo*, int);
+	void RemoveFriendlyUnit(FriendlyUnitInfo*);
+	void RemoveEnemyUnit(EnemyUnitInfo*);
+
+	std::map<const Unit*, const Unit*> FindAttacks();
+
 };
 
 class EnemyMinHeap
