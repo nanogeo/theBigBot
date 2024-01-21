@@ -1411,6 +1411,25 @@ namespace sc2 {
 		}
 	}
 
+	void TossBot::AddListenerToOnUnitEntersVisionEvent(int id, std::function<void(const Unit*)> func)
+	{
+		on_unit_enters_vision_event.listeners[id] = func;
+	}
+
+	void TossBot::RemoveListenerToOnUnitEntersVisionEvent(int id)
+	{
+		on_unit_enters_vision_event.listeners.erase(id);
+	}
+
+	void TossBot::CallOnUnitEntersVisionEvent(const Unit* unit)
+	{
+		for (const auto& listener : on_unit_enters_vision_event.listeners)
+		{
+			auto func = listener.second;
+			func(unit);
+		}
+	}
+
 #pragma endregion
 
 

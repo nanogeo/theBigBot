@@ -4000,7 +4000,7 @@ namespace sc2 {
 
 	void CannonRushTerranUnitMicro::TickState()
 	{
-
+		army.CannonRushPressure();
 	}
 
 	void CannonRushTerranUnitMicro::EnterState()

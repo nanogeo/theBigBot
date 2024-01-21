@@ -7,6 +7,7 @@
 
 #include "utility.h"
 #include "path_manager.h"
+#include "fire_control.h"
 
 
 
@@ -51,7 +52,9 @@ public:
 	int event_id;
 	std::vector<UNIT_TYPEID> unit_types;
 
-	ArmyGroup() {};
+	PersistentFireControl persistent_fire_control;
+
+	ArmyGroup() : persistent_fire_control() {};
 	ArmyGroup(TossBot* agent);
 
 	ArmyGroup(TossBot*, Units, std::vector<Point2D>, int);

@@ -40,6 +40,12 @@ struct OnUnitCreatedEvent
     OnUnitCreatedEvent() {};
 };
 
+struct OnUnitEntersVisionEvent
+{
+	std::map<int, std::function<void(const Unit*)>> listeners;
+	OnUnitEntersVisionEvent() {};
+};
+
 struct ScoutInfoZerg
 {
     float natural_timing = 0;
@@ -264,7 +270,7 @@ class TossBot : public sc2::Agent
 public:
 	TossBot() : Agent(), worker_manager(this), action_manager(this), build_order_manager(this) {};
 	bool started = false;
-	BuildOrder curr_build_order = BuildOrder::oracle_gatewayman_pvz;
+	BuildOrder curr_build_order = BuildOrder::cannon_rush_terran;
 	WorkerManager worker_manager;
 	ActionManager action_manager;
 	BuildOrderManager build_order_manager;
@@ -321,6 +327,7 @@ public:
     OnUnitDamagedEvent on_unit_damaged_event;
     OnUnitDestroyedEvent on_unit_destroyed_event;
 	OnUnitCreatedEvent on_unit_created_event;
+	OnUnitEntersVisionEvent on_unit_enters_vision_event;
 
     std::vector<Point2D> GetLocations(UNIT_TYPEID);
     Point2D GetLocation(UNIT_TYPEID);
@@ -345,6 +352,10 @@ public:
 	void AddListenerToOnUnitCreatedEvent(int, std::function<void(const Unit*)>);
 	void RemoveListenerToOnUnitCreatedEvent(int);
 	void CallOnUnitCreatedEvent(const Unit*);
+
+	void AddListenerToOnUnitEntersVisionEvent(int, std::function<void(const Unit*)>);
+	void RemoveListenerToOnUnitEntersVisionEvent(int);
+	void CallOnUnitEntersVisionEvent(const Unit*);
 
     // To strings
     static std::string OrdersToString(std::vector<UnitOrder>);

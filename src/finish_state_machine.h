@@ -1173,11 +1173,10 @@ public:
 	class CannonRushTerran* state_machine;
 	ArmyGroup army;
 	int event_id;
-	CannonRushTerranUnitMicro(TossBot* agent, CannonRushTerran* state_machine, const Unit* zealot)
+	CannonRushTerranUnitMicro(TossBot* agent, CannonRushTerran* state_machine, const Unit* zealot) : army(agent)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
-		army = ArmyGroup(agent);
 		army.AddUnit(zealot);
 	}
 	virtual std::string toString() override;

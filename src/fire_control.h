@@ -3,10 +3,12 @@
 
 #include "sc2api/sc2_interfaces.h"
 
-#include "TossBot.h"
+
 
 
 namespace sc2 {
+
+class TossBot;
 
 struct EnemyUnitInfo;
 
@@ -40,6 +42,7 @@ public:
 	std::vector<UNIT_TYPEID> priority;
 
 	FireControl(TossBot*, std::map<const Unit*, std::vector<const Unit*>>, std::vector<UNIT_TYPEID>);
+	FireControl(TossBot*, std::map<const Unit*, Units>, std::map<const Unit*, int>, std::vector<UNIT_TYPEID>);
 
 	EnemyUnitInfo* GetEnemyUnitInfo(const Unit*);
 	FriendlyUnitInfo* GetFriendlyUnitInfo(const Unit*);
@@ -57,29 +60,23 @@ class PersistentFireControl
 {
 public:
 	TossBot* agent;
+	Units friendly_units;
+	int event_id;
 	std::map<const Unit*, int> enemy_unit_hp;
 	std::vector<std::tuple<const Unit*, int, int>> outgoing_damage; // enemy unit, damage, frame
 
-	PersistentFireControl(TossBot* agent)
-	{
-		this->agent = agent;
-	}
+	PersistentFireControl() {};
+	PersistentFireControl(TossBot*);
 
-	void OnUnitCreatedListener(const Unit*);
-	void OnUnitTakesDamageListener(const Unit*);
+	void OnUnitTakesDamageListener(const Unit*, float, float);
 	void OnUnitEntersVisionListener(const Unit*);
 	void OnUnitDestroyedListener(const Unit*);
 
-	EnemyUnitInfo* GetEnemyUnitInfo(const Unit*);
-	FriendlyUnitInfo* GetFriendlyUnitInfo(const Unit*);
-	int GetDamage(const Unit*, const Unit*);
+	void AddFriendlyUnit(const Unit*);
+	void ApplyAttack(const Unit*, const Unit*);
+	void UpdateEnemyUnitHealth();
 
-	bool ApplyAttack(FriendlyUnitInfo*, EnemyUnitInfo*);
-	bool ApplyDamage(EnemyUnitInfo*, int);
-	void RemoveFriendlyUnit(FriendlyUnitInfo*);
-	void RemoveEnemyUnit(EnemyUnitInfo*);
-
-	std::map<const Unit*, const Unit*> FindAttacks();
+	std::map<const Unit*, const Unit*> FindAttacks(std::vector<UNIT_TYPEID>);
 
 };
 

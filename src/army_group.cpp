@@ -16,7 +16,7 @@
 
 namespace sc2 {
 
-	ArmyGroup::ArmyGroup(TossBot* agent)
+	ArmyGroup::ArmyGroup(TossBot* agent) : persistent_fire_control(agent)
 	{
 		this->agent = agent;
 		event_id = agent->GetUniqueId();
@@ -26,7 +26,7 @@ namespace sc2 {
 		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 	}
 
-	ArmyGroup::ArmyGroup(TossBot* agent, Units all_units, std::vector<Point2D> path, int index)
+	ArmyGroup::ArmyGroup(TossBot* agent, Units all_units, std::vector<Point2D> path, int index) : persistent_fire_control(agent)
 	{
 		this->agent = agent;
 		this->all_units = all_units;
@@ -79,17 +79,78 @@ namespace sc2 {
 
 	void ArmyGroup::AddUnit(const Unit* unit)
 	{
+		UNIT_TYPEID type = unit->unit_type.ToType();
+		if (type != UNIT_TYPEID::PROTOSS_WARPPRISM)
+			persistent_fire_control.AddFriendlyUnit(unit);
+
 		all_units.push_back(unit);
 		new_units.erase(std::remove(new_units.begin(), new_units.end(), unit), new_units.end());
 
-		if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
+		switch (type)
+		{
+		case UNIT_TYPEID::PROTOSS_ZEALOT:
 			zealots.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
+			break;
+		case UNIT_TYPEID::PROTOSS_STALKER:
+			stalkers.push_back(unit);
+			last_time_blinked[unit] = 0;
+			break;
+		case UNIT_TYPEID::PROTOSS_ADEPT:
+			adepts.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_SENTRY:
+			sentries.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+			high_templar.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+			dark_templar.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_ARCHON:
+			archons.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_IMMORTAL:
+			immortals.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_COLOSSUS:
+			collossi.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_DISRUPTOR:
+			disrupter.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_OBSERVER:
+			observers.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_WARPPRISM:
+			warp_prisms.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_PHOENIX:
+			phoenixes.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_VOIDRAY:
+			void_rays.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_ORACLE:
+			oracles.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_CARRIER:
+			carriers.push_back(unit);
+			break;
+		case UNIT_TYPEID::PROTOSS_TEMPEST:
+			tempests.push_back(unit);
+			break;
+		default:
+			std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
+		}
+		if (type == UNIT_TYPEID::PROTOSS_ZEALOT)
+			zealots.push_back(unit);
+		else if (type == UNIT_TYPEID::PROTOSS_STALKER)
 		{
 			stalkers.push_back(unit);
 			last_time_blinked[unit] = 0;
 		}
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
+		else if (type == UNIT_TYPEID::PROTOSS_ADEPT)
 			adepts.push_back(unit);
 		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_SENTRY)
 			sentries.push_back(unit);
@@ -832,6 +893,7 @@ namespace sc2 {
 
 	void ArmyGroup::CannonRushPressure()
 	{
+
 		for (const auto &tempest : tempests)
 		{
 
