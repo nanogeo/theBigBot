@@ -45,7 +45,7 @@ namespace sc2 {
 
     void TossBot::OnStep()
     {
-		for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
+		/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Enemy))
 		{
 			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 255, 255));
 			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type), unit->pos, Color(255, 255, 255), 15);
@@ -54,13 +54,13 @@ namespace sc2 {
 		{
 			Debug()->DebugSphereOut(ToPoint3D(unit.second.pos), .5, Color(255, 0, 255));
 			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit.first->unit_type), ToPoint3D(unit.second.pos), Color(255, 0, 255), 15);
-		}
+		}*/
 
 		std::chrono::microseconds startTime = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 
-		Units bla = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ADEPT));
+		Units bla = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ADEPT));
 		Units funits = Observation()->GetUnits(Unit::Alliance::Self);
 		Units nunits = Observation()->GetUnits(Unit::Alliance::Neutral);
 		Units eunits = Observation()->GetUnits(Unit::Alliance::Enemy);
@@ -73,7 +73,7 @@ namespace sc2 {
             if (!started)
             {
                 build_order_manager.SetBuildOrder(BuildOrder::testing);
-				probe = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
+				probe = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
 				started = true;
 
 				std::ofstream frame_time_file;
@@ -282,6 +282,8 @@ namespace sc2 {
 
         if (Observation()->GetGameLoop() == 1)
         {
+			//PrintNonPathablePoints();
+
 			std::ofstream frame_time_file;
 			frame_time_file.open("frame_time.txt", std::ios_base::out);
 			frame_time_file << "Distribute workers,New base,Update enemy pos,Update enemy weapon cd,Update warpgate status,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug,TOTAL\n";
@@ -393,7 +395,7 @@ namespace sc2 {
                     enemy_race = infos[0].race_requested;
             }
 
-            const Unit *building = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS))[0];
+            const Unit *building = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS))[0];
             std::cout << Utility::UnitTypeIdToString(building->unit_type);
             if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
             {
@@ -592,6 +594,13 @@ namespace sc2 {
                 self.adept_groups[0].adept_order_status.append(False)
                 print("adding " + str(unit.tag) + " <Adept> to army group 0")*/
     }
+
+	void TossBot::OnUnitEnterVision(const Unit* unit)
+	{
+		if (Observation()->GetGameLoop() == 0)
+			return;
+		CallOnUnitEntersVisionEvent(unit);
+	}
 
     void TossBot::OnUnitDamaged(const Unit *unit, float health_damage, float shield_damage)
     {
@@ -1963,7 +1972,7 @@ namespace sc2 {
 		unsigned long long used_total = 0;
 		unsigned long long ready_total = 0;
 
-		for (const auto &warpgate : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPGATE)))
+		for (const auto &warpgate : Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPGATE)))
 		{
 			unsigned long long gate_start = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
@@ -2108,6 +2117,13 @@ namespace sc2 {
 
 	bool IsNonPlaceholderUnit::operator()(const Unit& unit_) const {
 		return unit_.unit_type == m_type && unit_.display_type != Unit::DisplayType::Placeholder;
+	}
+
+	IsFriendlyUnit::IsFriendlyUnit(UNIT_TYPEID type_) : m_type(type_) {
+	}
+
+	bool IsFriendlyUnit::operator()(const Unit& unit_) const {
+		return unit_.unit_type == m_type && unit_.alliance == Unit::Alliance::Self;
 	}
 
 
@@ -2269,7 +2285,7 @@ namespace sc2 {
         std::vector<UNIT_TYPEID> builging_order = { UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_WARPGATE, UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE, UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL };
         for (const auto &building_type : builging_order)
         {
-            std::vector<const Unit*> buildings = Observation()->GetUnits(IsUnit(building_type));
+            std::vector<const Unit*> buildings = Observation()->GetUnits(IsFriendlyUnit(building_type));
             sort(begin(buildings), end(buildings), [](const Unit* a, const Unit* b) { return a->tag < b->tag; });
             for (const auto &building : buildings)
             {
@@ -2354,7 +2370,7 @@ namespace sc2 {
             }
         }
         int pending_pylons = 0;
-        for (const auto &pylon : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+        for (const auto &pylon : Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
         {
             if (pylon->build_progress < 1)
                 pending_pylons++;
@@ -2372,7 +2388,7 @@ namespace sc2 {
             supply_message += "warpgates: " + std::to_string(gates) + '\n';
         if (other_prod > 0)
             supply_message += "other prod: " + std::to_string(other_prod) + '\n';
-        int nexi = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
+        int nexi = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
         supply_message += "nexi: " + std::to_string(nexi) + '\n';
         supply_message += "new supply: " + std::to_string(used + 2 * gates + 3 * other_prod + nexi) + '/' + std::to_string(cap + 8 * pending_pylons + 8 * build_pylon_actions) + '\n';
 
@@ -2419,6 +2435,83 @@ namespace sc2 {
 
 			Debug()->DebugTextOut(std::to_string(unit.first->weapon_cooldown), unit.first->pos, col1, 15);
 		}
+	}
+
+	void TossBot::PrintNonPathablePoints()
+	{
+		ImageData raw_map = Observation()->GetGameInfo().pathing_grid;
+		std::vector<std::vector<bool>> map;
+		std::vector<bool> x;
+		map.push_back(x);
+		int position = 0;
+		int byte = 0;
+		int row = 0;
+		for (int i = 0; i < raw_map.data.size() * 8; i++)
+		{
+			if (((raw_map.data[byte] >> (7 - position)) & 0x1))
+			{
+				map[row].push_back(true);
+			}
+			else
+			{
+				map[row].push_back(false);
+			}
+			position++;
+			if (position == 8)
+			{
+				position = 0;
+				byte++;
+			}
+			if (i != 0 && i % raw_map.width == 0)
+			{
+				row++;
+				std::vector<bool> x;
+				map.push_back(x);
+				map[row].push_back(false);
+			}
+		}
+		map[row].push_back(false);
+
+
+		std::vector<std::vector<bool>> flipped_map;
+		for (int i = 0; i < map[0].size(); i++)
+		{
+			std::vector<bool> x;
+			flipped_map.push_back(x);
+		}
+		for (int i = 0; i < map.size(); i++)
+		{
+			for (int j = 0; j < map[i].size(); j++)
+			{
+				flipped_map[j].push_back(map[i][j]);
+			}
+		}
+
+		std::ofstream map_file;
+		map_file.open("map.txt", std::ios_base::app);
+
+
+		for (int i = 25; i < 160; i++)
+		{
+			for (int j = 17; j < 147; j++)
+			{
+				if (!flipped_map[i][j])
+				{
+					bool border = false;
+					for (int k = i - 1; k < i + 2; k++)
+					{
+						for (int l = j - 1; l < j + 2; l++)
+						{
+							if (flipped_map[k][l])
+								border = true;
+						}
+					}
+					if (border)
+						map_file << i << ", " << j << "\n";
+				}
+			}
+		}
+		map_file.close();
 	}
 
 

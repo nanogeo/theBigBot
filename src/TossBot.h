@@ -179,6 +179,15 @@ private:
 	UNIT_TYPEID m_type;
 };
 
+struct IsFriendlyUnit {
+	explicit IsFriendlyUnit(UNIT_TYPEID type_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	UNIT_TYPEID m_type;
+};
+
 struct EnemyUnitPosition
 {
 	Point2D pos;
@@ -270,7 +279,7 @@ class TossBot : public sc2::Agent
 public:
 	TossBot() : Agent(), worker_manager(this), action_manager(this), build_order_manager(this) {};
 	bool started = false;
-	BuildOrder curr_build_order = BuildOrder::cannon_rush_terran;
+	BuildOrder curr_build_order = BuildOrder::three_gate_robo;
 	WorkerManager worker_manager;
 	ActionManager action_manager;
 	BuildOrderManager build_order_manager;
@@ -364,6 +373,7 @@ public:
     virtual void OnBuildingConstructionComplete(const Unit*);
     virtual void OnNeutralUnitCreated(const Unit *);
     virtual void OnUnitCreated(const Unit*);
+	virtual void OnUnitEnterVision(const Unit*);
     virtual void OnUnitDamaged(const Unit*, float, float);
     virtual void OnUnitDestroyed(const Unit*);
 	virtual void OnUpgradeCompleted(UpgradeID);
@@ -401,6 +411,7 @@ public:
     void DisplaySupplyInfo();
 	void DisplayEnemyAttacks();
 	void DisplayAlliedAttackStatus();
+	void PrintNonPathablePoints();
 
     // Micro
     void ObserveAttackPath(Units, Point2D, Point2D);

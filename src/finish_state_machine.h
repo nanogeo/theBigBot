@@ -866,13 +866,14 @@ class CannonRushTerranFindAvaibleCorner : public State
 public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
-	int curr_index = 1;
+	int curr_index;
 	Point2D current_target;
-	CannonRushTerranFindAvaibleCorner(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranFindAvaibleCorner(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, int curr_index)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
 		this->probe = probe;
+		this->curr_index = curr_index;
 	}
 	virtual std::string toString() override;
 	void TickState() override;
@@ -898,6 +899,24 @@ public:
 		this->index = index;
 		this->main_scout_path = main_scout_path;
 		this->gas_stolen = gas_stolen;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class CannonRushTerranFindThreePylonWallOff : public State
+{
+public:
+	class CannonRushTerran* state_machine;
+	const Unit* probe;
+	CannonRushTerranFindThreePylonWallOff(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+		this->probe = probe;
 	}
 	virtual std::string toString() override;
 	void TickState() override;

@@ -83,7 +83,8 @@ enum BuildOrder {
 	fastest_dts,
 	proxy_double_robo,
 	recessed_cannon_rush,
-	cannon_rush_terran
+	cannon_rush_terran,
+	three_gate_robo
 };
 
 
@@ -194,6 +195,7 @@ public:
 	void SetFastestDTsPvT();
 	void SetProxyDoubleRobo();
 	void SetCannonRushTerran();
+	void SetThreeGateRobo();
 
 	void SetRecessedCannonRush();
 

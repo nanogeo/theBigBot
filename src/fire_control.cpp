@@ -190,12 +190,12 @@ namespace sc2 {
 			enemy_units_ordered.DeleteMinimum();
 
 			// remove any units that cant be killed
-			if (current_enemy->total_damage_possible < current_enemy->health)
+			/*if (current_enemy->total_damage_possible < current_enemy->health)
 			{
 				continue;
 			}
-			else
-			{
+			else*/
+			//{
 				// order friendly units that can hit the current enemy unit by number of enemies they can hit
 				// ApplyAttack
 				FriendlyMinHeap friendly_units_ordered = FriendlyMinHeap(current_enemy->units_in_range.size());
@@ -209,7 +209,7 @@ namespace sc2 {
 					ApplyAttack(current_friendly, current_enemy);
 					friendly_units_ordered.DeleteMinimum();
 				}
-			}
+			//}
 		}
 
 		enemy_min_heap = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -282,7 +282,6 @@ namespace sc2 {
 
 	void PersistentFireControl::OnUnitTakesDamageListener(const Unit* unit, float health, float shields)
 	{
-		enemy_unit_hp.erase(unit);
 		for (int i = 0; i < outgoing_damage.size(); i++)
 		{
 			if (std::get<0>(outgoing_damage[i]) == unit)
@@ -361,6 +360,33 @@ namespace sc2 {
 		return attacks;
 	}
 
+	std::map<const Unit*, const Unit*> PersistentFireControl::FindAttacks(Units units, std::vector<UNIT_TYPEID> prio, float extra_range)
+	{
+		std::map<const Unit*, std::vector<const Unit*>> unit_targets;
+		Units Eunits = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
+
+		for (const auto& unit : units)
+		{
+			Units units_in_range;
+			for (const auto& Eunit : Eunits)
+			{
+				if (enemy_unit_hp[Eunit] <= 0)
+					continue;
+				if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealGroundRange(unit, Eunit) + extra_range)
+					units_in_range.push_back(Eunit);
+			}
+			unit_targets[unit] = units_in_range;
+		}
+
+		FireControl fire_control = FireControl(agent, unit_targets, enemy_unit_hp, prio);
+		std::map<const Unit*, const Unit*> attacks = fire_control.FindAttacks();
+		for (const auto attack : attacks)
+		{
+			ApplyAttack(attack.first, attack.second);
+		}
+		return attacks;
+	}
+
 
 
 #pragma endregion
@@ -402,7 +428,7 @@ namespace sc2 {
 		int curr = size - 1;
 		// As long as you aren't in the root node, and while the 
 		// parent of the last element is greater than it
-		while (curr > 0 && arr[Parent(curr)]->units_in_range.size() > arr[curr]->units_in_range.size()) {
+		while (curr > 0 && TestOrder(arr[Parent(curr)], arr[curr])) {
 			// Swap
 			EnemyUnitInfo* temp = arr[Parent(curr)];
 			arr[Parent(curr)] = arr[curr];
@@ -427,12 +453,12 @@ namespace sc2 {
 
 		// If the left child is smaller than this element, it is
 		// the smallest
-		if (left < size && arr[left]->units_in_range.size() < arr[index]->units_in_range.size())
+		if (left < size && TestOrder(arr[left], arr[index]))
 			smallest = left;
 
 		// Similarly for the right, but we are updating the smallest element
 		// so that it will definitely give the least element of the subtree
-		if (right < size && arr[right]->units_in_range.size() < arr[smallest]->units_in_range.size())
+		if (right < size && TestOrder(arr[right], arr[smallest]))
 			smallest = right;
 
 		// Now if the current element is not the smallest,
@@ -472,7 +498,7 @@ namespace sc2 {
 
 		// Now keep swapping, until we update the tree
 		int curr = index;
-		while (curr > 0 && arr[Parent(curr)]->units_in_range.size() > arr[curr]->units_in_range.size()) {
+		while (curr > 0 && TestOrder(arr[Parent(curr)], arr[curr])) {
 			EnemyUnitInfo* temp = arr[Parent(curr)];
 			arr[Parent(curr)] = arr[curr];
 			arr[curr] = temp;
@@ -488,13 +514,35 @@ namespace sc2 {
 	void EnemyMinHeap::DecreaseKey(int index)
 	{
 		//arr[index].id = new_val;
-		while (index != 0 && arr[Parent(index)]->units_in_range.size() > arr[index]->units_in_range.size())
+		while (index != 0 && TestOrder(arr[Parent(index)], arr[index]))
 		{
 			EnemyUnitInfo* temp = arr[Parent(index)];
 			arr[Parent(index)] = arr[index];
 			arr[index] = temp;
 			index = Parent(index);
 		}
+	}
+
+	bool EnemyMinHeap::TestOrder(EnemyUnitInfo* unit1, EnemyUnitInfo* unit2)
+	{
+		if (unit1->priority < unit2->priority)
+			return false;
+		if (unit2->priority < unit1->priority)
+			return true;
+		if (unit1->total_damage_possible >= unit1->health)
+		{
+			if (unit2->total_damage_possible >= unit2->health)
+			{
+				return unit1->units_in_range.size() > unit2->units_in_range.size();
+			}
+			return false;
+		}
+		if (unit2->total_damage_possible >= unit2->health)
+		{
+			return true;
+		}
+		return unit1->units_in_range.size() > unit2->units_in_range.size();
+
 	}
 
 #pragma endregion

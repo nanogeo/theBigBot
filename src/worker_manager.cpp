@@ -244,7 +244,7 @@ void WorkerManager::PlaceWorkerInGas(const Unit* worker, const Unit* gas, int in
 	}
 	assimilators[gas].workers[index] = worker;
 	Point2D assimilator_position = gas->pos;
-	Units townhalls = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
+	Units townhalls = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
 	Point2D vector = assimilator_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -264,7 +264,7 @@ void WorkerManager::NewPlaceWorkerInGas(const Unit* worker, const Unit* gas)
 		assimilators[gas] = assimilator_data();
 	}
 	Point2D assimilator_position = gas->pos;
-	Units townhalls = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
+	Units townhalls = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
 	Point2D vector = assimilator_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -285,7 +285,7 @@ void WorkerManager::PlaceWorkerOnMinerals(const Unit* worker, const Unit* minera
 	}
 	mineral_patches[mineral].workers[index] = worker;
 	Point2D mineral_position = mineral->pos;
-	Units townhalls = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
+	Units townhalls = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
 	Point2D vector = mineral_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -305,7 +305,7 @@ void WorkerManager::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* min
 		mineral_patches[mineral] = mineral_patch_data(mineral->mineral_contents == 1800);
 	}
 	Point2D mineral_position = mineral->pos;
-	Units townhalls = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS));
+	Units townhalls = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
 	Point2D vector = mineral_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -451,7 +451,7 @@ void WorkerManager::RemoveWorker(const Unit* worker)
 
 void WorkerManager::SplitWorkers()
 {
-	Units workers = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PROBE));
+	Units workers = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PROBE));
 	Units patches;
 	for (const auto &mineral_patch : mineral_patches)
 	{
@@ -549,7 +549,7 @@ void WorkerManager::DistributeWorkers()
 		if (IsCarryingMinerals(*worker))
 		{
 			// close to nexus then return the mineral
-			Point2D closest_nexus = Utility::ClosestTo(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
+			Point2D closest_nexus = Utility::ClosestTo(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
 			if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
 			{
 				agent->Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_RETURN_PROBE);
@@ -630,7 +630,7 @@ void WorkerManager::DistributeWorkers()
 		else if (IsCarryingVespene(*worker))
 		{
 			// close to nexus then return the vespene
-			Point2D closest_nexus = Utility::ClosestTo(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
+			Point2D closest_nexus = Utility::ClosestTo(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
 			if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
 			{
 				agent->Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_RETURN_PROBE);
@@ -736,7 +736,7 @@ void WorkerManager::BuildWorkers()
 {
 	if (should_build_workers)
 	{
-		for (const auto &nexus : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+		for (const auto &nexus : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 		{
 			if (nexus->orders.size() > 0)
 			{
@@ -767,7 +767,7 @@ void WorkerManager::BuildWorkers()
 	}
 	else
 	{
-		for (const auto &nexus : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+		for (const auto &nexus : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 		{
 			if (nexus->orders.size() > 0)
 			{

@@ -1531,7 +1531,7 @@ bool Utility::CanBuildBuilding(UNIT_TYPEID buildingId, const ObservationInterfac
 int Utility::BuildingsReady(UNIT_TYPEID buildingId, const ObservationInterface* observation)
 {
 	int ready = 0;
-	for (const auto &building : observation->GetUnits(IsUnit(buildingId)))
+	for (const auto &building : observation->GetUnits(IsFriendlyUnit(buildingId)))
 	{
 		if (building->build_progress == 1)
 			ready++;

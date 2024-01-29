@@ -77,6 +77,7 @@ public:
 	void UpdateEnemyUnitHealth();
 
 	std::map<const Unit*, const Unit*> FindAttacks(std::vector<UNIT_TYPEID>);
+	std::map<const Unit*, const Unit*> FindAttacks(Units, std::vector<UNIT_TYPEID>, float);
 
 };
 
@@ -97,6 +98,7 @@ public:
 	void DeleteMinimum();
 	void DeleteElement(int);
 	void DecreaseKey(int);
+	bool TestOrder(EnemyUnitInfo*, EnemyUnitInfo*);
 };
 
 class FriendlyMinHeap

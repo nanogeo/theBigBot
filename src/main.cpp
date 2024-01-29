@@ -103,9 +103,9 @@ int main(int argc, char* argv[])
 	{
 		coordinator.SetParticipants({
 			CreateParticipant(sc2::Race::Protoss, &bot1),
-			CreateComputer(sc2::Race::Terran, sc2::Difficulty::Hard, sc2::AIBuild::Macro)
+			CreateComputer(sc2::Race::Protoss, sc2::Difficulty::Hard, sc2::AIBuild::Macro)
 			});
-		coordinator.SetRealtime(false);
+		coordinator.SetRealtime(true);
 
 		coordinator.LaunchStarcraft();
 		coordinator.StartGame("LightShadeLE.SC2Map");

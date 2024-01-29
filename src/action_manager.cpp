@@ -29,7 +29,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	UNIT_TYPEID buildingId = data->unitId;
 	Point2D pos = data->position;
 	const Unit *builder = data->unit;
-	for (const auto &building : agent->Observation()->GetUnits(IsUnit(buildingId)))
+	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
 	{
 		if (Distance2D(building->pos, pos) < 1 && building->display_type != Unit::DisplayType::Placeholder)
 		{
@@ -63,7 +63,7 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	UNIT_TYPEID buildingId = data->unitIds[data->index];
 	Point2D pos = data->position;
 	const Unit *builder = data->unit;
-	for (const auto &building : agent->Observation()->GetUnits(IsUnit(buildingId)))
+	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
 	{
 		if (Distance2D(building->pos, pos) < 1 && building->display_type != Unit::DisplayType::Placeholder)
 		{
@@ -106,7 +106,7 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data)
 	UNIT_TYPEID buildingId = data->unitIds[data->index];
 	Point2D pos = data->position;
 	const Unit *builder = data->unit;
-	for (const auto &building : agent->Observation()->GetUnits(IsUnit(buildingId)))
+	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
 	{
 		if (Point2D(building->pos) == pos && building->display_type != Unit::DisplayType::Placeholder)
 		{
@@ -157,8 +157,8 @@ bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 
 	int extra_workers = data->index;
 	int num_workers = agent->Observation()->GetFoodWorkers();
-	int num_nexi = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
-	int num_assimilators = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
+	int num_nexi = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
+	int num_assimilators = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
 	if (num_workers >= std::min(num_nexi * 16 + num_assimilators * 3, 70) + extra_workers)
 	{
 		agent->worker_manager.should_build_workers = false;
@@ -229,7 +229,7 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 		}
 	}
 	/*
-	for (const auto &pylon : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+	for (const auto &pylon : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
 	{
 		if (pylon->build_progress < 1)
 			pending_pylons++;
@@ -239,11 +239,11 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 	if (supply_cap >= 200)
 		return false;
 	supply_cap += 8 * (build_pylon_actions + pending_pylons);
-	supply_used += agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
-	supply_used += 2 * agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPGATE)).size();
-	supply_used += 2 * agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size();
-	supply_used += 3 * agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)).size();
-	supply_used += 3 * agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size();
+	supply_used += agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
+	supply_used += 2 * agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPGATE)).size();
+	supply_used += 2 * agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size();
+	supply_used += 3 * agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)).size();
+	supply_used += 3 * agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size();
 	*/
 	if (supply_used >= supply_cap)
 		agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_PYLON);
@@ -386,7 +386,7 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 
 	if (agent->worker_manager.far_3_mineral_patch_extras.size() > 0)
 	{
-		for (const auto &pylon : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+		for (const auto &pylon : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 		{
 			if (pylon->build_progress < 1)
 				return false;
@@ -424,7 +424,7 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 		if (buff == BUFF_ID::CHRONOBOOSTENERGYCOST)
 			return false;
 	}
-	for (const auto &nexus : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+	for (const auto &nexus : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 	{
 		if (nexus->energy >= 50 && nexus->build_progress == 1)
 		{
@@ -502,8 +502,8 @@ bool ActionManager::ActionWarpInAtProxy(ActionArgData* data)
 bool ActionManager::ActionTrainFromProxyRobo(ActionArgData* data)
 {
 	const Unit * robo = data->unit;
-	int num_prisms = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)).size();
-	int num_obs = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_OBSERVER)).size();
+	int num_prisms = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)).size();
+	int num_obs = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_OBSERVER)).size();
 
 	if (robo->build_progress == 1 && robo->orders.size() == 0)
 	{
@@ -934,7 +934,7 @@ bool ActionManager::ActionContinueVolleyWarpingInZealots(ActionArgData* data)
 
 bool ActionManager::ActionContinueBuildingCarriers(ActionArgData* data)
 {
-	for (const auto &stargate : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
+	for (const auto &stargate : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
 	{
 		if (stargate->orders.size() == 0 && Utility::CanAfford(UNIT_TYPEID::PROTOSS_CARRIER, 1, agent->Observation()))
 		{
@@ -964,7 +964,7 @@ bool ActionManager::ActionPullOutOfGas(ActionArgData* data)
 bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 {
 	bool pylon_placed = false;
-	for (const auto &pylon : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+	for (const auto &pylon : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
 	{
 		if (Distance2D(pylon->pos, data->position) < 1)
 		{
@@ -995,7 +995,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 
 bool ActionManager::ActionDTHarassTerran(ActionArgData* data)
 {
-	for (const auto &unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_DARKTEMPLAR)))
+	for (const auto &unit : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_DARKTEMPLAR)))
 	{
 		// if outside -> move into enemy main
 		if ((unit->pos.z + .1 < agent->Observation()->GetStartLocation().z || unit->pos.z - .1 > agent->Observation()->GetStartLocation().z) && unit->orders.size() == 0)
@@ -1023,7 +1023,7 @@ bool ActionManager::ActionDTHarassTerran(ActionArgData* data)
 
 bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 {
-	for (const auto &robo : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
+	for (const auto &robo : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
 	{
 		if (robo->build_progress < 1)
 			continue;
@@ -1045,7 +1045,7 @@ bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 			if (Utility::HasBuff(robo, BUFF_ID::CHRONOBOOSTENERGYCOST))
 				continue;
 
-			for (const auto &nexus : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+			for (const auto &nexus : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
 					agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, robo);

@@ -83,6 +83,7 @@ namespace sc2 {
 		if (type != UNIT_TYPEID::PROTOSS_WARPPRISM)
 			persistent_fire_control.AddFriendlyUnit(unit);
 
+		attack_status[unit] = false;
 		all_units.push_back(unit);
 		new_units.erase(std::remove(new_units.begin(), new_units.end(), unit), new_units.end());
 
@@ -143,45 +144,6 @@ namespace sc2 {
 		default:
 			std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
 		}
-		if (type == UNIT_TYPEID::PROTOSS_ZEALOT)
-			zealots.push_back(unit);
-		else if (type == UNIT_TYPEID::PROTOSS_STALKER)
-		{
-			stalkers.push_back(unit);
-			last_time_blinked[unit] = 0;
-		}
-		else if (type == UNIT_TYPEID::PROTOSS_ADEPT)
-			adepts.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_SENTRY)
-			sentries.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_HIGHTEMPLAR)
-			high_templar.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DARKTEMPLAR)
-			dark_templar.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ARCHON)
-			archons.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_IMMORTAL)
-			immortals.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_COLOSSUS)
-			collossi.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DISRUPTOR)
-			disrupter.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_OBSERVER)
-			observers.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_WARPPRISM)
-			warp_prisms.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_PHOENIX)
-			phoenixes.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_VOIDRAY)
-			void_rays.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ORACLE)
-			oracles.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_CARRIER)
-			carriers.push_back(unit);
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_TEMPEST)
-			tempests.push_back(unit);
-		else
-			std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
 	}
 
 	void ArmyGroup::AddNewUnit(const Unit* unit)
@@ -472,7 +434,7 @@ namespace sc2 {
 
 	void ArmyGroup::DodgeShots()
 	{
-		for (const auto &Funit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)))
+		for (const auto &Funit : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STALKER)))
 		{
 			int danger = agent->IncomingDamage(Funit);
 			if (danger)
@@ -893,10 +855,95 @@ namespace sc2 {
 
 	void ArmyGroup::CannonRushPressure()
 	{
+		Point2D attack_pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
+		Point2D retreat_pos;
+		if (agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_SHIELDBATTERY)).size() > 0)
+			retreat_pos = Utility::FurthestFrom(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_SHIELDBATTERY)), attack_pos)->pos;
+		else if (agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)).size() > 0)
+			retreat_pos = Utility::FurthestFrom(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)), attack_pos)->pos;
 
+		Units enemies = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
+		if (enemies.size() > 0)
+		{
+			const Unit* closest_enemy = Utility::ClosestUnitTo(enemies, retreat_pos);
+			if (Distance2D(retreat_pos, closest_enemy->pos) > 11)
+				retreat_pos = Utility::PointBetween(closest_enemy->pos, retreat_pos, 11);
+		}
+		else
+		{
+			enemies = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
+			const Unit* closest_enemy = Utility::ClosestUnitTo(enemies, retreat_pos);
+			if (Distance2D(retreat_pos, closest_enemy->pos) > 8)
+				retreat_pos = Utility::PointBetween(closest_enemy->pos, retreat_pos, 8);
+		}
+		
+		agent->Debug()->DebugSphereOut(agent->ToPoint3D(attack_pos), 2, Color(255, 255, 0));
+		agent->Debug()->DebugSphereOut(agent->ToPoint3D(retreat_pos), 2, Color(0, 255, 0));
+
+		Units units_ready;
+		Units units_on_cd;
 		for (const auto &tempest : tempests)
 		{
+			agent->Debug()->DebugSphereOut(agent->ToPoint3D(tempest->pos), 10, Color(255, 255, 255));
+			if (attack_status[tempest] == false && tempest->weapon_cooldown == 0)
+				units_ready.push_back(tempest);
+			if (tempest->weapon_cooldown > 0)
+			{
+				units_on_cd.push_back(tempest);
+				if (attack_status[tempest] == true)
+					attack_status[tempest] = false;
+			}
+		}
+		for (const auto& stalker : stalkers)
+		{
+			if (attack_status[stalker] == false && stalker->weapon_cooldown == 0)
+				units_ready.push_back(stalker);
+			if (stalker->weapon_cooldown > 0)
+			{
+				units_on_cd.push_back(stalker);
+				if (attack_status[stalker] == true)
+					attack_status[stalker] = false;
+			}
+		}
 
+		if (units_ready.size() > 0)
+		{
+			persistent_fire_control.UpdateEnemyUnitHealth();
+			std::map<const Unit*, const Unit*> attacks = persistent_fire_control.FindAttacks(units_ready, 
+				{UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_VIKINGFIGHTER, UNIT_TYPEID::TERRAN_THORAP, UNIT_TYPEID::TERRAN_WIDOWMINE, 
+				UNIT_TYPEID::TERRAN_WIDOWMINEBURROWED, UNIT_TYPEID::TERRAN_CYCLONE, UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_SIEGETANK,
+				UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_MEDIVAC, UNIT_TYPEID::TERRAN_RAVEN, UNIT_TYPEID::TERRAN_BATTLECRUISER, 
+				UNIT_TYPEID::TERRAN_LIBERATOR, UNIT_TYPEID::TERRAN_LIBERATORAG, UNIT_TYPEID::TERRAN_BANSHEE, UNIT_TYPEID::TERRAN_GHOST, UNIT_TYPEID::TERRAN_VIKINGASSAULT,
+				UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_REAPER, UNIT_TYPEID::TERRAN_HELLION, UNIT_TYPEID::TERRAN_HELLIONTANK, 
+				UNIT_TYPEID::TERRAN_STARPORTREACTOR, UNIT_TYPEID::TERRAN_FACTORYREACTOR, UNIT_TYPEID::TERRAN_BARRACKSREACTOR, UNIT_TYPEID::TERRAN_REACTOR, 
+				UNIT_TYPEID::TERRAN_STARPORT, UNIT_TYPEID::TERRAN_STARPORTFLYING, UNIT_TYPEID::TERRAN_FACTORY, UNIT_TYPEID::TERRAN_FACTORYFLYING, 
+				UNIT_TYPEID::TERRAN_BARRACKS, UNIT_TYPEID::TERRAN_BARRACKSFLYING, UNIT_TYPEID::TERRAN_MISSILETURRET, UNIT_TYPEID::TERRAN_BUNKER, 
+				UNIT_TYPEID::TERRAN_REFINERY, UNIT_TYPEID::TERRAN_ORBITALCOMMAND, UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING, UNIT_TYPEID::TERRAN_COMMANDCENTER, 
+				UNIT_TYPEID::TERRAN_COMMANDCENTERFLYING }, 0);
+			for (const auto& unit : units_ready)
+			{
+				if (attacks.size() == 0)
+				{
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, attack_pos);
+				}
+				if (attacks.count(unit) > 0)
+				{
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK, attacks[unit]);
+					attack_status[unit] = true;
+					agent->Debug()->DebugLineOut(unit->pos, attacks[unit]->pos, Color(0, 255, 0));
+				}
+			}
+			agent->PrintAttacks(attacks);
+		}
+
+		for (const auto& unit : persistent_fire_control.enemy_unit_hp)
+		{
+			agent->Debug()->DebugTextOut(std::to_string(unit.second), unit.first->pos, Color(0, 255, 0), 15);
+		}
+
+		for (const auto& unit : units_on_cd)
+		{
+			agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, retreat_pos);
 		}
 	}
 
@@ -905,6 +952,21 @@ namespace sc2 {
 
 	}
 
+
+	void ArmyGroup::AutoAddNewUnits(std::vector<UNIT_TYPEID> unit_types)
+	{
+		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
+			this->OnNewUnitCreatedListener(unit);
+		};
+		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
+		this->unit_types = unit_types;
+	}
+
+	void ArmyGroup::OnNewUnitCreatedListener(const Unit* unit)
+	{
+		if (std::find(unit_types.begin(), unit_types.end(), unit->unit_type) != unit_types.end())
+			AddNewUnit(unit);
+	}
 
 	void ArmyGroup::AutoAddUnits(std::vector<UNIT_TYPEID> unit_types)
 	{
@@ -918,7 +980,7 @@ namespace sc2 {
 	void ArmyGroup::OnUnitCreatedListener(const Unit* unit)
 	{
 		if (std::find(unit_types.begin(), unit_types.end(), unit->unit_type) != unit_types.end())
-			AddNewUnit(unit);
+			AddUnit(unit);
 	}
 
 	void ArmyGroup::OnUnitDestroyedListener(const Unit* unit)

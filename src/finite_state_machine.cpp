@@ -2,6 +2,7 @@
 #include "finish_state_machine.h"
 #include "locations.h"
 #include "utility.h"
+#include "definitions.h"
 
 #include <iostream>
 #include <fstream>
@@ -1383,7 +1384,7 @@ namespace sc2 {
 	{
 		if (state_machine->prism == NULL)
 		{
-			for (const auto &prism : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)))
+			for (const auto &prism : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)))
 			{
 				state_machine->prism = prism;
 				break;
@@ -1391,7 +1392,7 @@ namespace sc2 {
 		}
 		if (state_machine->immortal1 == NULL || state_machine->immortal2 == NULL)
 		{
-			for (const auto &immortal : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_IMMORTAL)))
+			for (const auto &immortal : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_IMMORTAL)))
 			{
 				if (state_machine->immortal1 == NULL && immortal != state_machine->immortal2)
 					state_machine->immortal1 = immortal;
@@ -1906,7 +1907,7 @@ namespace sc2 {
 
 	State* AdeptBaseDefenseTerranDefendFront::TestTransitions()
 	{
-		Units gates = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY));
+		Units gates = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY));
 		Units other_units = agent->Observation()->GetUnits(IsUnits({ UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_STALKER }));
 		if (other_units.size() > 1 || agent->scout_info_terran.first_rax_production != reaper || (gates.size() > 0 && gates[0]->orders.size() > 0 && gates[0]->orders[0].progress > .9))
 			return new AdeptBaseDefenseTerranMoveAcross(agent, state_machine);
@@ -2229,7 +2230,7 @@ namespace sc2 {
 
 	State* StalkerBaseDefenseTerranDefendFront::TestTransitions()
 	{
-		Units gates = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY));
+		Units gates = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY));
 		Units other_units = agent->Observation()->GetUnits(IsUnits({ UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_STALKER }));
 		if (other_units.size() > 1 || agent->scout_info_terran.first_rax_production != reaper || (gates.size() > 0 && gates[0]->orders.size() > 0 && gates[0]->orders[0].progress > .9))
 			return new StalkerBaseDefenseTerranMoveAcross(agent, state_machine);
@@ -2449,7 +2450,7 @@ namespace sc2 {
 		if (state_machine->warping_in == false && state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)
 		{
 			// try to warp in
-			Units gates = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
+			Units gates = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
 			if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates.size(), agent->Observation()))
 			{
 				std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
@@ -2532,7 +2533,7 @@ namespace sc2 {
 			if (gates_ready)
 			{
 				// try warp in
-				Units gates = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
+				Units gates = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
 				if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates.size(), agent->Observation()))
 				{
 					std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
@@ -2776,7 +2777,7 @@ namespace sc2 {
 	State* CannonRushTerranMoveAcross::TestTransitions()
 	{
 		if (Distance2D(probe->pos, agent->locations->enemy_natural) < 15)
-			return new CannonRushTerranFindAvaibleCorner(agent, state_machine, probe);
+			return new CannonRushTerranFindAvaibleCorner(agent, state_machine, probe, 0);
 		return NULL;
 	}
 
@@ -2822,7 +2823,7 @@ namespace sc2 {
 	State* CannonRushTerranFindAvaibleCorner::TestTransitions()
 	{
 		Point2D pos = agent->locations->cannon_rush_terran_positions[curr_index].initial_pylon;
-		if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PYLON)), pos) < 1)
+		if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)), pos) < 1)
 			return new CannonRushTerranScout(agent, state_machine, probe, 0, agent->locations->main_scout_path, false);
 		return NULL;
 	}
@@ -2843,6 +2844,8 @@ namespace sc2 {
 			index++;
 			if (index < main_scout_path.size())
 				current_target = main_scout_path[index];
+			else
+				index = 0;
 		}
 		agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, current_target);
 	}
@@ -2859,13 +2862,34 @@ namespace sc2 {
 
 	State* CannonRushTerranScout::TestTransitions()
 	{
-		/*const Unit* closest_gas = Utility::ClosestTo(agent->Observation()->GetUnits(IsGeyser()), probe->pos);
+		if (agent->Observation()->GetUnits(IsFriendlyUnit(CANNON)).size() == 0)
+		{
+			Units pylons = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON));
+			Units enemies = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
+			bool free_pylon = false;
+			for (const auto& position : agent->locations->cannon_rush_terran_positions)
+			{
+				if (Utility::DistanceToClosest(pylons, position.initial_pylon) < 1 && Utility::DistanceToClosest(enemies, position.initial_pylon) > 3)
+				{
+					free_pylon = true;
+					break;
+				}
+
+			}
+			if (free_pylon == false)
+				return new CannonRushTerranFindAvaibleCorner(agent, state_machine, probe, pylons.size() - 1);
+		}
+
+		if (agent->Observation()->GetUnits(IsFriendlyUnit(GATEWAY)).size() == 0)
+			return NULL;
+
+		const Unit* closest_gas = Utility::ClosestTo(agent->Observation()->GetUnits(IsGeyser()), probe->pos);
 		if (Distance2D(closest_gas->pos, probe->pos) < 3)
 		{
-			if (gas_stolen == false && Utility::DistanceToClosest(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)), closest_gas->pos) > 1 &&
+			if (gas_stolen == false && Utility::CanAfford(ASSIMILATOR, 1, agent->Observation()) && Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)), closest_gas->pos) > 1 &&
 				Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), closest_gas->pos) > 1.5)
 				return new CannonRushTerranGasSteal(agent, state_machine, probe, index, closest_gas);
-		}*/
+		}
 		return NULL;
 	}
 
@@ -2900,10 +2924,10 @@ namespace sc2 {
 		if (Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), gas->pos) < 1.5)
 			return new CannonRushTerranScout(agent, state_machine, probe, scouting_index, agent->locations->main_scout_path, false);
 		
-		if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size() == 0)
+		if (agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size() == 0)
 			return NULL;
 
-		const Unit* closest_gas = Utility::ClosestUnitTo(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)), gas->pos);
+		const Unit* closest_gas = Utility::ClosestUnitTo(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)), gas->pos);
 		if (closest_gas->display_type != Unit::DisplayType::Placeholder && Distance2D(gas->pos, closest_gas->pos) < 1)
 			return new CannonRushTerranScout(agent, state_machine, probe, scouting_index, agent->locations->main_scout_path, true);
 
@@ -2926,7 +2950,7 @@ namespace sc2 {
 
 	void CannonRushTerranMoveAcross2::EnterState()
 	{
-		for (const auto &unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+		for (const auto &unit : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
 		{
 			if (Distance2D(unit->pos, agent->locations->start_location) > 30)
 				state_machine->pylons.push_back(unit);
@@ -2959,7 +2983,7 @@ namespace sc2 {
 	{
 		CannonRushPosition pos = agent->locations->cannon_rush_terran_positions[index];
 		agent->Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, pos.initial_pylon);
-		if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PYLON)), pos.initial_pylon) > 1)
+		if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)), pos.initial_pylon) > 1)
 		{
 			index++;
 			if (index >= agent->locations->cannon_rush_terran_positions.size())
@@ -2999,7 +3023,7 @@ namespace sc2 {
 				for (int j = 0; j < pos.gateway_walloff_positions[i].size(); j++)
 				{
 					Point2D building_pos = pos.gateway_walloff_positions[i][j].building_pos;
-					if (floor(building_pos.x) == building_pos.x)
+					if (floor(building_pos.x) == building_pos.x) // TODO this is a bad way of seeing if its a a pylon
 					{
 						// its a pylon
 						if (Utility::DistanceToClosest(enemy_units, building_pos) < 1.5 + j)
@@ -3119,7 +3143,7 @@ namespace sc2 {
 			return;
 		if (cannon_placed == false)
 		{
-			const Unit* closest_building = Utility::ClosestUnitTo(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)), cannon_pos);
+			const Unit* closest_building = Utility::ClosestUnitTo(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)), cannon_pos);
 			if (closest_building != NULL && closest_building->display_type != Unit::DisplayType::Placeholder && (Distance2D(cannon_pos, closest_building->pos) < 1))
 				cannon_placed = true;
 			else
@@ -3140,7 +3164,7 @@ namespace sc2 {
 						if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_PYLON, 1, agent->Observation()) == false)
 						{
 							agent->worker_manager.should_build_workers = false;
-							agent->Actions()->UnitCommand(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)), ABILITY_ID::CANCEL_LAST);
+							agent->Actions()->UnitCommand(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)), ABILITY_ID::CANCEL_LAST);
 						}
 						agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, wall[0].building_pos);
 					}
@@ -3156,7 +3180,7 @@ namespace sc2 {
 						if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_GATEWAY, 1, agent->Observation()) == false)
 						{
 							agent->worker_manager.should_build_workers = false;
-							agent->Actions()->UnitCommand(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_NEXUS)), ABILITY_ID::CANCEL_LAST);
+							agent->Actions()->UnitCommand(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)), ABILITY_ID::CANCEL_LAST);
 						}
 						agent->Actions()->UnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, wall[0].building_pos);
 					}
@@ -3211,7 +3235,7 @@ namespace sc2 {
 
 	State* CannonRushTerranCannonFirstWallOff::TestTransitions()
 	{
-		const Unit* cannon = Utility::ClosestUnitTo(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)), cannon_pos);
+		const Unit* cannon = Utility::ClosestUnitTo(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)), cannon_pos);
 		if ((wall_set && wall.size() == 0) || (cannon != NULL && cannon->build_progress > .75))
 		{
 			agent->worker_manager.should_build_workers = true;
@@ -3297,19 +3321,19 @@ namespace sc2 {
 		if (agent->Observation()->GetMinerals() >= 150 && state_machine->cannons[0]->build_progress > .5 && (pulled_scvs > state_machine->cannons.size() * 4))
 			return new CannonRushTerranExtraCannon(agent, state_machine, probe);
 
-		if (agent->Observation()->GetMinerals() >= 150 && agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() == 0)
+		if (agent->Observation()->GetMinerals() >= 150 && agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() == 0)
 			return new CannonRushTerranBuildGateway(agent, state_machine, probe);
 
-		int num_gasses = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
+		int num_gasses = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
 		for (const auto &action : agent->action_manager.active_actions)
 		{
 			if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
 				num_gasses++;
 		}
-		if (agent->Observation()->GetMinerals() >= 200 && agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() > 0 && num_gasses < 2 && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)).size() > 0)
+		if (agent->Observation()->GetMinerals() >= 200 && agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() > 0 && num_gasses < 2 && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)).size() > 0)
 			agent->build_order_manager.BuildBuilding(BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR));
 
-		if (agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0 && agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0 && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STARGATE, 1, agent->Observation()))
+		if (agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0 && agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0 && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STARGATE, 1, agent->Observation()))
 			return new CannonRushTerranBuildStargate(agent, state_machine, probe);
 
 		if (pulled_scvs == 0 && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)).size() > 0)
@@ -3543,7 +3567,7 @@ namespace sc2 {
 	{
 		if (gate_pos == Point2D(0, 0) || (probe->orders.size() == 0 && agent->Observation()->GetMinerals() < 150))
 			return new CannonRushTerranStandBy(agent, state_machine, probe, agent->locations->cannon_rush_terran_stand_by);
-		for (const auto &gate : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_GATEWAY)))
+		for (const auto &gate : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY)))
 		{
 			if (Distance2D(gate->pos, gate_pos) < 1 && gate->display_type != Unit::DisplayType::Placeholder)
 				return new CannonRushTerranStandBy(agent, state_machine, probe, agent->locations->cannon_rush_terran_stand_by);
@@ -3611,7 +3635,7 @@ namespace sc2 {
 	{
 		if (stargate_pos == Point2D(0, 0) || (probe->orders.size() == 0 && !Utility::CanAfford(UNIT_TYPEID::PROTOSS_STARGATE, 1, agent->Observation())))
 			return new CannonRushTerranStandBy(agent, state_machine, probe, agent->locations->cannon_rush_terran_stand_by);
-		for (const auto &stargate : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
+		for (const auto &stargate : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
 		{
 			if (Distance2D(stargate->pos, stargate_pos) < 1 && stargate->display_type != Unit::DisplayType::Placeholder)
 				return new CannonRushTerranStandBy(agent, state_machine, probe, agent->locations->cannon_rush_terran_stand_by); //change
@@ -3683,19 +3707,26 @@ namespace sc2 {
 			}
 		}
 
+		if (next_unit == UNIT_TYPEID::PROTOSS_STARGATE && agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() > 0 &&
+			agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE))[0]->display_type != Unit::DisplayType::Placeholder)
+			next_unit = UNIT_TYPEID::VOIDSEEKER;
+		else if (next_unit == UNIT_TYPEID::PROTOSS_FLEETBEACON && agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON)).size() > 0 &&
+			agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON))[0]->display_type != Unit::DisplayType::Placeholder)
+			next_unit = UNIT_TYPEID::PROTOSS_TEMPEST;
+
 		if (probe->orders.size() > 0)
 			probe_busy = false;
 
 		if (probe->orders.size() > 0)
 		{
-			if (probe->orders[0].ability_id == ABILITY_ID::BUILD_FLEETBEACON)
+			/*if (probe->orders[0].ability_id == ABILITY_ID::BUILD_FLEETBEACON)
 				next_unit = UNIT_TYPEID::PROTOSS_TEMPEST;
 			else if(probe->orders[0].ability_id == ABILITY_ID::BUILD_STARGATE)
-				next_unit = UNIT_TYPEID::VOIDSEEKER;
+				next_unit = UNIT_TYPEID::VOIDSEEKER;*/
 			return;
 		}
 
-		if ((next_unit == UNIT_TYPEID::VOIDSEEKER || next_unit == UNIT_TYPEID::PROTOSS_FLEETBEACON) && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() > 0)
+		/*if ((next_unit == UNIT_TYPEID::VOIDSEEKER || next_unit == UNIT_TYPEID::PROTOSS_FLEETBEACON) && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() > 0)
 		{
 			if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_FLEETBEACON, 1, agent->Observation()))
 			{
@@ -3719,7 +3750,7 @@ namespace sc2 {
 				}
 			}
 		}
-		else if (next_unit == UNIT_TYPEID::PROTOSS_STARGATE && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0)
+		else */if (next_unit == UNIT_TYPEID::PROTOSS_STARGATE && agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0)
 		{
 			if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STARGATE, 1, agent->Observation()))
 			{
@@ -3828,7 +3859,7 @@ namespace sc2 {
 
 	void CannonRushTerranStandByPhase2::EnterState()
 	{
-		int num_gasses = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
+		int num_gasses = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
 		for (const auto &action : agent->action_manager.active_actions)
 		{
 			if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
@@ -3839,11 +3870,11 @@ namespace sc2 {
 			agent->build_order_manager.BuildBuilding(BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR));
 		}
 
-		if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0)
+		if (agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0)
 			next_unit = UNIT_TYPEID::PROTOSS_STARGATE;
 		else if (agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0)
 			next_unit = UNIT_TYPEID::VOIDSEEKER; // represents a void ray + fleet beacon
-		else if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON)).size() == 0)
+		else if (agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON)).size() == 0)
 			next_unit = UNIT_TYPEID::PROTOSS_FLEETBEACON;
 		else
 			next_unit = UNIT_TYPEID::PROTOSS_TEMPEST;
@@ -4103,14 +4134,14 @@ namespace sc2 {
 	{
 		__super::RunStateMachine();
 
-		for (const auto &pos : cannon_places)
+		/*for (const auto& pos : cannon_places)
 		{
 			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), 1, Color(255, 0, 0));
 		}
 		for (const auto &pos : gateway_places)
 		{
 			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), 1.5, Color(0, 255, 0));
-		}
+		}*/
 	}
 
 	void CannonRushTerran::OnUnitCreatedListener(const Unit* unit)

@@ -82,6 +82,8 @@ public:
 	void MicroUnits();
 
 
+	void AutoAddNewUnits(std::vector<UNIT_TYPEID>);
+	void OnNewUnitCreatedListener(const Unit*);
 	void AutoAddUnits(std::vector<UNIT_TYPEID>);
 	void OnUnitCreatedListener(const Unit*);
 	void OnUnitDestroyedListener(const Unit*);
