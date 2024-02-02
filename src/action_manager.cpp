@@ -151,9 +151,11 @@ bool ActionManager::ActionScoutZerg(ActionArgData* data)
 
 bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 {
+#ifdef DEBUG_TIMING
 	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	int extra_workers = data->index;
 	int num_workers = agent->Observation()->GetFoodWorkers();
@@ -167,6 +169,7 @@ bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 	{
 		agent->worker_manager.should_build_workers = true;
 	}
+#ifdef DEBUG_TIMING
 	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
@@ -176,15 +179,18 @@ bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 
 	make_workers << end_time - start_time << "\n";
 	make_workers.close();
+#endif
 
 	return false;
 }
 
 bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 {
+#ifdef DEBUG_TIMING
 	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	int build_pylon_actions = 0;
 	for (const auto &action : active_actions)
@@ -248,6 +254,7 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 	if (supply_used >= supply_cap)
 		agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_PYLON);
 
+#ifdef DEBUG_TIMING
 	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
@@ -257,15 +264,18 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 
 	build_pylons << end_time - start_time << "\n";
 	build_pylons.close();
+#endif
 
 	return false;
 }
 
 bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 {
+#ifdef DEBUG_TIMING
 	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	// TODO make global upgrade tracker
 	std::vector<ABILITY_ID> upgrades = {};
@@ -316,6 +326,7 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 		}
 	}
 
+#ifdef DEBUG_TIMING
 	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
@@ -325,14 +336,18 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 
 	get_upgrades << end_time - start_time << "\n";
 	get_upgrades.close();
+#endif
+
 	return false;
 }
 
 bool ActionManager::ActionContinueChronos(ActionArgData* data)
 {
+#ifdef DEBUG_TIMING
 	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	Units need_chrono;
 	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSBAY)))
@@ -366,6 +381,8 @@ bool ActionManager::ActionContinueChronos(ActionArgData* data)
 			need_chrono.erase(need_chrono.begin());
 		}
 	}
+
+#ifdef DEBUG_TIMING
 	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
@@ -375,14 +392,18 @@ bool ActionManager::ActionContinueChronos(ActionArgData* data)
 
 	chronoing << end_time - start_time << "\n";
 	chronoing.close();
+#endif
+
 	return false;
 }
 
 bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 {
+#ifdef DEBUG_TIMING
 	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	if (agent->worker_manager.far_3_mineral_patch_extras.size() > 0)
 	{
@@ -401,6 +422,8 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 
 		agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_NEXUS);
 	}
+
+#ifdef DEBUG_TIMING
 	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
@@ -410,6 +433,7 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 
 	expanding << end_time - start_time << "\n";
 	expanding.close();
+#endif
 }
 
 bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
@@ -445,9 +469,11 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 
 bool ActionManager::ActionConstantChrono(ActionArgData* data)
 {
+#ifdef DEBUG_TIMING
 	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	const Unit* building = data->unit;
 	for (const auto &buff : building->buffs)
@@ -455,6 +481,7 @@ bool ActionManager::ActionConstantChrono(ActionArgData* data)
 		if (buff == BUFF_ID::CHRONOBOOSTENERGYCOST)
 		{
 
+#ifdef DEBUG_TIMING
 			unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
@@ -464,10 +491,12 @@ bool ActionManager::ActionConstantChrono(ActionArgData* data)
 
 			constant_chrono << end_time - start_time << "\n";
 			constant_chrono.close();
+#endif
 			return false;
 		}
 	}
 
+#ifdef DEBUG_TIMING
 	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
@@ -477,6 +506,7 @@ bool ActionManager::ActionConstantChrono(ActionArgData* data)
 
 	constant_chrono << end_time - start_time << "\n";
 	constant_chrono.close();
+#endif
 }
 
 bool ActionManager::ActionWarpInAtProxy(ActionArgData* data)
@@ -568,6 +598,7 @@ bool ActionManager::ActionContain(ActionArgData* data)
 
 bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 {
+#ifdef DEBUG_TIMING
 	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
@@ -579,6 +610,7 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	unsigned long long concave_origins = 0;
 	unsigned long long positions = 0;
 	unsigned long long apply_pressure = 0;
+#endif
 
 	float unit_size = .625;
 	float unit_dispersion = 0;
@@ -603,9 +635,11 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		}
 	}
 
+#ifdef DEBUG_TIMING
 	new_units = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	//agent->Debug()->DebugSphereOut(Point3D(fallback_point.x, fallback_point.y, agent->Observation()->TerrainHeight(fallback_point)), 3, Color(255, 0, 0));
 	//agent->Debug()->DebugSphereOut(Point3D(attack_point.x, attack_point.y, agent->Observation()->TerrainHeight(attack_point)), 3, Color(0, 255, 0));
@@ -622,10 +656,12 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	Units enemies = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
 	Point2D stalkers_center = Utility::MedianCenter(army->stalkers);
 	Point2D stalker_line_pos = agent->locations->attack_path_line.FindClosestPoint(stalkers_center);
-	
+
+#ifdef DEBUG_TIMING
 	critical_points = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	Units close_enemies = Utility::NClosestUnits(enemies, stalkers_center, 5);
 	// remove far enemies
@@ -638,9 +674,11 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		}
 	}
 
+#ifdef DEBUG_TIMING
 	close_targets = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	Point2D concave_target = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 8, true);
 	float max_range = 7;
@@ -656,9 +694,11 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 
 	Point2D attack_concave_origin = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * unit_size + unit_dispersion, true);
 
+#ifdef DEBUG_TIMING
 	concave_origins = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	/*agent->Debug()->DebugSphereOut(agent->ToPoint3D(stalkers_center), 2, Color(255, 0, 0));
 	agent->Debug()->DebugSphereOut(agent->ToPoint3D(stalker_line_pos), 2, Color(0, 255, 0));
@@ -674,9 +714,11 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	std::map<const Unit*, Point2D> retreat_unit_positions = army->AssignUnitsToPositions(army->stalkers, retreat_concave_positions);
 
 
+#ifdef DEBUG_TIMING
 	positions = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	for (const auto &pos : attack_concave_positions)
 	{
@@ -689,18 +731,22 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 
 	army->ApplyPressureGrouped(concave_target, (2 * retreat_concave_origin) - concave_target, retreat_unit_positions, attack_unit_positions);
 
+#ifdef DEBUG_TIMING
 	apply_pressure = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	/*
 	const Unit* closest_enemy = Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), Utility::MedianCenter(army->stalkers));
 	const Unit* closest_unit_to_enemies = Utility::ClosestTo(army->stalkers, closest_enemy->pos);
 	const Unit* furthest_unit_from_enemies = Utility::NthClosestTo(army->stalkers, closest_enemy->pos, round(army->stalkers.size() / 2));
 
+#ifdef DEBUG_TIMING
 	closest_units  = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	agent->Debug()->DebugSphereOut(closest_unit_to_enemies->pos, .625, Color(255, 0, 255));
 	agent->Debug()->DebugSphereOut(furthest_unit_from_enemies->pos, .625, Color(0, 255, 255));
@@ -717,16 +763,20 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	std::vector<Point2D> attacking_concave_positions = army->FindConcaveFromBack(attacking_concave_origin, fallback_point, army->stalkers.size(), .625, unit_dispersion);
 	std::vector<Point2D> retreating_concave_positions = army->FindConcave(retreating_concave_origin, fallback_point, army->stalkers.size(), .625, unit_dispersion);
 
+#ifdef DEBUG_TIMING
 	concaves  = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	std::map<const Unit*, Point2D> attacking_unit_positions = army->AssignUnitsToPositions(army->stalkers, attacking_concave_positions);
 	std::map<const Unit*, Point2D> retreating_unit_positions = army->AssignUnitsToPositions(army->stalkers, retreating_concave_positions);
 
+#ifdef DEBUG_TIMING
 	positions  = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	for (const auto &pos : attacking_concave_positions)
 	{
@@ -742,17 +792,22 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		//agent->Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, agent->Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
 		//Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
 	}
+
+#ifdef DEBUG_TIMING
 	debug  = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	//agent->Actions()->UnitCommand(army->warp_prisms[0], ABILITY_ID::MOVE_MOVE, Utility::PointBetween(Utility::MedianCenter(army->stalkers), fallback_point, 3));
 	//agent->Actions()->UnitCommand(army->warp_prisms[0], ABILITY_ID::UNLOADALLAT_WARPPRISM, army->warp_prisms[0]);
 	army->ApplyPressureGrouped(attack_point, fallback_point, retreating_unit_positions, attacking_unit_positions);
 
+#ifdef DEBUG_TIMING
 	apply_pressure = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	Units enemy_attacking_units = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
 	//Actions()->UnitCommand(enemy_attacking_units, ABILITY_ID::ATTACK, fallback_point);
@@ -766,11 +821,16 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		else
 			army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);
 	}
+
+#ifdef DEBUG_TIMING
 	update_index = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	*/
+
+#ifdef DEBUG_TIMING
 	std::ofstream action_time;
 	action_time.open("action_time.txt", std::ios_base::app);
 	action_time << new_units - start_time << ", ";
@@ -781,6 +841,7 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	action_time << apply_pressure - positions << "\n";
 
 	action_time.close();
+#endif
 
 	return false;
 }
@@ -883,9 +944,11 @@ bool ActionManager::ActionContinueVolleyWarpingInStalkers(ActionArgData* data)
 
 bool ActionManager::ActionContinueVolleyWarpingInZealots(ActionArgData* data)
 {
+#ifdef DEBUG_TIMING
 	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	bool all_gates_ready = true;
 	//if (Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() > 0)
@@ -899,9 +962,11 @@ bool ActionManager::ActionContinueVolleyWarpingInZealots(ActionArgData* data)
 			break;
 		}
 	}
+#ifdef DEBUG_TIMING
 	unsigned long long get_abilities = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
+#endif
 
 	if (gates.size() > 0 && all_gates_ready && Utility::CanAfford(UNIT_TYPEID::PROTOSS_ZEALOT, gates.size(), agent->Observation()))
 	{
@@ -919,6 +984,7 @@ bool ActionManager::ActionContinueVolleyWarpingInZealots(ActionArgData* data)
 			}
 		}
 	}
+#ifdef DEBUG_TIMING
 	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
 		).count();
@@ -929,6 +995,7 @@ bool ActionManager::ActionContinueVolleyWarpingInZealots(ActionArgData* data)
 	zealot_warp << get_abilities - start_time << ", ";
 	zealot_warp << end_time - get_abilities << "\n";
 	zealot_warp.close();
+#endif
 	return false;
 }
 
@@ -964,11 +1031,14 @@ bool ActionManager::ActionPullOutOfGas(ActionArgData* data)
 bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 {
 	bool pylon_placed = false;
+	bool pylon_finished = false;
 	for (const auto &pylon : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
 	{
 		if (Distance2D(pylon->pos, data->position) < 1)
 		{
 			pylon_placed = true;
+			if (pylon->build_progress == 1)
+				pylon_finished = true;
 			break;
 		}
 	}
@@ -985,10 +1055,18 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 	}
 	else if (pylon_placed)
 	{
-		std::vector<Point2D> building_locations = agent->GetProxyLocations(data->unitId);
-		Point2D pos = building_locations[0];
-		active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(scout, data->unitId, pos)));
-		return true;
+		if (data->unitId == UNIT_TYPEID::PROTOSS_PYLON)
+		{
+			agent->worker_manager.PlaceWorker(data->unit);
+			return true;
+		}
+		if (pylon_finished)
+		{
+			std::vector<Point2D> building_locations = agent->GetProxyLocations(data->unitId);
+			Point2D pos = building_locations[0];
+			active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(scout, data->unitId, pos)));
+			return true;
+		}
 	}
 	return false;
 }
@@ -1106,6 +1184,114 @@ bool ActionManager::ActionAllIn(ActionArgData* data)
 			army->current_attack_index++;
 		else
 			army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);
+	}
+
+	return false;
+}
+
+bool ActionManager::ActionAllInAttack(ActionArgData* data)
+{
+	ArmyGroup* army = data->army_group;
+	Point2D retreat_point = army->attack_path[army->current_attack_index - 2];
+
+	Point2D attack_point = army->attack_path[army->current_attack_index];
+
+	Units stalkers = army->stalkers;
+
+	for (int i = 0; i < army->new_units.size(); i++)
+	{
+		const Unit* unit = army->new_units[i];
+		if (unit->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
+		{
+			army->AddUnit(unit);
+			i--;
+			continue;
+		}
+		if (unit->orders.size() == 0)
+		{
+			Point2D closest = Utility::ClosestTo(army->attack_path, unit->pos);
+
+			for (int i = find(army->attack_path.begin(), army->attack_path.end(), closest) - army->attack_path.begin(); i < army->attack_path.size(); i++)
+			{
+				agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[i], true);
+			}
+		}
+		if ((army->stalkers.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(army->stalkers)) < 5) || (army->stalkers.size() == 0 && Distance2D(unit->pos, army->attack_path[0]) < 2))
+		{
+			army->AddUnit(unit);
+			i--;
+		}
+	}
+
+	for (const auto& pos : agent->locations->attack_path_line.GetPoints())
+	{
+		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
+	}
+
+	if (army->stalkers.size() == 0)
+		return false;
+
+
+	Units enemies = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
+	Point2D stalkers_center = Utility::MedianCenter(army->stalkers);
+	Point2D stalker_line_pos = agent->locations->attack_path_line.FindClosestPoint(stalkers_center);
+
+	Units close_enemies = Utility::NClosestUnits(enemies, stalkers_center, 5);
+	// remove far enemies
+	for (int i = 0; i < close_enemies.size(); i++)
+	{
+		if (Distance2D(stalkers_center, close_enemies[i]->pos) > 12)
+		{
+			close_enemies.erase(close_enemies.begin() + i);
+			i--;
+		}
+	}
+
+	Point2D concave_target = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 8, true);
+	float max_range = 7;
+	if (close_enemies.size() > 0)
+	{
+		concave_target = Utility::MedianCenter(close_enemies);
+		max_range = std::max(Utility::GetMaxRange(close_enemies) + 2, 6.0f);
+	}
+
+	agent->Debug()->DebugSphereOut(agent->ToPoint3D(concave_target), 1, Color(255, 255, 0));
+
+
+	Point2D retreat_concave_origin = agent->locations->attack_path_line.GetPointFrom(concave_target, max_range, false);
+	if (retreat_concave_origin == Point2D(0, 0))
+		retreat_concave_origin = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * .625, false);
+
+	Point2D attack_concave_origin = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * .625, true);
+
+
+	std::vector<Point2D> attack_concave_positions = army->FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, army->stalkers.size(), .625, 0);
+	std::vector<Point2D> retreat_concave_positions = army->FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, army->stalkers.size(), .625, 0);
+
+	std::map<const Unit*, Point2D> attack_unit_positions = army->AssignUnitsToPositions(army->stalkers, attack_concave_positions);
+	std::map<const Unit*, Point2D> retreat_unit_positions = army->AssignUnitsToPositions(army->stalkers, retreat_concave_positions);
+
+	for (const auto& pos : attack_concave_positions)
+	{
+		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(255, 0, 0));
+	}
+	for (const auto& pos : retreat_concave_positions)
+	{
+		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(0, 255, 0));
+	}
+
+	army->ApplyPressureGrouped(concave_target, (2 * retreat_concave_origin) - concave_target, retreat_unit_positions, attack_unit_positions);
+
+
+
+	if (army->current_attack_index > 2 && Distance2D(Utility::Center(stalkers), retreat_point) < 3)
+		army->current_attack_index--;
+	if (army->current_attack_index < army->attack_path.size() - 1 && Distance2D(Utility::MedianCenter(stalkers), attack_point) < 3)
+	{
+		//if (obs_in_position)
+			army->current_attack_index++;
+		//else
+		//	army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);
 	}
 
 	return false;

@@ -663,6 +663,7 @@ namespace sc2 {
 
 	void ArmyGroup::ApplyPressureGrouped(Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> retreating_unit_positions, std::map<const Unit*, Point2D> attacking_unit_positions)
 	{
+#ifdef DEBUG_TIMING
 		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
@@ -676,7 +677,7 @@ namespace sc2 {
 		unsigned long long give_targets = 0;
 		unsigned long long not_ready = 0;
 		unsigned long long pick_up = 0;
-		
+#endif
 
 		std::map<const Unit*, int> units_requesting_pickup;
 		if (stalkers.size() > 0)
@@ -725,18 +726,16 @@ namespace sc2 {
 				}
 			}
 			bool enough_stalkers_ready = true;
-			if (static_cast<float>(stalkers_ready.size()) / static_cast<float>(stalkers.size()) >= 1)
+			if (static_cast<float>(stalkers_ready.size()) / static_cast<float>(stalkers.size()) >= .5)
 			{
+#ifdef DEBUG_TIMING
 				start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count();
+#endif
+				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers_ready, {}, 2);
 
-				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers_ready, {}, 0);
-				if (found_targets.size() == 0)
-				{
-					found_targets = agent->FindTargets(stalkers_ready, {}, 2);
-					std::cout << "extra distance\n";
-				}
+#ifdef DEBUG_TIMING
 				find_targets = std::chrono::duration_cast<std::chrono::microseconds>(
 					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count() - start_time;
@@ -744,12 +743,15 @@ namespace sc2 {
 				start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count();
+#endif
 
 				//agent->PrintAttacks(found_targets);
 
+#ifdef DEBUG_TIMING
 				print_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
 					std::chrono::high_resolution_clock::now().time_since_epoch()
 					).count() - start_time;
+#endif
 
 				for (const auto &stalker : stalkers_ready)
 				{
@@ -821,9 +823,24 @@ namespace sc2 {
 			}
 		}
 
+		Point2D prism_pos = Utility::MedianCenter(stalkers);
+		prism_pos = Utility::PointBetween(prism_pos, retreat_point, 2);
+
+		for (const auto& prism : warp_prisms)
+		{
+			agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, prism_pos);
+			agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism);
+		}
+
+		for (const auto& unit : units_requesting_pickup)
+		{
+			agent->Debug()->DebugTextOut(std::to_string(unit.second), unit.first->pos, Color(255, 255, 255), 14);
+		}
+
 		PickUpUnits(units_requesting_pickup);
 
 
+#ifdef DEBUG_TIMING
 		pressure_time << ready_check << ", ";
 		pressure_time << find_targets << ", ";
 		pressure_time << print_attacks << ", ";
@@ -831,6 +848,7 @@ namespace sc2 {
 		pressure_time << not_ready << ", ";
 		pressure_time << pick_up << "\n";
 		pressure_time.close();
+#endif
 	}
 
 	void ArmyGroup::DefendFrontDoor(Point2D door_open_pos, Point2D door_closed_pos)

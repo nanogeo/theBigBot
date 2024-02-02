@@ -102,6 +102,7 @@ public:
 	void RemoveWorker(const Unit*);
 	void SplitWorkers();
 	void SaturateGas(const Unit*);
+	void SemiSaturateGas(const Unit*);
 	void AddNewBase();
 	void DistributeWorkers();
 	void BalanceWorers();

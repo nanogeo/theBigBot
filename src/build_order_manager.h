@@ -117,11 +117,13 @@ public:
 	bool BuildFirstPylon(BuildOrderResultArgData);
 	bool BuildBuildingMulti(BuildOrderResultArgData);
 	bool Scout(BuildOrderResultArgData);
-	bool CannonRushProbe1(BuildOrderResultArgData); // tostring
-	bool CannonRushProbe2(BuildOrderResultArgData); // tostring
+	bool CannonRushProbe1(BuildOrderResultArgData);
 	bool CutWorkers(BuildOrderResultArgData);
 	bool UncutWorkers(BuildOrderResultArgData);
 	bool ImmediatelySaturateGasses(BuildOrderResultArgData);
+	bool CancelImmediatelySaturateGasses(BuildOrderResultArgData);
+	bool ImmediatelySemiSaturateGasses(BuildOrderResultArgData);
+	bool CancelImmediatelySemiSaturateGasses(BuildOrderResultArgData);
 	bool TrainStalker(BuildOrderResultArgData);
 	bool TrainAdept(BuildOrderResultArgData);
 	bool TrainZealot(BuildOrderResultArgData);
@@ -155,12 +157,12 @@ public:
 	bool ResearchAttackTwo(BuildOrderResultArgData);
 	bool ResearchShieldsOne(BuildOrderResultArgData);
 	bool ResearchAirAttackOne(BuildOrderResultArgData);
-	bool ConntinueWarpingInStalkers(BuildOrderResultArgData); //tostring
-	bool StopWarpingInStalkers(BuildOrderResultArgData); //tostring
-	bool ConntinueVolleyWarpingInStalkers(BuildOrderResultArgData); //tostring
-	bool StopVolleyWarpingInStalkers(BuildOrderResultArgData); //tostring
-	bool ContinueVolleyWarpingInZealots(BuildOrderResultArgData); //tostring
-	bool StopVolleyWarpingInZealots(BuildOrderResultArgData); //tostring
+	bool ConntinueWarpingInStalkers(BuildOrderResultArgData);
+	bool StopWarpingInStalkers(BuildOrderResultArgData);
+	bool ConntinueVolleyWarpingInStalkers(BuildOrderResultArgData);
+	bool StopVolleyWarpingInStalkers(BuildOrderResultArgData);
+	bool ContinueVolleyWarpingInZealots(BuildOrderResultArgData);
+	bool StopVolleyWarpingInZealots(BuildOrderResultArgData);
 	bool ContinueBuildingCarriers(BuildOrderResultArgData);
 	bool WarpInUnits(BuildOrderResultArgData);
 	bool PullOutOfGas(BuildOrderResultArgData);
@@ -174,12 +176,13 @@ public:
 	bool ProxyDoubleRoboAllIn(BuildOrderResultArgData);
 	bool DefendThirdBase(BuildOrderResultArgData);
 	bool SetDoorGuard(BuildOrderResultArgData);
-	bool AdeptDefendBaseTerran(BuildOrderResultArgData); //tostring
-	bool StalkerDefendBaseTerran(BuildOrderResultArgData); // tostring
-	bool StartFourGateBlinkPressure(BuildOrderResultArgData); // tostring
-	bool SendCannonRushTerranProbe1(BuildOrderResultArgData); // tostring
-	bool SendCannonRushTerranProbe2(BuildOrderResultArgData); // tostring
-	bool CannonRushAttack(BuildOrderResultArgData); // tostring
+	bool AdeptDefendBaseTerran(BuildOrderResultArgData);
+	bool StalkerDefendBaseTerran(BuildOrderResultArgData);
+	bool StartFourGateBlinkPressure(BuildOrderResultArgData);
+	bool SendCannonRushTerranProbe1(BuildOrderResultArgData);
+	bool SendCannonRushTerranProbe2(BuildOrderResultArgData);
+	bool CannonRushAttack(BuildOrderResultArgData);
+	bool SendAllInAttack(BuildOrderResultArgData);
 
 	bool RemoveProbe(BuildOrderResultArgData);
 
@@ -299,6 +302,10 @@ struct BuildOrderData
 		{
 			str += "send scout";
 		}
+		else if (result == &BuildOrderManager::CannonRushProbe1)
+		{
+			str += "send cannon rush probe 1";
+		}
 		else if (result == &BuildOrderManager::CutWorkers)
 		{
 			str += "stop building probes";
@@ -310,6 +317,18 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::ImmediatelySaturateGasses)
 		{
 			str += "immediately saturate gasses";
+		}
+		else if (result == &BuildOrderManager::CancelImmediatelySaturateGasses)
+		{
+			str += "cancel immediately saturate gasses";
+		}
+		else if (result == &BuildOrderManager::ImmediatelySemiSaturateGasses)
+		{
+			str += "immediately semi-saturate gasses";
+		}
+		else if (result == &BuildOrderManager::CancelImmediatelySemiSaturateGasses)
+		{
+			str += "cancel immediately semi-saturate gasses";
 		}
 		else if (result == &BuildOrderManager::TrainStalker)
 		{
@@ -448,13 +467,21 @@ struct BuildOrderData
 		{
 		str += "research +1 air weapons";
 		}
-		else if (result == &BuildOrderManager::ConntinueVolleyWarpingInStalkers)
+		else if (result == &BuildOrderManager::ConntinueWarpingInStalkers)
 		{
 			str += "continue warping in stalkers";
+			}
+		else if (result == &BuildOrderManager::StopWarpingInStalkers)
+		{
+			str += "stop warping in stalkers";
+			}
+		else if (result == &BuildOrderManager::ConntinueVolleyWarpingInStalkers)
+		{
+			str += "continue volley warping in stalkers";
 		}
 		else if (result == &BuildOrderManager::StopVolleyWarpingInStalkers)
 		{
-		str += "stop warping in stalkers";
+		str += "stop volley warping in stalkers";
 		}
 		else if (result == &BuildOrderManager::ContinueVolleyWarpingInZealots)
 		{
@@ -513,11 +540,39 @@ struct BuildOrderData
 		}
 		else if (result == &BuildOrderManager::DefendThirdBase)
 		{
-		str += "defend third base";
+			str += "defend third base";
 		}
 		else if (result == &BuildOrderManager::SetDoorGuard)
 		{
-		str += "set door guard";
+			str += "set door guard";
+		}
+		else if (result == &BuildOrderManager::AdeptDefendBaseTerran)
+		{
+			str += "set adept base defense vs terran";
+		}
+		else if (result == &BuildOrderManager::StalkerDefendBaseTerran)
+		{
+			str += "set stalker base defense vs terran";
+		}
+		else if (result == &BuildOrderManager::StartFourGateBlinkPressure)
+		{
+			str += "start 4 gate blink attack";
+		}
+		else if (result == &BuildOrderManager::SendCannonRushTerranProbe1)
+		{
+			str += "send cannon rush terran probe 1";
+		}
+		else if (result == &BuildOrderManager::SendCannonRushTerranProbe2)
+		{
+			str += "send cannon rush terran probe 2";
+		}
+		else if (result == &BuildOrderManager::CannonRushAttack)
+		{
+			str += "start cannon rush attack";
+		}
+		else if (result == &BuildOrderManager::SendAllInAttack)
+		{
+			str += "send all in attack";
 		}
 
 		return str;

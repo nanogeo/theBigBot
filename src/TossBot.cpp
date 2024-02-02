@@ -56,9 +56,11 @@ namespace sc2 {
 			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit.first->unit_type), ToPoint3D(unit.second.pos), Color(255, 0, 255), 15);
 		}*/
 
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds startTime = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
 
 		Units bla = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ADEPT));
 		Units funits = Observation()->GetUnits(Unit::Alliance::Self);
@@ -76,10 +78,12 @@ namespace sc2 {
 				probe = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
 				started = true;
 
+#ifdef DEBUG_TIMING
 				std::ofstream frame_time_file;
 				frame_time_file.open("frame_time.txt", std::ios_base::out);
 				frame_time_file << "Build order,Actions,FSM,Update pos,Update weapons,Enemy attacks,Allied attacks,Complete attacks,Hud,Send debug\n";
 				frame_time_file.close();
+#endif
             }
             if (Observation()->GetGameLoop() > 1)
             {
@@ -174,68 +178,89 @@ namespace sc2 {
 				SetUpArmies();
 			}
 
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds start = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
+#endif
 
 			build_order_manager.CheckBuildOrder();
 
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds build_order = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
+#endif
 
 			if (Observation()->GetGameLoop() % 2 == 0)
 			{
 				action_manager.ProcessActions();
 			}
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds actions = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
+#endif
 
 			ProcessFSMs();
 
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds fsm = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
+#endif
 
 			UpdateEnemyUnitPositions();
 
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds update_pos = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
+#endif
 
 			UpdateEnemyWeaponCooldowns();
 
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds update_weawpons = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
+#endif
 
 			//DisplayEnemyAttacks();
 
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds enemy_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
+#endif
 
 			//DisplayAlliedAttackStatus();
 
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds allied_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
+#endif
 
 			RemoveCompletedAtacks();
 
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds complete_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
+#endif
 
 			//DisplayDebugHud();
 
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds hud = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
+#endif
 
 			//Debug()->SendDebug();
 
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds end = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
@@ -254,6 +279,7 @@ namespace sc2 {
 			frame_time_file << end.count() - hud.count() << "\n";
 
 			frame_time_file.close();
+#endif
 
             return;
         }
@@ -261,9 +287,11 @@ namespace sc2 {
         
         worker_manager.DistributeWorkers();
 
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds postDistributeWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
 
         if (worker_manager.new_base != NULL)
         {
@@ -276,14 +304,17 @@ namespace sc2 {
             }
         }
 
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds postNewBase = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
 
         if (Observation()->GetGameLoop() == 1)
         {
 			//PrintNonPathablePoints();
 
+#ifdef DEBUG_TIMING
 			std::ofstream frame_time_file;
 			frame_time_file.open("frame_time.txt", std::ios_base::out);
 			frame_time_file << "Distribute workers,New base,Update enemy pos,Update enemy weapon cd,Update warpgate status,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug,TOTAL\n";
@@ -383,7 +414,7 @@ namespace sc2 {
 			update_warpgates.open("update_warpgates.txt", std::ios_base::out);
 			update_warpgates << "Zero,Used,Ready,Total\n";
 			update_warpgates.close();
-
+#endif
 			
 
             auto infos = Observation()->GetGameInfo().player_info;
@@ -475,46 +506,68 @@ namespace sc2 {
 		}*/
 
 		UpdateEnemyUnitPositions();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds postUpdateEnemyUnitPositions = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
 		UpdateEnemyWeaponCooldowns();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds postUpdateEnemyWeaponCooldowns = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
-
+#endif
 		UpdateWarpgateStatus();
 
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds postUpdateWarpgateStatus = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
-
+#endif
 		if (Observation()->GetGameLoop() % 5 == 0)
 	        worker_manager.BuildWorkers();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds postBuildWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
-
+#endif
 		build_order_manager.CheckBuildOrder();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds postCheckBuildOrder = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
-
+#endif
 		action_manager.ProcessActions();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds postProcessActions = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
-
+#endif
         ProcessFSMs();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds postProcessFSM = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
+		UpdateEnemyUnitPositions();
+
+		UpdateEnemyWeaponCooldowns();
+
+		//DisplayEnemyAttacks();
+
+
+		//DisplayAlliedAttackStatus();
+
+		RemoveCompletedAtacks();
 
         DisplayDebugHud();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
         Debug()->SendDebug();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds postSendDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
@@ -538,6 +591,7 @@ namespace sc2 {
 		frame_time_file << postSendDebug.count() - startTime.count() << "\n";
 
 		frame_time_file.close();
+#endif
     }
 
     void TossBot::OnBuildingConstructionComplete(const Unit *building)
@@ -557,6 +611,8 @@ namespace sc2 {
 			worker_manager.AddAssimilator(building);
             if (immediatelySaturateGasses)
                 worker_manager.SaturateGas(building);
+			else if (immediatelySemiSaturateGasses)
+				worker_manager.SemiSaturateGas(building);
         }
         else if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
         {
@@ -1138,6 +1194,7 @@ namespace sc2 {
     std::vector<Point2D> TossBot::FindWarpInSpots(Point2D close_to, int num)
     {
 		// order pylons first
+#ifdef DEBUG_TIMING
 		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
@@ -1145,6 +1202,7 @@ namespace sc2 {
 		unsigned long long initial_check = 0;
 		unsigned long long blocked_check = 0;
 		unsigned long long spot_check = 0;
+#endif
 
 
         std::vector<Point2D> spots;
@@ -1156,17 +1214,20 @@ namespace sc2 {
             {
                 for (int j = -7; j <= 6; j += 1)
                 {
+#ifdef DEBUG_TIMING
 					unsigned long long check_start = std::chrono::duration_cast<std::chrono::microseconds>(
 						std::chrono::high_resolution_clock::now().time_since_epoch()
 						).count();
+#endif
 
                     Point2D pos = Point2D(pylon->pos.x + i + .5, pylon->pos.y + j + .5);
                     if (Observation()->IsPathable(pos) && Distance2D(pos, pylon->pos) <= 6)
                     {
+#ifdef DEBUG_TIMING
 						unsigned long long initial = std::chrono::duration_cast<std::chrono::microseconds>(
 							std::chrono::high_resolution_clock::now().time_since_epoch()
 							).count();
-
+#endif
                         bool blocked = false;
                         for (const auto &building : Observation()->GetUnits(IsBuilding()))
                         {
@@ -1195,9 +1256,11 @@ namespace sc2 {
                                 }
                             }
                         }
+#ifdef DEBUG_TIMING
 						unsigned long long block = std::chrono::duration_cast<std::chrono::microseconds>(
 							std::chrono::high_resolution_clock::now().time_since_epoch()
 							).count();
+#endif
 						for (const auto &spot : spots)
 						{
 							if (Distance2D(pos, spot) < 1.5)
@@ -1209,6 +1272,7 @@ namespace sc2 {
                         if (!blocked && !Utility::AnyUnitWithin(Observation()->GetUnits(Unit::Alliance::Self), pos, 1.5) && !Utility::AnyUnitWithin(Observation()->GetUnits(Unit::Alliance::Neutral), pos, 1.5))
                             spots.push_back(pos);
 
+#ifdef DEBUG_TIMING
 						unsigned long long spot = std::chrono::duration_cast<std::chrono::microseconds>(
 							std::chrono::high_resolution_clock::now().time_since_epoch()
 							).count();
@@ -1216,14 +1280,17 @@ namespace sc2 {
 						initial_check += initial - check_start;
 						blocked_check += block - initial;
 						spot_check += spot - block;
+#endif
                     }
 					else
 					{
+#ifdef DEBUG_TIMING
 						unsigned long long initial = std::chrono::duration_cast<std::chrono::microseconds>(
 							std::chrono::high_resolution_clock::now().time_since_epoch()
 							).count();
 
 						initial_check += initial - check_start;
+#endif
 					}
 					if (spots.size() >= num)
 						break;
@@ -1233,9 +1300,11 @@ namespace sc2 {
             }
         }
 
+#ifdef DEBUG_TIMING
 		unsigned long long end_find = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
+#endif
 
         for (const auto &prism : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)))
         {
@@ -1252,9 +1321,11 @@ namespace sc2 {
             }
         }
 
+#ifdef DEBUG_TIMING
 		unsigned long long prism_spots = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
+#endif
 
         sort(spots.begin(), spots.end(),
             [close_to](const Point2D & a, const Point2D & b) -> bool
@@ -1262,6 +1333,7 @@ namespace sc2 {
             return Distance2D(a, close_to) < Distance2D(b, close_to);
         });
 
+#ifdef DEBUG_TIMING
 		unsigned long long sort_spots = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
@@ -1276,6 +1348,7 @@ namespace sc2 {
 		wind_spots << prism_spots - end_find << ", ";
 		wind_spots << sort_spots - prism_spots << "\n";
 		wind_spots.close();
+#endif
 
         return spots;
     }
@@ -1333,15 +1406,18 @@ namespace sc2 {
 
     void TossBot::ProcessFSMs()
     {
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds fsmStart = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			); 
 		std::ofstream fsm_time_file;
 		fsm_time_file.open("fsm_time_file.txt", std::ios_base::app);
+#endif
 
         for (const auto &state_machine : active_FSMs)
         {
             state_machine->RunStateMachine();
+#ifdef DEBUG_TIMING
 			std::chrono::microseconds fsmNext = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
@@ -1350,9 +1426,12 @@ namespace sc2 {
 			fsmStart = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				);
+#endif
         }
+#ifdef DEBUG_TIMING
 		fsm_time_file << "\n";
 		fsm_time_file.close();
+#endif
     }
 
 	void TossBot::RemoveStateMachine(StateMachine* state_machine)
@@ -1480,6 +1559,7 @@ namespace sc2 {
 
 	void TossBot::UpdateEnemyWeaponCooldowns()
 	{
+#ifdef DEBUG_TIMING
 		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
@@ -1499,27 +1579,34 @@ namespace sc2 {
 		unsigned long long count_total = 0;
 		unsigned long long aiming_at_total = 0;
 		unsigned long long add_attack_total = 0;
+#endif
 
 		Units allied_units = Observation()->GetUnits(Unit::Alliance::Self);
 
+#ifdef DEBUG_TIMING
 		get_allied = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
+#endif
 
 		Units enemy_attacking_units = Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)); // TODO only ranged units
 
+#ifdef DEBUG_TIMING
 		get_enemy = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
+#endif
 
 
 		int loop = Observation()->GetGameLoop();
 
 		for (const auto &Eunit : enemy_attacking_units)
 		{
+#ifdef DEBUG_TIMING
 			unsigned long long unit_start = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
+#endif
 
 			if (!unit_type_info[Eunit->unit_type.ToType()].is_army_unit)
 				continue;
@@ -1541,22 +1628,28 @@ namespace sc2 {
 				continue;
 			}
 
+#ifdef DEBUG_TIMING
 			melee_units = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
+#endif
 
 			if (enemy_weapon_cooldown.count(Eunit) == 0)
 				enemy_weapon_cooldown[Eunit] = 0;
 
+#ifdef DEBUG_TIMING
 			count = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
+#endif
 
 			const Unit* target = Utility::AimingAt(Eunit, allied_units);
 
+#ifdef DEBUG_TIMING
 			aiming_at = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
+#endif
 
 			if (target != NULL && enemy_weapon_cooldown[Eunit] == 0 && enemy_unit_saved_position[Eunit].frames > Utility::GetDamagePoint(Eunit) * 22.4)
 			{
@@ -1581,6 +1674,7 @@ namespace sc2 {
 				}
 			}
 
+#ifdef DEBUG_TIMING
 			add_attack = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
@@ -1589,6 +1683,7 @@ namespace sc2 {
 			count_total += count - melee_units;
 			aiming_at_total += aiming_at - count;
 			add_attack_total += add_attack - aiming_at;
+#endif
 
 			if (enemy_weapon_cooldown[Eunit] > 0)
 				enemy_weapon_cooldown[Eunit] -= 1 / 22.4;
@@ -1601,6 +1696,7 @@ namespace sc2 {
 
 		}
 
+#ifdef DEBUG_TIMING
 		total_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
@@ -1613,6 +1709,7 @@ namespace sc2 {
 		update_weapon_cd_file << add_attack_total << ", ";
 		update_weapon_cd_file << total_time - start_time << "\n";
 		update_weapon_cd_file.close();
+#endif
 	}
 
 	void TossBot::RemoveCompletedAtacks()
@@ -1964,6 +2061,7 @@ namespace sc2 {
 
 	void TossBot::UpdateWarpgateStatus()
 	{
+#ifdef DEBUG_TIMING
 		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
@@ -1971,21 +2069,26 @@ namespace sc2 {
 		unsigned long long zero_total = 0;
 		unsigned long long used_total = 0;
 		unsigned long long ready_total = 0;
+#endif
 
 		for (const auto &warpgate : Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPGATE)))
 		{
+#ifdef DEBUG_TIMING
 			unsigned long long gate_start = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
+#endif
 
 			if (warpgate_status.count(warpgate) == 0)
 			{
 				warpgate_status[warpgate] = WarpgateStatus(Observation()->GetGameLoop());
 			}
 
+#ifdef DEBUG_TIMING
 			unsigned long long zero = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
+#endif
 
 			if (warpgate_status[warpgate].used)
 			{
@@ -2005,9 +2108,11 @@ namespace sc2 {
 				warpgate_status[warpgate].used = false;
 			}
 
+#ifdef DEBUG_TIMING
 			unsigned long long used = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
+#endif
 
 			if (warpgate_status[warpgate].frame_ready > 0)
 			{
@@ -2015,6 +2120,7 @@ namespace sc2 {
 				if (warpgate_status[warpgate].frame_ready <= Observation()->GetGameLoop())
 					warpgate_status[warpgate].frame_ready = 0;
 			}
+#ifdef DEBUG_TIMING
 			unsigned long long ready = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
@@ -2022,8 +2128,10 @@ namespace sc2 {
 			zero_total += zero - gate_start;
 			used_total += used - zero;
 			ready_total += ready - used;
+#endif
 		}
 
+#ifdef DEBUG_TIMING
 		unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
@@ -2036,6 +2144,7 @@ namespace sc2 {
 		update_warpgates << ready_total << ", ";
 		update_warpgates << end_time - start_time << "\n";
 		update_warpgates.close();
+#endif
 	}
 
 
@@ -2133,34 +2242,49 @@ namespace sc2 {
 
     void TossBot::DisplayDebugHud()
     {
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
         DisplayWorkerStatus();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds worker_status = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
         DisplayBuildOrder();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds build_order = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
         DisplayActiveActions();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds active_actions = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
         DisplayActiveStateMachines();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds active_fsm = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
         DisplayBuildingStatuses();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds building_status = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
         DisplayArmyGroups();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds army_groups = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+#endif
         DisplaySupplyInfo();
+#ifdef DEBUG_TIMING
 		std::chrono::microseconds suply_info = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
@@ -2177,6 +2301,7 @@ namespace sc2 {
 		debug_hud_file << suply_info.count() - army_groups.count() << "\n";
 
 		debug_hud_file.close();
+#endif
     }
 
     void TossBot::DisplayWorkerStatus()
@@ -2748,14 +2873,16 @@ namespace sc2 {
 		return true;
 	}
 
-	std::map<const Unit*, const Unit*> TossBot::FindTargets(Units units, std::vector<UNIT_TYPEID> prio, float extra_range)
+	std::map<const Unit*, const Unit*> TossBot::FindTargets(Units units, std::vector<UNIT_TYPEID> prio, float max_extra_range)
 	{
+#ifdef DEBUG_TIMING
 		std::ofstream find_targets;
 		find_targets.open("find_targets.txt", std::ios_base::app);
 
 		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
+#endif
 		std::map<const Unit*, std::vector<const Unit*>> unit_targets;
 		Units Eunits;
 		for (const auto &unit : Observation()->GetUnits())
@@ -2766,13 +2893,19 @@ namespace sc2 {
 		for (const auto &unit : units)
 		{
 			Units units_in_range;
-			for (const auto &Eunit : Eunits)
+			int extra_range = 0;
+			while (units_in_range.size() == 0 && extra_range <= max_extra_range)
 			{
-				if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealGroundRange(unit, Eunit) + extra_range)
-					units_in_range.push_back(Eunit);
+				for (const auto& Eunit : Eunits)
+				{
+					if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealGroundRange(unit, Eunit) + extra_range)
+						units_in_range.push_back(Eunit);
+				}
+				extra_range++;
 			}
 			unit_targets[unit] = units_in_range;
 		}
+#ifdef DEBUG_TIMING
 		unsigned long long set_up_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count() - start_time;
@@ -2780,9 +2913,11 @@ namespace sc2 {
 		start_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
+#endif
 
 		FireControl* fire_control = new FireControl(this, unit_targets, prio);
 
+#ifdef DEBUG_TIMING
 		unsigned long long constructor_time = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count() - start_time;
@@ -2790,6 +2925,7 @@ namespace sc2 {
 		find_targets << set_up_time << ", ";
 		find_targets << constructor_time << "\n";
 		find_targets.close();
+#endif
 
 		return fire_control->FindAttacks();
 

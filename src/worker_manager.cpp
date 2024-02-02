@@ -508,6 +508,24 @@ void WorkerManager::SaturateGas(const Unit* gas)
 	}
 }
 
+void WorkerManager::SemiSaturateGas(const Unit* gas)
+{
+	for (int i = 0; i < 2; i++)
+	{
+		const Unit* worker = GetWorker();
+		RemoveWorker(worker);
+		PlaceWorkerInGas(worker, gas, i);
+		for (const auto& space : gas_spaces)
+		{
+			if (*space->worker == worker)
+			{
+				gas_spaces.erase(std::remove(gas_spaces.begin(), gas_spaces.end(), space), gas_spaces.end());
+				break;
+			}
+		}
+	}
+}
+
 void WorkerManager::AddNewBase()
 {
 	Units minerals = agent->Observation()->GetUnits(IsMineralPatch());

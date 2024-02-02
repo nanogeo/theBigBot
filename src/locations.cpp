@@ -124,16 +124,16 @@ namespace sc2 {
 							P(142.5, 39.5),
 							P(133.5, 44.5) };
 
-		proxy_pylon_locations = { P(75.0, 136.0),
-									P(32.0, 66.0) };
+		proxy_pylon_locations = { P(32.0, 66.0),
+								P(75.0, 136.0) };
 
-		proxy_gateway_locations = { P(75.5, 133.5),
-								P(34.5, 65.5) };
+		proxy_gateway_locations = { P(34.5, 65.5), 
+									P(75.5, 133.5) };
 
-		proxy_tech_locations = { P(77.5, 136.5),
-								P(78.5, 133.5),
-								P(32.5, 68.5),
-								P(35.5, 68.5) };
+		proxy_tech_locations = { P(32.5, 68.5),
+								P(35.5, 68.5),
+								P(77.5, 136.5),
+								P(78.5, 133.5) };
 
 
 		attack_path = { P(74, 35),

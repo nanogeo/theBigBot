@@ -331,6 +331,7 @@ public:
     int extra_pylons = 0;
     //int removed_gas_miners = 0;
     bool immediatelySaturateGasses = false;
+	bool immediatelySemiSaturateGasses = false;
     std::vector<Tag> proxy_pylons;
     std::vector<ArmyGroup*> army_groups;
     OnUnitDamagedEvent on_unit_damaged_event;

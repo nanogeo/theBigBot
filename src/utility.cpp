@@ -1471,21 +1471,27 @@ const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 
 	for (const auto Funit : allied_units)
 	{ // try flipped
+#ifdef DEBUG_TIMING
 		unsigned long long unit_start = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
+#endif
 
 		if (Distance2D(unit->pos, Funit->pos) >= RealGroundRange(unit, Funit))
 		{
+#ifdef DEBUG_TIMING
 			/*unsigned long long dist_check = std::chrono::duration_cast<std::chrono::microseconds>(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 				).count();
 			distance_check_total += dist_check - unit_start;*/
+#endif
 			continue;
 		}
+#ifdef DEBUG_TIMING
 		unsigned long long dist_check = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
+#endif
 		float angle = GetFacingAngle(unit, Funit);
 
 		if (angle < smallest_angle)
@@ -1493,17 +1499,21 @@ const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 			smallest_angle = angle;
 			target = Funit;
 		}
+#ifdef DEBUG_TIMING
 		unsigned long long angle_check = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
 
 		distance_check_total += dist_check - unit_start;
 		angle_check_total += angle_check - dist_check;
+#endif
 	}
 
+#ifdef DEBUG_TIMING
 	amaing_at_time << distance_check_total << ", ";
 	amaing_at_time << angle_check_total << "\n";
 	amaing_at_time.close();
+#endif
 
 	return target;
 }

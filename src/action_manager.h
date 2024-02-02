@@ -109,6 +109,7 @@ public:
 	bool ActionDTHarassTerran(ActionArgData*); // tostring
 	bool ActionUseProxyDoubleRobo(ActionArgData*);
 	bool ActionAllIn(ActionArgData*); // tostring
+	bool ActionAllInAttack(ActionArgData*); // tostring
 };
 
 struct ActionData

@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 	{
 		coordinator.SetParticipants({
 			CreateParticipant(sc2::Race::Protoss, &bot1),
-			CreateComputer(sc2::Race::Protoss, sc2::Difficulty::Hard, sc2::AIBuild::Macro)
+			CreateComputer(sc2::Race::Protoss, sc2::Difficulty::CheatInsane, sc2::AIBuild::Macro)
 			});
 		coordinator.SetRealtime(true);
 

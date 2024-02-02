@@ -27,8 +27,8 @@ void BuildOrderManager::CheckBuildOrder()
 		Condition condition_arg = current_step.condition_arg;
 		if ((*this.*condition)(condition_arg))
 		{
-			bool(sc2::BuildOrderManager::*result)(Result) = current_step.result;
-			Result result_arg = current_step.result_arg;
+			bool(sc2::BuildOrderManager::*result)(BuildOrderResultArgData) = current_step.result;
+			BuildOrderResultArgData result_arg = current_step.result_arg;
 			if ((*this.*result)(result_arg))
 			{
 				build_order_step++;
@@ -94,7 +94,7 @@ bool BuildOrderManager::HasUnits(Condition data)
 
 
 
-bool BuildOrderManager::BuildBuilding(Result data)
+bool BuildOrderManager::BuildBuilding(BuildOrderResultArgData data)
 {
 	Point2D pos = agent->GetLocation(data.unitId);
 	const Unit* builder = agent->worker_manager.GetBuilder(pos);
@@ -108,7 +108,7 @@ bool BuildOrderManager::BuildBuilding(Result data)
 	return true;
 }
 
-bool BuildOrderManager::BuildFirstPylon(Result data)
+bool BuildOrderManager::BuildFirstPylon(BuildOrderResultArgData data)
 {
 	Point2D pos;
 	if (current_build_order == BuildOrder::recessed_cannon_rush)
@@ -142,7 +142,7 @@ bool BuildOrderManager::BuildFirstPylon(Result data)
 	return true;
 }
 
-bool BuildOrderManager::BuildBuildingMulti(Result data)
+bool BuildOrderManager::BuildBuildingMulti(BuildOrderResultArgData data)
 {
 	Point2D pos = agent->GetLocation(data.unitIds[0]);
 	const Unit* builder = agent->worker_manager.GetBuilder(pos);
@@ -156,7 +156,7 @@ bool BuildOrderManager::BuildBuildingMulti(Result data)
 	return true;
 }
 
-bool BuildOrderManager::BuildProxyMulti(Result data)
+bool BuildOrderManager::BuildProxyMulti(BuildOrderResultArgData data)
 {
 	Point2D pos = agent->GetProxyLocation(data.unitIds[0]);
 	const Unit* builder = agent->worker_manager.GetBuilder(pos);
@@ -170,7 +170,7 @@ bool BuildOrderManager::BuildProxyMulti(Result data)
 	return true;
 }
 
-bool BuildOrderManager::Scout(Result data)
+bool BuildOrderManager::Scout(BuildOrderResultArgData data)
 {
 	Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
 	const Unit* scouter = agent->worker_manager.GetBuilder(pos);
@@ -193,7 +193,7 @@ bool BuildOrderManager::Scout(Result data)
 	return true;
 }
 
-bool BuildOrderManager::CannonRushProbe1(Result data)
+bool BuildOrderManager::CannonRushProbe1(BuildOrderResultArgData data)
 {
 	Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
 	const Unit* scouter = agent->worker_manager.GetBuilder(pos);
@@ -216,25 +216,43 @@ bool BuildOrderManager::CannonRushProbe1(Result data)
 	return true;
 }
 
-bool BuildOrderManager::CutWorkers(Result data)
+bool BuildOrderManager::CutWorkers(BuildOrderResultArgData data)
 {
 	agent->worker_manager.should_build_workers = false;
 	return true;
 }
 
-bool BuildOrderManager::UncutWorkers(Result data)
+bool BuildOrderManager::UncutWorkers(BuildOrderResultArgData data)
 {
 	agent->worker_manager.should_build_workers = true;
 	return true;
 }
 
-bool BuildOrderManager::ImmediatelySaturateGasses(Result data)
+bool BuildOrderManager::ImmediatelySaturateGasses(BuildOrderResultArgData data)
 {
 	agent->immediatelySaturateGasses = true;
 	return true;
 }
 
-bool BuildOrderManager::TrainStalker(Result data)
+bool BuildOrderManager::CancelImmediatelySaturateGasses(BuildOrderResultArgData data)
+{
+	agent->immediatelySaturateGasses = false;
+	return true;
+}
+
+bool BuildOrderManager::ImmediatelySemiSaturateGasses(BuildOrderResultArgData data)
+{
+	agent->immediatelySemiSaturateGasses = true;
+	return true;
+}
+
+bool BuildOrderManager::CancelImmediatelySemiSaturateGasses(BuildOrderResultArgData data)
+{
+	agent->immediatelySemiSaturateGasses = false;
+	return true;
+}
+
+bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 {
 	if (Utility::CanAfford(STALKER, 1, agent->Observation()))
 	{
@@ -261,7 +279,7 @@ bool BuildOrderManager::TrainStalker(Result data)
 	return false;
 }
 
-bool BuildOrderManager::TrainAdept(Result data)
+bool BuildOrderManager::TrainAdept(BuildOrderResultArgData data)
 {
 	if (Utility::CanAfford(ADEPT, 1, agent->Observation()))
 	{
@@ -288,7 +306,7 @@ bool BuildOrderManager::TrainAdept(Result data)
 	return false;
 }
 
-bool BuildOrderManager::TrainZealot(Result data)
+bool BuildOrderManager::TrainZealot(BuildOrderResultArgData data)
 {
 	if (Utility::CanAfford(ZEALOT, 1, agent->Observation()))
 	{
@@ -304,7 +322,7 @@ bool BuildOrderManager::TrainZealot(Result data)
 	return false;
 }
 
-bool BuildOrderManager::TrainOracle(Result data)
+bool BuildOrderManager::TrainOracle(BuildOrderResultArgData data)
 {
 	if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_ORACLE, 1, agent->Observation()))
 	{
@@ -326,7 +344,7 @@ bool BuildOrderManager::TrainOracle(Result data)
 	return false;
 }
 
-bool BuildOrderManager::TrainPrism(Result data)
+bool BuildOrderManager::TrainPrism(BuildOrderResultArgData data)
 {
 	if (Utility::CanAfford(PRISM, 1, agent->Observation()))
 	{
@@ -350,7 +368,7 @@ bool BuildOrderManager::TrainPrism(Result data)
 	return false;
 }
 
-bool BuildOrderManager::TrainObserver(Result data)
+bool BuildOrderManager::TrainObserver(BuildOrderResultArgData data)
 {
 	if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_OBSERVER, 1, agent->Observation()))
 	{
@@ -366,7 +384,7 @@ bool BuildOrderManager::TrainObserver(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ChronoBuilding(Result data)
+bool BuildOrderManager::ChronoBuilding(BuildOrderResultArgData data)
 {
 	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
@@ -393,7 +411,7 @@ bool BuildOrderManager::ChronoBuilding(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ResearchWarpgate(Result data)
+bool BuildOrderManager::ResearchWarpgate(BuildOrderResultArgData data)
 {
 	for (const auto &cyber : agent->Observation()->GetUnits(IsFinishedUnit(CYBERCORE)))
 	{
@@ -406,7 +424,7 @@ bool BuildOrderManager::ResearchWarpgate(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ResearchBlink(Result data)
+bool BuildOrderManager::ResearchBlink(BuildOrderResultArgData data)
 {
 	for (const auto &twilight : agent->Observation()->GetUnits(IsFinishedUnit(TWILIGHT)))
 	{
@@ -419,7 +437,7 @@ bool BuildOrderManager::ResearchBlink(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ResearchCharge(Result data)
+bool BuildOrderManager::ResearchCharge(BuildOrderResultArgData data)
 {
 	for (const auto &twilight : agent->Observation()->GetUnits(IsFinishedUnit(TWILIGHT)))
 	{
@@ -432,7 +450,7 @@ bool BuildOrderManager::ResearchCharge(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ResearchGlaives(Result data)
+bool BuildOrderManager::ResearchGlaives(BuildOrderResultArgData data)
 {
 	for (const auto &twilight : agent->Observation()->GetUnits(IsFinishedUnit(TWILIGHT)))
 	{
@@ -445,7 +463,7 @@ bool BuildOrderManager::ResearchGlaives(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ResearchDTBlink(Result data)
+bool BuildOrderManager::ResearchDTBlink(BuildOrderResultArgData data)
 {
 	for (const auto &dark_shrine : agent->Observation()->GetUnits(IsFinishedUnit(DARK_SHRINE)))
 	{
@@ -458,7 +476,7 @@ bool BuildOrderManager::ResearchDTBlink(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ResearchAttackOne(Result data)
+bool BuildOrderManager::ResearchAttackOne(BuildOrderResultArgData data)
 {
 	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(FORGE)))
 	{
@@ -471,7 +489,7 @@ bool BuildOrderManager::ResearchAttackOne(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ResearchAttackTwo(Result data)
+bool BuildOrderManager::ResearchAttackTwo(BuildOrderResultArgData data)
 {
 	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(FORGE)))
 	{
@@ -484,7 +502,7 @@ bool BuildOrderManager::ResearchAttackTwo(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ResearchShieldsOne(Result data)
+bool BuildOrderManager::ResearchShieldsOne(BuildOrderResultArgData data)
 {
 	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(FORGE)))
 	{
@@ -497,7 +515,7 @@ bool BuildOrderManager::ResearchShieldsOne(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ResearchAirAttackOne(Result data)
+bool BuildOrderManager::ResearchAirAttackOne(BuildOrderResultArgData data)
 {
 	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(CYBERCORE)))
 	{
@@ -510,7 +528,7 @@ bool BuildOrderManager::ResearchAirAttackOne(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ChronoTillFinished(Result data)
+bool BuildOrderManager::ChronoTillFinished(BuildOrderResultArgData data)
 {
 	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(data.unitId)))
 	{
@@ -523,13 +541,13 @@ bool BuildOrderManager::ChronoTillFinished(Result data)
 	return false;
 }
 
-bool BuildOrderManager::WarpInAtProxy(Result data)
+bool BuildOrderManager::WarpInAtProxy(BuildOrderResultArgData data)
 {
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionWarpInAtProxy, new ActionArgData()));
 	return true;
 }
 
-bool BuildOrderManager::BuildProxy(Result data)
+bool BuildOrderManager::BuildProxy(BuildOrderResultArgData data)
 {
 	std::vector<Point2D> building_locations = agent->GetProxyLocations(data.unitId);
 
@@ -545,37 +563,37 @@ bool BuildOrderManager::BuildProxy(Result data)
 	return true;
 }
 
-bool BuildOrderManager::ContinueBuildingPylons(Result data)
+bool BuildOrderManager::ContinueBuildingPylons(BuildOrderResultArgData data)
 {
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
 	return true;
 }
 
-bool BuildOrderManager::ContinueMakingWorkers(Result data)
+bool BuildOrderManager::ContinueMakingWorkers(BuildOrderResultArgData data)
 {
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData(data.amount)));
 	return true;
 }
 
-bool BuildOrderManager::ContinueUpgrades(Result data)
+bool BuildOrderManager::ContinueUpgrades(BuildOrderResultArgData data)
 {
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueUpgrades, new ActionArgData()));
 	return true;
 }
 
-bool BuildOrderManager::ContinueChronos(Result data)
+bool BuildOrderManager::ContinueChronos(BuildOrderResultArgData data)
 {
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueChronos, new ActionArgData()));
 	return true;
 }
 
-bool BuildOrderManager::ContinueExpanding(Result data)
+bool BuildOrderManager::ContinueExpanding(BuildOrderResultArgData data)
 {
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueExpanding, new ActionArgData()));
 	return true;
 }
 
-bool BuildOrderManager::TrainFromProxy(Result data)
+bool BuildOrderManager::TrainFromProxy(BuildOrderResultArgData data)
 {
 	if (data.unitId == ROBO)
 	{
@@ -592,7 +610,7 @@ bool BuildOrderManager::TrainFromProxy(Result data)
 	return false;
 }
 
-bool BuildOrderManager::ContinueChronoProxyRobo(Result data)
+bool BuildOrderManager::ContinueChronoProxyRobo(BuildOrderResultArgData data)
 {
 	if (data.unitId == ROBO)
 	{
@@ -609,7 +627,7 @@ bool BuildOrderManager::ContinueChronoProxyRobo(Result data)
 	return false;
 }
 
-bool BuildOrderManager::Contain(Result data)
+bool BuildOrderManager::Contain(BuildOrderResultArgData data)
 {
 	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
 	agent->army_groups.push_back(army);
@@ -617,7 +635,7 @@ bool BuildOrderManager::Contain(Result data)
 	return true;
 }
 
-bool BuildOrderManager::StalkerOraclePressure(Result data)
+bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 {
 	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
 	Units oracles = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ORACLE));
@@ -642,13 +660,13 @@ bool BuildOrderManager::StalkerOraclePressure(Result data)
 			continue;
 		army->AddNewUnit(unit);
 	}
-	army->AutoAddUnits({ STALKER, UNIT_TYPEID::PROTOSS_IMMORTAL, PRISM, UNIT_TYPEID::PROTOSS_COLOSSUS, UNIT_TYPEID::PROTOSS_CARRIER });
+	army->AutoAddUnits({ STALKER, IMMORTAL, PRISM, COLOSSUS, CARRIER });
 	agent->army_groups.push_back(army);
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionStalkerOraclePressure, new ActionArgData(army)));
 	return true;
 }
 
-bool BuildOrderManager::ZealotDoubleprong(Result data)
+bool BuildOrderManager::ZealotDoubleprong(BuildOrderResultArgData data)
 {
 	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path_alt, agent->locations->high_ground_index_alt);
 	for (const auto &unit : agent->Observation()->GetUnits(IsFriendlyUnit(ZEALOT)))
@@ -663,14 +681,14 @@ bool BuildOrderManager::ZealotDoubleprong(Result data)
 	return true;
 }
 
-bool BuildOrderManager::MicroOracles(Result data)
+bool BuildOrderManager::MicroOracles(BuildOrderResultArgData data)
 {
 	//StateMachine* oracle_fsm = new StateMachine(agent, new OracleDefend(agent, agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ORACLE)), agent->GetLocations(NEXUS)[2]), "Oracles");
 	//agent->active_FSMs.push_back(oracle_fsm);
 	return true;
 }
 
-bool BuildOrderManager::OracleHarass(Result data)
+bool BuildOrderManager::OracleHarass(BuildOrderResultArgData data)
 {
 	Units oracles = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ORACLE));
 	for (const auto &fsm : agent->active_FSMs)
@@ -690,19 +708,19 @@ bool BuildOrderManager::OracleHarass(Result data)
 	return true;
 }
 
-bool BuildOrderManager::SpawnUnits(Result data)
+bool BuildOrderManager::SpawnUnits(BuildOrderResultArgData data)
 {
 	agent->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, agent->GetLocations(NEXUS)[2], 2, 15);
 	return true;
 }
 
-bool BuildOrderManager::ConntinueWarpingInStalkers(Result data)
+bool BuildOrderManager::ConntinueWarpingInStalkers(BuildOrderResultArgData data)
 {
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueWarpingInStalkers, new ActionArgData()));
 	return true;
 }
 
-bool BuildOrderManager::StopWarpingInStalkers(Result data)
+bool BuildOrderManager::StopWarpingInStalkers(BuildOrderResultArgData data)
 {
 	for (const auto &action : agent->action_manager.active_actions)
 	{
@@ -714,13 +732,13 @@ bool BuildOrderManager::StopWarpingInStalkers(Result data)
 	}
 }
 
-bool BuildOrderManager::ConntinueVolleyWarpingInStalkers(Result data)
+bool BuildOrderManager::ConntinueVolleyWarpingInStalkers(BuildOrderResultArgData data)
 {
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueVolleyWarpingInStalkers, new ActionArgData()));
 	return true;
 }
 
-bool BuildOrderManager::StopVolleyWarpingInStalkers(Result data)
+bool BuildOrderManager::StopVolleyWarpingInStalkers(BuildOrderResultArgData data)
 {
 	for (const auto &action : agent->action_manager.active_actions)
 	{
@@ -732,13 +750,13 @@ bool BuildOrderManager::StopVolleyWarpingInStalkers(Result data)
 	}
 }
 
-bool BuildOrderManager::ContinueVolleyWarpingInZealots(Result data)
+bool BuildOrderManager::ContinueVolleyWarpingInZealots(BuildOrderResultArgData data)
 {
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueVolleyWarpingInZealots, new ActionArgData()));
 	return true;
 }
 
-bool BuildOrderManager::StopVolleyWarpingInZealots(Result data)
+bool BuildOrderManager::StopVolleyWarpingInZealots(BuildOrderResultArgData data)
 {
 	for (const auto &action : agent->action_manager.active_actions)
 	{
@@ -750,13 +768,13 @@ bool BuildOrderManager::StopVolleyWarpingInZealots(Result data)
 	}
 }
 
-bool BuildOrderManager::ContinueBuildingCarriers(Result data)
+bool BuildOrderManager::ContinueBuildingCarriers(BuildOrderResultArgData data)
 {
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingCarriers, new ActionArgData()));
 	return true;
 }
 
-bool BuildOrderManager::WarpInUnits(Result data)
+bool BuildOrderManager::WarpInUnits(BuildOrderResultArgData data)
 {
 	int warp_ins = data.amount;
 	UnitTypeID type = data.unitId;
@@ -795,7 +813,7 @@ bool BuildOrderManager::WarpInUnits(Result data)
 	return false;
 }
 
-bool BuildOrderManager::PullOutOfGas(Result data)
+bool BuildOrderManager::PullOutOfGas(BuildOrderResultArgData data)
 {
 	agent->worker_manager.removed_gas_miners += data.amount;
 	Units workers;
@@ -826,13 +844,13 @@ bool BuildOrderManager::PullOutOfGas(Result data)
 	return true;
 }
 
-bool BuildOrderManager::IncreaseExtraPylons(Result data)
+bool BuildOrderManager::IncreaseExtraPylons(BuildOrderResultArgData data)
 {
 	agent->extra_pylons += data.amount;
 	return true;
 }
 
-bool BuildOrderManager::MicroChargelotAllin(Result data)
+bool BuildOrderManager::MicroChargelotAllin(BuildOrderResultArgData data)
 {
 	if (agent->Observation()->GetUnits(IsFriendlyUnit(PRISM)).size() > 0)
 	{
@@ -844,7 +862,7 @@ bool BuildOrderManager::MicroChargelotAllin(Result data)
 	return false;
 }
 
-bool BuildOrderManager::RemoveScoutToProxy(Result data)
+bool BuildOrderManager::RemoveScoutToProxy(BuildOrderResultArgData data)
 {
 	for (const auto &fsm : agent->active_FSMs)
 	{
@@ -869,40 +887,34 @@ bool BuildOrderManager::RemoveScoutToProxy(Result data)
 	return false;
 }
 
-bool BuildOrderManager::SafeRallyPoint(Result data)
+bool BuildOrderManager::SafeRallyPoint(BuildOrderResultArgData data)
 {
 	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		Point2D pos = Utility::PointBetween(building->pos, agent->Observation()->GetStartLocation(), 2);
 		agent->Actions()->UnitCommand(building, ABILITY_ID::SMART, pos);
-
-		/*for (const auto & ability : agent->Query()->GetAbilitiesForUnit(building).abilities)
-		{
-			Point2D pos = Utility::PointBetween(building->pos, agent->Observation()->GetStartLocation(), 2);
-			agent->Actions()->UnitCommand(building, ABILITY_ID::SMART, pos);
-		}*/
 	}
 	return true;
 }
 
-bool BuildOrderManager::DTHarass(Result data)
+bool BuildOrderManager::DTHarass(BuildOrderResultArgData data)
 {
 	if (agent->enemy_race == Race::Terran)
 		agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionDTHarassTerran, new ActionArgData()));
 	return true;
 }
 
-bool BuildOrderManager::UseProxyDoubleRobo(Result data)
+bool BuildOrderManager::UseProxyDoubleRobo(BuildOrderResultArgData data)
 {
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionUseProxyDoubleRobo, new ActionArgData({ UNIT_TYPEID::PROTOSS_IMMORTAL, PRISM, UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_OBSERVER })));
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionUseProxyDoubleRobo, new ActionArgData({ IMMORTAL, PRISM, IMMORTAL, UNIT_TYPEID::PROTOSS_OBSERVER })));
 	return true;
 }
 
-bool BuildOrderManager::MicroImmortalDrop(Result data)
+bool BuildOrderManager::MicroImmortalDrop(BuildOrderResultArgData data)
 {
 	const Unit* immortal1 = NULL;
 	const Unit* immortal2 = NULL;
-	for (const auto &immortal : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_IMMORTAL)))
+	for (const auto &immortal : agent->Observation()->GetUnits(IsFriendlyUnit(IMMORTAL)))
 	{
 		if (immortal1 == NULL)
 			immortal1 = immortal;
@@ -914,7 +926,7 @@ bool BuildOrderManager::MicroImmortalDrop(Result data)
 	return true;
 }
 
-bool BuildOrderManager::ProxyDoubleRoboAllIn(Result data)
+bool BuildOrderManager::ProxyDoubleRoboAllIn(BuildOrderResultArgData data)
 {
 	Units already_occupied;
 	for (const auto &fsm : agent->active_FSMs)
@@ -927,7 +939,7 @@ bool BuildOrderManager::ProxyDoubleRoboAllIn(Result data)
 		}
 	}
 	Units available_units;
-	for (const auto &unit : agent->Observation()->GetUnits(IsUnits({ STALKER, UNIT_TYPEID::PROTOSS_OBSERVER, UNIT_TYPEID::PROTOSS_IMMORTAL })))
+	for (const auto &unit : agent->Observation()->GetUnits(IsUnits({ STALKER, UNIT_TYPEID::PROTOSS_OBSERVER, IMMORTAL })))
 	{
 		if (std::find(already_occupied.begin(), already_occupied.end(), unit) == already_occupied.end())
 			available_units.push_back(unit);
@@ -938,7 +950,7 @@ bool BuildOrderManager::ProxyDoubleRoboAllIn(Result data)
 	return true;
 }
 
-bool BuildOrderManager::DefendThirdBase(Result data)
+bool BuildOrderManager::DefendThirdBase(BuildOrderResultArgData data)
 {
 	ArmyGroup* defenders = new ArmyGroup(agent);
 	for (const auto &unit : agent->Observation()->GetUnits(IsFriendlyUnit(ADEPT)))
@@ -957,7 +969,7 @@ bool BuildOrderManager::DefendThirdBase(Result data)
 	return true;
 }
 
-bool BuildOrderManager::SetDoorGuard(Result data)
+bool BuildOrderManager::SetDoorGuard(BuildOrderResultArgData data)
 {
 	ArmyGroup* defenders = new ArmyGroup(agent);
 	for (const auto &unit : agent->Observation()->GetUnits(IsFriendlyUnit(ADEPT)))
@@ -972,7 +984,7 @@ bool BuildOrderManager::SetDoorGuard(Result data)
 	return true;
 }
 
-bool BuildOrderManager::AdeptDefendBaseTerran(Result data)
+bool BuildOrderManager::AdeptDefendBaseTerran(BuildOrderResultArgData data)
 {
 	if (agent->Observation()->GetUnits(IsFriendlyUnit(ADEPT)).size() > 0)
 	{
@@ -984,7 +996,7 @@ bool BuildOrderManager::AdeptDefendBaseTerran(Result data)
 	return false;
 }
 
-bool BuildOrderManager::StalkerDefendBaseTerran(Result data)
+bool BuildOrderManager::StalkerDefendBaseTerran(BuildOrderResultArgData data)
 {
 	if (agent->Observation()->GetUnits(IsFriendlyUnit(STALKER)).size() > 0)
 	{
@@ -996,7 +1008,7 @@ bool BuildOrderManager::StalkerDefendBaseTerran(Result data)
 	return false;
 }
 
-bool BuildOrderManager::StartFourGateBlinkPressure(Result data)
+bool BuildOrderManager::StartFourGateBlinkPressure(BuildOrderResultArgData data)
 {
 	ArmyGroup* army = new ArmyGroup(agent);
 	for (const auto &unit : agent->Observation()->GetUnits(IsUnits({ PRISM, STALKER })))
@@ -1011,7 +1023,7 @@ bool BuildOrderManager::StartFourGateBlinkPressure(Result data)
 	return true;
 }
 
-bool BuildOrderManager::SendCannonRushTerranProbe1(Result data)
+bool BuildOrderManager::SendCannonRushTerranProbe1(BuildOrderResultArgData data)
 {
 	Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
 	const Unit* cannoneer = agent->worker_manager.GetBuilder(pos);
@@ -1026,7 +1038,7 @@ bool BuildOrderManager::SendCannonRushTerranProbe1(Result data)
 	return true;
 }
 
-bool BuildOrderManager::SendCannonRushTerranProbe2(Result data)
+bool BuildOrderManager::SendCannonRushTerranProbe2(BuildOrderResultArgData data)
 {
 	Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
 	const Unit* cannoneer = agent->worker_manager.GetBuilder(pos);
@@ -1041,7 +1053,7 @@ bool BuildOrderManager::SendCannonRushTerranProbe2(Result data)
 	return true;
 }
 
-bool BuildOrderManager::CannonRushAttack(Result data)
+bool BuildOrderManager::CannonRushAttack(BuildOrderResultArgData data)
 {
 	if (agent->Observation()->GetUnits(IsFriendlyUnit(ZEALOT)).size() == 0)
 		return false;
@@ -1052,11 +1064,26 @@ bool BuildOrderManager::CannonRushAttack(Result data)
 	return true;
 }
 
-
-
-bool BuildOrderManager::RemoveProbe(Result data)
+bool BuildOrderManager::SendAllInAttack(BuildOrderResultArgData data)
 {
+	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
 
+	for (const auto& unit : agent->Observation()->GetUnits(IsFriendlyUnit(STALKER)))
+	{
+		if (agent->UnitIsOccupied(unit))
+			continue;
+		army->AddNewUnit(unit);
+	}
+	army->AutoAddNewUnits({ ZEALOT, ADEPT, SENTRY, STALKER, HIGH_TEMPLAR, ARCHON, IMMORTAL, PRISM, COLOSSUS, DISRUPTER, VOID_RAY, TEMPEST, CARRIER });
+	agent->army_groups.push_back(army);
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionAllInAttack, new ActionArgData(army)));
+	return true;
+}
+
+
+
+bool BuildOrderManager::RemoveProbe(BuildOrderResultArgData data)
+{
 	const Unit* builder = agent->worker_manager.GetBuilder(Point2D(0, 0));
 	if (builder == NULL)
 	{
@@ -1472,9 +1499,9 @@ void BuildOrderManager::SetThreeGateRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(33.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(34.0f),			&BuildOrderManager::Scout,								Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(48.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::ImmediatelySemiSaturateGasses,		Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result(0)),
+					Data(&BuildOrderManager::TimePassed,			Condition(55.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(63.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(73.0f),			&BuildOrderManager::BuildBuilding,						Result(CYBERCORE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(88.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
@@ -1482,14 +1509,21 @@ void BuildOrderManager::SetThreeGateRobo()
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainAdept,							Result(ADEPT)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(CYBERCORE)),
-					Data(&BuildOrderManager::TimePassed,			Condition(125.0f),			&BuildOrderManager::BuildBuilding,						Result(ROBO)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::SafeRallyPoint,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(126.0f),			&BuildOrderManager::BuildBuilding,						Result(ROBO)),
+					Data(&BuildOrderManager::TimePassed,			Condition(127.0f),			&BuildOrderManager::RemoveScoutToProxy,					Result(GATEWAY, 0)),
 					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
-					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
-					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::TrainPrism,							Result(PRISM)),
+		// send adepts
+					//Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::SendAllInAttack,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
-					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(175.1f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::TrainPrism,							Result(PRISM)),
+					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
+					Data(&BuildOrderManager::TimePassed,			Condition(186.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::WarpInAtProxy,						Result()),
 	};
 }
 
