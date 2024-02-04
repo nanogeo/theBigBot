@@ -148,6 +148,27 @@ const Unit* Utility::FurthestFrom(Units units, Point2D position)
 	return current_furthest;
 }
 
+Point2D Utility::FurthestFrom(std::vector<Point2D> points, Point2D position)
+{
+	Point2D current_furthest = Point2D(0, 0);
+	float current_distance = 0;
+	for (const auto& point : points)
+	{
+		float distance = Distance2D(point, position);
+		if (distance > current_distance)
+		{
+			current_furthest = point;
+			current_distance = distance;
+		}
+	}
+	if (points.size() == 0 || current_furthest == Point2D(0, 0))
+	{
+		std::cout << "Error current closest is NULL\n";
+		return Point2D(0, 0);
+	}
+	return current_furthest;
+}
+
 float Utility::DistanceToClosest(Units units, Point2D position)
 {
 	const Unit* closest_unit = ClosestTo(units, position);
@@ -160,6 +181,20 @@ float Utility::DistanceToClosest(std::vector<Point2D> points, Point2D position)
 {
 	const Point2D closest_point = ClosestTo(points, position);
 	return Distance2D(closest_point, position);
+}
+
+float Utility::DistanceToFurthest(Units units, Point2D position)
+{
+	const Unit* furthest_unit = FurthestFrom(units, position);
+	if (furthest_unit == NULL)
+		return INFINITY;
+	return Distance2D(furthest_unit->pos, position);
+}
+
+float Utility::DistanceToFurthest(std::vector<Point2D> points, Point2D position)
+{
+	const Point2D furthest_point = FurthestFrom(points, position);
+	return Distance2D(furthest_point, position);
 }
 
 float Utility::AnyUnitWithin(Units units, Point2D position, float dist)

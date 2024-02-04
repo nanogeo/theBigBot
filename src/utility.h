@@ -33,8 +33,11 @@ public:
 	static const Unit* ClosestUnitTo(Units, Point2D);
 	static Point2D NthClosestTo(std::vector<Point2D>, Point2D, int);
 	static const Unit* FurthestFrom(Units, Point2D);
+	static Point2D FurthestFrom(std::vector<Point2D>, Point2D);
 	static float DistanceToClosest(Units, Point2D);
 	static float DistanceToClosest(std::vector<Point2D>, Point2D);
+	static float DistanceToFurthest(Units, Point2D);
+	static float DistanceToFurthest(std::vector<Point2D>, Point2D);
 	static float AnyUnitWithin(Units, Point2D, float);
 	static Point2D ClosestPointOnLine(Point2D, Point2D, Point2D);
 	static Units CloserThan(Units, float, Point2D);

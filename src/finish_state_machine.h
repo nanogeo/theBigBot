@@ -1207,6 +1207,92 @@ public:
 
 #pragma endregion
 
+#pragma region AdeptHarassProtoss
+
+class AdeptHarassProtossMoveAcross : public State
+{
+public:
+	class AdeptHarassProtoss* state_machine;
+	AdeptHarassProtossMoveAcross(TossBot* agent, AdeptHarassProtoss* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class AdeptHarassProtossConsolidate : public State
+{
+public:
+	class AdeptHarassProtoss* state_machine;
+	AdeptHarassProtossConsolidate(TossBot* agent, AdeptHarassProtoss* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class AdeptHarassProtossShadeIntoBase : public State
+{
+public:
+	class AdeptHarassProtoss* state_machine;
+	AdeptHarassProtossShadeIntoBase(TossBot* agent, AdeptHarassProtoss* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class AdeptHarassProtossShadeToOtherSide : public State
+{
+public:
+	class AdeptHarassProtoss* state_machine;
+	AdeptHarassProtossShadeToOtherSide(TossBot* agent, AdeptHarassProtoss* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class AdeptHarassProtossKillProbes : public State
+{
+public:
+	class AdeptHarassProtoss* state_machine;
+	AdeptHarassProtossKillProbes(TossBot* agent, AdeptHarassProtoss* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+
+
+#pragma endregion
+
 class StateMachine
 {
 public:
@@ -1759,6 +1845,52 @@ public:
 	void SmallBuildingBlock(Point2D);
 	void BigBuildingBlock(Point2D);
 
+};
+
+class AdeptHarassProtoss : public StateMachine
+{
+public:
+	Units adepts;
+	std::vector<Point2D> consolidation_points;
+	int frame_shade_used = 0;
+	bool attack_status;
+	Units shades;
+	const Unit* target = NULL;
+	int index = 0;
+	int event_id;
+
+	AdeptHarassProtoss(TossBot* agent, std::string name, Units adepts, std::vector<Point2D> consolidation_points) {
+		this->agent = agent;
+		this->name = name;
+		this->adepts = adepts;
+		this->consolidation_points = consolidation_points;
+
+		attack_status = false;
+		
+		current_state = new AdeptHarassProtossMoveAcross(agent, this);
+
+		event_id = agent->GetUniqueId();
+		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
+			this->OnUnitCreatedListener(unit);
+		};
+		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
+
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
+		current_state->EnterState();
+	}
+
+	~AdeptHarassProtoss()
+	{
+		agent->RemoveListenerToOnUnitCreatedEvent(event_id);
+		agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+	}
+
+	void OnUnitCreatedListener(const Unit*);
+	void OnUnitDestroyedListener(const Unit*);
 };
 
 }

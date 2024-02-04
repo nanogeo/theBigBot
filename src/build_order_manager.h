@@ -183,6 +183,7 @@ public:
 	bool SendCannonRushTerranProbe2(BuildOrderResultArgData);
 	bool CannonRushAttack(BuildOrderResultArgData);
 	bool SendAllInAttack(BuildOrderResultArgData);
+	bool SendAdeptHarassProtoss(BuildOrderResultArgData);
 
 	bool RemoveProbe(BuildOrderResultArgData);
 
@@ -336,7 +337,11 @@ struct BuildOrderData
 		}
 		else if (result == &BuildOrderManager::TrainAdept)
 		{
-			str += "build an adept";
+			str += "build ";
+			str += result_arg.amount;
+			str += " adept";
+			if (result_arg.amount > 1)
+				str += 's';
 		}
 		else if (result == &BuildOrderManager::TrainOracle)
 		{

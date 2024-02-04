@@ -2235,6 +2235,13 @@ namespace sc2 {
 		return unit_.unit_type == m_type && unit_.alliance == Unit::Alliance::Self;
 	}
 
+	IsEnemyUnit::IsEnemyUnit(UNIT_TYPEID type_) : m_type(type_) {
+	}
+
+	bool IsEnemyUnit::operator()(const Unit& unit_) const {
+		return unit_.unit_type == m_type && unit_.alliance == Unit::Alliance::Enemy;
+	}
+
 
 #pragma endregion
 

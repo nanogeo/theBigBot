@@ -440,6 +440,9 @@ namespace sc2 {
 		cannon_rush_terran_stand_by_loop = { P(65, 79),
 											P(70, 86),
 											P(63, 99) };
+
+		adept_harrass_protoss_consolidation = { P(65, 106), P(45, 81) };
+
 	}
 
 void Locations::SetTestingLocations(Point3D start_location, BuildOrder build_order)

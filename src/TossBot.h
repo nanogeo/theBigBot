@@ -188,6 +188,15 @@ private:
 	UNIT_TYPEID m_type;
 };
 
+struct IsEnemyUnit {
+	explicit IsEnemyUnit(UNIT_TYPEID type_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	UNIT_TYPEID m_type;
+};
+
 struct EnemyUnitPosition
 {
 	Point2D pos;

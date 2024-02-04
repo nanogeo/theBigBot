@@ -265,14 +265,6 @@ bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 					agent->Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_STALKER);
 					return true;
 				}
-				/*for (const auto & ability : agent->Query()->GetAbilitiesForUnit(gateway).abilities)
-				{
-					if (ability.ability_id.ToType() == ABILITY_ID::TRAIN_STALKER)
-					{
-						agent->Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_STALKER);
-						return true;
-					}
-				}*/
 			}
 		}
 	}
@@ -281,26 +273,23 @@ bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 
 bool BuildOrderManager::TrainAdept(BuildOrderResultArgData data)
 {
-	if (Utility::CanAfford(ADEPT, 1, agent->Observation()))
+	if (Utility::CanAfford(ADEPT, data.amount, agent->Observation()) && agent->Observation()->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0)
 	{
+		Units gates_ready;
 		for (const auto &gateway : agent->Observation()->GetUnits(IsFriendlyUnit(GATEWAY)))
 		{
 			if (gateway->build_progress == 1 && gateway->orders.size() == 0)
 			{
-				if (agent->Observation()->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0)
-				{
-					agent->Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_ADEPT);
-					return true;
-				}
-				/*for (const auto & ability : agent->Query()->GetAbilitiesForUnit(gateway).abilities)
-				{
-					if (ability.ability_id.ToType() == ABILITY_ID::TRAIN_ADEPT)
-					{
-						agent->Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_ADEPT);
-						return true;
-					}
-				}*/
+				gates_ready.push_back(gateway);
 			}
+		}
+		if (gates_ready.size() >= data.amount)
+		{
+			for (int i = 0; i < data.amount; i++)
+			{
+				agent->Actions()->UnitCommand(gates_ready[i], ABILITY_ID::TRAIN_ADEPT);
+			}
+			return true;
 		}
 	}
 	return false;
@@ -1080,6 +1069,13 @@ bool BuildOrderManager::SendAllInAttack(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
+{
+	AdeptHarassProtoss* adept_fsm = new AdeptHarassProtoss(agent, "adept harass protoss", agent->Observation()->GetUnits(IsFriendlyUnit(ADEPT)), agent->locations->adept_harrass_protoss_consolidation);
+	agent->active_FSMs.push_back(adept_fsm);
+	return true;
+}
+
 
 
 bool BuildOrderManager::RemoveProbe(BuildOrderResultArgData data)
@@ -1206,11 +1202,11 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(102.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(123.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(124.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
-					Data(&BuildOrderManager::HasBuildingStarted,	Condition(STARGATE),		&BuildOrderManager::TrainAdept,							Result(ADEPT)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(STARGATE),		&BuildOrderManager::TrainAdept,							Result(ADEPT, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ResearchWarpgate,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(149.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
-					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),			&BuildOrderManager::TrainAdept,							Result(ADEPT)),
+					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),			&BuildOrderManager::TrainAdept,							Result(ADEPT, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),			&BuildOrderManager::SetDoorGuard,						Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::TrainOracle,						Result(STARGATE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(173.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
@@ -1269,7 +1265,7 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(73.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({CYBERCORE, NEXUS, PYLON})),
 					Data(&BuildOrderManager::TimePassed,			Condition(101.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainAdept,							Result(ADEPT)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainAdept,							Result(ADEPT, 1)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
@@ -1388,7 +1384,7 @@ void BuildOrderManager::Set4GateAdept()
 					Data(&BuildOrderManager::NumWorkers,			Condition(30),					&BuildOrderManager::CutWorkers,						Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),			&BuildOrderManager::ResearchGlaives,				Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),			&BuildOrderManager::ChronoBuilding,					Result(TWILIGHT)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::TrainAdept,						Result(ADEPT)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::TrainAdept,						Result(ADEPT, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(191.0f),				&BuildOrderManager::BuildBuilding,					Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(198.0f),				&BuildOrderManager::BuildBuilding,					Result(GATEWAY)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),				&BuildOrderManager::TrainPrism,						Result(PRISM)),
@@ -1452,7 +1448,7 @@ void BuildOrderManager::SetProxyDoubleRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(68.0f),				&BuildOrderManager::BuildProxyMulti,				Result({NEXUS, PYLON, ROBO, ROBO})),
 					Data(&BuildOrderManager::TimePassed,			Condition(82.0f),				&BuildOrderManager::BuildBuilding,					Result(CYBERCORE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(93.0f),				&BuildOrderManager::BuildBuilding,					Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::TrainAdept,						Result(ADEPT)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::TrainAdept,						Result(ADEPT, 1)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::ChronoBuilding,					Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(146.0f),				&BuildOrderManager::TrainStalker,					Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),				&BuildOrderManager::ResearchWarpgate,				Result()),
@@ -1505,8 +1501,7 @@ void BuildOrderManager::SetThreeGateRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(63.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(73.0f),			&BuildOrderManager::BuildBuilding,						Result(CYBERCORE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(88.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainAdept,							Result(ADEPT)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainAdept,							Result(ADEPT)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainAdept,							Result(ADEPT, 2)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(CYBERCORE)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::SafeRallyPoint,						Result(GATEWAY)),
@@ -1514,8 +1509,7 @@ void BuildOrderManager::SetThreeGateRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(127.0f),			&BuildOrderManager::RemoveScoutToProxy,					Result(GATEWAY, 0)),
 					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
-		// send adepts
-					//Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::SendAdeptHarassProtoss,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::SendAllInAttack,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.1f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),

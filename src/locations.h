@@ -166,6 +166,8 @@ public:
 	Point2D cannon_rush_terran_stand_by;
 	std::vector<Point2D> cannon_rush_terran_stand_by_loop;
 
+	std::vector<Point2D> adept_harrass_protoss_consolidation;
+
     Locations() {}
     Locations(Point3D start_location, BuildOrder build_order, std::string map_name)
     {
