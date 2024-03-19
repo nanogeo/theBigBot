@@ -19,16 +19,33 @@ class LineSegmentLinearX : public LineSegment
 {
 	// ax+b {min<=x<=max}
 public:
-	LineSegmentLinearX(double a, double b, double min, double max, bool swap, Point2D center_point)
+	LineSegmentLinearX(double a, double b, double min, double max, bool swap, Point2D center_point, bool rotated)
 	{
 		if (swap)
 		{
-			Point2D intercept = Point2D(-1 * b / a, 0);
-			Point2D flipped_intercept = Point2D((2 * center_point.x) - intercept.x, 2 * center_point.y);
-			this->a = a;
-			this->b = flipped_intercept.y - (a * flipped_intercept.x);
-			this->min = (2 * center_point.x) - max;
-			this->max = (2 * center_point.x - min);
+			if (rotated)
+			{
+				Point2D intercept = Point2D(-1 * b / a, 0);
+				Point2D flipped_intercept = Point2D((2 * center_point.x) - intercept.x, 2 * center_point.y);
+				this->a = a;
+				this->b = flipped_intercept.y - (a * flipped_intercept.x);
+				this->min = (2 * center_point.x) - max;
+				this->max = (2 * center_point.x - min);
+			}
+			else
+			{
+				if (center_point.x != 0)
+				{
+					this->a = -1 * a;
+					this->b = (center_point.x * a) + b;
+					this->min = center_point.x - max;
+					this->max = center_point.x - min;
+				}
+				else
+				{
+					// TODO for maps fliped on x axis
+				}
+			}
 		}
 		else
 		{
@@ -47,7 +64,7 @@ class LineSegmentLinearY : public LineSegment
 {
 	// ay+b {min<=x<=max}
 public:
-	LineSegmentLinearY(double a, double b, double min, double max, bool swap, Point2D center_point)
+	LineSegmentLinearY(double a, double b, double min, double max, bool swap, Point2D center_point, bool rotated)
 	{
 		if (swap)
 		{
@@ -75,18 +92,36 @@ class LineSegmentCurveX : public LineSegment
 {
 	// ax^2+bx+c {min<=x<=max}
 public:
-	LineSegmentCurveX(double a, double b, double c, double min, double max, bool swap, Point2D center_point)
+	LineSegmentCurveX(double a, double b, double c, double min, double max, bool swap, Point2D center_point, bool rotated)
 	{
 		if (swap)
 		{
-			float h = -1 * b / (2 * a);
-			float k = c - (a * pow(h, 2));
-			Point2D flipped_vertex = Point2D((2 * center_point.x) - h, (2 * center_point.y) - k);
-			this->a = -1 * a;
-			this->b = 2 * a * flipped_vertex.x;
-			this->c = flipped_vertex.y - (a * pow(flipped_vertex.x, 2));
-			this->min = (2 * center_point.x) - max;
-			this->max = (2 * center_point.x - min);
+			if (rotated)
+			{
+				float h = -1 * b / (2 * a);
+				float k = c - (a * pow(h, 2));
+				Point2D flipped_vertex = Point2D((2 * center_point.x) - h, (2 * center_point.y) - k);
+				this->a = -1 * a;
+				this->b = 2 * a * flipped_vertex.x;
+				this->c = flipped_vertex.y - (a * pow(flipped_vertex.x, 2));
+				this->min = (2 * center_point.x) - max;
+				this->max = (2 * center_point.x - min);
+			}
+			else
+			{
+				if (center_point.x != 0)
+				{
+					this->a = a;
+					this->b = -2 * a * (center_point.x + (b / (2 * a)));
+					this->c = a * pow(-1 * b / (2 * a), 2) - (pow(b, 2) / (2 * a)) + c + (a * pow(center_point.x + (b / (2 * a)), 2));
+					this->min = center_point.x - max;
+					this->max = center_point.x - min;
+				}
+				else
+				{
+					// TODO for maps fliped on x axis
+				}
+			}
 		}
 		else
 		{
@@ -106,7 +141,7 @@ class LineSegmentCurveY : public LineSegment
 {
 	// ay^2+by+c {min<=x<=max}
 public:
-	LineSegmentCurveY(double a, double b, double c, double min, double max, bool swap, Point2D center_point)
+	LineSegmentCurveY(double a, double b, double c, double min, double max, bool swap, Point2D center_point, bool rotated)
 	{
 		if (swap)
 		{

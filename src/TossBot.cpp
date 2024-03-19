@@ -78,6 +78,12 @@ namespace sc2 {
 				probe = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
 				started = true;
 
+
+				Point2D start = Observation()->GetStartLocation();
+				std::cout << "start " << start.x << ' ' << start.y << std::endl;
+				Point2D enemy = Observation()->GetGameInfo().enemy_start_locations[0];
+				std::cout << "enemy " << enemy.x << ' ' << enemy.y << std::endl;
+
 #ifdef DEBUG_TIMING
 				std::ofstream frame_time_file;
 				frame_time_file.open("frame_time.txt", std::ios_base::out);
@@ -310,9 +316,14 @@ namespace sc2 {
 			);
 #endif
 
+		for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Neutral))
+		{
+			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
+		}
+
         if (Observation()->GetGameLoop() == 1)
         {
-			//PrintNonPathablePoints();
+			PrintNonPathablePoints();
 
 #ifdef DEBUG_TIMING
 			std::ofstream frame_time_file;
@@ -2644,6 +2655,16 @@ namespace sc2 {
 			}
 		}
 		map_file.close();
+
+		std::ofstream mineral_file;
+		mineral_file.open("minerals.txt", std::ios_base::app);
+
+		for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Neutral))
+		{
+			mineral_file << unit->pos.x << ", " << unit->pos.y << "\n";
+			
+		}
+		mineral_file.close();
 	}
 
 

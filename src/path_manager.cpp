@@ -187,6 +187,7 @@ std::vector<Point2D> LineSegmentLinearX::FindCircleIntersection(Point2D center, 
 			solutions.push_back(EvaluateAt(x_val1));
 		if (x_val2 >= min && x_val2 <= max)
 			solutions.push_back(EvaluateAt(x_val2));
+		return solutions;
 	}
 }
 

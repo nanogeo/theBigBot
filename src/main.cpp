@@ -103,12 +103,12 @@ int main(int argc, char* argv[])
 	{
 		coordinator.SetParticipants({
 			CreateParticipant(sc2::Race::Protoss, &bot1),
-			CreateComputer(sc2::Race::Protoss, sc2::Difficulty::CheatInsane, sc2::AIBuild::Macro)
+			CreateComputer(sc2::Race::Protoss, sc2::Difficulty::Hard, sc2::AIBuild::Macro)
 			});
-		coordinator.SetRealtime(false);
+		coordinator.SetRealtime(true);
 
 		coordinator.LaunchStarcraft();
-		coordinator.StartGame("LightShadeLE.SC2Map");
+		coordinator.StartGame("Equilibrium512AIE.SC2Map");
 	}
 	else
 	{
@@ -120,11 +120,12 @@ int main(int argc, char* argv[])
 		coordinator.SetRealtime(true);
 
 		coordinator.LaunchStarcraft();
-		coordinator.StartGame("LightShadeLE.SC2Map");
+		coordinator.StartGame("HardLead512AIE.SC2Map");
 	}
 	// LightShadeLE, AncientCisternAIE, DragonScalesAIE, GoldenAuraAIE, GresvanAIE, InfestationStationAIE, RoyalBloodAIE
+    // Equilibrium512AIE, Goldenaura512AIE, HardLead512AIE, Oceanborn512AIE, SiteDelta512AIE, Gresvan512AIE
 	
-	//EternalEmpireLE
+	// EternalEmpireLE
 
     while (coordinator.Update()) {
     }
