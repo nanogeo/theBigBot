@@ -171,19 +171,33 @@ namespace sc2 {
 		natural_door_open = P(151, 78.5);
 
 
-
-		cannon_rush_terran_positions = {
-
-		};
-
-		/*cannon_rush_terran_stand_by = P();
-
-
-		cannon_rush_terran_stand_by_loop = { P(),
-											P(),
-											P() };*/
-
 		adept_harrass_protoss_consolidation = { P(55, 71), P(62, 95) };
+
+		main_early_dead_space = P(144, 41);
+		natural_front = { P(151, 73),
+		P(153, 82) };
+
+
+		adept_scout_shade = P(55, 77);
+		adept_scout_runaway = P(60, 68);
+		adept_scout_ramptop = P(37, 105);
+		adept_scout_nat_path = { P(27, 86),
+									P(35, 98) };
+		adept_scout_base_spots = { P(28, 115),
+									P(34, 130),
+									P(50, 129),
+									P(54, 111) };
+
+
+		blink_presure_consolidation = P(69, 96);
+		blink_pressure_prism_consolidation = P(73, 100);
+		blink_pressure_blink_up = P(57.5, 105.5);
+		blink_pressure_blink_down = P(55, 108);
+
+		blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveX(.05, -5, 211.5, 38, 62, swap, center_point, true) }, true, swap);
+
+		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(-.2, 119, 35, 55, swap, center_point, true) }, true, swap),
+										PathManager({ new LineSegmentCurveY(-.02, 4.32, -178.28, 108, 130, swap, center_point, true) }, false, !swap) };
 
 	}
 	

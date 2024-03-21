@@ -200,35 +200,47 @@ namespace sc2 {
 		adept_harrass_protoss_consolidation = { P(82, 135), P(62, 125) };
 
 
-		main_early_dead_space = P(, );
-		natural_front = { P(,),
-							P(,) };
+		main_early_dead_space = P(172, 85);
+		natural_front = { P(138, 62),
+							P(141, 69) };
 
-		base_defense_front = P(, );
-		base_defense_main = P(, );
-		base_defense_nat = P(, );
-		base_defense_center = P(, );
 
-		adept_scout_shade = P(, );
-		adept_scout_runaway = P(, );
-		adept_scout_ramptop = P(, );
-		adept_scout_nat_path = { P(,),
-									P(,) };
-		adept_scout_base_spots = { P(,),
-									P(,) };
+		adept_scout_shade = P(64, 129);
+		adept_scout_runaway = P(63, 120);
+		adept_scout_ramptop = P(72.5, 152.5);
+		adept_scout_nat_path = { P(52, 146),
+									P(61, 155) };
+		adept_scout_base_spots = { P(58, 167),
+									P(69, 177),
+									P(82, 173),
+									P(86, 159) };
 
-		blink_presure_consolidation = P(, );
-		blink_pressure_prism_consolidation = P(, );
-		blink_pressure_blink_up = P(, );
-		blink_pressure_blink_down = P(, );
 
-		blink_nat_attacK_path_line = PathManager({ new  swap, center_point, true),
-													new  swap, center_point, true),
-													new  swap, center_point, true),
-													new  swap, center_point, true), }, false, !swap);
+		blink_presure_consolidation = P(85, 126);
+		blink_pressure_prism_consolidation = P(91, 121);
+		blink_pressure_blink_up = P(87, 149);
+		blink_pressure_blink_down = P(83, 154);
 
-													blink_main_attack_path_lines = { PathManager({ new  swap, center_point, true) }, false, !swap),
-																					PathManager({ new  swap, center_point, true) }, false, swap) };
+
+		if (!swap)
+		{
+			blink_nat_attacK_path_line = PathManager({ new LineSegmentLinearX(.06, 127.5, 75, 83, false, center_point, true),
+														new LineSegmentCurveX(.13, -19.5, 863.25, 65, 75, false, center_point, true) }, true, false);
+
+
+			blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(-.3, 178.9, 65, 83, false, center_point, true) }, true, false),
+											PathManager({ new LineSegmentCurveY(-.015, 4.62, -272.74, 154, 175, false, center_point, true) }, false, true) };
+		}
+		else
+		{
+			blink_nat_attacK_path_line = PathManager({ new LineSegmentLinearY(.06, 129.62, 73, 81, false, center_point, true),
+														new LineSegmentCurveY(.13, -18.98, 826.77, 63, 73, false, center_point, true) }, false, false);
+
+
+			blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearY(-.3, 180.3, 63, 81, false, center_point, true) }, false, false),
+											PathManager({ new LineSegmentCurveX(-.015, 4.68, -284.04, 156, 177, false, center_point, true) }, true, true) };
+		}
+
 	}
 	
 }

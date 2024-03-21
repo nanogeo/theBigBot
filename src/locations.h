@@ -139,26 +139,26 @@ public:
 	Point2D natural_door_closed;
 	Point2D natural_door_open;
 
-	Point2D main_early_dead_space; // unused
-	std::vector<Point2D> natural_front; // unused
+	Point2D main_early_dead_space;
+	std::vector<Point2D> natural_front;
 	Point2D base_defense_front; // unused
 	Point2D base_defense_main; // unused
 	Point2D base_defense_nat; // unused
 	Point2D base_defense_center; // unused
 
-	Point2D adept_scout_shade; // unused
-	Point2D adept_scout_runaway; // unused
-	Point2D adept_scout_ramptop; // unused
-	std::vector<Point2D> adept_scout_nat_path; // unused
-	std::vector<Point2D> adept_scout_base_spots; // unused
+	Point2D adept_scout_shade;
+	Point2D adept_scout_runaway;
+	Point2D adept_scout_ramptop;
+	std::vector<Point2D> adept_scout_nat_path;
+	std::vector<Point2D> adept_scout_base_spots;
 
-	Point2D blink_presure_consolidation; // unused
-	Point2D blink_pressure_prism_consolidation; // unused
-	Point2D blink_pressure_blink_up; // unused
-	Point2D blink_pressure_blink_down; // unused
+	Point2D blink_presure_consolidation;
+	Point2D blink_pressure_prism_consolidation;
+	Point2D blink_pressure_blink_up;
+	Point2D blink_pressure_blink_down;
 
-	std::vector<PathManager> blink_main_attack_path_lines; // unused
-	PathManager blink_nat_attacK_path_line; // unused
+	std::vector<PathManager> blink_main_attack_path_lines;
+	PathManager blink_nat_attacK_path_line;
 	
 	std::vector<CannonRushTriplePylonWalloff> cannon_rush_terran_pylon_walloffs;
 

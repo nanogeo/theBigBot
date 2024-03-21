@@ -2576,7 +2576,7 @@ namespace sc2 {
 		if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
 		{
 			bool stalkers_healthy = true;
-			for (const auto &stalker : state_machine->army_group->stalkers)
+			for (const auto &stalker : state_machine->army_group->stalkers) // TODO change to enough stalkers not all
 			{
 				if (stalker->shield < 70)
 				{
@@ -2674,7 +2674,7 @@ namespace sc2 {
 				break;
 			}
 		}
-		if (gates_almost_ready && agent->Observation()->IsPathable(state_machine->prism->pos) && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, agent->warpgate_status.size() - 1, agent->Observation()))
+		if (gates_almost_ready && agent->Observation()->IsPathable(state_machine->prism->pos) && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, agent->warpgate_status.size() - 1, agent->Observation())) // TODO why check if prism on pathable terrain?
 		{
 			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->prism->pos);
 			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);

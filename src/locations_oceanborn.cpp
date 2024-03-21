@@ -175,37 +175,30 @@ namespace sc2 {
 
 		adept_harrass_protoss_consolidation = { P(68, 125), P(70, 100) };
 
+		main_early_dead_space = P(140, 41);
+		natural_front = { P(142.5, 74.5),
+						P(145.5, 68) };
 
 
-		main_early_dead_space = P(, );
-		natural_front = { P(,),
-							P(,) };
+		adept_scout_shade = P(61, 115);
+		adept_scout_runaway = P(71, 106);
+		adept_scout_ramptop = P(43.5, 124.5);
+		adept_scout_nat_path = { P(45, 102),
+								P(37, 115) };
+		adept_scout_base_spots = { P(34, 143),
+									P(46, 150),
+									P(55, 146),
+									P(56, 136) };
 
-		base_defense_front = P(, );
-		base_defense_main = P(, );
-		base_defense_nat = P(, );
-		base_defense_center = P(, );
+		blink_presure_consolidation = P(79, 123);
+		blink_pressure_prism_consolidation = P(84, 118);
+		blink_pressure_blink_up = P(64, 137);
+		blink_pressure_blink_down = P(60, 142);
 
-		adept_scout_shade = P(, );
-		adept_scout_runaway = P(, );
-		adept_scout_ramptop = P(, );
-		adept_scout_nat_path = { P(,),
-									P(,) };
-		adept_scout_base_spots = { P(,),
-									P(,) };
+		blink_nat_attacK_path_line = PathManager({ new LineSegmentLinearX(.59, 84.5, 45, 65, swap, center_point, true) }, true, swap);
 
-		blink_presure_consolidation = P(, );
-		blink_pressure_prism_consolidation = P(, );
-		blink_pressure_blink_up = P(, );
-		blink_pressure_blink_down = P(, );
-
-		blink_nat_attacK_path_line = PathManager({ new  swap, center_point, true),
-													new  swap, center_point, true),
-													new  swap, center_point, true),
-													new  swap, center_point, true), }, false, !swap);
-
-													blink_main_attack_path_lines = { PathManager({ new  swap, center_point, true) }, false, !swap),
-																					PathManager({ new  swap, center_point, true) }, false, swap) };
+		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(.75, 97, 45, 60, swap, center_point, true) }, true, swap),
+										PathManager({ new LineSegmentCurveY(-.14, 39.76, -2762.96, 142, 152, swap, center_point, true) }, false, swap) };
 	}
 	
 }

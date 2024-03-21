@@ -188,35 +188,33 @@ namespace sc2 {
 		adept_harrass_protoss_consolidation = { P(90, 125), P(68, 107) };
 
 
-		main_early_dead_space = P(, );
-		natural_front = { P(,),
-							P(,) };
+		main_early_dead_space = P(134, 50);
+		natural_front = { P(92, 39),
+							P(97, 44) };
 
-		base_defense_front = P(, );
-		base_defense_main = P(, );
-		base_defense_nat = P(, );
-		base_defense_center = P(, );
 
-		adept_scout_shade = P(, );
-		adept_scout_runaway = P(, );
-		adept_scout_ramptop = P(, );
-		adept_scout_nat_path = { P(,),
-									P(,) };
-		adept_scout_base_spots = { P(,),
-									P(,) };
+		adept_scout_shade = P(83, 121);
+		adept_scout_runaway = P(95, 124);
+		adept_scout_ramptop = P(56, 125.5);
+		adept_scout_nat_path = { P(67, 142),
+								P(56, 134) };
+		adept_scout_base_spots = { P(36, 115),
+									P(26, 124),
+									P(33, 139),
+									P(46, 138) };
 
-		blink_presure_consolidation = P(, );
-		blink_pressure_prism_consolidation = P(, );
-		blink_pressure_blink_up = P(, );
-		blink_pressure_blink_down = P(, );
 
-		blink_nat_attacK_path_line = PathManager({ new  swap, center_point, true),
-													new  swap, center_point, true),
-													new  swap, center_point, true),
-													new  swap, center_point, true), }, false, !swap);
+		blink_presure_consolidation = P(69, 104);
+		blink_pressure_prism_consolidation = P(67, 95);
+		blink_pressure_blink_up = P(51, 107);
+		blink_pressure_blink_down = P(47, 113);
 
-													blink_main_attack_path_lines = { PathManager({ new  swap, center_point, true) }, false, !swap),
-																					PathManager({ new  swap, center_point, true) }, false, swap) };
+
+
+		blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveY(-.06, 14.088, -751.966, 108, 132, swap, center_point, true) }, false, !swap);
+
+		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearY(.1, 35.7, 113, 127, swap, center_point, true) }, false, !swap),
+										PathManager({ new LineSegmentCurveX(.03, -2.82, 179.27, 27, 47, swap, center_point, true) }, true, !swap) };
 	}
 	
 }

@@ -190,36 +190,32 @@ namespace sc2 {
 
 		adept_harrass_protoss_consolidation = { P(67, 93), P(55, 74) };
 
+		main_early_dead_space = P(160, 125);
+		natural_front = { P(173, 86),
+							P(171, 92) };
 
-		main_early_dead_space = P(, );
-		natural_front = { P(, ),
-							P(, ) };
 
-		base_defense_front = P(, );
-		base_defense_main = P(, );
-		base_defense_nat = P(, );
-		base_defense_center = P(, );
+		adept_scout_shade = P(54, 84);
+		adept_scout_runaway = P(53, 73);
+		adept_scout_ramptop = P(43.5, 105);
+		adept_scout_nat_path = { P(30, 89),
+									P(40, 96) };
+		adept_scout_base_spots = { P(35, 115),
+									P(44, 129),
+									P(60, 125),
+									P(60, 111) };
 
-		adept_scout_shade = P(, );
-		adept_scout_runaway = P(, );
-		adept_scout_ramptop = P(, );
-		adept_scout_nat_path = { P(, ),
-									P(, ) };
-		adept_scout_base_spots = { P(, ),
-									P(, ) };
 
-		blink_presure_consolidation = P(, );
-		blink_pressure_prism_consolidation = P(, );
-		blink_pressure_blink_up = P(, );
-		blink_pressure_blink_down = P(, );
+		blink_presure_consolidation = P(72, 86);
+		blink_pressure_prism_consolidation = P(75, 83);
+		blink_pressure_blink_up = P(67.5, 107);
+		blink_pressure_blink_down = P(64, 111);
 
-		blink_nat_attacK_path_line = PathManager({ new  swap, center_point, true),
-													new  swap, center_point, true),
-													new  swap, center_point, true),
-													new  swap, center_point, true), }, false, !swap);
 
-		blink_main_attack_path_lines = { PathManager({ new  swap, center_point, true) }, false, !swap),
-										PathManager({ new  swap, center_point, true) }, false, swap) };
+		blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveX(.04, -4.696, 224.828, 45, 68, swap, center_point, true) }, true, !swap);
+
+		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(-.1, 117.4, 45, 64, swap, center_point, true) }, true, !swap),
+		PathManager({ new LineSegmentCurveY(-.04, 8.88, -428.84, 111, 127, swap, center_point, true) }, false, swap) };
 
 
 	}
