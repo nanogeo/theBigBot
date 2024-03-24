@@ -141,7 +141,7 @@ namespace sc2 {
 
 		high_ground_index_alt = 11;
 
-		//initial_scout_pos = P(, );
+		initial_scout_pos = P(55, 138.5);
 
 		main_scout_path = { P(52, 148),
 							P(45, 150),
@@ -209,7 +209,8 @@ namespace sc2 {
 		blink_pressure_blink_down = P(66, 146);
 
 
-		blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveX(.05, -6.5, 329.25, 50, 75, swap, center_point, true) }, true, swap);
+		blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveX(.05, -6.5, 329.25, 50, 70, swap, center_point, true),
+													new LineSegmentLinearX(.52, 82.88, 70, 81, swap, center_point, true)}, true, swap);
 
 		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(.26, 128.84, 55, 66, swap, center_point, true) }, true, swap),
 										PathManager({ new LineSegmentCurveY(-.02, 5.84, -360.32, 146, 167, swap, center_point, true) }, false, !swap) };
