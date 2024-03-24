@@ -99,13 +99,13 @@ int main(int argc, char* argv[])
     sc2::TossBot bot1;
 	sc2::BlankBot bot2;
 	
-	if (true)
+	if (false)
 	{
 		coordinator.SetParticipants({
 			CreateParticipant(sc2::Race::Protoss, &bot1),
-			CreateComputer(sc2::Race::Protoss, sc2::Difficulty::Hard, sc2::AIBuild::Macro)
+            CreateComputer(sc2::Race::Terran, sc2::Difficulty::Hard, sc2::AIBuild::Macro)
 			});
-		coordinator.SetRealtime(true);
+		coordinator.SetRealtime(false);
 
 		coordinator.LaunchStarcraft();
 		coordinator.StartGame("Equilibrium512AIE.SC2Map");
@@ -114,13 +114,13 @@ int main(int argc, char* argv[])
 	{
 
 		coordinator.SetParticipants({
-			CreateParticipant(sc2::Race::Protoss, &bot2),
-			CreateParticipant(sc2::Race::Protoss, &bot1)
+            CreateParticipant(sc2::Race::Protoss, &bot1),
+			CreateParticipant(sc2::Race::Protoss, &bot2)
 			});
 		coordinator.SetRealtime(true);
 
 		coordinator.LaunchStarcraft();
-		coordinator.StartGame("HardLead512AIE.SC2Map");
+		coordinator.StartGame("EternalEmpireLE.SC2Map");
 	}
 	// LightShadeLE, AncientCisternAIE, DragonScalesAIE, GoldenAuraAIE, GresvanAIE, InfestationStationAIE, RoyalBloodAIE
     // Equilibrium512AIE, Goldenaura512AIE, HardLead512AIE, Oceanborn512AIE, SiteDelta512AIE, Gresvan512AIE

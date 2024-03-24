@@ -68,228 +68,7 @@ namespace sc2 {
 		Units eunits = Observation()->GetUnits(Unit::Alliance::Enemy);
 		frames_passed++;
         //std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
-        if (debug_mode)
-        {
-
-
-            if (!started)
-            {
-                build_order_manager.SetBuildOrder(BuildOrder::testing);
-				probe = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PROBE))[0];
-				started = true;
-
-
-				Point2D start = Observation()->GetStartLocation();
-				std::cout << "start " << start.x << ' ' << start.y << std::endl;
-				Point2D enemy = Observation()->GetGameInfo().enemy_start_locations[0];
-				std::cout << "enemy " << enemy.x << ' ' << enemy.y << std::endl;
-
-#ifdef DEBUG_TIMING
-				std::ofstream frame_time_file;
-				frame_time_file.open("frame_time.txt", std::ios_base::out);
-				frame_time_file << "Build order,Actions,FSM,Update pos,Update weapons,Enemy attacks,Allied attacks,Complete attacks,Hud,Send debug\n";
-				frame_time_file.close();
-#endif
-            }
-            if (Observation()->GetGameLoop() > 1)
-            {
-                /*for (int i = 0; i < grid_map.size(); i++)
-                {
-                    for (int j = 0; j < grid_map[i].size(); j++)
-                    {
-                        Point3D pos = Point3D(i + .5, j + .5, Observation()->TerrainHeight(Point2D(i + .5, j + .5)));
-                        if (grid_map[i][j])
-                            Debug()->DebugSphereOut(pos, .5, Color(0, 255, 0));
-                        else
-                            Debug()->DebugSphereOut(pos, .5, Color(255, 0, 0));
-                    }
-                }
-                if (nav_mesh.triangles.size() == 0)
-                {
-					nav_mesh.LoadOrBuildNavmesh(Observation()->GetGameInfo().pathing_grid, Observation()->GetGameInfo().map_name);
-					
-                }
-                
-                for (const auto &triangle : nav_mesh.triangles)
-                {
-                    for (int i = 0; i < triangle->verticies.size(); i++)
-                    {
-                        Point3D start = Point3D(triangle->verticies[i].x, triangle->verticies[i].y, Observation()->TerrainHeight(triangle->verticies[i]) + .1);
-                        Point3D end;
-                        if (i + 1 < triangle->verticies.size())
-                            end = Point3D(triangle->verticies[i + 1].x, triangle->verticies[i + 1].y, Observation()->TerrainHeight(triangle->verticies[i]) + .1);
-                        else
-                            end = Point3D(triangle->verticies[0].x, triangle->verticies[0].y, Observation()->TerrainHeight(triangle->verticies[i]) + .1);
-                        Debug()->DebugLineOut(start, end, Color(255, 0, 128));
-                        Debug()->DebugSphereOut(start, .1, Color(0, 0, 255));
-                        Point3D center = Point3D(triangle->center.x, triangle->center.y, Observation()->TerrainHeight(triangle->verticies[i]) + .1);
-						if (triangle->pathable)
-	                        Debug()->DebugSphereOut(center, .1, Color(0, 255, 255));
-						else
-							Debug()->DebugSphereOut(center, .1, Color(255, 0, 0));
-                    }
-                    for (const auto &connection : triangle->connections)
-                    {
-                        Point3D start = Point3D(triangle->center.x, triangle->center.y, Observation()->TerrainHeight(triangle->center) + .1);
-                        Point3D end = Point3D(connection->center.x, connection->center.y, Observation()->TerrainHeight(connection->center) + .1);
-                        Debug()->DebugLineOut(start, end, Color(255, 255, 0));
-                    }
-                }
-
-				for (const auto &triangle : overlaps)
-				{
-					for (int i = 0; i < triangle->verticies.size(); i++)
-					{
-						Point3D center = Point3D(triangle->center.x, triangle->center.y, Observation()->GetStartLocation().z + .1);
-						Debug()->DebugSphereOut(center, .3, Color(255, 255, 255));
-					}
-				}
-
-                std::vector<Point2D> path = nav_mesh.FindPath(probe->pos, Observation()->GetGameInfo().enemy_start_locations[0]);
-
-                for (int i = 0; i < path.size() - 1; i++)
-                {
-                    Point3D start = Point3D(path[i].x, path[i].y, Observation()->TerrainHeight(path[i]) + .1);
-                    Point3D end = Point3D(path[i+1].x, path[i+1].y, Observation()->TerrainHeight(path[i+1]) + .1);
-                    Debug()->DebugLineOut(start, end, Color(0, 255, 0));
-                }
-                Point3D start = Point3D(probe->pos.x, probe->pos.y, Observation()->TerrainHeight(probe->pos) + .1);
-                Point3D end = Point3D(path[0].x, path[0].y, Observation()->TerrainHeight(path[0]) + .1);
-                Debug()->DebugLineOut(start, end, Color(0, 255, 0));*/
-
-
-				/*for (const auto &unit : enemy_unit_saved_position)
-				{
-					Color col = Color(255, 255, 0);
-					if (unit.second.frames > 0)
-					{
-						col = Color(0, 255, 255);
-					}
-					Debug()->DebugSphereOut(unit.first->pos, .7, col);
-					Debug()->DebugTextOut(std::to_string(unit.second.frames), unit.first->pos, col, 20);
-				}*/
-
-				if (!initial_set_up)
-				{
-					RunInitialSetUp();
-				}
-				if (tests_set_up)
-				{
-					RunTests();
-				}
-
-            }
-			if (Observation()->GetGameLoop() > 10 && !tests_set_up)
-			{
-				SetUpArmies();
-			}
-
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds start = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-#endif
-
-			build_order_manager.CheckBuildOrder();
-
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds build_order = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-#endif
-
-			if (Observation()->GetGameLoop() % 2 == 0)
-			{
-				action_manager.ProcessActions();
-			}
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds actions = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-#endif
-
-			ProcessFSMs();
-
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds fsm = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-#endif
-
-			UpdateEnemyUnitPositions();
-
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds update_pos = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-#endif
-
-			UpdateEnemyWeaponCooldowns();
-
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds update_weawpons = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-#endif
-
-			//DisplayEnemyAttacks();
-
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds enemy_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-#endif
-
-			//DisplayAlliedAttackStatus();
-
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds allied_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-#endif
-
-			RemoveCompletedAtacks();
-
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds complete_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-#endif
-
-			//DisplayDebugHud();
-
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds hud = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-#endif
-
-			//Debug()->SendDebug();
-
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds end = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-
-			std::ofstream frame_time_file;
-			frame_time_file.open("frame_time.txt", std::ios_base::app);
-			frame_time_file << build_order.count() - start.count() << ", ";
-			frame_time_file << actions.count() - build_order.count() << ", ";
-			frame_time_file << fsm.count() - actions.count() << ", ";
-			frame_time_file << update_pos.count() - fsm.count() << ", ";
-			frame_time_file << update_weawpons.count() - update_pos.count() << ", ";
-			frame_time_file << enemy_attacks.count() - update_weawpons.count() << ", ";
-			frame_time_file << allied_attacks.count() - enemy_attacks.count() << ", ";
-			frame_time_file << complete_attacks.count() - allied_attacks.count() << ", ";
-			frame_time_file << hud.count() - complete_attacks.count() << ", ";
-			frame_time_file << end.count() - hud.count() << "\n";
-
-			frame_time_file.close();
-#endif
-
-            return;
-        }
-
+        
         
         worker_manager.DistributeWorkers();
 
@@ -321,9 +100,9 @@ namespace sc2 {
 			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
 		}
 
-        if (Observation()->GetGameLoop() == 1)
+        if (!started)
         {
-			PrintNonPathablePoints();
+			//PrintNonPathablePoints();
 
 #ifdef DEBUG_TIMING
 			std::ofstream frame_time_file;
@@ -427,14 +206,29 @@ namespace sc2 {
 			update_warpgates.close();
 #endif
 			
-
+			int id = Observation()->GetPlayerID();
             auto infos = Observation()->GetGameInfo().player_info;
             if (infos.size() > 0)
             {
-                if (infos[0].race_requested == Race::Protoss)
-                    enemy_race = infos[1].race_requested;
-                else
-                    enemy_race = infos[0].race_requested;
+				enemy_race = infos[2 - id].race_requested;
+				if (!debug_mode)
+				{
+					switch (enemy_race)
+					{
+					case Race::Protoss:
+						curr_build_order = BuildOrder::three_gate_robo;
+						break;
+					case Race::Terran:
+						curr_build_order = BuildOrder::four_gate_blink;
+						break;
+					case Race::Zerg:
+						curr_build_order = BuildOrder::oracle_gatewayman_pvz;
+						break;
+					default:
+						curr_build_order = BuildOrder::three_gate_robo;
+						break;
+					}
+				}
             }
 
             const Unit *building = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS))[0];
@@ -450,71 +244,8 @@ namespace sc2 {
             }
             
 			build_order_manager.SetBuildOrder(curr_build_order);
-
+			started = true;
         }
-
-		/*if (Observation()->GetGameLoop() >= 2)
-		{
-			Point2D fallback = Point2D(75, 120);
-			for (const auto &unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ZERGLING)))
-			{
-				Actions()->UnitCommand(unit, ABILITY_ID::ATTACK, fallback);
-			}
-			std::map<const Unit*, std::vector<const Unit*>> units;
-			Units Funits;
-			Units Eunits;
-			for (const auto &unit : Observation()->GetUnits())
-			{
-				if (unit->alliance == Unit::Alliance::Self && unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
-					Funits.push_back(unit);
-				else if (unit->alliance == Unit::Alliance::Enemy)
-					Eunits.push_back(unit);
-			}
-			for (const auto &unit : Funits)
-			{
-				Units units_in_range;
-				for (const auto &Eunit : Eunits)
-				{
-					if (Distance2D(unit->pos, Eunit->pos) <= RealGroundRange(unit, Eunit))
-						units_in_range.push_back(Eunit);
-				}
-				units[unit] = units_in_range;
-			}
-
-			FireControl* fire_control = new FireControl(this, units, { UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_MARINE });
-			std::map<const Unit*, const Unit*> attacks = fire_control->FindAttacks();
-
-			for (const auto &attack : attacks)
-			{
-				Debug()->DebugLineOut(attack.first->pos + Point3D(0, 0, .2), attack.second->pos + Point3D(0, 0, .2), Color(0, 0, 255));
-			}
-
-			bool all_ready = true;
-			for (const auto &unit : Funits)
-			{
-				if (unit->weapon_cooldown > 0)
-					all_ready = false;
-			}
-			if (all_ready)
-			{
-				std::cout << "fire volley\n";
-				for (const auto &attack : attacks)
-				{
-					Actions()->UnitCommand(attack.first, ABILITY_ID::ATTACK, attack.second);
-					std::cout << attack.first->tag << " " << attack.second->tag << std::endl;
-				}
-				std::cout << "\n";
-			}
-			else
-			{
-				for (const auto &unit : Funits)
-				{
-					std::cout << "move\n";
-					if (unit->weapon_cooldown > 0)
-						Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, fallback);
-				}
-			}
-		}*/
 
 		UpdateEnemyUnitPositions();
 #ifdef DEBUG_TIMING

@@ -42,10 +42,15 @@ public:
 	Units new_units;
 
 	std::map<const Unit*, bool> attack_status;
+
 	std::vector<Point2D> attack_path;
-	PathManager attack_path_line;
 	int current_attack_index;
 	int high_ground_index;
+	PathManager attack_path_line;
+
+	bool using_standby = false;
+	Point2D standby_pos;
+	Units standby_units;
 
 	std::map<const Unit*, float> last_time_blinked;
 
@@ -56,8 +61,8 @@ public:
 
 	ArmyGroup() : persistent_fire_control() {};
 	ArmyGroup(TossBot* agent);
-
 	ArmyGroup(TossBot*, Units, std::vector<Point2D>, int);
+	ArmyGroup(TossBot*, Units, PathManager);
 
 	void AddUnit(const Unit* unit);
 	void AddNewUnit(const Unit* unit);
@@ -80,6 +85,9 @@ public:
 
 
 	void MicroUnits();
+
+	void AttackLine(float);
+	void FindUnitPositions(Units, float, std::map<const Unit*, Point2D>&, std::map<const Unit*, Point2D>&);
 
 
 	void AutoAddNewUnits(std::vector<UNIT_TYPEID>);

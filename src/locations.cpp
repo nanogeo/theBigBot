@@ -447,7 +447,7 @@ namespace sc2 {
 
 void Locations::SetTestingLocations(Point3D start_location, BuildOrder build_order)
 {
-
+	Point2D center_point = Point2D(88, 86);
 	auto convert_location = [](Point2D point, bool swap)
 	{
 		if (swap)
@@ -465,6 +465,8 @@ void Locations::SetTestingLocations(Point3D start_location, BuildOrder build_ord
 					P(85, 89),
 					P(112, 62.5),
 					P(142, 33) };
+
+	attack_path_line = PathManager({ new LineSegmentLinearX(-.98, 172.5, 30, 150, swap, center_point, true) }, true, !swap),
 
 	third_base_pylon_gap = P(34, 139);
 

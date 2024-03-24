@@ -13,6 +13,7 @@
 #include "utility.h"
 #include "finish_state_machine.h"
 #include "locations.h"
+#include "definitions.h"
 
 namespace sc2 {
 
@@ -74,6 +75,55 @@ namespace sc2 {
 		attack_path = path;
 		current_attack_index = 2;
 		high_ground_index = index;
+		event_id = agent->GetUniqueId();
+	}
+
+	ArmyGroup::ArmyGroup(TossBot* agent, Units all_units,PathManager path) : persistent_fire_control(agent)
+	{
+		this->agent = agent;
+		this->all_units = all_units;
+
+		for (const auto& unit : all_units)
+		{
+			if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
+				zealots.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
+			{
+				stalkers.push_back(unit);
+				last_time_blinked[unit] = 0;
+			}
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
+				adepts.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_SENTRY)
+				sentries.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_HIGHTEMPLAR)
+				high_templar.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DARKTEMPLAR)
+				dark_templar.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ARCHON)
+				archons.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_IMMORTAL)
+				immortals.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_COLOSSUS)
+				collossi.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DISRUPTOR)
+				disrupter.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_OBSERVER)
+				observers.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_WARPPRISM)
+				warp_prisms.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_PHOENIX)
+				phoenixes.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_VOIDRAY)
+				void_rays.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ORACLE)
+				oracles.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_CARRIER)
+				carriers.push_back(unit);
+			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_TEMPEST)
+				tempests.push_back(unit);
+		}
+		attack_path_line = path;
 		event_id = agent->GetUniqueId();
 	}
 
@@ -335,13 +385,15 @@ namespace sc2 {
 	std::vector<Point2D> ArmyGroup::FindConcaveFromBack(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
 	{
 		Point2D current_origin = origin;
+		int tries = 0;
 		while (true)
 		{
+			tries++;
 			std::vector<Point2D> concave_points = FindConcave(current_origin, fallback_point, num_units, unit_size, dispersion);
 			Point2D furthest_back = Utility::ClosestPointOnLine(concave_points.back(), origin, fallback_point);
 			if (Distance2D(origin, fallback_point) < Distance2D(furthest_back, fallback_point))
 				return concave_points;
-			current_origin = Utility::PointBetween(current_origin, fallback_point, -(unit_size + dispersion));
+			current_origin = Utility::PointBetween(current_origin, fallback_point, - Distance2D(origin, furthest_back) - (unit_size + dispersion));
 		}
 
 	}
@@ -481,8 +533,7 @@ namespace sc2 {
 		}
 
 
-		//Point2D concave_target = attack_path_line.GetPointFrom(stalker_line_pos, 8, true);
-		Point2D concave_target = agent->Observation()->GetGameInfo().enemy_start_locations[0];
+		Point2D concave_target = attack_path_line.GetPointFrom(stalker_line_pos, 8, true);
 
 		float max_range = 7;
 		if (close_enemies.size() > 0)
@@ -968,6 +1019,186 @@ namespace sc2 {
 	void ArmyGroup::MicroUnits()
 	{
 
+	}
+
+	void ArmyGroup::AttackLine(float dispersion)
+	{
+		// Find current units to micro
+		Units current_units;
+		if (using_standby)
+		{
+			std::vector<UNIT_TYPEID> types = { STALKER, SENTRY, ADEPT, ARCHON, IMMORTAL };
+			for (const auto& unit : all_units)
+			{
+				if (std::find(types.begin(), types.end(), unit->unit_type) != types.end() &&
+					std::find(standby_units.begin(), standby_units.end(), unit) != standby_units.end())
+					current_units.push_back(unit);
+			}
+		}
+		else
+		{
+			std::vector<UNIT_TYPEID> types = { STALKER, SENTRY, ADEPT, ARCHON, IMMORTAL };
+			for (const auto& unit : all_units)
+			{
+				if (std::find(types.begin(), types.end(), unit->unit_type) != types.end())
+					current_units.push_back(unit);
+			}
+		}
+
+		if (current_units.size() == 0)
+			return;
+
+		std::map<const Unit*, Point2D> attack_unit_positions;
+		std::map<const Unit*, Point2D> retreat_unit_positions;
+
+		FindUnitPositions(current_units, dispersion, attack_unit_positions, retreat_unit_positions);
+
+
+		for (const auto& pos : agent->locations->attack_path_line.GetPoints())
+		{
+			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
+		}
+		for (const auto& pos : attack_unit_positions)
+		{
+			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos.second), .625, Color(255, 0, 0));
+		}
+		for (const auto& pos : retreat_unit_positions)
+		{
+			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos.second), .625, Color(0, 255, 0));
+		}
+
+
+
+
+		// Find units that can attack and those that cant
+		Units units_ready;
+		Units units_not_ready;
+		for (const auto& unit : current_units)
+		{
+			if (unit->weapon_cooldown == 0 && attack_status[unit] == false)
+			{
+				// ignore units inside prisms
+				if (warp_prisms.size() > 0)
+				{
+					bool in_prism = false;
+					for (const auto& prism : warp_prisms)
+					{
+						for (const auto& passanger : prism->passengers)
+						{
+							if (passanger.tag == unit->tag)
+							{
+								in_prism = true;
+								break;
+							}
+						}
+						if (in_prism)
+							break;
+					}
+					if (in_prism)
+						units_not_ready.push_back(unit);
+				}
+				units_ready.push_back(unit);
+			}
+			else
+			{
+				units_not_ready.push_back(unit);
+			}
+		}
+
+		float percent_units_needed = .25;
+		std::vector<UNIT_TYPEID> target_priority = {};
+		// if enough units can attack something
+		if (static_cast<float>(units_ready.size()) / static_cast<float>(current_units.size()) >= percent_units_needed)
+		{
+			// find targets for each unit
+			std::map<const Unit*, const Unit*> found_targets = persistent_fire_control.FindAttacks(units_ready, target_priority, 0);
+			if(found_targets.size() > 0)
+				std::cout << "shots: " << found_targets.size() << std::endl;
+			for (const auto& unit : units_ready)
+			{
+				if (found_targets.count(unit) > 0)
+				{
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, found_targets[unit]);
+					attack_status[unit] = true;
+				}
+				else // if a unit has no target, keep advancing
+				{
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, attack_unit_positions[unit]);
+				}
+			}
+		}
+		else
+		{
+			for (const auto& unit : units_ready)
+			{
+				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, attack_unit_positions[unit]);
+			}
+		}
+
+		for (const auto& unit : units_not_ready)
+		{
+			if (attack_status[unit] == false)
+			{
+				// no order but no danger so just move forward
+				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, attack_unit_positions[unit]);
+			}
+			else if (unit->weapon_cooldown > 0)
+			{
+				// attack has gone off so reset order status
+				attack_status[unit] = false;
+			}
+			else if (unit->orders.size() == 0/* || unit->orders[0].ability_id == ABILITY_ID::MOVE_MOVE || unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE*/)
+			{
+				// attack order is no longer valid
+				attack_status[unit] = false;
+			}
+		}
+
+	}
+
+	void ArmyGroup::FindUnitPositions(Units units, float dispersion, std::map<const Unit*, Point2D>& attack_unit_positions, std::map<const Unit*, Point2D>& retreat_unit_positions)
+	{
+		float unit_size = .625; // TODO figure this out by the larget unit in current_units?
+
+		Point2D army_center = Utility::MedianCenter(units);
+		Point2D army_line_pos = attack_path_line.FindClosestPoint(army_center);
+
+		// center of 5 closest enemies within 12 will be concave target
+		Units close_enemies = Utility::NClosestUnits(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), army_center, 5);
+
+		for (int i = 0; i < close_enemies.size(); i++)
+		{
+			if (Distance2D(army_center, close_enemies[i]->pos) > 12)
+			{
+				close_enemies.erase(close_enemies.begin() + i);
+				i--;
+			}
+		}
+		Point2D concave_target;
+		float max_range;
+		if (close_enemies.size() > 0)
+		{
+			concave_target = Utility::MedianCenter(close_enemies);
+			max_range = std::min(Utility::GetMaxRange(close_enemies) + 2, 6.0f); // dont retreat so far when fighting low range enemies
+		}
+		else
+		{
+			concave_target = attack_path_line.GetPointFrom(army_line_pos, 8, true); // default target is 8 units in front of army center
+			max_range = 6;
+		}
+
+		Point2D retreat_concave_origin = attack_path_line.GetPointFrom(concave_target, max_range, false);
+		if (retreat_concave_origin == Point2D(0, 0))
+			retreat_concave_origin = attack_path_line.GetPointFrom(army_line_pos, 2 * (unit_size + dispersion), false);
+
+		Point2D attack_concave_origin = attack_path_line.GetPointFrom(army_line_pos, 2 * (unit_size + dispersion), true);
+
+
+		std::vector<Point2D> attack_concave_positions = FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, units.size(), unit_size, dispersion);
+		std::vector<Point2D> retreat_concave_positions = FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, units.size(), unit_size, dispersion);
+
+		attack_unit_positions = AssignUnitsToPositions(units, attack_concave_positions);
+		retreat_unit_positions = AssignUnitsToPositions(units, retreat_concave_positions);
 	}
 
 

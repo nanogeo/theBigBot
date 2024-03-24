@@ -185,6 +185,9 @@ public:
 	bool SendAllInAttack(BuildOrderResultArgData);
 	bool SendAdeptHarassProtoss(BuildOrderResultArgData);
 
+	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
+	bool AttackLine(BuildOrderResultArgData); // testing only // to string
+
 	bool RemoveProbe(BuildOrderResultArgData);
 
 	void SetBuildOrder(BuildOrder);

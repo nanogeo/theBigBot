@@ -685,7 +685,7 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	if (close_enemies.size() > 0)
 	{
 		concave_target = Utility::MedianCenter(close_enemies);
-		max_range = std::max(Utility::GetMaxRange(close_enemies) + 2, 6.0f);
+		max_range = std::max(Utility::GetMaxRange(close_enemies) + 2, 6.0f); // TODO should be min?
 	}
 
 	Point2D retreat_concave_origin = agent->locations->attack_path_line.GetPointFrom(concave_target, max_range, false);
@@ -1298,5 +1298,11 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 }
 
 
+bool ActionManager::ActionAttackLine(ActionArgData* data)
+{
+	ArmyGroup* army = data->army_group;
+	army->AttackLine(.2);
+	return false;
+}
 
 }

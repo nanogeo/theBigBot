@@ -1077,6 +1077,21 @@ bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
 }
 
 
+bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
+{
+	agent->Debug()->DebugCreateUnit(STALKER, agent->locations->attack_path[0], 1, 11);
+	agent->Debug()->DebugCreateUnit(MARINE, agent->locations->attack_path[2], 2, 15);
+	return true;
+}
+
+bool BuildOrderManager::AttackLine(BuildOrderResultArgData data)
+{
+	ArmyGroup* army = new ArmyGroup(agent, agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Self)), agent->locations->attack_path_line);
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionAttackLine, new ActionArgData(army)));
+	return true;
+}
+
+
 
 bool BuildOrderManager::RemoveProbe(BuildOrderResultArgData data)
 {
@@ -1146,8 +1161,9 @@ void BuildOrderManager::SetBlank()
 
 void BuildOrderManager::SetTesting()
 {
-	build_order = { Data(&BuildOrderManager::TimePassed,		Condition(1.0f),										&BuildOrderManager::CutWorkers,					Result()),
-					//Data(&BuildOrderManager::TimePassed,		Condition(2.0f),										&BuildOrderManager::StartFourGateBlinkPressure,	Result()),
+	build_order = { Data(&BuildOrderManager::TimePassed,		Condition(1.0f),				&BuildOrderManager::CutWorkers,							Result()),
+					Data(&BuildOrderManager::TimePassed,		Condition(2.0f),				&BuildOrderManager::SpawnArmy,							Result()),
+					Data(&BuildOrderManager::TimePassed,		Condition(3.0f),				&BuildOrderManager::AttackLine,							Result()),
 
 	};
 }

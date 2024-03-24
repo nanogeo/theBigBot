@@ -288,11 +288,11 @@ class TossBot : public sc2::Agent
 public:
 	TossBot() : Agent(), worker_manager(this), action_manager(this), build_order_manager(this) {};
 	bool started = false;
-	BuildOrder curr_build_order = BuildOrder::three_gate_robo;
+	BuildOrder curr_build_order = BuildOrder::testing;
 	WorkerManager worker_manager;
 	ActionManager action_manager;
 	BuildOrderManager build_order_manager;
-    bool debug_mode = false;
+    bool debug_mode = true;
 	int frames_passed = 0;
     ScoutInfoZerg scout_info_zerg;
     ScoutInfoTerran scout_info_terran;

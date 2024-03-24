@@ -213,6 +213,7 @@ namespace sc2 {
 					ApplyAttack(current_friendly, current_enemy);
 					friendly_units_ordered.DeleteMinimum();
 				}
+				enemy_units_ordered.Heapify(0);
 			//}
 		}
 
@@ -290,12 +291,27 @@ namespace sc2 {
 
 	void PersistentFireControl::OnUnitTakesDamageListener(const Unit* unit, float health, float shields)
 	{
+		float total_damage = health + shields;
 		for (int i = 0; i < outgoing_damage.size(); i++)
 		{
 			if (std::get<0>(outgoing_damage[i]) == unit)
 			{
-				outgoing_damage.erase(outgoing_damage.begin() + i);
-				return;
+				if (total_damage == std::get<1>(outgoing_damage[i]))
+				{
+					outgoing_damage.erase(outgoing_damage.begin() + i);
+					return;
+				}
+				else if (total_damage > std::get<1>(outgoing_damage[i]))
+				{
+					total_damage -= std::get<1>(outgoing_damage[i]);
+					outgoing_damage.erase(outgoing_damage.begin() + i);
+					i--;
+				}
+				else if (total_damage < std::get<1>(outgoing_damage[i]))
+				{
+					std::get<1>(outgoing_damage[i]) = std::get<1>(outgoing_damage[i]) - total_damage;
+					return;
+				}
 			}
 		}
 	}
@@ -328,7 +344,7 @@ namespace sc2 {
 	{
 		int damage = Utility::GetDamage(attacker, target, agent->Observation());
 		enemy_unit_hp[target] = enemy_unit_hp[target] - damage;
-		outgoing_damage.push_back(std::make_tuple(target, damage, agent->Observation()->GetGameLoop() + 5)); // TODO calculate frame of hit
+		outgoing_damage.push_back(std::make_tuple(target, damage, agent->Observation()->GetGameLoop() + 20)); // TODO calculate frame of hit
 	}
 
 	void PersistentFireControl::UpdateEnemyUnitHealth()
@@ -337,6 +353,16 @@ namespace sc2 {
 		{
 			enemy_unit_hp[unit_hp.first] = unit_hp.first->health + unit_hp.first->shield;
 		}
+
+		for (int i = 0; i < outgoing_damage.size(); i++)
+		{
+			if (std::get<2>(outgoing_damage[i]) < agent->Observation()->GetGameLoop())
+			{
+				outgoing_damage.erase(outgoing_damage.begin() + i);
+				i--;
+			}
+		}
+
 		for (const auto damage : outgoing_damage)
 		{
 			enemy_unit_hp[std::get<0>(damage)] = enemy_unit_hp[std::get<0>(damage)] - std::get<1>(damage);
@@ -370,6 +396,7 @@ namespace sc2 {
 
 	std::map<const Unit*, const Unit*> PersistentFireControl::FindAttacks(Units units, std::vector<UNIT_TYPEID> prio, float extra_range)
 	{
+		UpdateEnemyUnitHealth();
 		std::map<const Unit*, std::vector<const Unit*>> unit_targets;
 		Units Eunits = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
 
@@ -461,12 +488,12 @@ namespace sc2 {
 
 		// If the left child is smaller than this element, it is
 		// the smallest
-		if (left < size && TestOrder(arr[left], arr[index]))
+		if (left < size && TestOrder(arr[index], arr[left]))
 			smallest = left;
 
 		// Similarly for the right, but we are updating the smallest element
 		// so that it will definitely give the least element of the subtree
-		if (right < size && TestOrder(arr[right], arr[smallest]))
+		if (right < size && TestOrder(arr[smallest], arr[right]))
 			smallest = right;
 
 		// Now if the current element is not the smallest,
@@ -541,13 +568,22 @@ namespace sc2 {
 		{
 			if (unit2->total_damage_possible >= unit2->health)
 			{
+				if (unit1->units_in_range.size() == unit2->units_in_range.size())
+				{
+					return unit1->health > unit2->health;
+				}
 				return unit1->units_in_range.size() > unit2->units_in_range.size();
 			}
 			return false;
 		}
-		if (unit2->total_damage_possible >= unit2->health)
+		else if (unit2->total_damage_possible >= unit2->health)
 		{
 			return true;
+		}
+
+		if (unit1->units_in_range.size() == unit2->units_in_range.size())
+		{
+			return unit1->health > unit2->health;
 		}
 		return unit1->units_in_range.size() > unit2->units_in_range.size();
 
