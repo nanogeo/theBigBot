@@ -7,10 +7,9 @@ A Protoss bot for Starcraft 2 using cpp-sc2
  - Upgrades
  - Basic micro for Stalkers, Immortals, Warp Prisms, Observers
  - Build orders
-	- 8 gate chargelot all-in
-	- 4 gate adept pressure
+	- 3 gate robo
+	- 4 gate blink
 	- herO style oracle blink stalker pressure
-	- DT rush
  - Probe scouting
 
  - Navigation mesh pathfinding
