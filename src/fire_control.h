@@ -25,11 +25,23 @@ struct EnemyUnitInfo
 	int priority;
 	int health;
 	int total_damage_possible;
+	float dps;
 };
 
 struct OutgoingDamage
 {
-
+	const Unit* attacker;
+	const Unit* target;
+	int damage;
+	int frame_of_hit;
+	bool confirmend = false;
+	OutgoingDamage(const Unit* attacker, const Unit* target, int damage, int frame_of_hit)
+	{
+		this->attacker = attacker;
+		this->target = target;
+		this->damage = damage;
+		this->frame_of_hit = frame_of_hit;
+	}
 };
 
 class FireControl
@@ -63,7 +75,7 @@ public:
 	Units friendly_units;
 	int event_id;
 	std::map<const Unit*, int> enemy_unit_hp;
-	std::vector<std::tuple<const Unit*, int, int>> outgoing_damage; // enemy unit, damage, frame
+	std::vector<OutgoingDamage> outgoing_attacks; // enemy unit, damage, frame
 
 	PersistentFireControl() {};
 	PersistentFireControl(TossBot*);
@@ -74,6 +86,7 @@ public:
 
 	void AddFriendlyUnit(const Unit*);
 	void ApplyAttack(const Unit*, const Unit*);
+	void ConfirmAttack(const Unit*, const Unit*);
 	void UpdateEnemyUnitHealth();
 
 	std::map<const Unit*, const Unit*> FindAttacks(std::vector<UNIT_TYPEID>);

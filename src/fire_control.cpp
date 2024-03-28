@@ -34,6 +34,7 @@ namespace sc2 {
 						info->priority = index - priority.begin();
 					info->units_in_range.push_back(new_unit);
 					info->total_damage_possible = GetDamage(Funit.first, Eunit);
+					info->dps = Utility::GetDPS(Eunit);
 
 					enemy_units.push_back(info);
 				}
@@ -292,24 +293,27 @@ namespace sc2 {
 	void PersistentFireControl::OnUnitTakesDamageListener(const Unit* unit, float health, float shields)
 	{
 		float total_damage = health + shields;
-		for (int i = 0; i < outgoing_damage.size(); i++)
+		for (int i = 0; i < outgoing_attacks.size(); i++)
 		{
-			if (std::get<0>(outgoing_damage[i]) == unit)
+			if (outgoing_attacks[i].target == unit)
 			{
-				if (total_damage == std::get<1>(outgoing_damage[i]))
+				if (outgoing_attacks[i].confirmend != true)
+					std::cout << "unconfirmed attack" << std::endl;
+
+				if (total_damage == outgoing_attacks[i].damage)
 				{
-					outgoing_damage.erase(outgoing_damage.begin() + i);
+					outgoing_attacks.erase(outgoing_attacks.begin() + i);
 					return;
 				}
-				else if (total_damage > std::get<1>(outgoing_damage[i]))
+				else if (total_damage > outgoing_attacks[i].damage)
 				{
-					total_damage -= std::get<1>(outgoing_damage[i]);
-					outgoing_damage.erase(outgoing_damage.begin() + i);
+					total_damage -= outgoing_attacks[i].damage;
+					outgoing_attacks.erase(outgoing_attacks.begin() + i);
 					i--;
 				}
-				else if (total_damage < std::get<1>(outgoing_damage[i]))
+				else if (total_damage < outgoing_attacks[i].damage)
 				{
-					std::get<1>(outgoing_damage[i]) = std::get<1>(outgoing_damage[i]) - total_damage;
+					outgoing_attacks[i].damage = outgoing_attacks[i].damage - total_damage;
 					return;
 				}
 			}
@@ -319,11 +323,13 @@ namespace sc2 {
 	void PersistentFireControl::OnUnitDestroyedListener(const Unit* unit)
 	{
 		enemy_unit_hp.erase(unit);
-		for(int i = 0; i < outgoing_damage.size(); i++)
+		for(int i = 0; i < outgoing_attacks.size(); i++)
 		{
-			if (std::get<0>(outgoing_damage[i]) == unit)
+			if (outgoing_attacks[i].target == unit)
 			{
-				outgoing_damage.erase(outgoing_damage.begin() + i);
+				if (outgoing_attacks[i].confirmend != true)
+					std::cout << "unconfirmed attack" << std::endl;
+				outgoing_attacks.erase(outgoing_attacks.begin() + i);
 				i--;
 			}
 		}
@@ -344,7 +350,29 @@ namespace sc2 {
 	{
 		int damage = Utility::GetDamage(attacker, target, agent->Observation());
 		enemy_unit_hp[target] = enemy_unit_hp[target] - damage;
-		outgoing_damage.push_back(std::make_tuple(target, damage, agent->Observation()->GetGameLoop() + 20)); // TODO calculate frame of hit
+		outgoing_attacks.push_back(OutgoingDamage(attacker, target, damage, agent->Observation()->GetGameLoop() + 20)); // TODO calculate frame of hit
+	}
+
+	void PersistentFireControl::ConfirmAttack(const Unit* attacker, const Unit* target)
+	{
+		bool already_confirmed = false;
+		for (int i = 0; i < outgoing_attacks.size(); i++)
+		{
+			if (outgoing_attacks[i].attacker == attacker)
+			{
+				if (outgoing_attacks[i].target != target || already_confirmed)
+				{
+					outgoing_attacks.erase(outgoing_attacks.begin() + i);
+					i--;
+				}
+				else
+				{
+					std::cout << attacker->tag << " confirmed attack " << target->tag << std::endl;
+					already_confirmed = true;
+					outgoing_attacks[i].confirmend = true;
+				}
+			}
+		}
 	}
 
 	void PersistentFireControl::UpdateEnemyUnitHealth()
@@ -354,18 +382,18 @@ namespace sc2 {
 			enemy_unit_hp[unit_hp.first] = unit_hp.first->health + unit_hp.first->shield;
 		}
 
-		for (int i = 0; i < outgoing_damage.size(); i++)
+		for (int i = 0; i < outgoing_attacks.size(); i++)
 		{
-			if (std::get<2>(outgoing_damage[i]) < agent->Observation()->GetGameLoop())
+			if (outgoing_attacks[i].frame_of_hit < agent->Observation()->GetGameLoop())
 			{
-				outgoing_damage.erase(outgoing_damage.begin() + i);
+				outgoing_attacks.erase(outgoing_attacks.begin() + i);
 				i--;
 			}
 		}
 
-		for (const auto damage : outgoing_damage)
+		for (const auto damage : outgoing_attacks)
 		{
-			enemy_unit_hp[std::get<0>(damage)] = enemy_unit_hp[std::get<0>(damage)] - std::get<1>(damage);
+			enemy_unit_hp[damage.target] = enemy_unit_hp[damage.target] - damage.damage;
 		}
 	}
 
@@ -558,12 +586,19 @@ namespace sc2 {
 		}
 	}
 
+	// return false if unit1 is higher priority
 	bool EnemyMinHeap::TestOrder(EnemyUnitInfo* unit1, EnemyUnitInfo* unit2)
 	{
 		if (unit1->priority < unit2->priority)
 			return false;
 		if (unit2->priority < unit1->priority)
 			return true;
+
+		/*if (unit1->dps / unit1->health > unit2->dps / unit2->health)
+			return false;
+		if (unit2->dps / unit2->health > unit1->dps / unit1->health)
+			return true;*/
+
 		if (unit1->total_damage_possible >= unit1->health)
 		{
 			if (unit2->total_damage_possible >= unit2->health)

@@ -570,6 +570,179 @@ int Utility::GetDamage(const Unit* attacker, const Unit* target, const Observati
 
 }
 
+int Utility::GetDPS(const Unit* attacker)
+{
+	int upgrade_level = attacker->attack_upgrade_level;
+
+	switch (attacker->unit_type.ToType())
+	{
+	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
+		return 22.4;
+	case UNIT_TYPEID::PROTOSS_PROBE:
+		return 5;
+		break;
+	case UNIT_TYPEID::PROTOSS_ZEALOT:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_ADEPT:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_ARCHON:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_IMMORTAL:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_COLOSSUS:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_PHOENIX:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_VOIDRAY: // TODO prismatic alignment
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_ORACLE:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_CARRIER:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_TEMPEST: // TODO techtonic destabilizers
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS: // terran
+		return 1;
+		break;
+	case UNIT_TYPEID::TERRAN_MISSILETURRET:
+		return 1;
+		break;
+	case UNIT_TYPEID::TERRAN_SCV:
+		return 1;
+		break;
+	case UNIT_TYPEID::TERRAN_MARINE:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_MARAUDER:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_REAPER:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_GHOST:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_HELLION: // TODO blue flame
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_HELLIONTANK:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_SIEGETANK:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_CYCLONE:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_THOR:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_THORAP:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_AUTOTURRET:
+		return 1;
+		break;
+	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_LIBERATOR:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_LIBERATORAG:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_BANSHEE:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_SPINECRAWLER: // zerg
+		return 1;
+		break;
+	case UNIT_TYPEID::ZERG_SPORECRAWLER:
+		return 1;
+		break;
+	case UNIT_TYPEID::ZERG_DRONE:
+		return 1;
+		break;
+	case UNIT_TYPEID::ZERG_QUEEN:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_ZERGLING:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_BANELING:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_ROACH:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_RAVAGER:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_HYDRALISK:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_LURKERMP:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_ULTRALISK:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_MUTALISK:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_CORRUPTOR:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_BROODLORD:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_LOCUSTMP:
+		return 1 + (upgrade_level * 1);
+		break;
+	case UNIT_TYPEID::ZERG_BROODLING:
+		return 1 + (upgrade_level * 1);
+		break;
+	default:
+		std::cout << "Error invalid unit type in GetDamage\n";
+		return 0;
+	}
+}
+
 int Utility::GetArmor(const Unit* unit)
 {
 	if (unit->shield > 0)

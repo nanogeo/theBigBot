@@ -48,6 +48,7 @@ public:
 	static int DangerLevel(const Unit *, const ObservationInterface*);
 	static int DangerLevelAt(const Unit *, Point2D, const ObservationInterface*);
 	static int GetDamage(const Unit*, const Unit*, const ObservationInterface*);
+	static int GetDPS(const Unit*);
 	static int GetArmor(const Unit*);
 	static int GetCargoSize(const Unit*);
 	static float GetRange(const Unit *);

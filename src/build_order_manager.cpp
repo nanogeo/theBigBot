@@ -1079,14 +1079,19 @@ bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
 
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
-	agent->Debug()->DebugCreateUnit(STALKER, agent->locations->attack_path[0], 1, 11);
+	agent->Debug()->DebugCreateUnit(STALKER, agent->locations->attack_path[0], 1, 20);
 	agent->Debug()->DebugCreateUnit(MARINE, agent->locations->attack_path[2], 2, 15);
+	agent->Debug()->DebugCreateUnit(MARAUDER, agent->locations->attack_path[2], 2, 4);
+	agent->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, agent->locations->attack_path[2], 2, 1);
+	agent->Debug()->DebugGiveAllUpgrades();
 	return true;
 }
 
 bool BuildOrderManager::AttackLine(BuildOrderResultArgData data)
 {
 	ArmyGroup* army = new ArmyGroup(agent, agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Self)), agent->locations->attack_path_line);
+	army->standby_pos = agent->locations->attack_path[0];
+	army->using_standby = true;
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionAttackLine, new ActionArgData(army)));
 	return true;
 }

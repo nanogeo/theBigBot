@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
 
 		coordinator.SetParticipants({
             CreateParticipant(sc2::Race::Protoss, &bot1),
-			CreateParticipant(sc2::Race::Protoss, &bot2)
+            CreateParticipant(sc2::Race::Protoss, &bot2)
 			});
 		coordinator.SetRealtime(true);
 

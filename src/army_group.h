@@ -42,11 +42,15 @@ public:
 	Units new_units;
 
 	std::map<const Unit*, bool> attack_status;
+	Units possibly_confused_units;
 
 	std::vector<Point2D> attack_path;
 	int current_attack_index;
 	int high_ground_index;
 	PathManager attack_path_line;
+
+	Point2D concave_origin = Point2D(0, 0);
+	std::map<const Unit*, Point2D> unit_position_asignments;
 
 	bool using_standby = false;
 	Point2D standby_pos;
@@ -87,7 +91,8 @@ public:
 	void MicroUnits();
 
 	void AttackLine(float);
-	void FindUnitPositions(Units, float, std::map<const Unit*, Point2D>&, std::map<const Unit*, Point2D>&);
+	void FindUnitPositions(Units, float);
+	void FindReadyUnits(Units, Units&, Units&);
 
 
 	void AutoAddNewUnits(std::vector<UNIT_TYPEID>);
