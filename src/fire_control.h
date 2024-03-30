@@ -16,6 +16,14 @@ struct FriendlyUnitInfo
 {
 	const Unit* unit;
 	std::vector<EnemyUnitInfo*> units_in_range;
+	bool operator>(const FriendlyUnitInfo& rhs) const
+	{
+		return this->units_in_range.size() > rhs.units_in_range.size();
+	}
+	bool operator<(const FriendlyUnitInfo& rhs) const
+	{
+		return this->units_in_range.size() < rhs.units_in_range.size();
+	}
 };
 
 struct EnemyUnitInfo
@@ -26,6 +34,80 @@ struct EnemyUnitInfo
 	int health;
 	int total_damage_possible;
 	float dps;
+
+	// > mean lower priority
+	bool operator>(const EnemyUnitInfo& rhs) const
+	{
+		if (this->priority < rhs.priority)
+			return false;
+		if (rhs.priority < this->priority)
+			return true;
+
+		/*if (this->dps / this->health > rhs.dps / rhs.health)
+			return false;
+		if (rhs.dps / rhs.health > this->dps / this->health)
+			return true;*/
+
+		if (this->total_damage_possible >= this->health)
+		{
+			if (rhs.total_damage_possible >= rhs.health)
+			{
+				if (this->units_in_range.size() == rhs.units_in_range.size())
+				{
+					return this->health / (this->unit->health_max + this->unit->shield_max) > rhs.health / (rhs.unit->health_max + rhs.unit->shield_max);
+				}
+				return this->units_in_range.size() < rhs.units_in_range.size();
+			}
+			return false;
+		}
+		else if (rhs.total_damage_possible >= rhs.health)
+		{
+			return true;
+		}
+
+		if (this->units_in_range.size() == rhs.units_in_range.size())
+		{
+			return this->health / (this->unit->health_max + this->unit->shield_max) > rhs.health / (rhs.unit->health_max + rhs.unit->shield_max);
+		}
+		return this->units_in_range.size() < rhs.units_in_range.size();
+	}
+
+	// < mean higher priority
+	bool operator<(const EnemyUnitInfo& rhs) const
+	{
+		if (rhs.priority < this->priority)
+			return false;
+		if (this->priority < rhs.priority)
+			return true;
+
+		/*if (rhs.dps / rhs.health > this->dps / this->health)
+			return false;
+		if (this->dps / this->health > rhs.dps / rhs.health)
+			return true;*/
+
+		if (rhs.total_damage_possible >= rhs.health)
+		{
+			if (this->total_damage_possible >= this->health)
+			{
+				if (rhs.units_in_range.size() == this->units_in_range.size())
+				{
+					return rhs.health / (rhs.unit->health_max + rhs.unit->shield_max) > this->health / (this->unit->health_max + this->unit->shield_max);
+				}
+				return rhs.units_in_range.size() < this->units_in_range.size();
+			}
+			return false;
+		}
+		else if (this->total_damage_possible >= this->health)
+		{
+			return true;
+		}
+
+		if (rhs.units_in_range.size() == this->units_in_range.size())
+		{
+			return rhs.health / (rhs.unit->health_max + rhs.unit->shield_max) > this->health / (this->unit->health_max + this->unit->shield_max);
+		}
+		return rhs.units_in_range.size() < this->units_in_range.size();
+	}
 };
 
 struct OutgoingDamage
@@ -94,39 +176,40 @@ public:
 
 };
 
-class EnemyMinHeap
+template <class T>
+class MinHeap
 {
 public:
-	std::vector<EnemyUnitInfo*> arr;
+	std::vector<T> arr;
 	int size;
 	int capacity;
 
-	EnemyMinHeap(int);
+	MinHeap(int);
 	int Parent(int);
 	int LeftChild(int);
 	int RightChild(int);
-	EnemyUnitInfo* GetMin();
-	void Insert(EnemyUnitInfo*);
+	T GetMin();
+	void Insert(T);
 	void Heapify(int);
 	void DeleteMinimum();
 	void DeleteElement(int);
 	void DecreaseKey(int);
-	bool TestOrder(EnemyUnitInfo*, EnemyUnitInfo*);
 };
 
-class FriendlyMinHeap
+template <class T>
+class MinHeap<T*>
 {
 public:
-	std::vector<FriendlyUnitInfo*> arr;
+	std::vector<T*> arr;
 	int size;
 	int capacity;
 
-	FriendlyMinHeap(int);
+	MinHeap(int);
 	int Parent(int);
 	int LeftChild(int);
 	int RightChild(int);
-	FriendlyUnitInfo* GetMin();
-	void Insert(FriendlyUnitInfo*);
+	T* GetMin();
+	void Insert(T*);
 	void Heapify(int);
 	void DeleteMinimum();
 	void DeleteElement(int);

@@ -8,7 +8,6 @@
 
 
 
-
 namespace sc2 {
 
 	FireControl::FireControl(TossBot* agent, std::map<const Unit*, Units> units, std::vector<UNIT_TYPEID> priority)
@@ -183,7 +182,8 @@ namespace sc2 {
 #endif
 
 		// order enemy units by number of friendly units that can hit them
-		EnemyMinHeap enemy_units_ordered = EnemyMinHeap(enemy_units.size());
+		MinHeap<EnemyUnitInfo*> enemy_units_ordered = MinHeap<EnemyUnitInfo*>(enemy_units.size());
+		//EnemyMinHeap enemy_units_ordered = EnemyMinHeap(enemy_units.size());
 		for (const auto &unit : enemy_units)
 		{
 			enemy_units_ordered.Insert(unit);
@@ -203,7 +203,7 @@ namespace sc2 {
 			//{
 				// order friendly units that can hit the current enemy unit by number of enemies they can hit
 				// ApplyAttack
-				FriendlyMinHeap friendly_units_ordered = FriendlyMinHeap(current_enemy->units_in_range.size());
+				MinHeap<FriendlyUnitInfo*> friendly_units_ordered = MinHeap<FriendlyUnitInfo*>(current_enemy->units_in_range.size());
 				for (const auto &unit : current_enemy->units_in_range)
 				{
 					friendly_units_ordered.Insert(unit);
@@ -295,11 +295,8 @@ namespace sc2 {
 		float total_damage = health + shields;
 		for (int i = 0; i < outgoing_attacks.size(); i++)
 		{
-			if (outgoing_attacks[i].target == unit)
+			if (outgoing_attacks[i].target == unit && outgoing_attacks[i].confirmend)
 			{
-				if (outgoing_attacks[i].confirmend != true)
-					std::cout << "unconfirmed attack" << std::endl;
-
 				if (total_damage == outgoing_attacks[i].damage)
 				{
 					outgoing_attacks.erase(outgoing_attacks.begin() + i);
@@ -325,10 +322,8 @@ namespace sc2 {
 		enemy_unit_hp.erase(unit);
 		for(int i = 0; i < outgoing_attacks.size(); i++)
 		{
-			if (outgoing_attacks[i].target == unit)
+			if (outgoing_attacks[i].target)
 			{
-				if (outgoing_attacks[i].confirmend != true)
-					std::cout << "unconfirmed attack" << std::endl;
 				outgoing_attacks.erase(outgoing_attacks.begin() + i);
 				i--;
 			}
@@ -454,310 +449,145 @@ namespace sc2 {
 
 #pragma endregion
 
-#pragma region EnemyMinHeap
-
-	EnemyMinHeap::EnemyMinHeap(int capacity) {
-		arr.reserve(capacity);
-		this->capacity = capacity;
-		size = 0;
-	}
-
-	int EnemyMinHeap::Parent(int i) {
-		return (i - 1) / 2;
-	}
-
-	int EnemyMinHeap::LeftChild(int i) {
-		return (2 * i + 1);
-	}
-
-	int EnemyMinHeap::RightChild(int i) {
-		return (2 * i + 2);
-	}
-
-	EnemyUnitInfo* EnemyMinHeap::GetMin() {
-		return arr[0];
-	}
-
-	void EnemyMinHeap::Insert(EnemyUnitInfo* element) {
-		if (size == capacity) {
-			std::cout << "Cannot insert. Heap is already full!\n";
-			return;
-		}
-		// We can add it. Increase the size and add it to the end
-		size++;
-		arr.push_back(element);
-
-		// Keep swapping until we reach the root
-		int curr = size - 1;
-		// As long as you aren't in the root node, and while the 
-		// parent of the last element is greater than it
-		while (curr > 0 && TestOrder(arr[Parent(curr)], arr[curr])) {
-			// Swap
-			EnemyUnitInfo* temp = arr[Parent(curr)];
-			arr[Parent(curr)] = arr[curr];
-			arr[curr] = temp;
-			// Update the current index of element
-			curr = Parent(curr);
-		}
-	}
-
-	void EnemyMinHeap::Heapify(int index) {
-		// Rearranges the heap as to maintain
-		// the min-heap property
-		if (size <= 1)
-			return;
-
-		int left = LeftChild(index);
-		int right = RightChild(index);
-
-		// Variable to get the smallest element of the subtree
-		// of an element an index
-		int smallest = index;
-
-		// If the left child is smaller than this element, it is
-		// the smallest
-		if (left < size && TestOrder(arr[index], arr[left]))
-			smallest = left;
-
-		// Similarly for the right, but we are updating the smallest element
-		// so that it will definitely give the least element of the subtree
-		if (right < size && TestOrder(arr[smallest], arr[right]))
-			smallest = right;
-
-		// Now if the current element is not the smallest,
-		// swap with the current element. The min heap property
-		// is now satisfied for this subtree. We now need to
-		// recursively keep doing this until we reach the root node,
-		// the point at which there will be no change!
-		if (smallest != index)
-		{
-			EnemyUnitInfo* temp = arr[index];
-			arr[index] = arr[smallest];
-			arr[smallest] = temp;
-			Heapify(smallest);
-		}
-	}
-
-	void EnemyMinHeap::DeleteMinimum() {
-		// Deletes the minimum element, at the root
-		if (size == 0)
-			return;
-
-		EnemyUnitInfo* last_element = arr[size - 1];
-
-		// Update root value with the last element
-		arr[0] = last_element;
-
-		arr.pop_back();
-		size--;
-
-		Heapify(0);
-	}
-
-	void EnemyMinHeap::DeleteElement(int index) {
-		// Deletes an element, indexed by index
-		// Ensure that it's lesser than the current root
-		arr[index]->units_in_range.clear();
-
-		// Now keep swapping, until we update the tree
-		int curr = index;
-		while (curr > 0 && TestOrder(arr[Parent(curr)], arr[curr])) {
-			EnemyUnitInfo* temp = arr[Parent(curr)];
-			arr[Parent(curr)] = arr[curr];
-			arr[curr] = temp;
-			curr = Parent(curr);
-		}
-
-		// Now simply delete the minimum element
-		DeleteMinimum();
-	}
-
-	// Decreases value of key at index 'i' to new_val.  It is assumed that
-	// new_val is smaller than harr[i].
-	void EnemyMinHeap::DecreaseKey(int index)
-	{
-		//arr[index].id = new_val;
-		while (index != 0 && TestOrder(arr[Parent(index)], arr[index]))
-		{
-			EnemyUnitInfo* temp = arr[Parent(index)];
-			arr[Parent(index)] = arr[index];
-			arr[index] = temp;
-			index = Parent(index);
-		}
-	}
-
-	// return false if unit1 is higher priority
-	bool EnemyMinHeap::TestOrder(EnemyUnitInfo* unit1, EnemyUnitInfo* unit2)
-	{
-		if (unit1->priority < unit2->priority)
-			return false;
-		if (unit2->priority < unit1->priority)
-			return true;
-
-		/*if (unit1->dps / unit1->health > unit2->dps / unit2->health)
-			return false;
-		if (unit2->dps / unit2->health > unit1->dps / unit1->health)
-			return true;*/
-
-		if (unit1->total_damage_possible >= unit1->health)
-		{
-			if (unit2->total_damage_possible >= unit2->health)
-			{
-				if (unit1->units_in_range.size() == unit2->units_in_range.size())
-				{
-					return unit1->health > unit2->health;
-				}
-				return unit1->units_in_range.size() > unit2->units_in_range.size();
-			}
-			return false;
-		}
-		else if (unit2->total_damage_possible >= unit2->health)
-		{
-			return true;
-		}
-
-		if (unit1->units_in_range.size() == unit2->units_in_range.size())
-		{
-			return unit1->health > unit2->health;
-		}
-		return unit1->units_in_range.size() > unit2->units_in_range.size();
-
-	}
-
-#pragma endregion
-
-#pragma region FriendlyMinHeap
-
-	FriendlyMinHeap::FriendlyMinHeap(int capacity) {
-		arr.reserve(capacity);
-		this->capacity = capacity;
-		size = 0;
-	}
-
-	int FriendlyMinHeap::Parent(int i) {
-		return (i - 1) / 2;
-	}
-
-	int FriendlyMinHeap::LeftChild(int i) {
-		return (2 * i + 1);
-	}
-
-	int FriendlyMinHeap::RightChild(int i) {
-		return (2 * i + 2);
-	}
-
-	FriendlyUnitInfo* FriendlyMinHeap::GetMin() {
-		return arr[0];
-	}
-
-	void FriendlyMinHeap::Insert(FriendlyUnitInfo* element) {
-		if (size == capacity) {
-			std::cout << "Cannot insert. Heap is already full!\n";
-			return;
-		}
-		// We can add it. Increase the size and add it to the end
-		size++;
-		arr.push_back(element);
-
-		// Keep swapping until we reach the root
-		int curr = size - 1;
-		// As long as you aren't in the root node, and while the 
-		// parent of the last element is greater than it
-		while (curr > 0 && arr[Parent(curr)]->units_in_range.size() > arr[curr]->units_in_range.size()) {
-			// Swap
-			FriendlyUnitInfo* temp = arr[Parent(curr)];
-			arr[Parent(curr)] = arr[curr];
-			arr[curr] = temp;
-			// Update the current index of element
-			curr = Parent(curr);
-		}
-	}
-
-	void FriendlyMinHeap::Heapify(int index) {
-		// Rearranges the heap as to maintain
-		// the min-heap property
-		if (size <= 1)
-			return;
-
-		int left = LeftChild(index);
-		int right = RightChild(index);
-
-		// Variable to get the smallest element of the subtree
-		// of an element an index
-		int smallest = index;
-
-		// If the left child is smaller than this element, it is
-		// the smallest
-		if (left < size && arr[left]->units_in_range.size() < arr[index]->units_in_range.size())
-			smallest = left;
-
-		// Similarly for the right, but we are updating the smallest element
-		// so that it will definitely give the least element of the subtree
-		if (right < size && arr[right]->units_in_range.size() < arr[smallest]->units_in_range.size())
-			smallest = right;
-
-		// Now if the current element is not the smallest,
-		// swap with the current element. The min heap property
-		// is now satisfied for this subtree. We now need to
-		// recursively keep doing this until we reach the root node,
-		// the point at which there will be no change!
-		if (smallest != index)
-		{
-			FriendlyUnitInfo* temp = arr[index];
-			arr[index] = arr[smallest];
-			arr[smallest] = temp;
-			Heapify(smallest);
-		}
-	}
-
-	void FriendlyMinHeap::DeleteMinimum() {
-		// Deletes the minimum element, at the root
-		if (size == 0)
-			return;
-
-		FriendlyUnitInfo* last_element = arr[size - 1];
-
-		// Update root value with the last element
-		arr[0] = last_element;
-
-		arr.pop_back();
-		size--;
-
-		Heapify(0);
-	}
-
-	void FriendlyMinHeap::DeleteElement(int index) {
-		// Deletes an element, indexed by index
-		// Ensure that it's lesser than the current root
-		arr[index]->units_in_range.clear();
-
-		// Now keep swapping, until we update the tree
-		int curr = index;
-		while (curr > 0 && arr[Parent(curr)]->units_in_range.size() > arr[curr]->units_in_range.size()) {
-			FriendlyUnitInfo* temp = arr[Parent(curr)];
-			arr[Parent(curr)] = arr[curr];
-			arr[curr] = temp;
-			curr = Parent(curr);
-		}
-
-		// Now simply delete the minimum element
-		DeleteMinimum();
-	}
-
-	// Decreases value of key at index 'i' to new_val.  It is assumed that
-	// new_val is smaller than harr[i].
-	void FriendlyMinHeap::DecreaseKey(int index)
-	{
-		//arr[index].id = new_val;
-		while (index != 0 && arr[Parent(index)]->units_in_range.size() > arr[index]->units_in_range.size())
-		{
-			FriendlyUnitInfo* temp = arr[Parent(index)];
-			arr[Parent(index)] = arr[index];
-			arr[index] = temp;
-			index = Parent(index);
-		}
-	}
-
-#pragma endregion
 	
+	template <class T>
+	MinHeap<T*>::MinHeap<T*>(int capacity) {
+		arr.reserve(capacity);
+		this->capacity = capacity;
+		size = 0;
+	}
+
+	template <class T>
+	int MinHeap<T*>::Parent(int i) {
+		return (i - 1) / 2;
+	}
+
+	template <class T>
+	int MinHeap<T*>::LeftChild(int i) {
+		return (2 * i + 1);
+	}
+
+	template <class T>
+	int MinHeap<T*>::RightChild(int i) {
+		return (2 * i + 2);
+	}
+
+	template <class T>
+	T* MinHeap<T*>::GetMin() {
+		return arr[0];
+	}
+
+	template <class T>
+	void MinHeap<T*>::Insert(T* element) {
+		if (size == capacity) {
+			std::cout << "Cannot insert. Heap is already full!\n";
+			return;
+		}
+		// We can add it. Increase the size and add it to the end
+		size++;
+		arr.push_back(element);
+
+		// Keep swapping until we reach the root
+		int curr = size - 1;
+		// As long as you aren't in the root node, and while the 
+		// parent of the last element is greater than it
+		while (curr > 0 && *(arr[Parent(curr)]) > *(arr[curr])) {
+			// Swap
+			T* temp = arr[Parent(curr)];
+			arr[Parent(curr)] = arr[curr];
+			arr[curr] = temp;
+			// Update the current index of element
+			curr = Parent(curr);
+		}
+	}
+
+	template <class T>
+	void MinHeap<T*>::Heapify(int index) {
+		// Rearranges the heap as to maintain
+		// the min-heap property
+		if (size <= 1)
+			return;
+
+		int left = LeftChild(index);
+		int right = RightChild(index);
+
+		// Variable to get the smallest element of the subtree
+		// of an element an index
+		int smallest = index;
+
+		// If the left child is smaller than this element, it is
+		// the smallest
+		if (left < size && *(arr[index]) > *(arr[left]))
+			smallest = left;
+
+		// Similarly for the right, but we are updating the smallest element
+		// so that it will definitely give the least element of the subtree
+		if (right < size && *(arr[smallest]) > *(arr[right]))
+			smallest = right;
+
+		// Now if the current element is not the smallest,
+		// swap with the current element. The min heap property
+		// is now satisfied for this subtree. We now need to
+		// recursively keep doing this until we reach the root node,
+		// the point at which there will be no change!
+		if (smallest != index)
+		{
+			T* temp = arr[index];
+			arr[index] = arr[smallest];
+			arr[smallest] = temp;
+			Heapify(smallest);
+		}
+	}
+
+	template <class T>
+	void MinHeap<T*>::DeleteMinimum() {
+		// Deletes the minimum element, at the root
+		if (size == 0)
+			return;
+
+		T* last_element = arr[size - 1];
+
+		// Update root value with the last element
+		arr[0] = last_element;
+
+		arr.pop_back();
+		size--;
+
+		Heapify(0);
+	}
+
+	template <class T>
+	void MinHeap<T*>::DeleteElement(int index) {
+		// Deletes an element, indexed by index
+		// Ensure that it's lesser than the current root
+		arr[index]->units_in_range.clear();
+
+		// Now keep swapping, until we update the tree
+		int curr = index;
+		while (curr > 0 && *(arr[Parent(curr)]) > *(arr[curr])) {
+			T* temp = arr[Parent(curr)];
+			arr[Parent(curr)] = arr[curr];
+			arr[curr] = temp;
+			curr = Parent(curr);
+		}
+
+		// Now simply delete the minimum element
+		DeleteMinimum();
+	}
+
+	// Decreases value of key at index 'i' to new_val.  It is assumed that
+	// new_val is smaller than harr[i].
+	template <class T>
+	void MinHeap<T*>::DecreaseKey(int index)
+	{
+		//arr[index].id = new_val;
+		while (index != 0 && *(arr[Parent(index)]) > *(arr[index]))
+		{
+			T* temp = arr[Parent(index)];
+			arr[Parent(index)] = arr[index];
+			arr[index] = temp;
+			index = Parent(index);
+		}
+	}
+
 }
