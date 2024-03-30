@@ -43,7 +43,9 @@ public:
 	static Units CloserThan(Units, float, Point2D);
 	static bool HasBuff(const Unit*, BUFF_ID);
 	static Point2D Center(Units);
+	static Point2D Center(std::vector<Point2D>);
 	static Point2D MedianCenter(Units);
+	static Point2D MedianCenter(std::vector<Point2D>);
 	static Point2D PointBetween(Point2D, Point2D, float);
 	static int DangerLevel(const Unit *, const ObservationInterface*);
 	static int DangerLevelAt(const Unit *, Point2D, const ObservationInterface*);
@@ -78,6 +80,170 @@ public:
 	static std::string UnitTypeIdToString(UNIT_TYPEID);
 	static std::string AbilityIdToString(ABILITY_ID);
 
+};
+
+template <class T>
+class MinHeap
+{
+public:
+	std::vector<T> arr;
+	int size;
+	int capacity;
+
+	MinHeap(int);
+	int Parent(int);
+	int LeftChild(int);
+	int RightChild(int);
+	T GetMin();
+	void Insert(T);
+	void Heapify(int);
+	void DeleteMinimum();
+	void DeleteElement(int);
+	void DecreaseKey(int);
+};
+
+template <class T>
+class MinHeap<T*>
+{
+public:
+	std::vector<T*> arr;
+	int size;
+	int capacity;
+
+	MinHeap(int capacity) {
+		arr.reserve(capacity);
+		this->capacity = capacity;
+		size = 0;
+	};
+	int Parent(int i) {
+		return (i - 1) / 2;
+	};
+	int LeftChild(int i) {
+		return (2 * i + 1);
+	};
+	int RightChild(int i) {
+		return (2 * i + 2);
+	};
+	T* GetMin() {
+		return arr[0];
+	};
+	void Insert(T* element) {
+		if (size == capacity) {
+			std::cout << "Cannot insert. Heap is already full!\n";
+			return;
+		}
+		// We can add it. Increase the size and add it to the end
+		size++;
+		arr.push_back(element);
+
+		// Keep swapping until we reach the root
+		int curr = size - 1;
+		// As long as you aren't in the root node, and while the 
+		// parent of the last element is greater than it
+		while (curr > 0 && *(arr[Parent(curr)]) > *(arr[curr])) {
+			// Swap
+			T* temp = arr[Parent(curr)];
+			arr[Parent(curr)] = arr[curr];
+			arr[curr] = temp;
+			// Update the current index of element
+			curr = Parent(curr);
+		}
+	};
+	void Heapify(int index) {
+		// Rearranges the heap as to maintain
+		// the min-heap property
+		if (size <= 1)
+			return;
+
+		int left = LeftChild(index);
+		int right = RightChild(index);
+
+		// Variable to get the smallest element of the subtree
+		// of an element an index
+		int smallest = index;
+
+		// If the left child is smaller than this element, it is
+		// the smallest
+		if (left < size && *(arr[index]) > *(arr[left]))
+			smallest = left;
+
+		// Similarly for the right, but we are updating the smallest element
+		// so that it will definitely give the least element of the subtree
+		if (right < size && *(arr[smallest]) > *(arr[right]))
+			smallest = right;
+
+		// Now if the current element is not the smallest,
+		// swap with the current element. The min heap property
+		// is now satisfied for this subtree. We now need to
+		// recursively keep doing this until we reach the root node,
+		// the point at which there will be no change!
+		if (smallest != index)
+		{
+			T* temp = arr[index];
+			arr[index] = arr[smallest];
+			arr[smallest] = temp;
+			Heapify(smallest);
+		}
+	};
+	void DeleteMinimum() {
+		// Deletes the minimum element, at the root
+		if (size == 0)
+			return;
+
+		T* last_element = arr[size - 1];
+
+		// Update root value with the last element
+		arr[0] = last_element;
+
+		arr.pop_back();
+		size--;
+
+		Heapify(0);
+	};
+	void DeleteElement(int index) {
+		// Deletes an element, indexed by index
+		// Ensure that it's lesser than the current root
+		arr[index]->units_in_range.clear();
+
+		// Now keep swapping, until we update the tree
+		int curr = index;
+		while (curr > 0 && *(arr[Parent(curr)]) > *(arr[curr])) {
+			T* temp = arr[Parent(curr)];
+			arr[Parent(curr)] = arr[curr];
+			arr[curr] = temp;
+			curr = Parent(curr);
+		}
+
+		// Now simply delete the minimum element
+		DeleteMinimum();
+	};
+	void DecreaseKey(int index)
+	{
+		//arr[index].id = new_val;
+		while (index != 0 && *(arr[Parent(index)]) > *(arr[index]))
+		{
+			T* temp = arr[Parent(index)];
+			arr[Parent(index)] = arr[index];
+			arr[index] = temp;
+			index = Parent(index);
+		}
+	};
+};
+
+
+struct OrderedPoint2D : Point2D
+{
+	OrderedPoint2D(Point2D point)
+	{
+		x = point.x;
+		y = point.y;
+	}
+	bool operator<(const OrderedPoint2D& rhs) const
+	{
+		if (x == rhs.x)
+			return x < rhs.x;
+		return y < rhs.y;
+	}
 };
 
 }

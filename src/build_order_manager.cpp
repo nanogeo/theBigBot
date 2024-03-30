@@ -1080,8 +1080,9 @@ bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
 	agent->Debug()->DebugCreateUnit(STALKER, agent->locations->attack_path[0], 1, 10);
-	agent->Debug()->DebugCreateUnit(MARINE, agent->locations->attack_path[2], 2, 5);
-	agent->Debug()->DebugCreateUnit(MARAUDER, agent->locations->attack_path[2], 2, 2);
+	agent->Debug()->DebugCreateUnit(PRISM, agent->locations->attack_path[0], 1, 2);
+	agent->Debug()->DebugCreateUnit(MARINE, agent->locations->attack_path[2], 2, 8);
+	agent->Debug()->DebugCreateUnit(MARAUDER, agent->locations->attack_path[2], 2, 6);
 	//agent->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, agent->locations->attack_path[2], 2, 1);
 	agent->Debug()->DebugGiveAllUpgrades();
 	return true;

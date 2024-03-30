@@ -265,6 +265,19 @@ Point2D Utility::Center(Units units)
 	return total / units.size();
 }
 
+Point2D Utility::Center(std::vector<Point2D> points)
+{
+	if (points.size() == 0)
+		return Point2D(0, 0);
+
+	Point2D total = Point2D(0, 0);
+	for (const auto& point : points)
+	{
+		total += point;
+	}
+	return total / points.size();
+}
+
 Point2D Utility::MedianCenter(Units units)
 {
 	if (units.size() == 0)
@@ -288,6 +301,42 @@ Point2D Utility::MedianCenter(Units units)
 			for (const auto &unit : units)
 			{
 				new_distance += Distance2D(unit->pos, new_guess);
+			}
+			if (new_distance < distance)
+			{
+				guess = new_guess;
+				distance = new_distance;
+				done = false;
+				break;
+			}
+		}
+	}
+	return guess;
+}
+
+Point2D Utility::MedianCenter(std::vector<Point2D> points)
+{
+	if (points.size() == 0)
+		return Point2D(0, 0);
+	Point2D guess = Center(points);
+	bool done = false;
+	std::vector<Point2D> tests = { Point2D(0, 1), Point2D(1, 0), Point2D(0, -1), Point2D(-1, 0) };
+	float distance = 0;
+	for (const auto& point : points)
+	{
+		distance += Distance2D(point, guess);
+	}
+
+	while (!done)
+	{
+		done = true;
+		for (const auto& test : tests)
+		{
+			Point2D new_guess = guess + test;
+			float new_distance = 0;
+			for (const auto& point : points)
+			{
+				new_distance += Distance2D(point, new_guess);
 			}
 			if (new_distance < distance)
 			{
@@ -2442,6 +2491,7 @@ std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
 		break;
 	}
 }
+
 
 
 }

@@ -176,44 +176,4 @@ public:
 
 };
 
-template <class T>
-class MinHeap
-{
-public:
-	std::vector<T> arr;
-	int size;
-	int capacity;
-
-	MinHeap(int);
-	int Parent(int);
-	int LeftChild(int);
-	int RightChild(int);
-	T GetMin();
-	void Insert(T);
-	void Heapify(int);
-	void DeleteMinimum();
-	void DeleteElement(int);
-	void DecreaseKey(int);
-};
-
-template <class T>
-class MinHeap<T*>
-{
-public:
-	std::vector<T*> arr;
-	int size;
-	int capacity;
-
-	MinHeap(int);
-	int Parent(int);
-	int LeftChild(int);
-	int RightChild(int);
-	T* GetMin();
-	void Insert(T*);
-	void Heapify(int);
-	void DeleteMinimum();
-	void DeleteElement(int);
-	void DecreaseKey(int);
-};
-
 }

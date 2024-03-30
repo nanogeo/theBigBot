@@ -16,6 +16,32 @@ namespace sc2
 
 class TossBot;
 
+struct UnitDanger
+{
+	int unit_prio;
+	float damage_value;
+	UnitDanger() {}
+	UnitDanger(int unit_prio, float damage_value)
+	{
+		this->unit_prio = unit_prio;
+		this->damage_value = damage_value;
+	}
+	// is this higher prio than rhs
+	bool operator<(const UnitDanger& rhs) const
+	{
+		if (unit_prio == rhs.unit_prio)
+			return damage_value > rhs.damage_value;
+		return unit_prio < rhs.unit_prio;
+	}
+	// is this lower prio than rhs
+	bool operator>(const UnitDanger& rhs) const
+	{
+		if (unit_prio == rhs.unit_prio)
+			return damage_value < rhs.damage_value;
+		return unit_prio > rhs.unit_prio;
+	}
+};
+
 class ArmyGroup
 {
 public:
@@ -73,6 +99,7 @@ public:
 	void RemoveUnit(const Unit* unit);
 
 	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float, float);
+	std::vector<Point2D> FindConcaveWithPrism(Point2D, Point2D, int, int, float, float, float, std::vector<Point2D>&);
 	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);
 	bool TestSwap(Point2D, Point2D, Point2D, Point2D);
 	std::map<const Unit*, Point2D> AssignUnitsToPositions(Units, std::vector<Point2D>);
@@ -91,10 +118,10 @@ public:
 	void MicroUnits();
 
 	void AttackLine(float);
-	void FindUnitPositions(Units, float);
+	void FindUnitPositions(Units, Units, float);
 	void FindReadyUnits(Units, Units&, Units&);
 	void MicroReadyUnits(Units, std::vector<UNIT_TYPEID>, float, int);
-	std::map<const Unit*, int> MicroNonReadyUnits(Units);
+	std::vector<std::pair<const Unit*, UnitDanger>> MicroNonReadyUnits(Units);
 
 
 	void AutoAddNewUnits(std::vector<UNIT_TYPEID>);

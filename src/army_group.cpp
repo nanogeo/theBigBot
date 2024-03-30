@@ -390,6 +390,206 @@ namespace sc2 {
 		return concave_points;
 	}
 
+	std::vector<Point2D> ArmyGroup::FindConcaveWithPrism(Point2D origin, Point2D fallback_point, int num_units, int num_prisms, float unit_size, float dispersion, float concave_degree, std::vector<Point2D>& prism_positions)
+	{
+		float range = 0; //r
+		float unit_radius = unit_size + dispersion; //u
+		//float concave_degree = 30; //p
+		int max_width = 4;
+
+		Point2D backward_vector = fallback_point - origin;
+		Point2D forward_vector = origin - fallback_point;
+		forward_vector /= sqrt(forward_vector.x * forward_vector.x + forward_vector.y * forward_vector.y);
+
+		Point2D offset_circle_center = Point2D(origin.x + concave_degree * forward_vector.x, origin.y + concave_degree * forward_vector.y);
+
+		float backwards_direction = atan2(backward_vector.y, backward_vector.x);
+		float arclength = (2 * unit_radius) / (range + concave_degree + unit_radius);
+
+		std::vector<Point2D> concave_points;
+
+		int row = 0;
+
+		while (concave_points.size() < num_units)
+		{
+			row++;
+			// even row
+			bool left_limit = false;
+			bool right_limit = false;
+			float arclength = (2 * unit_radius) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+			for (float i = .5; i <= max_width - .5; i += 1)
+			{
+				if (!right_limit)
+				{
+					float unit_direction = backwards_direction + i * arclength;
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					if (agent->Observation()->IsPathable(unit_position))
+					{
+						concave_points.push_back(unit_position);
+					}
+					else
+					{
+						right_limit = true;
+					}
+				}
+				if ((right_limit && left_limit) || concave_points.size() >= num_units)
+					break;
+
+				if (!left_limit)
+				{
+					float unit_direction = backwards_direction - i * arclength;
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					if (agent->Observation()->IsPathable(unit_position))
+					{
+						concave_points.push_back(unit_position);
+					}
+					else
+					{
+						left_limit = true;
+					}
+				}
+				if ((right_limit && left_limit) || concave_points.size() >= num_units)
+					break;
+			}
+			if (concave_points.size() >= num_units)
+			{
+				// find prism positions
+				row++;
+				float offset = .5;
+				if (num_prisms % 2 == 1)
+				{
+					// middle point
+					float unit_direction = backwards_direction;
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					if (agent->Observation()->IsPathable(unit_position))
+					{
+						prism_positions.push_back(unit_position);
+					}
+					offset = 1;
+				}
+
+				arclength = (2 * unit_radius * ((6 / num_prisms) - .5)) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+				for (float i = offset; i <= std::ceil((num_prisms / 2) - offset); i += 1)
+				{
+					// right position
+					{
+						float unit_direction = backwards_direction + i * arclength;
+						Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+							offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+
+						prism_positions.push_back(unit_position);
+					}
+
+					// left position
+					{
+						float unit_direction = backwards_direction - i * arclength;
+						Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+							offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+
+						prism_positions.push_back(unit_position);
+					}
+				}
+				break;
+			}
+
+			// odd row
+			row++;
+			// middle point
+			float unit_direction = backwards_direction;
+			Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+				offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+			if (agent->Observation()->IsPathable(unit_position))
+			{
+				concave_points.push_back(unit_position);
+			}
+
+			left_limit = false;
+			right_limit = false;
+			arclength = (2 * unit_radius) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+			for (int i = 1; i <= max_width - 1; i++)
+			{
+				if (!right_limit)
+				{
+					float unit_direction = backwards_direction + i * arclength;
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					if (agent->Observation()->IsPathable(unit_position))
+					{
+						concave_points.push_back(unit_position);
+					}
+					else
+					{
+						right_limit = true;
+					}
+				}
+				if ((right_limit && left_limit) || concave_points.size() >= num_units)
+					break;
+
+				if (!left_limit)
+				{
+					float unit_direction = backwards_direction - i * arclength;
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					if (agent->Observation()->IsPathable(unit_position))
+					{
+						concave_points.push_back(unit_position);
+					}
+					else
+					{
+						left_limit = true;
+					}
+				}
+				if ((right_limit && left_limit) || concave_points.size() >= num_units)
+					break;
+			}
+			if (concave_points.size() >= num_units)
+			{
+				// find prism positions
+				row++;
+				float offset = .5;
+				if (num_prisms % 2 == 1)
+				{
+					// middle point
+					float unit_direction = backwards_direction;
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					if (agent->Observation()->IsPathable(unit_position))
+					{
+						prism_positions.push_back(unit_position);
+					}
+					offset = 1;
+				}
+
+				arclength = (2 * unit_radius * ((6 / num_prisms) - .5)) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+				for (float i = offset; i <= std::ceil((num_prisms / 2) - offset); i += 1)
+				{
+					// right position
+					{
+						float unit_direction = backwards_direction + i * arclength;
+						Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+							offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+
+						prism_positions.push_back(unit_position);
+					}
+
+					// left position
+					{
+						float unit_direction = backwards_direction - i * arclength;
+						Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+							offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+
+						prism_positions.push_back(unit_position);
+					}
+				}
+				break;
+			}
+		}
+		return concave_points;
+	}
+
 	std::vector<Point2D> ArmyGroup::FindConcaveFromBack(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
 	{
 		Point2D current_origin = origin;
@@ -415,14 +615,41 @@ namespace sc2 {
 
 	std::map<const Unit*, Point2D> ArmyGroup::AssignUnitsToPositions(Units units, std::vector<Point2D> positions)
 	{
+		Point2D center_units = Utility::MedianCenter(units);
+		Point2D center_positions = Utility::MedianCenter(positions);
+
+		std::map<const Unit*, Point2D> relative_unit_position;
+		std::map<OrderedPoint2D, Point2D> relative_position_positions;
+
+		for (const auto& unit : units)
+		{
+			relative_unit_position[unit] = unit->pos - center_units;
+		}
+		for (const auto& position : positions)
+		{
+			relative_position_positions[position] = position - center_positions;
+		}
+
 		std::map<const Unit*, Point2D> unit_assignments;
 		for (const auto &unit : units)
 		{
-			Point2D closest = Utility::ClosestTo(positions, unit->pos);
-			unit_assignments[unit] = closest;
-			positions.erase(std::remove(positions.begin(), positions.end(), closest), positions.end());
+			Point2D relative_pos = relative_unit_position[unit];
+			Point2D current_closest;
+			float current_distance = INFINITY;
+			for (const auto& relative_point : relative_position_positions)
+			{
+				float distance = Distance2D(relative_pos, relative_point.second);
+				if (distance < current_distance)
+				{
+					current_closest = relative_point.first;
+					current_distance = distance;
+				}
+			}
+
+			unit_assignments[unit] = current_closest;
+			relative_position_positions.erase(current_closest);
 		}
-		for (int i = 0; i < units.size() - 1; i++)
+		/*for (int i = 0; i < units.size() - 1; i++)
 		{
 			for (int j = i + 1; j < units.size(); j++)
 			{
@@ -433,7 +660,7 @@ namespace sc2 {
 					unit_assignments[units[j]] = temp;
 				}
 			}
-		}
+		}*/
 		return unit_assignments;
 	}
 
@@ -1053,11 +1280,19 @@ namespace sc2 {
 			}
 		}
 
+		Units prisms;
+		std::vector<UNIT_TYPEID> types = { PRISM, PRISM_SIEGED };
+		for (const auto& unit : all_units)
+		{
+			if (std::find(types.begin(), types.end(), unit->unit_type) != types.end())
+				prisms.push_back(unit);
+		}
+
 		if (current_units.size() == 0)
 			return;
 
 
-		FindUnitPositions(current_units, dispersion);
+		FindUnitPositions(current_units, prisms, dispersion);
 
 
 		for (const auto& pos : agent->locations->attack_path_line.GetPoints())
@@ -1080,16 +1315,52 @@ namespace sc2 {
 		std::vector<UNIT_TYPEID> target_priority = { SIEGE_TANK_SIEGED };
 		
 		MicroReadyUnits(units_ready, target_priority, percent_units_needed, current_units.size());
-		std::map<const Unit*, int> units_requesting_pickup = MicroNonReadyUnits(units_not_ready);
+		std::vector<std::pair<const Unit*, UnitDanger>> units_requesting_pickup = MicroNonReadyUnits(units_not_ready);
 
-		//if (warp_prisms.size() > 0)
-		//{
+		if (warp_prisms.size() > 0)
+		{
+			for (const auto& prism : warp_prisms)
+			{
+				agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, unit_position_asignments[prism]);
+				agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism->pos);
+			}
 
-		//}
+			// order units by priority
+			std::sort(units_requesting_pickup.begin(), units_requesting_pickup.end(),
+				[](const std::pair<const Unit*, UnitDanger> a, const std::pair<const Unit*, UnitDanger> b) -> bool
+			{
+				return a.second < b.second;
+			});
+
+			std::map<const Unit*, int> prism_additional_cargo;
+			for (const auto& prism : warp_prisms)
+			{
+				prism_additional_cargo[prism] = 0;
+			}
+			for (const auto& request : units_requesting_pickup)
+			{
+				bool unit_found_space = false;
+				for (const auto& prism : warp_prisms)
+				{
+					int size = Utility::GetCargoSize(request.first);
+					int necessary_space = std::max(size, request.second.unit_prio * 2);
+					if (8 - (prism->cargo_space_taken + prism_additional_cargo[prism]) >= necessary_space)
+					{
+						unit_found_space = true;
+						agent->Actions()->UnitCommand(request.first, ABILITY_ID::SMART, prism);
+						prism_additional_cargo[prism] = prism_additional_cargo[prism] + size;
+						break;
+					}
+				}
+				if (unit_found_space == false)
+					break;
+			}
+
+		}
 
 	}
 
-	void ArmyGroup::FindUnitPositions(Units units, float dispersion)
+	void ArmyGroup::FindUnitPositions(Units units, Units prisms, float dispersion)
 	{
 		float unit_size = .625; // TODO figure this out by the larget unit in current_units?
 
@@ -1134,7 +1405,7 @@ namespace sc2 {
 		}
 
 		// do we need new position assignments
-		if (unit_position_asignments.size() == units.size())
+		if (unit_position_asignments.size() == units.size() + prisms.size())
 		{
 			float total_dist = 0;
 			for (const auto& pos : unit_position_asignments)
@@ -1163,10 +1434,25 @@ namespace sc2 {
 		}
 		concave_origin = new_origin;
 		float concave_degree = (5 * avg_distance) + 4;
-		std::vector<Point2D> concave_positions = FindConcave(concave_origin, (2 * concave_origin) - concave_target, units.size(), unit_size, dispersion, concave_degree);
+		if (prisms.size() > 0)
+		{
+			std::vector<Point2D> prism_positions;
+			std::vector<Point2D> concave_positions = FindConcaveWithPrism(concave_origin, (2 * concave_origin) - concave_target, units.size(), prisms.size(), unit_size, dispersion, concave_degree, prism_positions);
 
+			unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
 
-		unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
+			std::map<const Unit*, Point2D> prism_position_assignments = AssignUnitsToPositions(prisms, prism_positions);
+			for (const auto& assignment : prism_position_assignments)
+			{
+				unit_position_asignments[assignment.first] = assignment.second;
+			}
+		}
+		else
+		{
+			std::vector<Point2D> concave_positions = FindConcave(concave_origin, (2 * concave_origin) - concave_target, units.size(), unit_size, dispersion, concave_degree);
+
+			unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
+		}
 
 
 	}
@@ -1238,16 +1524,33 @@ namespace sc2 {
 		}
 	}
 
-	std::map<const Unit*, int> ArmyGroup::MicroNonReadyUnits(Units units)
+	std::vector<std::pair<const Unit*, UnitDanger>> ArmyGroup::MicroNonReadyUnits(Units units)
 	{
-		std::map<const Unit*, int> incoming_damage;
+		std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage;
 		for (const auto& unit : units)
 		{
 			if (attack_status[unit] == false)
 			{
 				float damage = agent->IncomingDamage(unit);
 				if (damage > 0)
-					incoming_damage[unit] = damage;
+				{
+					float shield_damage = std::min(damage, unit->shield);
+					float health_damage = damage - shield_damage;
+					float total_damage = shield_damage + ((health_damage / unit->health) * unit->health_max * 1.5);
+					int prio = 3;
+					if (health_damage >= unit->health)
+						prio = 1;
+					else if (total_damage > 40)
+						prio = 2;
+					incoming_damage.push_back(std::pair<const Unit*, UnitDanger>(unit, UnitDanger(prio, total_damage)));
+				}
+				else if (using_standby)
+				{
+					if (unit->shield == 0 && unit->health / unit->health_max < .5) // TODO this threshold should be passed in
+					{
+						incoming_damage.push_back(std::pair<const Unit*, UnitDanger>(unit, UnitDanger(0, 4)));
+					}
+				}
 
 				// no order but no danger so just move forward
 				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
