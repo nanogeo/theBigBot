@@ -228,7 +228,7 @@ namespace sc2 {
 			).count();
 #endif
 
-		FriendlyMinHeap friendly_units_ordered = FriendlyMinHeap(friendly_units.size());
+		MinHeap<FriendlyUnitInfo*>  friendly_units_ordered = MinHeap<FriendlyUnitInfo*>(friendly_units.size());
 		for (const auto &unit : friendly_units)
 		{
 			friendly_units_ordered.Insert(unit);
