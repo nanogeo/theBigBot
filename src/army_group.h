@@ -72,7 +72,7 @@ public:
 	void AddNewUnit(const Unit* unit);
 	void RemoveUnit(const Unit* unit);
 
-	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float);
+	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float, float);
 	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);
 	bool TestSwap(Point2D, Point2D, Point2D, Point2D);
 	std::map<const Unit*, Point2D> AssignUnitsToPositions(Units, std::vector<Point2D>);
@@ -93,6 +93,8 @@ public:
 	void AttackLine(float);
 	void FindUnitPositions(Units, float);
 	void FindReadyUnits(Units, Units&, Units&);
+	void MicroReadyUnits(Units, std::vector<UNIT_TYPEID>, float, int);
+	std::map<const Unit*, int> MicroNonReadyUnits(Units);
 
 
 	void AutoAddNewUnits(std::vector<UNIT_TYPEID>);

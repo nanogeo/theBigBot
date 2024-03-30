@@ -708,7 +708,7 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 
 
 	std::vector<Point2D> attack_concave_positions = army->FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, army->stalkers.size(), .625, unit_dispersion);
-	std::vector<Point2D> retreat_concave_positions = army->FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, army->stalkers.size(), .625, unit_dispersion);
+	std::vector<Point2D> retreat_concave_positions = army->FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, army->stalkers.size(), .625, unit_dispersion, 30);
 
 	std::map<const Unit*, Point2D> attack_unit_positions = army->AssignUnitsToPositions(army->stalkers, attack_concave_positions);
 	std::map<const Unit*, Point2D> retreat_unit_positions = army->AssignUnitsToPositions(army->stalkers, retreat_concave_positions);
@@ -1266,7 +1266,7 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 
 
 	std::vector<Point2D> attack_concave_positions = army->FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, army->stalkers.size(), .625, 0);
-	std::vector<Point2D> retreat_concave_positions = army->FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, army->stalkers.size(), .625, 0);
+	std::vector<Point2D> retreat_concave_positions = army->FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, army->stalkers.size(), .625, 0, 30);
 
 	std::map<const Unit*, Point2D> attack_unit_positions = army->AssignUnitsToPositions(army->stalkers, attack_concave_positions);
 	std::map<const Unit*, Point2D> retreat_unit_positions = army->AssignUnitsToPositions(army->stalkers, retreat_concave_positions);
@@ -1301,7 +1301,7 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 bool ActionManager::ActionAttackLine(ActionArgData* data)
 {
 	ArmyGroup* army = data->army_group;
-	army->AttackLine(.2);
+	army->AttackLine(0);
 	return false;
 }
 

@@ -269,11 +269,11 @@ namespace sc2 {
 		units->erase(std::remove(units->begin(), units->end(), unit), units->end());
 	}
 
-	std::vector<Point2D> ArmyGroup::FindConcave(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
+	std::vector<Point2D> ArmyGroup::FindConcave(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion, float concave_degree)
 	{
 		float range = 0; //r
 		float unit_radius = unit_size + dispersion; //u
-		float concave_degree = 30; //p
+		//float concave_degree = 30; //p
 		int max_width = 4;
 
 		Point2D backward_vector = fallback_point - origin;
@@ -397,7 +397,7 @@ namespace sc2 {
 		while (true)
 		{
 			tries++;
-			std::vector<Point2D> concave_points = FindConcave(current_origin, fallback_point, num_units, unit_size, dispersion);
+			std::vector<Point2D> concave_points = FindConcave(current_origin, fallback_point, num_units, unit_size, dispersion, 30);
 			Point2D furthest_back = Utility::ClosestPointOnLine(concave_points.back(), origin, fallback_point);
 			if (Distance2D(origin, fallback_point) < Distance2D(furthest_back, fallback_point))
 				return concave_points;
@@ -559,7 +559,7 @@ namespace sc2 {
 
 
 		std::vector<Point2D> attack_concave_positions = FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, stalkers.size(), .625, unit_dispersion);
-		std::vector<Point2D> retreat_concave_positions = FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, stalkers.size(), .625, unit_dispersion);
+		std::vector<Point2D> retreat_concave_positions = FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, stalkers.size(), .625, unit_dispersion, 30);
 
 		attacking_unit_positions = AssignUnitsToPositions(stalkers, attack_concave_positions);
 		retreating_unit_positions = AssignUnitsToPositions(stalkers, retreat_concave_positions);
@@ -1078,72 +1078,14 @@ namespace sc2 {
 
 		float percent_units_needed = .25;
 		std::vector<UNIT_TYPEID> target_priority = { SIEGE_TANK_SIEGED };
-		// if enough units can attack something
-		if (static_cast<float>(units_ready.size()) / static_cast<float>(current_units.size()) >= percent_units_needed)
-		{
-			// find targets for each unit
-			std::map<const Unit*, const Unit*> found_targets = persistent_fire_control.FindAttacks(units_ready, target_priority, 0);
-			if (found_targets.size() > 0)
-			{
-				std::cout << "ready: " << units_ready.size() << std::endl;
-				std::cout << "shots: " << found_targets.size() << std::endl;
-			}
-			for (const auto& attack : found_targets)
-			{
-				std::cout << attack.first->tag << " attacking " << attack.second->tag << std::endl;
-			}
-			for (const auto& unit : units_ready)
-			{
-				if (found_targets.count(unit) > 0)
-				{
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, found_targets[unit]);
-					if (attack_status[unit])
-						std::cout << unit->tag << " second attack order given" << std::endl;
-					attack_status[unit] = true;
-				}
-				else // if a unit has no target, keep advancing
-				{
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
-				}
-			}
-		}
-		else
-		{
-			for (const auto& unit : units_ready)
-			{
-				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
-			}
-		}
+		
+		MicroReadyUnits(units_ready, target_priority, percent_units_needed, current_units.size());
+		std::map<const Unit*, int> units_requesting_pickup = MicroNonReadyUnits(units_not_ready);
 
-		for (const auto& unit : units_not_ready)
-		{
-			if (attack_status[unit] == false)
-			{
-				// no order but no danger so just move forward
-				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
-				if (using_standby)
-				{
-					if (unit->shield == 0)
-					{
-						standby_units.push_back(unit);
-						agent->Actions()->UnitCommand(unit, ABILITY_ID::EFFECT_BLINK, standby_pos);
-						agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, standby_pos, true);
-					}
-				}
-			}
-			else if (unit->weapon_cooldown > 0)
-			{
-				// attack has gone off so reset order status
-				std::cout << unit->tag << " attacked " << unit->engaged_target_tag << std::endl;
-				persistent_fire_control.ConfirmAttack(unit, agent->Observation()->GetUnit(unit->engaged_target_tag));
-				attack_status[unit] = false;
-			}
-			//else if (unit->orders.size() == 0/* || unit->orders[0].ability_id == ABILITY_ID::MOVE_MOVE || unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE*/)
-			//{
-			//	// attack order is no longer valid
-			//	attack_status[unit] = false;
-			//}
-		}
+		//if (warp_prisms.size() > 0)
+		//{
+
+		//}
 
 	}
 
@@ -1161,6 +1103,7 @@ namespace sc2 {
 		// find concave target
 		Units close_enemies = Utility::NClosestUnits(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), concave_origin, 5);
 
+		float avg_distance = 0;
 		for (int i = 0; i < close_enemies.size(); i++)
 		{
 			if (Distance2D(concave_origin, close_enemies[i]->pos) > 12)
@@ -1168,18 +1111,26 @@ namespace sc2 {
 				close_enemies.erase(close_enemies.begin() + i);
 				i--;
 			}
+			else
+			{
+				avg_distance += Distance2D(concave_origin, close_enemies[i]->pos);
+			}
 		}
+
 		Point2D concave_target;
 		float max_range;
 		if (close_enemies.size() > 0)
 		{
 			concave_target = Utility::MedianCenter(close_enemies);
 			max_range = std::min(Utility::GetMaxRange(close_enemies) + 2, 6.0f); // dont retreat so far when fighting low range enemies
+			avg_distance /= close_enemies.size();
 		}
 		else
 		{
 			concave_target = attack_path_line.GetPointFrom(concave_origin, 8, true); // default target is 8 units in front of army center
 			max_range = 6;
+			avg_distance = 5;
+
 		}
 
 		// do we need new position assignments
@@ -1199,7 +1150,8 @@ namespace sc2 {
 		}
 
 		// move concave forward
-		Point2D new_origin = attack_path_line.GetPointFrom(concave_origin, 2, true);
+		Point2D new_origin = attack_path_line.GetPointFrom(concave_origin, 1, true);
+
 		if (Distance2D(concave_origin, concave_target) - 2 < Distance2D(concave_origin, new_origin) || Distance2D(concave_origin, concave_target) < Distance2D(new_origin, concave_target))
 		{
 			if (Distance2D(concave_origin, concave_target) < Distance2D(concave_origin, new_origin))
@@ -1210,55 +1162,13 @@ namespace sc2 {
 			return;
 		}
 		concave_origin = new_origin;
-		std::vector<Point2D> concave_positions = FindConcave(concave_origin, (2 * concave_origin) - concave_target, units.size(), unit_size, dispersion);
+		float concave_degree = (5 * avg_distance) + 4;
+		std::vector<Point2D> concave_positions = FindConcave(concave_origin, (2 * concave_origin) - concave_target, units.size(), unit_size, dispersion, concave_degree);
 
 
 		unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
 
 
-		/*float unit_size = .625; // TODO figure this out by the larget unit in current_units?
-
-		Point2D army_center = Utility::MedianCenter(units);
-		Point2D army_line_pos = attack_path_line.FindClosestPoint(army_center);
-
-		// center of 5 closest enemies within 12 will be concave target
-		Units close_enemies = Utility::NClosestUnits(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), army_center, 5);
-
-		for (int i = 0; i < close_enemies.size(); i++)
-		{
-			if (Distance2D(army_center, close_enemies[i]->pos) > 12)
-			{
-				close_enemies.erase(close_enemies.begin() + i);
-				i--;
-			}
-		}
-		Point2D concave_target;
-		float max_range;
-		if (close_enemies.size() > 0)
-		{
-			concave_target = Utility::MedianCenter(close_enemies);
-			max_range = std::min(Utility::GetMaxRange(close_enemies) + 2, 6.0f); // dont retreat so far when fighting low range enemies
-		}
-		else
-		{
-			concave_target = attack_path_line.GetPointFrom(army_line_pos, 8, true); // default target is 8 units in front of army center
-			max_range = 6;
-		}
-
-		Point2D retreat_concave_origin = attack_path_line.GetPointFrom(concave_target, max_range, false);
-		if (retreat_concave_origin == Point2D(0, 0))
-			retreat_concave_origin = attack_path_line.GetPointFrom(army_line_pos, 2 * (unit_size + dispersion), false);
-
-		//Point2D bla = Utility::NthClosestTo(units, concave_target, 5)->pos;
-		//Point2D attack_concave_origin = attack_path_line.GetPointFrom(attack_path_line.FindClosestPoint(bla), 2 * (unit_size + dispersion), true);
-		Point2D attack_concave_origin = attack_path_line.GetPointFrom(army_line_pos, 2 * (unit_size + dispersion), true); // TODO figure out how to use the above
-
-
-		std::vector<Point2D> attack_concave_positions = FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, units.size(), unit_size, dispersion);
-		std::vector<Point2D> retreat_concave_positions = FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, units.size(), unit_size, dispersion);
-
-		attack_unit_positions = AssignUnitsToPositions(units, attack_concave_positions);
-		retreat_unit_positions = AssignUnitsToPositions(units, retreat_concave_positions);*/
 	}
 
 	void ArmyGroup::FindReadyUnits(Units units, Units& units_ready, Units& units_not_ready)
@@ -1297,6 +1207,74 @@ namespace sc2 {
 		}
 	}
 
+	void ArmyGroup::MicroReadyUnits(Units units, std::vector<UNIT_TYPEID> target_priority, float percent_needed, int total_units)
+	{
+		// if enough units can attack something
+		if (static_cast<float>(units.size()) / static_cast<float>(total_units) >= percent_needed)
+		{
+			// find targets for each unit
+			std::map<const Unit*, const Unit*> found_targets = persistent_fire_control.FindAttacks(units, target_priority, 0);
+			for (const auto& unit : units)
+			{
+				if (found_targets.count(unit) > 0)
+				{
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, found_targets[unit]);
+					if (attack_status[unit])
+						std::cout << unit->tag << " second attack order given" << std::endl;
+					attack_status[unit] = true;
+				}
+				else // if a unit has no target, keep advancing
+				{
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+				}
+			}
+		}
+		else
+		{
+			for (const auto& unit : units)
+			{
+				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+			}
+		}
+	}
+
+	std::map<const Unit*, int> ArmyGroup::MicroNonReadyUnits(Units units)
+	{
+		std::map<const Unit*, int> incoming_damage;
+		for (const auto& unit : units)
+		{
+			if (attack_status[unit] == false)
+			{
+				float damage = agent->IncomingDamage(unit);
+				if (damage > 0)
+					incoming_damage[unit] = damage;
+
+				// no order but no danger so just move forward
+				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+				if (using_standby)
+				{
+					if (unit->shield == 0 && unit->health / unit->health_max < .5)
+					{
+						standby_units.push_back(unit);
+						agent->Actions()->UnitCommand(unit, ABILITY_ID::EFFECT_BLINK, standby_pos);
+						agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, standby_pos, true);
+					}
+				}
+			}
+			else if (unit->weapon_cooldown > 0)
+			{
+				// attack has gone off so reset order status
+				persistent_fire_control.ConfirmAttack(unit, agent->Observation()->GetUnit(unit->engaged_target_tag));
+				attack_status[unit] = false;
+			} // TODO maybe reimplement this if necessary
+			//else if (unit->orders.size() == 0/* || unit->orders[0].ability_id == ABILITY_ID::MOVE_MOVE || unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE*/)
+			//{
+			//	// attack order is no longer valid
+			//	attack_status[unit] = false;
+			//}
+		}
+		return incoming_damage;
+	}
 
 	void ArmyGroup::AutoAddNewUnits(std::vector<UNIT_TYPEID> unit_types)
 	{
