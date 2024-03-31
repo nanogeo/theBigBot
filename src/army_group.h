@@ -86,6 +86,7 @@ public:
 	int high_ground_index;
 	PathManager attack_path_line;
 
+	bool advancing = true;
 	Point2D concave_origin = Point2D(0, 0);
 	std::map<const Unit*, Point2D> unit_position_asignments;
 
@@ -132,10 +133,11 @@ public:
 	void MicroUnits();
 
 	void AttackLine(float);
-	void FindUnitPositions(Units, Units, float);
+	void FindUnitPositions(Units, Units, float, float);
 	void FindReadyUnits(Units, Units&, Units&);
 	void MicroReadyUnits(Units, std::vector<UNIT_TYPEID>, float, int);
 	std::vector<std::pair<const Unit*, UnitDanger>> MicroNonReadyUnits(Units);
+	void MicroWarpPrisms(std::vector<std::pair<const Unit*, UnitDanger>>);
 
 
 	void AutoAddNewUnits(std::vector<UNIT_TYPEID>);

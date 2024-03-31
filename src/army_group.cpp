@@ -1272,7 +1272,7 @@ namespace sc2 {
 			return;
 
 
-		FindUnitPositions(current_units, warp_prisms, dispersion);
+		FindUnitPositions(current_units, warp_prisms, dispersion, 6);
 
 
 		for (const auto& pos : agent->locations->attack_path_line.GetPoints())
@@ -1297,98 +1297,34 @@ namespace sc2 {
 		MicroReadyUnits(units_ready, target_priority, percent_units_needed, current_units.size());
 		std::vector<std::pair<const Unit*, UnitDanger>> units_requesting_pickup = MicroNonReadyUnits(units_not_ready);
 
-		if (warp_prisms.size() > 0)
+		MicroWarpPrisms(units_requesting_pickup);
+
+
+		if (using_standby)
 		{
-			for (const auto& prism : warp_prisms)
+			for (const auto& unit : standby_units)
 			{
-				agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, unit_position_asignments[prism]);
-				agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism);
-			}
-
-			for (auto cargo = units_in_cargo.begin(); cargo != units_in_cargo.end();)
-			{
-				if (cargo->second.confirmed == false)
+				bool in_cargo = false;
+				for (const auto& cargo : units_in_cargo)
 				{
-					bool unit_found = false;
-					for (const auto& prism : warp_prisms)
+					if (cargo.first == unit)
 					{
-						for (const auto& passanger : prism->passengers)
-						{
-							if (cargo->first->tag == passanger.tag)
-							{
-								cargo->second.confirmed = true;
-								unit_found = true;
-								break;
-							}
-						}
-						if (unit_found)
-							break;
-					}
-					cargo++;
-				}
-				else
-				{
-					bool unit_found = false;
-					for (const auto& prism : warp_prisms)
-					{
-						for (const auto& passanger : prism->passengers)
-						{
-							if (cargo->first->tag == passanger.tag)
-							{
-								unit_found = true;
-								break;
-							}
-						}
-						if (unit_found)
-							break;
-					}
-					if (!unit_found)
-					{
-						prism_cargo[cargo->second.prism] -= Utility::GetCargoSize(cargo->first);
-						units_in_cargo.erase(cargo++);
-					}
-					else
-					{
-						cargo++;
-					}
-				}
-			}
-
-			// order units by priority
-			std::sort(units_requesting_pickup.begin(), units_requesting_pickup.end(),
-				[](const std::pair<const Unit*, UnitDanger> a, const std::pair<const Unit*, UnitDanger> b) -> bool
-			{
-				return a.second < b.second;
-			});
-
-			for (const auto& request : units_requesting_pickup)
-			{
-				bool unit_found_space = false;
-				for (const auto& prism : warp_prisms)
-				{
-					int size = Utility::GetCargoSize(request.first);
-					int necessary_space = std::max(size, request.second.unit_prio * 2);
-					if (8 - (prism_cargo[prism]) >= necessary_space)
-					{
-						unit_found_space = true;
-						agent->Actions()->UnitCommand(request.first, ABILITY_ID::SMART, prism);
-						units_in_cargo[request.first] = PrismCargo(prism);
-						prism_cargo[prism] += size;
+						in_cargo = true;
 						break;
 					}
 				}
-				if (unit_found_space == false)
-					break;
-			}
+				if (!in_cargo)
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, standby_pos);
 
+			}
 		}
 
 	}
 
-	void ArmyGroup::FindUnitPositions(Units units, Units prisms, float dispersion)
+	void ArmyGroup::FindUnitPositions(Units units, Units prisms, float dispersion, float target_range)
 	{
 		float unit_size = .625; // TODO figure this out by the larget unit in current_units?
-
+		target_range += unit_size;
 		// first concave origin can just be the closest points on the line
 		if (concave_origin == Point2D(0, 0))
 		{
@@ -1429,34 +1365,62 @@ namespace sc2 {
 
 		}
 
-		// do we need new position assignments
-		if (unit_position_asignments.size() == units.size() + prisms.size())
+		Point2D new_origin;
+
+		// too far away
+		if (Distance2D(concave_origin, concave_target) > target_range + .1)
 		{
-			float total_dist = 0;
-			for (const auto& pos : unit_position_asignments)
+			// if were already advancing and we have the correct number of points then check if we need a new concave
+			if (advancing && unit_position_asignments.size() == units.size() + prisms.size())
 			{
-				// maybe ignore very far off units
-				total_dist += Distance2D(pos.first->pos, pos.second);
+				float total_dist = 0;
+				for (const auto& pos : unit_position_asignments)
+				{
+					// maybe ignore very far off units
+					total_dist += Distance2D(pos.first->pos, pos.second);
+				}
+				if (total_dist / units.size() > 1)
+				{
+					// units are far away on average so dont make new concave
+					return;
+				}
 			}
-			if (total_dist / units.size() > 1)
+			// need a new concave
+			float dist_to_move_origin = std::min(1.0f, Distance2D(concave_origin, concave_target) - target_range);
+			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, true);
+
+		} // too close
+		else if (Distance2D(concave_origin, concave_target) < target_range - .1)
+		{
+
+			// if were already retreating and we have the correct number of points then check if we need a new concave
+			if (!advancing && unit_position_asignments.size() == units.size() + prisms.size())
 			{
-				// units are far away on average so dont make new concave
-				return;
+				float total_dist = 0;
+				for (const auto& pos : unit_position_asignments)
+				{
+					// maybe ignore very far off units
+					total_dist += Distance2D(pos.first->pos, pos.second);
+				}
+				if (total_dist / units.size() > 1)
+				{
+					// units are far away on average so dont make new concave
+					return;
+				}
 			}
+			// need a new concave
+			float dist_to_move_origin = std::min(1.0f, target_range - Distance2D(concave_origin, concave_target));
+			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, false);
+
 		}
-
-		// move concave forward
-		Point2D new_origin = attack_path_line.GetPointFrom(concave_origin, 1, true);
-
-		if (Distance2D(concave_origin, concave_target) - 2 < Distance2D(concave_origin, new_origin) || Distance2D(concave_origin, concave_target) < Distance2D(new_origin, concave_target))
+		else // perfect range
 		{
-			if (Distance2D(concave_origin, concave_target) < Distance2D(concave_origin, new_origin))
-			{
-				// move concave back?
-			}
-			// if new origin is past target or further away from the target then dont make a new concave
 			return;
 		}
+
+		if (new_origin == Point2D(0, 0))
+			return;
+
 		concave_origin = new_origin;
 		float concave_degree = (5 * avg_distance) + 4;
 		if (prisms.size() > 0)
@@ -1478,8 +1442,6 @@ namespace sc2 {
 
 			unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
 		}
-
-
 	}
 
 	void ArmyGroup::FindReadyUnits(Units units, Units& units_ready, Units& units_not_ready)
@@ -1571,7 +1533,7 @@ namespace sc2 {
 				}
 				else if (using_standby)
 				{
-					if (unit->shield == 0 && unit->health / unit->health_max < .5) // TODO this threshold should be passed in
+					if ((unit->shield + unit->health) / (unit->shield_max + unit->health_max) < .3) // TODO this threshold should be passed in
 					{
 						incoming_damage.push_back(std::pair<const Unit*, UnitDanger>(unit, UnitDanger(0, 4)));
 					}
@@ -1579,9 +1541,10 @@ namespace sc2 {
 
 				// no order but no danger so just move forward
 				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+
 				if (using_standby)
 				{
-					if (unit->shield == 0 && unit->health / unit->health_max < .5)
+					if ((unit->shield + unit->health) / (unit->shield_max + unit->health_max) < .3) // TODO this threshold should be passed in
 					{
 						standby_units.push_back(unit);
 						agent->Actions()->UnitCommand(unit, ABILITY_ID::EFFECT_BLINK, standby_pos);
@@ -1602,6 +1565,94 @@ namespace sc2 {
 			//}
 		}
 		return incoming_damage;
+	}
+
+	void ArmyGroup::MicroWarpPrisms(std::vector<std::pair<const Unit*, UnitDanger>> units_requesting_pickup)
+	{
+		if (warp_prisms.size() == 0)
+			return;
+
+		for (const auto& prism : warp_prisms)
+		{
+			agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, unit_position_asignments[prism]);
+			agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism);
+		}
+
+		for (auto cargo = units_in_cargo.begin(); cargo != units_in_cargo.end();)
+		{
+			if (cargo->second.confirmed == false)
+			{
+				bool unit_found = false;
+				for (const auto& prism : warp_prisms)
+				{
+					for (const auto& passanger : prism->passengers)
+					{
+						if (cargo->first->tag == passanger.tag)
+						{
+							cargo->second.confirmed = true;
+							unit_found = true;
+							break;
+						}
+					}
+					if (unit_found)
+						break;
+				}
+				cargo++;
+			}
+			else
+			{
+				bool unit_found = false;
+				for (const auto& prism : warp_prisms)
+				{
+					for (const auto& passanger : prism->passengers)
+					{
+						if (cargo->first->tag == passanger.tag)
+						{
+							unit_found = true;
+							break;
+						}
+					}
+					if (unit_found)
+						break;
+				}
+				if (!unit_found)
+				{
+					prism_cargo[cargo->second.prism] -= Utility::GetCargoSize(cargo->first);
+					units_in_cargo.erase(cargo++);
+				}
+				else
+				{
+					cargo++;
+				}
+			}
+		}
+
+		// order units by priority
+		std::sort(units_requesting_pickup.begin(), units_requesting_pickup.end(),
+			[](const std::pair<const Unit*, UnitDanger> a, const std::pair<const Unit*, UnitDanger> b) -> bool
+		{
+			return a.second < b.second;
+		});
+
+		for (const auto& request : units_requesting_pickup)
+		{
+			bool unit_found_space = false;
+			for (const auto& prism : warp_prisms)
+			{
+				int size = Utility::GetCargoSize(request.first);
+				int necessary_space = std::max(size, request.second.unit_prio * 2);
+				if (8 - (prism_cargo[prism]) >= necessary_space)
+				{
+					unit_found_space = true;
+					agent->Actions()->UnitCommand(request.first, ABILITY_ID::SMART, prism);
+					units_in_cargo[request.first] = PrismCargo(prism);
+					prism_cargo[prism] += size;
+					break;
+				}
+			}
+			if (unit_found_space == false)
+				break;
+		}
 	}
 
 	void ArmyGroup::AutoAddNewUnits(std::vector<UNIT_TYPEID> unit_types)
