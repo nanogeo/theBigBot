@@ -649,18 +649,6 @@ namespace sc2 {
 			unit_assignments[unit] = current_closest;
 			relative_position_positions.erase(current_closest);
 		}
-		/*for (int i = 0; i < units.size() - 1; i++)
-		{
-			for (int j = i + 1; j < units.size(); j++)
-			{
-				if (TestSwap(units[i]->pos, unit_assignments[units[i]], units[j]->pos, unit_assignments[units[j]]))
-				{
-					Point2D temp = unit_assignments[units[i]];
-					unit_assignments[units[i]] = unit_assignments[units[j]];
-					unit_assignments[units[j]] = temp;
-				}
-			}
-		}*/
 		return unit_assignments;
 	}
 
@@ -1280,19 +1268,11 @@ namespace sc2 {
 			}
 		}
 
-		Units prisms;
-		std::vector<UNIT_TYPEID> types = { PRISM, PRISM_SIEGED };
-		for (const auto& unit : all_units)
-		{
-			if (std::find(types.begin(), types.end(), unit->unit_type) != types.end())
-				prisms.push_back(unit);
-		}
-
 		if (current_units.size() == 0)
 			return;
 
 
-		FindUnitPositions(current_units, prisms, dispersion);
+		FindUnitPositions(current_units, warp_prisms, dispersion);
 
 
 		for (const auto& pos : agent->locations->attack_path_line.GetPoints())
@@ -1322,7 +1302,56 @@ namespace sc2 {
 			for (const auto& prism : warp_prisms)
 			{
 				agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, unit_position_asignments[prism]);
-				agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism->pos);
+				agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism);
+			}
+
+			for (auto cargo = units_in_cargo.begin(); cargo != units_in_cargo.end();)
+			{
+				if (cargo->second.confirmed == false)
+				{
+					bool unit_found = false;
+					for (const auto& prism : warp_prisms)
+					{
+						for (const auto& passanger : prism->passengers)
+						{
+							if (cargo->first->tag == passanger.tag)
+							{
+								cargo->second.confirmed = true;
+								unit_found = true;
+								break;
+							}
+						}
+						if (unit_found)
+							break;
+					}
+					cargo++;
+				}
+				else
+				{
+					bool unit_found = false;
+					for (const auto& prism : warp_prisms)
+					{
+						for (const auto& passanger : prism->passengers)
+						{
+							if (cargo->first->tag == passanger.tag)
+							{
+								unit_found = true;
+								break;
+							}
+						}
+						if (unit_found)
+							break;
+					}
+					if (!unit_found)
+					{
+						prism_cargo[cargo->second.prism] -= Utility::GetCargoSize(cargo->first);
+						units_in_cargo.erase(cargo++);
+					}
+					else
+					{
+						cargo++;
+					}
+				}
 			}
 
 			// order units by priority
@@ -1332,11 +1361,6 @@ namespace sc2 {
 				return a.second < b.second;
 			});
 
-			std::map<const Unit*, int> prism_additional_cargo;
-			for (const auto& prism : warp_prisms)
-			{
-				prism_additional_cargo[prism] = 0;
-			}
 			for (const auto& request : units_requesting_pickup)
 			{
 				bool unit_found_space = false;
@@ -1344,11 +1368,12 @@ namespace sc2 {
 				{
 					int size = Utility::GetCargoSize(request.first);
 					int necessary_space = std::max(size, request.second.unit_prio * 2);
-					if (8 - (prism->cargo_space_taken + prism_additional_cargo[prism]) >= necessary_space)
+					if (8 - (prism_cargo[prism]) >= necessary_space)
 					{
 						unit_found_space = true;
 						agent->Actions()->UnitCommand(request.first, ABILITY_ID::SMART, prism);
-						prism_additional_cargo[prism] = prism_additional_cargo[prism] + size;
+						units_in_cargo[request.first] = PrismCargo(prism);
+						prism_cargo[prism] += size;
 						break;
 					}
 				}

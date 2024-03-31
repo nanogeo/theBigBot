@@ -42,6 +42,17 @@ struct UnitDanger
 	}
 };
 
+struct PrismCargo
+{
+	const Unit* prism;
+	bool confirmed = false;
+	PrismCargo() {};
+	PrismCargo(const Unit* prism)
+	{
+		this->prism = prism;
+	}
+};
+
 class ArmyGroup
 {
 public:
@@ -77,6 +88,9 @@ public:
 
 	Point2D concave_origin = Point2D(0, 0);
 	std::map<const Unit*, Point2D> unit_position_asignments;
+
+	std::map<const Unit*, int> prism_cargo;
+	std::map<const Unit*, PrismCargo> units_in_cargo;
 
 	bool using_standby = false;
 	Point2D standby_pos;
