@@ -826,10 +826,12 @@ class BlinkStalkerAttackTerranLeaveHighground : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranLeaveHighground(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	Units stalkers_to_blink;
+	BlinkStalkerAttackTerranLeaveHighground(TossBot* agent, BlinkStalkerAttackTerran* state_machine, Units stalkers)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
+		stalkers_to_blink = stalkers;
 	}
 	virtual std::string toString() override;
 	void TickState() override;

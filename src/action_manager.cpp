@@ -1301,7 +1301,7 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 bool ActionManager::ActionAttackLine(ActionArgData* data)
 {
 	ArmyGroup* army = data->army_group;
-	army->AttackLine(0);
+	army->AttackLine(0, 6);
 	return false;
 }
 

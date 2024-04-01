@@ -2447,6 +2447,10 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranWarpIn::TickState()
 	{
+		for (const auto& stalker : state_machine->army_group->stalkers)
+		{
+			agent->Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, state_machine->consolidation_pos);
+		}
 		if (state_machine->warping_in == false && state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)
 		{
 			// try to warp in
@@ -2503,6 +2507,12 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranConsolidate::TickState()
 	{
+		for (const auto& unit : state_machine->army_group->all_units)
+		{
+			if (Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) > 3)
+				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, state_machine->prism_consolidation_pos);
+		}
+
 		if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM && Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 1)
 		{
 			bool gates_almost_ready = true;
@@ -2575,16 +2585,15 @@ namespace sc2 {
 	{
 		if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
 		{
-			bool stalkers_healthy = true;
+			float stalkers_healthy = 0;
 			for (const auto &stalker : state_machine->army_group->stalkers) // TODO change to enough stalkers not all
 			{
-				if (stalker->shield < 70)
+				if (stalker->shield >= 70 && Distance2D(stalker->pos, state_machine->consolidation_pos) < 5)
 				{
-					stalkers_healthy = false;
-					break;
+					stalkers_healthy += 1;
 				}
 			}
-			if (stalkers_healthy)
+			if (stalkers_healthy / state_machine->army_group->stalkers.size() > .5)
 			{
 				if (state_machine->attacking_main)
 					return new BlinkStalkerAttackTerranBlinkUp(agent, state_machine, state_machine->army_group->stalkers);
@@ -2608,12 +2617,29 @@ namespace sc2 {
 	{
 		for (int i = 0; i < stalkers_to_blink.size(); i++)
 		{
-			if (Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_up_pos) < 2)
+			bool blinked = true;
+			for (const auto &ability : agent->Query()->GetAbilitiesForUnit(stalkers_to_blink[i]).abilities)
 			{
-				agent->Actions()->UnitCommand(stalkers_to_blink[i], ABILITY_ID::EFFECT_BLINK, state_machine->blink_down_pos);
+				if (ability.ability_id == ABILITY_ID::EFFECT_BLINK)
+				{
+					blinked = false;
+					break;
+				}
+			}
+			if (blinked)
+			{
 				state_machine->army_group->last_time_blinked[stalkers_to_blink[i]] = agent->Observation()->GetGameLoop();
 				stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
 				i--;
+				continue;
+			}
+			if (Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_up_pos) < 2)
+			{
+				agent->Actions()->UnitCommand(stalkers_to_blink[i], ABILITY_ID::EFFECT_BLINK, state_machine->blink_down_pos);
+			}
+			else
+			{
+				agent->Actions()->UnitCommand(stalkers_to_blink[i], ABILITY_ID::MOVE_MOVE, state_machine->blink_up_pos);
 			}
 		}
 	}
@@ -2626,7 +2652,7 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranBlinkUp::ExitState()
 	{
-
+		state_machine->army_group->standby_pos = state_machine->blink_down_pos;
 	}
 
 	State* BlinkStalkerAttackTerranBlinkUp::TestTransitions()
@@ -2647,7 +2673,7 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranAttack::TickState()
 	{
-		state_machine->army_group->MicroStalkerAttack();
+
 	}
 
 	void BlinkStalkerAttackTerranAttack::EnterState()
@@ -2660,34 +2686,51 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranAttack::ExitState()
 	{
-
+		state_machine->attacking_main = !state_machine->attacking_main;
+		state_machine->army_group->concave_origin = Point2D(0, 0);
 	}
 
 	State* BlinkStalkerAttackTerranAttack::TestTransitions()
 	{
-		bool gates_almost_ready = true;
-		for (const auto &status : agent->warpgate_status)
+		if (state_machine->army_group->AttackLine(.2, 2))
 		{
-			if (status.second.frame_ready > agent->Observation()->GetGameLoop() + 45)
-			{
-				gates_almost_ready = false;
-				break;
-			}
+			if (state_machine->attacking_main)
+				return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine, state_machine->army_group->stalkers);
+			else
+				return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 		}
-		if (gates_almost_ready && agent->Observation()->IsPathable(state_machine->prism->pos) && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, agent->warpgate_status.size() - 1, agent->Observation())) // TODO why check if prism on pathable terrain?
-		{
-			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->prism->pos);
-			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
-		}
+		//bool gates_almost_ready = true;
+		//for (const auto &status : agent->warpgate_status)
+		//{
+		//	if (status.second.frame_ready > agent->Observation()->GetGameLoop() + 45)
+		//	{
+		//		gates_almost_ready = false;
+		//		break;
+		//	}
+		//}
+		//if (gates_almost_ready && agent->Observation()->IsPathable(state_machine->prism->pos) && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, agent->warpgate_status.size() - 1, agent->Observation())) // TODO why check if prism on pathable terrain?
+		//{
+		//	if (state_machine->attacking_main)
+		//	{
+		//		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->blink_up_pos);
+		//		return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine, state_machine->army_group->stalkers);
 
-		int stalkers_ok = 0;
+		//	}
+		//	else
+		//	{
+		//		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->prism->pos);
+		//		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
+		//	}
+		//}
+
+		/*int stalkers_ok = 0;
 		for (const auto &stalker : state_machine->army_group->stalkers)
 		{
 			if (stalker->shield > 20)
 				stalkers_ok++;
 		}
 		if (stalkers_ok < 4)
-			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
+			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);*/
 		return NULL;
 	}
 
@@ -2731,7 +2774,36 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranLeaveHighground::TickState()
 	{
+		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->blink_up_pos);
+		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
 
+		for (int i = 0; i < stalkers_to_blink.size(); i++)
+		{
+			bool blinked = true;
+			for (const auto& ability : agent->Query()->GetAbilitiesForUnit(stalkers_to_blink[i]).abilities)
+			{
+				if (ability.ability_id == ABILITY_ID::EFFECT_BLINK)
+				{
+					blinked = false;
+					break;
+				}
+			}
+			if (blinked)
+			{
+				state_machine->army_group->last_time_blinked[stalkers_to_blink[i]] = agent->Observation()->GetGameLoop();
+				stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
+				i--;
+				continue;
+			}
+			if (Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_down_pos) < 2)
+			{
+				agent->Actions()->UnitCommand(stalkers_to_blink[i], ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos);
+			}
+			else
+			{
+				agent->Actions()->UnitCommand(stalkers_to_blink[i], ABILITY_ID::MOVE_MOVE, state_machine->blink_down_pos);
+			}
+		}
 	}
 
 	void BlinkStalkerAttackTerranLeaveHighground::EnterState()
@@ -2741,11 +2813,13 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranLeaveHighground::ExitState()
 	{
-
+		state_machine->army_group->standby_pos = state_machine->consolidation_pos;
 	}
 
 	State* BlinkStalkerAttackTerranLeaveHighground::TestTransitions()
 	{
+		if (stalkers_to_blink.size() == 0)
+			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 		return NULL;
 	}
 

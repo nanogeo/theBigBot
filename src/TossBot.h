@@ -6,6 +6,7 @@
 #include "utility.h"
 #include "action_manager.h"
 #include "build_order_manager.h"
+#include "definitions.h"
 
 
 #include "sc2api/sc2_interfaces.h"
@@ -170,6 +171,15 @@ private:
 	Unit::Alliance m_type;
 };
 
+struct IsNonbuilding {
+	explicit IsNonbuilding(Unit::Alliance alliance_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	Unit::Alliance m_type;
+};
+
 struct IsNonPlaceholderUnit {
 	explicit IsNonPlaceholderUnit(UNIT_TYPEID type_);
 
@@ -255,6 +265,7 @@ struct WarpgateStatus
 class BlankBot : public sc2::Agent {
 public:
 	BlankBot() : Agent() {};
+	std::map<const Unit*, bool> attacks;
 
 	virtual void OnGameStart()
 	{
@@ -264,6 +275,26 @@ public:
 
 	virtual void OnStep()
 	{
+		for (const auto& unit : Observation()->GetUnits(IsUnit(MARAUDER)))
+		{
+			if (attacks.find(unit) == attacks.end())
+			{
+				attacks[unit] = false;
+			}
+			if (attacks[unit])
+			{
+				if (unit->weapon_cooldown == 0)
+					attacks[unit] = false;
+			}
+			else
+			{
+				if (unit->weapon_cooldown > 0)
+				{
+					attacks[unit] = true;
+					std::cout << "attack launched" << std::endl;
+				}
+			}
+		}
 		/*for (const auto &unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ROACH)))
 		{
 			if (Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)).size() == 0)
@@ -292,7 +323,7 @@ public:
 	WorkerManager worker_manager;
 	ActionManager action_manager;
 	BuildOrderManager build_order_manager;
-    bool debug_mode = true;
+    bool debug_mode = false;
 	int frames_passed = 0;
     ScoutInfoZerg scout_info_zerg;
     ScoutInfoTerran scout_info_terran;

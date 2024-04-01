@@ -3,6 +3,8 @@
 #include <string>
 #include <fstream>
 #include <chrono>
+#include <sstream>
+#include <iomanip>
 
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit_filters.h"
@@ -392,6 +394,7 @@ namespace sc2 {
 
 	std::vector<Point2D> ArmyGroup::FindConcaveWithPrism(Point2D origin, Point2D fallback_point, int num_units, int num_prisms, float unit_size, float dispersion, float concave_degree, std::vector<Point2D>& prism_positions)
 	{
+		float height = agent->ToPoint3D(origin).z;
 		float range = 0; //r
 		float unit_radius = unit_size + dispersion; //u
 		//float concave_degree = 30; //p
@@ -412,6 +415,8 @@ namespace sc2 {
 
 		while (concave_points.size() < num_units)
 		{
+			if (row > 10)
+				return concave_points;
 			row++;
 			// even row
 			bool left_limit = false;
@@ -424,7 +429,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction + i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position))
+					if (agent->Observation()->IsPathable(unit_position) && agent->Observation()->TerrainHeight(unit_position) == height)
 					{
 						concave_points.push_back(unit_position);
 					}
@@ -441,7 +446,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction - i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position))
+					if (agent->Observation()->IsPathable(unit_position) && agent->Observation()->TerrainHeight(unit_position) == height)
 					{
 						concave_points.push_back(unit_position);
 					}
@@ -501,7 +506,7 @@ namespace sc2 {
 			float unit_direction = backwards_direction;
 			Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 				offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-			if (agent->Observation()->IsPathable(unit_position))
+			if (agent->Observation()->IsPathable(unit_position) && agent->Observation()->TerrainHeight(unit_position) == height)
 			{
 				concave_points.push_back(unit_position);
 			}
@@ -516,7 +521,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction + i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position))
+					if (agent->Observation()->IsPathable(unit_position) && agent->Observation()->TerrainHeight(unit_position) == height)
 					{
 						concave_points.push_back(unit_position);
 					}
@@ -533,7 +538,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction - i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position))
+					if (agent->Observation()->IsPathable(unit_position) && agent->Observation()->TerrainHeight(unit_position) == height)
 					{
 						concave_points.push_back(unit_position);
 					}
@@ -633,6 +638,8 @@ namespace sc2 {
 		std::map<const Unit*, Point2D> unit_assignments;
 		for (const auto &unit : units)
 		{
+			if (relative_position_positions.size() == 0)
+				return unit_assignments;
 			Point2D relative_pos = relative_unit_position[unit];
 			Point2D current_closest;
 			float current_distance = INFINITY;
@@ -1244,7 +1251,8 @@ namespace sc2 {
 
 	}
 
-	void ArmyGroup::AttackLine(float dispersion)
+	// returns: 0 - normal operation, 1 - all units dead or in standby
+	int ArmyGroup::AttackLine(float dispersion, float target_range)
 	{
 		// Find current units to micro
 		Units current_units;
@@ -1269,10 +1277,10 @@ namespace sc2 {
 		}
 
 		if (current_units.size() == 0)
-			return;
+			return 1;
 
 
-		FindUnitPositions(current_units, warp_prisms, dispersion, 6);
+		FindUnitPositions(current_units, warp_prisms, dispersion, target_range);
 
 
 		for (const auto& pos : agent->locations->attack_path_line.GetPoints())
@@ -1297,6 +1305,13 @@ namespace sc2 {
 		MicroReadyUnits(units_ready, target_priority, percent_units_needed, current_units.size());
 		std::vector<std::pair<const Unit*, UnitDanger>> units_requesting_pickup = MicroNonReadyUnits(units_not_ready);
 
+		for (const auto& request : units_requesting_pickup)
+		{
+			std::stringstream str;
+			str << request.second.unit_prio << ": " << std::fixed << std::setprecision(1) << request.second.damage_value;
+			agent->Debug()->DebugTextOut(str.str(), request.first->pos, Color(0, 255, 0), 14);
+		}
+
 		MicroWarpPrisms(units_requesting_pickup);
 
 
@@ -1318,7 +1333,7 @@ namespace sc2 {
 
 			}
 		}
-
+		return 0;
 	}
 
 	void ArmyGroup::FindUnitPositions(Units units, Units prisms, float dispersion, float target_range)
@@ -1333,7 +1348,7 @@ namespace sc2 {
 		}
 
 		// find concave target
-		Units close_enemies = Utility::NClosestUnits(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), concave_origin, 5);
+		Units close_enemies = Utility::NClosestUnits(agent->Observation()->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, 5);
 
 		float avg_distance = 0;
 		for (int i = 0; i < close_enemies.size(); i++)
@@ -1362,7 +1377,6 @@ namespace sc2 {
 			concave_target = attack_path_line.GetPointFrom(concave_origin, 8, true); // default target is 8 units in front of army center
 			max_range = 6;
 			avg_distance = 5;
-
 		}
 
 		Point2D new_origin;
@@ -1388,6 +1402,9 @@ namespace sc2 {
 			// need a new concave
 			float dist_to_move_origin = std::min(1.0f, Distance2D(concave_origin, concave_target) - target_range);
 			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, true);
+			// if new origin is further away then ignore it
+			if (Distance2D(concave_origin, concave_target) < Distance2D(new_origin, concave_target))
+				return;
 
 		} // too close
 		else if (Distance2D(concave_origin, concave_target) < target_range - .1)
@@ -1411,6 +1428,9 @@ namespace sc2 {
 			// need a new concave
 			float dist_to_move_origin = std::min(1.0f, target_range - Distance2D(concave_origin, concave_target));
 			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, false);
+			// if new origin is closer then ignore it
+			if (Distance2D(concave_origin, concave_target) > Distance2D(new_origin, concave_target))
+				return;
 
 		}
 		else // perfect range
@@ -1498,7 +1518,10 @@ namespace sc2 {
 				}
 				else // if a unit has no target, keep advancing
 				{
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+					if (unit_position_asignments.find(unit) != unit_position_asignments.end())
+						agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+					else
+						agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit->pos);
 				}
 			}
 		}
@@ -1506,7 +1529,10 @@ namespace sc2 {
 		{
 			for (const auto& unit : units)
 			{
-				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+				if (unit_position_asignments.find(unit) != unit_position_asignments.end())
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+				else
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit->pos);
 			}
 		}
 	}
@@ -1531,16 +1557,20 @@ namespace sc2 {
 						prio = 2;
 					incoming_damage.push_back(std::pair<const Unit*, UnitDanger>(unit, UnitDanger(prio, total_damage)));
 				}
-				else if (using_standby)
-				{
-					if ((unit->shield + unit->health) / (unit->shield_max + unit->health_max) < .3) // TODO this threshold should be passed in
-					{
-						incoming_damage.push_back(std::pair<const Unit*, UnitDanger>(unit, UnitDanger(0, 4)));
-					}
-				}
+				//else if (using_standby)
+				//{
+				//	if ((unit->shield + unit->health) / (unit->shield_max + unit->health_max) < .3) // TODO this threshold should be passed in
+				//	{
+				//		incoming_damage.push_back(std::pair<const Unit*, UnitDanger>(unit, UnitDanger(0, 4)));
+				//	}
+				//}
 
 				// no order but no danger so just move forward
-				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+				if (unit_position_asignments.find(unit) != unit_position_asignments.end())
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+				else
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit->pos);
+
 
 				if (using_standby)
 				{
@@ -1574,7 +1604,11 @@ namespace sc2 {
 
 		for (const auto& prism : warp_prisms)
 		{
-			agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, unit_position_asignments[prism]);
+
+			if (unit_position_asignments.find(prism) != unit_position_asignments.end())
+				agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, unit_position_asignments[prism]);
+			else
+				agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, prism->pos);
 			agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism);
 		}
 
@@ -1637,6 +1671,12 @@ namespace sc2 {
 		for (const auto& request : units_requesting_pickup)
 		{
 			bool unit_found_space = false;
+			if (units_in_cargo.find(request.first) != units_in_cargo.end())
+			{
+				// unit is already being picked up but just in case give the order again
+				agent->Actions()->UnitCommand(request.first, ABILITY_ID::SMART, units_in_cargo[request.first].prism);
+				continue;
+			}
 			for (const auto& prism : warp_prisms)
 			{
 				int size = Utility::GetCargoSize(request.first);

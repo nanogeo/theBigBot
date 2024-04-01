@@ -362,7 +362,6 @@ namespace sc2 {
 				}
 				else
 				{
-					std::cout << attacker->tag << " confirmed attack " << target->tag << std::endl;
 					already_confirmed = true;
 					outgoing_attacks[i].confirmend = true;
 				}

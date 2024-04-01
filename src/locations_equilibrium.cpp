@@ -30,8 +30,8 @@ namespace sc2 {
 
 		nexi_locations = { P(177.5, 119.5),
 							P(184.5, 91.5),
-							P(182.5, 61.5),
 							P(154.5, 100.5),
+							P(182.5, 61.5),
 							P(157.5, 59.5),
 							P(156.5, 34.5),
 							P(128.5, 37.5),
@@ -42,6 +42,7 @@ namespace sc2 {
 							P(179, 64),
 							P(150, 102),
 							P(153, 97),
+							P(183, 88),
 							P(172, 116),
 							P(163, 128),
 							P(189, 98),
@@ -84,8 +85,8 @@ namespace sc2 {
 		assimilator_locations = { P(184.5, 116.5),
 									P(173.5, 126.5),
 									P(191.5, 88.5),
-									P(161.5, 97.5),
 									P(187.5, 84.5),
+									P(161.5, 97.5),
 									P(150.5, 107.5),
 									P(184.5, 68.5),
 									P(184.5, 54.5),
@@ -212,11 +213,11 @@ namespace sc2 {
 		blink_pressure_blink_down = P(64, 111);
 
 
-		blink_nat_attacK_path_line = PathManager({ new LineSegmentLinearX(-.069, 91.04, 57, 72, swap, center_point, true),
-													new LineSegmentCurveX(.04, -4.696, 224.828, 45, 57, swap, center_point, true) }, true, swap);
+		blink_nat_attacK_path_line = PathManager({ new LineSegmentLinearX(-.069, 91.04, 57, 72, swap, center_point, false),
+													new LineSegmentCurveX(.04, -4.696, 224.828, 45, 57, swap, center_point, false) }, true, swap);
 
-		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(-.1, 117.4, 45, 64, swap, center_point, true) }, true, !swap),
-										PathManager({ new LineSegmentCurveY(-.04, 8.88, -428.84, 111, 127, swap, center_point, true) }, false, swap) };
+		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(-.1, 117.4, 45, 64, swap, center_point, false) }, true, swap),
+										PathManager({ new LineSegmentCurveY(-.04, 8.88, -428.84, 111, 127, swap, center_point, false) }, false, true) };
 
 
 	}
