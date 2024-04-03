@@ -448,7 +448,55 @@ Point2D PathManager::GetPointFrom(Point2D point, double dist, bool forward)
 
 std::vector<Point2D> PathManager::GetPoints()
 {
-	int start;
+	Point2D current;
+	if (pos_direction)
+		current = segments[0]->EvaluateAt(segments[0]->GetMin());
+	else
+		current = segments[0]->EvaluateAt(segments[0]->GetMax());
+
+	std::vector<Point2D> points;
+	while (true)
+	{
+		if (x_based)
+		{
+			if (pos_direction)
+			{
+				if (current.x >= segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMax()).x)
+				{
+					break;
+				}
+			}
+			else
+			{
+				if (current.x <= segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMin()).x)
+				{
+					break;
+				}
+			}
+		}
+		else
+		{
+			if (pos_direction)
+			{
+				if (current.y >= segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMax()).y)
+				{
+					break;
+				}
+			}
+			else
+			{
+				if (current.y <= segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMin()).y)
+				{
+					break;
+				}
+			}
+		}
+
+		points.push_back(current);
+		current = GetPointFrom(current, 1, true);
+	}
+
+	/*int start;
 	if (pos_direction)
 		start = ceil(segments[0]->GetMin());
 	else
@@ -474,7 +522,7 @@ std::vector<Point2D> PathManager::GetPoints()
 				curr--;
 			}
 		}
-	}
+	}*/
 	return points;
 }
 

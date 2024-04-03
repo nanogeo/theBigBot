@@ -1779,13 +1779,16 @@ public:
 		current_state = new BlinkStalkerAttackTerranMoveAcross(agent, this);
 
 		event_id = agent->GetUniqueId();
-		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
+		army->AutoAddNewUnits({ STALKER });
+		/*std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
 			this->OnUnitCreatedListener(unit);
 		};
-		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
+		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);*/
 
 		current_state->EnterState();
 	}
+
+	virtual void RunStateMachine() override;
 
 	~BlinkStalkerAttackTerran()
 	{

@@ -2396,6 +2396,10 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranMoveAcross::TickState()
 	{
+		for (const auto& unit : state_machine->army_group->new_units)
+		{
+			state_machine->army_group->AddUnit(unit);
+		}
 
 		agent->Actions()->UnitCommand(state_machine->army_group->stalkers, ABILITY_ID::MOVE_MOVE, state_machine->consolidation_pos);
 		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MOVE_MOVE, state_machine->prism_consolidation_pos);
@@ -2449,7 +2453,7 @@ namespace sc2 {
 	{
 		for (const auto& stalker : state_machine->army_group->stalkers)
 		{
-			agent->Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, state_machine->consolidation_pos);
+			agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, state_machine->consolidation_pos);
 		}
 		if (state_machine->warping_in == false && state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)
 		{
@@ -2507,10 +2511,17 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranConsolidate::TickState()
 	{
+		// if any newly added units are close to the consolidation point then add then to the army
+		for (const auto& unit : state_machine->army_group->new_units)
+		{
+			if (Distance2D(unit->pos, state_machine->consolidation_pos) < 5)
+				state_machine->army_group->AddUnit(unit);
+		}
+
 		for (const auto& unit : state_machine->army_group->all_units)
 		{
 			if (Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) > 3)
-				agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, state_machine->prism_consolidation_pos);
+				agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK, state_machine->prism_consolidation_pos);
 		}
 
 		if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM && Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 1)
@@ -2678,6 +2689,7 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerranAttack::EnterState()
 	{
+		state_machine->army_group->standby_units = {};
 		if (state_machine->attacking_main)
 			state_machine->army_group->attack_path_line = agent->locations->blink_main_attack_path_lines[0];
 		else
@@ -4563,6 +4575,12 @@ namespace sc2 {
 	{
 		if (unit->unit_type == UNIT_TYPEID::PROTOSS_STALKER)
 			army_group->AddUnit(unit);
+	}
+
+	void BlinkStalkerAttackTerran::RunStateMachine()
+	{
+		__super::RunStateMachine();
+		agent->Actions()->UnitCommand(army_group->new_units, ABILITY_ID::MOVE_MOVE, consolidation_pos);
 	}
 
 #pragma endregion

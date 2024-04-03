@@ -5,6 +5,7 @@
 #include <chrono>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit_filters.h"
@@ -139,6 +140,9 @@ namespace sc2 {
 
 	void ArmyGroup::AddUnit(const Unit* unit)
 	{
+		if (std::find(all_units.begin(), all_units.end(), unit) != all_units.end())
+			return;
+
 		UNIT_TYPEID type = unit->unit_type.ToType();
 		if (type != UNIT_TYPEID::PROTOSS_WARPPRISM)
 			persistent_fire_control.AddFriendlyUnit(unit);
@@ -208,6 +212,9 @@ namespace sc2 {
 
 	void ArmyGroup::AddNewUnit(const Unit* unit)
 	{
+		if (std::find(new_units.begin(), new_units.end(), unit) != new_units.end())
+			return;
+
 		new_units.push_back(unit);
 	}
 

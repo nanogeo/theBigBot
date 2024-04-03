@@ -196,7 +196,7 @@ public:
 		{
 			SetSiteDeltaLocations(start_location, build_order);
 		}
-		else if (map_name == "Gresvan AIE")
+		else if (map_name == "GresvanAIE")
 		{
 			SetGresvanLocations(start_location, build_order);
 		}

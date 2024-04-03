@@ -86,7 +86,22 @@ namespace sc2 {
 								P(172.5, 83.5),
 								P(172.5, 80.5) };
 
-		assimilator_locations = {  };
+		assimilator_locations = { P(167.5, 60.5),
+									P(177.5, 70.5),
+									P(155.5, 62.5),
+									P(144.5, 52.5),
+									P(119.5, 48.5),
+									P(116.5, 52.5),
+									P(140.5, 82.5),
+									P(149.5, 90.5),
+									P(166.5, 107.5),
+									P(175.5, 117.5),
+									P(111.5, 60.5),
+									P(97.5, 60.5),
+									P(59.5, 48.5),
+									P(50.5, 56.5),
+									P(174.5, 162.5),
+									P(163.5, 172.5) };
 
 
 		cyber_core_locations = { P(157.5, 72.5),
@@ -101,7 +116,7 @@ namespace sc2 {
 							P(166.5, 75.5),
 							P(163.5, 69.5) };
 
-		proxy_pylon_locations = {  };
+		proxy_pylon_locations = { P(107, 127) };
 
 		proxy_gateway_locations = {  };
 

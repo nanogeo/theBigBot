@@ -32,7 +32,6 @@ namespace sc2 {
 
     void TossBot::OnGameStart()
     {
-        std::cout << "Hello World!" << std::endl;
 		SetUpUnitTypeInfo();
 
 		Debug()->SendDebug();
@@ -99,6 +98,12 @@ namespace sc2 {
 		for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Neutral))
 		{
 			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
+		}
+
+		if (debug_mode)
+		{
+			Debug()->SendDebug();
+			return;
 		}
 
         if (!started)
