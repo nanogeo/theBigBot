@@ -494,6 +494,7 @@ std::vector<Point2D> PathManager::GetPoints()
 
 		points.push_back(current);
 		current = GetPointFrom(current, 1, true);
+
 	}
 
 	/*int start;

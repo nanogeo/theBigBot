@@ -33,7 +33,7 @@ namespace sc2 {
 			}
 		};
 
-		bool swap = start_location.x == 46.5 && start_location.y == 119.5;
+		bool swap = start_location.x == 69.5 && start_location.y == 168.5;
 
 		this->start_location = start_location;
 
@@ -44,12 +44,12 @@ namespace sc2 {
 							P(168.5, 114.5),
 							P(104.5, 61.5) };
 
-		pylon_locations = { P(124, 60),
+		pylon_locations = { P(124.25, 60),
 							P(144, 93),
 							P(139, 89),
 							P(169, 71),
 							P(169, 73),
-							P(174, 60),
+							P(174, 59),
 							P(179, 68),
 							P(172, 86),
 							P(151, 52),
@@ -66,9 +66,9 @@ namespace sc2 {
 								P(153.5, 79.5),
 								P(141.5, 67.5),
 								P(140.5, 60.5),
-								P(119.5, 57.5),
-								P(121.5, 60.5),
-								P(124.5, 62.5),
+								P(121.25, 60.75),
+								P(124.25, 62.5),
+								P(119.25, 57.25),
 								P(146.5, 95.5),
 								P(143.5, 95.5),
 								P(140.5, 94.5),
@@ -108,10 +108,10 @@ namespace sc2 {
 								P(156.5, 82.5),
 								P(141.5, 64.5) };
 
-		tech_locations = { P(166.5, 66.5),
-							P(166.5, 69.5),
-							P(166.5, 72.5),
-							P(171.5, 71.5),
+		tech_locations = { P(166.5, 66.25),
+							P(166.25, 69.5),
+							P(166.25, 72.75),
+							P(171.75, 71.5),
 							P(171.5, 74.5),
 							P(166.5, 75.5),
 							P(163.5, 69.5) };
@@ -138,19 +138,19 @@ namespace sc2 {
 
 		if (swap)
 		{
-			attack_path_line = PathManager({ new LineSegmentLinearX(-1.5, 241, 97, 116, false, center_point, true),
-											new LineSegmentCurveX(.08, -20, 1310.4, 114, 128, false, center_point, true),
-											new LineSegmentCurveX(-.06, 16.5, 1068.68, 130, 142, false, center_point, true),
-											new LineSegmentCurveX(.1, -28.92, 2154.72, 142, 149.5, false, center_point, true),
-											new LineSegmentLinearX(.93, -72.86, 149.5, 157, false, center_point, true) }, true, true);
+			attack_path_line = PathManager({ new LineSegmentLinearX(-1.5, 68, 97, 116, false, center_point, true),
+											new LineSegmentCurveX(.08, -20, 1310.4, 116, 130, false, center_point, true),
+											new LineSegmentCurveX(-.06, 16.5, -1068.68, 130, 144, false, center_point, true),
+											new LineSegmentCurveX(.1, -28.92, 2154.72, 144, 151.5, false, center_point, true),
+											new LineSegmentLinearX(.93, -72.86, 151.5, 159, false, center_point, true) }, true, true);
 		}
 		else
 		{
 			attack_path_line = PathManager({ new LineSegmentLinearY(-1.5, 240, 95, 114, false, center_point, true),
 											new LineSegmentCurveY(.08, -19.68, 1272.72, 114, 128, false, center_point, true),
-											new LineSegmentCurveY(-.06, 16.26, -1033.92, 128, 140, false, center_point, true),
-											new LineSegmentCurveY(.1, -28.52, 2099.28, 140, 147.5, false, center_point, true),
-											new LineSegmentLinearY(.93, -69, 147.5, 155, false, center_point, true)}, false, true);
+											new LineSegmentCurveY(-.06, 16.26, -1033.92, 128, 142, false, center_point, true),
+											new LineSegmentCurveY(.1, -28.52, 2099.28, 142, 149.5, false, center_point, true),
+											new LineSegmentLinearY(.93, -69, 149.5, 157, false, center_point, true)}, false, true);
 		}
 
 		high_ground_index = 11;
@@ -185,24 +185,24 @@ namespace sc2 {
 		enemy_natural = P(61.5, 146.5);
 
 
-		/*Point2D entrance_point = P(, );
-		Point2D exit_point = P(, );
-		std::vector<Point2D> entrance_points = { P(, ),
-												 P(, ),
-												 P(, ) };
-		std::vector<Point2D> exit_points = { P(, ),
-											P(, ),
-											P(, ) };;
-		std::vector<Point2D> base_points = { P(, ),
-											P(, ),
-											P(, ) };;
-		std::vector<std::vector<Point2D>> exfi_paths = { {P(, ),
-															P(, ),
-															P(, )},
-															{ P(, ),
-															P(, )} };
+		Point2D entrance_point = P(95, 178);
+		Point2D exit_point = P(48, 100);
+		std::vector<Point2D> entrance_points = { P(72, 178),
+												P(64, 156),
+												P(56, 131) };
+		std::vector<Point2D> exit_points = { P(60, 165),
+											P(52, 144),
+											P(52, 115) };;
+		std::vector<Point2D> base_points = { P(69.5, 168.5),
+											P(61.5, 146.5),
+											P(57.5, 121.5) };;
+		std::vector<std::vector<Point2D>> exfi_paths = { {P(50, 158),
+															P(55, 176),
+															P(75, 181)},
+															{ P(48, 134),
+															P(48, 107)} };
 
-		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);*/
+		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
 
 
 

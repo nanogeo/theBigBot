@@ -92,6 +92,15 @@ bool BuildOrderManager::HasUnits(Condition data)
 	return false;
 }
 
+bool BuildOrderManager::ReadyToScour(Condition data)
+{
+	if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() == 0 || agent->Observation()->GetGameLoop() / 22.4 >= data.time)
+	{
+		return true;
+	}
+	return false;
+}
+
 
 
 bool BuildOrderManager::BuildBuilding(BuildOrderResultArgData data)
@@ -627,6 +636,7 @@ bool BuildOrderManager::Contain(BuildOrderResultArgData data)
 bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 {
 	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
+	army->attack_path_line = agent->locations->attack_path_line;
 	Units oracles = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ORACLE));
 	for (const auto &fsm : agent->active_FSMs)
 	{
@@ -649,7 +659,7 @@ bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 			continue;
 		army->AddNewUnit(unit);
 	}
-	army->AutoAddUnits({ STALKER, IMMORTAL, PRISM, COLOSSUS, CARRIER });
+	army->AutoAddNewUnits({ STALKER, IMMORTAL, PRISM, COLOSSUS, CARRIER });
 	agent->army_groups.push_back(army);
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionStalkerOraclePressure, new ActionArgData(army)));
 	return true;
@@ -1086,6 +1096,13 @@ bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::ScourMap(BuildOrderResultArgData data)
+{
+	agent->active_FSMs = {};
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionScourMap, new ActionArgData()));
+	return true;
+}
+
 
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
@@ -1249,6 +1266,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::HasUnits,				Condition(ZEALOT, 12),		&BuildOrderManager::ZealotDoubleprong,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::StopVolleyWarpingInZealots,			Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::ConntinueVolleyWarpingInStalkers,	Result()),
+					Data(&BuildOrderManager::ReadyToScour,			Condition(600.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
 
@@ -1282,6 +1300,7 @@ void BuildOrderManager::SetThreeGateRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(186.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::WarpInAtProxy,						Result()),
+					Data(&BuildOrderManager::ReadyToScour,			Condition(480.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
 
@@ -1329,6 +1348,7 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)),
+					Data(&BuildOrderManager::ReadyToScour,			Condition(600.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
 

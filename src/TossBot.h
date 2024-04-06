@@ -323,7 +323,7 @@ public:
 	WorkerManager worker_manager;
 	ActionManager action_manager;
 	BuildOrderManager build_order_manager;
-    bool debug_mode = false;
+    bool debug_mode = !true;
 	int frames_passed = 0;
     ScoutInfoZerg scout_info_zerg;
     ScoutInfoTerran scout_info_terran;
@@ -453,6 +453,7 @@ public:
 	void DisplayEnemyAttacks();
 	void DisplayAlliedAttackStatus();
 	void PrintNonPathablePoints();
+	void ShowLocations();
 
     // Micro
     void ObserveAttackPath(Units, Point2D, Point2D);

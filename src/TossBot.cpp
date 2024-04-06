@@ -106,6 +106,8 @@ namespace sc2 {
 			return;
 		}
 
+		ShowLocations();
+
         if (!started)
         {
 			//PrintNonPathablePoints();
@@ -2428,6 +2430,56 @@ namespace sc2 {
 			
 		}
 		mineral_file.close();
+	}
+
+	void TossBot::ShowLocations()
+	{
+		if (!started)
+			return;
+		for (int i = 0; i < locations->pylon_locations.size(); i++)
+		{
+			Debug()->DebugSphereOut(ToPoint3D(locations->pylon_locations[i]), 1, Color(255, 0, 255));
+			Debug()->DebugTextOut("Pylon " + std::to_string(i), ToPoint3D(locations->pylon_locations[i]), Color(255, 0, 255), 14);
+		}
+		Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_protoss), 1, Color(255, 0, 255));
+		Debug()->DebugTextOut("Pylon P", ToPoint3D(locations->first_pylon_location_protoss), Color(255, 0, 255), 14);
+		Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_zerg), 1, Color(255, 0, 255));
+		Debug()->DebugTextOut("Pylon Z", ToPoint3D(locations->first_pylon_location_zerg), Color(255, 0, 255), 14);
+		Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_terran), 1, Color(255, 0, 255));
+		Debug()->DebugTextOut("Pylon T", ToPoint3D(locations->first_pylon_location_terran), Color(255, 0, 255), 14);
+		for (int i = 0; i < locations->nexi_locations.size(); i++)
+		{
+			Debug()->DebugSphereOut(ToPoint3D(locations->nexi_locations[i]), 2.5, Color(0, 0, 255));
+			Debug()->DebugTextOut("Nexus " + std::to_string(i), ToPoint3D(locations->nexi_locations[i]), Color(0, 0, 255), 14);
+		}
+		for (int i = 0; i < locations->gateway_locations.size(); i++)
+		{
+			Debug()->DebugSphereOut(ToPoint3D(locations->gateway_locations[i]), 1.5, Color(255, 255, 0));
+			Debug()->DebugTextOut("Gate " + std::to_string(i), ToPoint3D(locations->gateway_locations[i]), Color(255, 255, 0), 14);
+		}
+		for (int i = 0; i < locations->tech_locations.size(); i++)
+		{
+			Debug()->DebugSphereOut(ToPoint3D(locations->tech_locations[i]), 1.5, Color(0, 255, 0));
+			Debug()->DebugTextOut("Tech " + std::to_string(i), ToPoint3D(locations->tech_locations[i]), Color(0, 255, 0), 14);
+		}
+		for (int i = 0; i < locations->cyber_core_locations.size(); i++)
+		{
+			Debug()->DebugSphereOut(ToPoint3D(locations->cyber_core_locations[i]), 1.5, Color(255, 0, 0));
+			Debug()->DebugTextOut("Cyber " + std::to_string(i), ToPoint3D(locations->cyber_core_locations[i]), Color(255, 0, 0), 14);
+		}
+
+		for (const auto& pos : locations->blink_nat_attacK_path_line.GetPoints())
+		{
+			Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
+		}
+		for (const auto& pos : locations->blink_main_attack_path_lines[0].GetPoints())
+		{
+			Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
+		}
+		for (const auto& pos : locations->blink_main_attack_path_lines[1].GetPoints())
+		{
+			Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
+		}
 	}
 
 

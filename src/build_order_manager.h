@@ -111,6 +111,7 @@ public:
 	bool IsResearching(BuildOrderConditionArgData);
 	bool HasGas(BuildOrderConditionArgData);
 	bool HasUnits(BuildOrderConditionArgData);
+	bool ReadyToScour(BuildOrderConditionArgData); // to string
 
 	// Build order results
 	bool BuildBuilding(BuildOrderResultArgData);
@@ -184,6 +185,7 @@ public:
 	bool CannonRushAttack(BuildOrderResultArgData);
 	bool SendAllInAttack(BuildOrderResultArgData);
 	bool SendAdeptHarassProtoss(BuildOrderResultArgData);
+	bool ScourMap(BuildOrderResultArgData); // to string
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string

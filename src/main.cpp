@@ -105,10 +105,10 @@ int main(int argc, char* argv[])
 			CreateParticipant(sc2::Race::Protoss, &bot1),
             CreateComputer(sc2::Race::Zerg, sc2::Difficulty::Hard, sc2::AIBuild::Macro)
 			});
-		coordinator.SetRealtime(true);
+		coordinator.SetRealtime(!true);
 
 		coordinator.LaunchStarcraft();
-		coordinator.StartGame("Oceanborn512AIE.SC2Map");
+		coordinator.StartGame("Goldenaura512AIE.SC2Map");
 	}
 	else
 	{

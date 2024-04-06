@@ -6,6 +6,7 @@
 #include <fstream>
 #include <chrono>
 #include <algorithm>
+#include <stdlib.h>
 
 namespace sc2
 {
@@ -649,199 +650,7 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
 	}
 
-	if (army->stalkers.size() == 0)
-		return false;
-
-
-	Units enemies = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
-	Point2D stalkers_center = Utility::MedianCenter(army->stalkers);
-	Point2D stalker_line_pos = agent->locations->attack_path_line.FindClosestPoint(stalkers_center);
-
-#ifdef DEBUG_TIMING
-	critical_points = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	Units close_enemies = Utility::NClosestUnits(enemies, stalkers_center, 5);
-	// remove far enemies
-	for (int i = 0; i < close_enemies.size(); i++)
-	{
-		if (Distance2D(stalkers_center, close_enemies[i]->pos) > 12)
-		{
-			close_enemies.erase(close_enemies.begin() + i);
-			i--;
-		}
-	}
-
-#ifdef DEBUG_TIMING
-	close_targets = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	Point2D concave_target = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 8, true);
-	float max_range = 7;
-	if (close_enemies.size() > 0)
-	{
-		concave_target = Utility::MedianCenter(close_enemies);
-		max_range = std::max(Utility::GetMaxRange(close_enemies) + 2, 6.0f); // TODO should be min?
-	}
-
-	Point2D retreat_concave_origin = agent->locations->attack_path_line.GetPointFrom(concave_target, max_range, false);
-	if (retreat_concave_origin == Point2D(0, 0))
-		retreat_concave_origin = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * unit_size + unit_dispersion, false);
-
-	Point2D attack_concave_origin = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * unit_size + unit_dispersion, true);
-
-#ifdef DEBUG_TIMING
-	concave_origins = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	/*agent->Debug()->DebugSphereOut(agent->ToPoint3D(stalkers_center), 2, Color(255, 0, 0));
-	agent->Debug()->DebugSphereOut(agent->ToPoint3D(stalker_line_pos), 2, Color(0, 255, 0));
-	agent->Debug()->DebugSphereOut(agent->ToPoint3D(concave_target), 2, Color(0, 255, 255));
-	agent->Debug()->DebugSphereOut(agent->ToPoint3D(retreat_concave_origin), 1.5, Color(0, 0, 255));
-	agent->Debug()->DebugSphereOut(agent->ToPoint3D(attack_concave_origin), 1.5, Color(255, 0, 255));*/
-
-
-	std::vector<Point2D> attack_concave_positions = army->FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, army->stalkers.size(), .625, unit_dispersion);
-	std::vector<Point2D> retreat_concave_positions = army->FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, army->stalkers.size(), .625, unit_dispersion, 30);
-
-	std::map<const Unit*, Point2D> attack_unit_positions = army->AssignUnitsToPositions(army->stalkers, attack_concave_positions);
-	std::map<const Unit*, Point2D> retreat_unit_positions = army->AssignUnitsToPositions(army->stalkers, retreat_concave_positions);
-
-
-#ifdef DEBUG_TIMING
-	positions = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	for (const auto &pos : attack_concave_positions)
-	{
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(255, 0, 0));
-	}
-	for (const auto &pos : retreat_concave_positions)
-	{
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(0, 255, 0));
-	}
-
-	army->ApplyPressureGrouped(concave_target, (2 * retreat_concave_origin) - concave_target, retreat_unit_positions, attack_unit_positions);
-
-#ifdef DEBUG_TIMING
-	apply_pressure = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	/*
-	const Unit* closest_enemy = Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), Utility::MedianCenter(army->stalkers));
-	const Unit* closest_unit_to_enemies = Utility::ClosestTo(army->stalkers, closest_enemy->pos);
-	const Unit* furthest_unit_from_enemies = Utility::NthClosestTo(army->stalkers, closest_enemy->pos, round(army->stalkers.size() / 2));
-
-#ifdef DEBUG_TIMING
-	closest_units  = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	agent->Debug()->DebugSphereOut(closest_unit_to_enemies->pos, .625, Color(255, 0, 255));
-	agent->Debug()->DebugSphereOut(furthest_unit_from_enemies->pos, .625, Color(0, 255, 255));
-
-	float unit_size = .625;
-	float unit_dispersion = 0;
-	Point2D attacking_concave_origin = Utility::PointBetween(Utility::ClosestPointOnLine(furthest_unit_from_enemies->pos, attack_point, fallback_point), attack_point, 2 * unit_size + unit_dispersion);
-	//Point2D retreating_concave_origin = Utility::PointBetween(Utility::ClosestPointOnLine(closest_unit_to_enemies->pos, attack_point, fallback_point), fallback_point, unit_size + unit_dispersion);
-	Point2D retreating_concave_origin = Utility::PointBetween(Utility::ClosestPointOnLine(closest_enemy->pos, attack_point, fallback_point), fallback_point, Utility::RealGroundRange(closest_enemy, closest_unit_to_enemies) + 2);
-
-	//agent->Debug()->DebugSphereOut(Point3D(attacking_concave_origin.x, attacking_concave_origin.y, agent->Observation()->TerrainHeight(attacking_concave_origin)), .625, Color(0, 255, 128));
-	//agent->Debug()->DebugSphereOut(Point3D(retreating_concave_origin.x, retreating_concave_origin.y, agent->Observation()->TerrainHeight(retreating_concave_origin)), .625, Color(255, 0, 128));
-
-	std::vector<Point2D> attacking_concave_positions = army->FindConcaveFromBack(attacking_concave_origin, fallback_point, army->stalkers.size(), .625, unit_dispersion);
-	std::vector<Point2D> retreating_concave_positions = army->FindConcave(retreating_concave_origin, fallback_point, army->stalkers.size(), .625, unit_dispersion);
-
-#ifdef DEBUG_TIMING
-	concaves  = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	std::map<const Unit*, Point2D> attacking_unit_positions = army->AssignUnitsToPositions(army->stalkers, attacking_concave_positions);
-	std::map<const Unit*, Point2D> retreating_unit_positions = army->AssignUnitsToPositions(army->stalkers, retreating_concave_positions);
-
-#ifdef DEBUG_TIMING
-	positions  = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	for (const auto &pos : attacking_concave_positions)
-	{
-		//agent->Debug()->DebugSphereOut(Point3D(pos.x, pos.y, agent->Observation()->TerrainHeight(pos)), .625, Color(255, 0, 0));
-	}
-	for (const auto &pos : retreating_concave_positions)
-	{
-		//agent->Debug()->DebugSphereOut(Point3D(pos.x, pos.y, agent->Observation()->TerrainHeight(pos)), .625, Color(0, 255, 0));
-	}
-
-	for (const auto &unit : retreating_unit_positions)
-	{
-		//agent->Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, agent->Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
-		//Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
-	}
-
-#ifdef DEBUG_TIMING
-	debug  = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	//agent->Actions()->UnitCommand(army->warp_prisms[0], ABILITY_ID::MOVE_MOVE, Utility::PointBetween(Utility::MedianCenter(army->stalkers), fallback_point, 3));
-	//agent->Actions()->UnitCommand(army->warp_prisms[0], ABILITY_ID::UNLOADALLAT_WARPPRISM, army->warp_prisms[0]);
-	army->ApplyPressureGrouped(attack_point, fallback_point, retreating_unit_positions, attacking_unit_positions);
-
-#ifdef DEBUG_TIMING
-	apply_pressure = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	Units enemy_attacking_units = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
-	//Actions()->UnitCommand(enemy_attacking_units, ABILITY_ID::ATTACK, fallback_point);
-
-	if (army->current_attack_index > 2 && Distance2D(Utility::Center(army->stalkers), fallback_point) < 5)
-		army->current_attack_index--;
-	if (army->current_attack_index < army->attack_path.size() - 1 && Distance2D(Utility::MedianCenter(army->stalkers), attack_point) < 5)
-	{
-		if (true) //obs_in_position
-			army->current_attack_index++;
-		else
-			army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);
-	}
-
-#ifdef DEBUG_TIMING
-	update_index = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	*/
-
-#ifdef DEBUG_TIMING
-	std::ofstream action_time;
-	action_time.open("action_time.txt", std::ios_base::app);
-	action_time << new_units - start_time << ", ";
-	action_time << critical_points - new_units << ", ";
-	action_time << close_targets - critical_points << ", ";
-	action_time << concave_origins - close_targets << ", ";
-	action_time << positions - concave_origins << ", ";
-	action_time << apply_pressure - positions << "\n";
-
-	action_time.close();
-#endif
+	army->AttackLine(0, 6);
 
 	return false;
 }
@@ -1294,6 +1103,29 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 		//	army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);
 	}
 
+	return false;
+}
+
+bool ActionManager::ActionScourMap(ActionArgData* data)
+{
+	ImageData raw_map = agent->Observation()->GetGameInfo().pathing_grid;
+	for (const auto& unit : agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Self)))
+	{
+		if (unit->orders.size() == 0)
+		{
+			std::srand(unit->tag + agent->Observation()->GetGameLoop());
+			int x = std::rand() % raw_map.width;
+			int y = std::rand() % raw_map.height;
+			Point2D pos = Point2D(x, y);
+			while (!unit->is_flying && !agent->Observation()->IsPathable(pos))
+			{
+				x = std::rand() % raw_map.width;
+				y = std::rand() % raw_map.height;
+				pos = Point2D(x, y);
+			}
+			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK, pos);
+		}
+	}
 	return false;
 }
 

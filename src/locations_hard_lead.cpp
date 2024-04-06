@@ -172,24 +172,24 @@ namespace sc2 {
 		enemy_natural = P(65.5, 133.5);
 
 
-		/*Point2D entrance_point = P(, );
-		Point2D exit_point = P(, );
-		std::vector<Point2D> entrance_points = { P(, ),
-												 P(, ),
-												 P(, ) };
-		std::vector<Point2D> exit_points = { P(, ),
-											P(, ),
-											P(, ) };;
-		std::vector<Point2D> base_points = { P(, ),
-											P(, ),
-											P(, ) };;
-		std::vector<std::vector<Point2D>> exfi_paths = { {P(, ),
-															P(, ),
-															P(, )},
-															{ P(, ),
-															P(, )} };
+		Point2D entrance_point = P(20, 105);
+		Point2D exit_point = P(120, 145);
+		std::vector<Point2D> entrance_points = { P(27, 125),
+												P(53, 135),
+												P(84, 136) };
+		std::vector<Point2D> exit_points = { P(43, 141),
+											P(76, 139),
+											P(105, 140) };
+		std::vector<Point2D> base_points = { P(37.5, 129.5),
+											P(65.5, 133.5),
+											P(95.5, 134.5) };
+		std::vector<std::vector<Point2D>> exfi_paths = { {P(50, 145),
+															P(25, 142),
+															P(20, 120)},
+															{ P(81, 145),
+															P(110, 145)} };
 
-		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);*/
+		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
 
 
 

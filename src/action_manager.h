@@ -110,6 +110,7 @@ public:
 	bool ActionUseProxyDoubleRobo(ActionArgData*);
 	bool ActionAllIn(ActionArgData*); // tostring
 	bool ActionAllInAttack(ActionArgData*); // tostring
+	bool ActionScourMap(ActionArgData*); // tostring
 
 	bool ActionAttackLine(ActionArgData*); // tostring // for testing
 };

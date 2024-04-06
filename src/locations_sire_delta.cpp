@@ -38,11 +38,12 @@ namespace sc2 {
 							P(153.5, 159.5) };
 
 		pylon_locations = { P(152, 106),
+							P(148, 46),
+							P(154, 73),
 							P(150, 99),
 							P(123, 58),
 							P(121, 64),
 							P(153, 134),
-							P(148, 46),
 							P(106, 46),
 							P(152,156 ),
 							P(86, 59),
@@ -57,8 +58,8 @@ namespace sc2 {
 		first_pylon_location_protoss = P(141, 57);
 		first_pylon_location_terran = P(139, 59);
 
-		gateway_locations = { P(142.5, 61.5),
-							P(139.5, 61.5),
+		gateway_locations = { P(139.75, 61.25),
+							P(142.5, 61.5),
 							P(144.5, 72.5),
 							P(148.5, 74.5),
 							P(148.5, 110.5),
@@ -69,6 +70,8 @@ namespace sc2 {
 							P(117.5, 57.5),
 							P(117.5, 60.5),
 							P(118.5, 63.5),
+							P(138.5, 55.5),
+							P(135.5, 55.5),
 							P(132.5, 39.5),
 							P(135.5, 39.5),
 							P(130.5, 45.5),
@@ -97,20 +100,20 @@ namespace sc2 {
 									P(149.5, 166.5) };
 
 
-		cyber_core_locations = { P(143.5, 58.5),
-								P(136.5, 58.5),
+		cyber_core_locations = { P(136.75, 58.25),
+								P(143.5, 58.5),
 								P(149.5, 77.5) };
 
-		tech_locations = { P(150.5, 48.5),
+		tech_locations = { P(150.5, 46.5),
 							P(150.5, 49.5),
 							P(145.5, 41.5),
 							P(145.5, 44.5),
-							P(145.5, 17.5),
+							P(145.5, 47.5),
 							P(145.5, 50.5),
 							P(142.5, 44.5),
 							P(142.5, 47.5) };
 
-		proxy_pylon_locations = {  };
+		proxy_pylon_locations = { P(101, 134) };
 
 		proxy_gateway_locations = {  };
 
@@ -173,24 +176,25 @@ namespace sc2 {
 		enemy_natural = P(45.5, 130.5);
 
 
-		/*Point2D entrance_point = P(, );
-		Point2D exit_point = P(, );
-		std::vector<Point2D> entrance_points = { P(, ),
-												 P(, ),
-												 P(, ) };
-		std::vector<Point2D> exit_points = { P(, ),
-											P(, ),
-											P(, ) };;
-		std::vector<Point2D> base_points = { P(, ),
-											P(, ),
-											P(, ) };;
-		std::vector<std::vector<Point2D>> exfi_paths = { {P(, ),
-															P(, ),
-															P(, )},
-															{ P(, ),
-															P(, )} };
+		Point2D entrance_point = P(75, 170);
+		Point2D exit_point = P(35, 75);
+		std::vector<Point2D> entrance_points = { P(56, 168),
+												P(46, 142),
+												P(43, 109) };
+		std::vector<Point2D> exit_points = { P(40, 153),
+											P(38, 123),
+											P(43, 89) };
+		std::vector<Point2D> base_points = { P(50.5, 157.5),
+											P(45.5, 130.5),
+											P(46.5, 98.5) };
+		std::vector<std::vector<Point2D>> exfi_paths = { {P(35, 143),
+															P(38, 172),
+															P(60, 172)},
+															{ P(35, 113),
+															P(35, 82)} };
 
-		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);*/
+
+		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
 
 
 
@@ -224,8 +228,8 @@ namespace sc2 {
 		blink_pressure_blink_down = P(66, 146);
 
 
-		blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveX(.05, -6.5, 329.25, 50, 70, swap, center_point, true),
-													new LineSegmentLinearX(.52, 82.88, 70, 81, swap, center_point, true)}, true, swap);
+		blink_nat_attacK_path_line = PathManager({ new LineSegmentLinearX(.52, 82.88, 70, 81, swap, center_point, true),
+													new LineSegmentCurveX(.05, -6.5, 329.25, 50, 70, swap, center_point, true)}, true, swap);
 
 		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(.26, 128.84, 55, 66, swap, center_point, true) }, true, swap),
 										PathManager({ new LineSegmentCurveY(-.02, 5.84, -360.32, 146, 167, swap, center_point, true) }, false, !swap) };

@@ -436,7 +436,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction + i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position) && agent->Observation()->TerrainHeight(unit_position) == height)
+					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
 					{
 						concave_points.push_back(unit_position);
 					}
@@ -453,7 +453,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction - i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position) && agent->Observation()->TerrainHeight(unit_position) == height)
+					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
 					{
 						concave_points.push_back(unit_position);
 					}
@@ -513,7 +513,7 @@ namespace sc2 {
 			float unit_direction = backwards_direction;
 			Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 				offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-			if (agent->Observation()->IsPathable(unit_position) && agent->Observation()->TerrainHeight(unit_position) == height)
+			if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
 			{
 				concave_points.push_back(unit_position);
 			}
@@ -528,7 +528,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction + i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position) && agent->Observation()->TerrainHeight(unit_position) == height)
+					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
 					{
 						concave_points.push_back(unit_position);
 					}
@@ -545,7 +545,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction - i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position) && agent->Observation()->TerrainHeight(unit_position) == height)
+					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
 					{
 						concave_points.push_back(unit_position);
 					}
