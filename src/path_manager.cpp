@@ -232,8 +232,15 @@ std::vector<Point2D> LineSegmentCurveX::FindCircleIntersection(Point2D center, d
 	double D = (2 * b * c) - (2 * b * center.y) - (2 * center.x);
 	double E = pow(c, 2) - (2 * c * center.y) + pow(center.y, 2) + pow(center.x, 2) - pow(radius, 2);
 
+	std::vector<double> roots = Utility::GetRealQuarticRoots(A, B, C, D, E);
+	for (const auto& root : roots)
+	{
+		if (root >= min && root <= max)
+			solutions.push_back(EvaluateAt(root));
+	}
+
 	// quartic formula
-	double p1 = (2 * pow(C, 3)) - (9 * B * C * D) + (27 * A * pow(D, 2)) + (27 * pow(B, 2) * E) - (72 * A * C *E);
+	/*double p1 = (2 * pow(C, 3)) - (9 * B * C * D) + (27 * A * pow(D, 2)) + (27 * pow(B, 2) * E) - (72 * A * C *E);
 	double inter1 = pow(C, 2) - (3 * B * D) + (12 * A * E);
 	double any_solution = -4 * pow(inter1, 3) + pow(p1, 2);
 	if (any_solution < 0)
@@ -273,7 +280,7 @@ std::vector<Point2D> LineSegmentCurveX::FindCircleIntersection(Point2D center, d
 			solutions.push_back(EvaluateAt(solution3));
 		if (solution4 >= min && solution4 <= max)
 			solutions.push_back(EvaluateAt(solution4));
-	}
+	}*/
 	return solutions;
 }
 
@@ -287,8 +294,15 @@ std::vector<Point2D> LineSegmentCurveY::FindCircleIntersection(Point2D center, d
 	double D = (2 * b * c) - (2 * b * center.x) - (2 * center.y);
 	double E = pow(c, 2) - (2 * c * center.x) + pow(center.x, 2) + pow(center.y, 2) - pow(radius, 2);
 
+	std::vector<double> roots = Utility::GetRealQuarticRoots(A, B, C, D, E);
+	for (const auto& root : roots)
+	{
+		if (root >= min && root <= max)
+			solutions.push_back(EvaluateAt(root));
+	}
+
 	// quartic formula
-	double p1 = (2 * pow(C, 3)) - (9 * B * C * D) + (27 * A * pow(D, 2)) + (27 * pow(B, 2) * E) - (72 * A * C *E);
+	/*double p1 = (2 * pow(C, 3)) - (9 * B * C * D) + (27 * A * pow(D, 2)) + (27 * pow(B, 2) * E) - (72 * A * C *E);
 	double inter1 = pow(C, 2) - (3 * B * D) + (12 * A * E);
 	double any_solution = -4 * pow(inter1, 3) + pow(p1, 2);
 	if (any_solution < 0)
@@ -328,7 +342,7 @@ std::vector<Point2D> LineSegmentCurveY::FindCircleIntersection(Point2D center, d
 			solutions.push_back(EvaluateAt(solution3));
 		if (solution4 >= min && solution4 <= max)
 			solutions.push_back(EvaluateAt(solution4));
-	}
+	}*/
 	return solutions;
 }
 

@@ -76,6 +76,7 @@ public:
 	static bool CanAffordUpgrade(UPGRADE_ID, const ObservationInterface*);
 	static int MaxCanAfford(UNIT_TYPEID, int, const ObservationInterface*);
 	static std::vector<UNIT_TYPEID> GetBurrowedUnitTypes();
+	static std::vector<double> GetRealQuarticRoots(double, double, double, double, double);
 
 	static std::string UnitTypeIdToString(UNIT_TYPEID);
 	static std::string AbilityIdToString(ABILITY_ID);

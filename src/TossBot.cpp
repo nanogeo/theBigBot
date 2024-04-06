@@ -2480,6 +2480,10 @@ namespace sc2 {
 		{
 			Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
 		}
+		for (const auto& pos : locations->attack_path_line.GetPoints())
+		{
+			Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
+		}
 	}
 
 

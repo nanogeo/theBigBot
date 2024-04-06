@@ -6,6 +6,7 @@
 #include <array>
 #include <chrono>
 #include <fstream>
+#include <complex>
 
 #include "sc2api/sc2_interfaces.h"
 #include "sc2api/sc2_agent.h"
@@ -15,6 +16,8 @@
 
 #include "TossBot.h"
 #include "utility.h"
+
+#include "quartic.h"
 
 namespace sc2
 {
@@ -2184,6 +2187,19 @@ std::vector<UNIT_TYPEID> Utility::GetBurrowedUnitTypes()
 	return { UNIT_TYPEID::RAVAGERBURROWED, UNIT_TYPEID::TERRAN_WIDOWMINEBURROWED, UNIT_TYPEID::ZERG_BANELINGBURROWED, UNIT_TYPEID::ZERG_DRONEBURROWED,
 			UNIT_TYPEID::ZERG_HYDRALISKBURROWED, UNIT_TYPEID::ZERG_INFESTORBURROWED, UNIT_TYPEID::ZERG_LURKERMPBURROWED, UNIT_TYPEID::ZERG_QUEENBURROWED,
 			UNIT_TYPEID::ZERG_ROACHBURROWED, UNIT_TYPEID::ZERG_SWARMHOSTBURROWEDMP, UNIT_TYPEID::ZERG_ULTRALISKBURROWED, UNIT_TYPEID::ZERG_ZERGLINGBURROWED };
+}
+
+std::vector<double> Utility::GetRealQuarticRoots(double A, double B, double C, double D, double E)
+{
+	std::complex<double>* roots = solve_quartic(B / A, C / A, D / A, E / A);
+	std::vector<double> real_roots;
+	for (int i = 0; i < 4; i++)
+	{
+		if (roots[i].imag() == 0)
+			real_roots.push_back(roots[i].real());
+	}
+	delete roots;
+	return real_roots;
 }
 
 std::string Utility::UnitTypeIdToString(UNIT_TYPEID typeId)

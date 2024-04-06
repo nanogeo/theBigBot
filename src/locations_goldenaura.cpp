@@ -138,7 +138,7 @@ namespace sc2 {
 
 		if (swap)
 		{
-			attack_path_line = PathManager({ new LineSegmentLinearX(-1.5, 68, 97, 116, false, center_point, true),
+			attack_path_line = PathManager({ new LineSegmentLinearX(-1.5, 241, 97, 116, false, center_point, true),
 											new LineSegmentCurveX(.08, -20, 1310.4, 116, 130, false, center_point, true),
 											new LineSegmentCurveX(-.06, 16.5, -1068.68, 130, 144, false, center_point, true),
 											new LineSegmentCurveX(.1, -28.92, 2154.72, 144, 151.5, false, center_point, true),
