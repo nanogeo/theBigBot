@@ -438,7 +438,8 @@ namespace sc2 {
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
 					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
 					{
-						concave_points.push_back(unit_position);
+						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+							concave_points.push_back(unit_position);
 					}
 					else
 					{
@@ -455,7 +456,8 @@ namespace sc2 {
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
 					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
 					{
-						concave_points.push_back(unit_position);
+						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+							concave_points.push_back(unit_position);
 					}
 					else
 					{
@@ -515,7 +517,8 @@ namespace sc2 {
 				offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
 			if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
 			{
-				concave_points.push_back(unit_position);
+				if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+					concave_points.push_back(unit_position);
 			}
 
 			left_limit = false;
@@ -530,7 +533,8 @@ namespace sc2 {
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
 					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
 					{
-						concave_points.push_back(unit_position);
+						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+							concave_points.push_back(unit_position);
 					}
 					else
 					{
@@ -547,7 +551,8 @@ namespace sc2 {
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
 					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
 					{
-						concave_points.push_back(unit_position);
+						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+							concave_points.push_back(unit_position);
 					}
 					else
 					{

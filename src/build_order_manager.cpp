@@ -94,7 +94,7 @@ bool BuildOrderManager::HasUnits(Condition data)
 
 bool BuildOrderManager::ReadyToScour(Condition data)
 {
-	if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() == 0 || agent->Observation()->GetGameLoop() / 22.4 >= data.time)
+	if (Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), agent->Observation()->GetGameInfo().enemy_start_locations[0]) > 15 || agent->Observation()->GetGameLoop() / 22.4 >= data.time)
 	{
 		return true;
 	}
@@ -1099,6 +1099,16 @@ bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
 bool BuildOrderManager::ScourMap(BuildOrderResultArgData data)
 {
 	agent->active_FSMs = {};
+	std::vector<ActionData*>* actions = &(agent->action_manager.active_actions);
+	for (int i = 0; i < actions->size(); i++)
+	{
+		if ((*actions)[i]->toString() == "Stalker Oracle pressure" || (*actions)[i]->toString() == "Zealot double prong")
+		{
+			actions->erase(std::remove(actions->begin(), actions->end(), (*actions)[i]), actions->end());
+			i--;
+		}
+
+	}
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionScourMap, new ActionArgData()));
 	return true;
 }
@@ -1106,11 +1116,12 @@ bool BuildOrderManager::ScourMap(BuildOrderResultArgData data)
 
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
-	agent->Debug()->DebugCreateUnit(STALKER, agent->locations->attack_path[0], 1, 10);
-	agent->Debug()->DebugCreateUnit(PRISM, agent->locations->attack_path[0], 1, 1);
-	agent->Debug()->DebugCreateUnit(MARINE, agent->locations->attack_path[2], 2, 18);
-	agent->Debug()->DebugCreateUnit(MARAUDER, agent->locations->attack_path[2], 2, 6);
-	agent->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, agent->locations->attack_path[2], 2, 1);
+	agent->Debug()->DebugCreateUnit(STALKER, agent->locations->attack_path[0], 2, 10);
+	agent->Debug()->DebugCreateUnit(PRISM, agent->locations->attack_path[0], 2, 1);
+	//agent->Debug()->DebugCreateUnit(MARINE, agent->locations->attack_path[2], 2, 18);
+	//agent->Debug()->DebugCreateUnit(MARAUDER, agent->locations->attack_path[2], 2, 6);
+	//agent->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, agent->locations->attack_path[2], 2, 1);
+	agent->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, agent->locations->attack_path[2], 1, 6);
 	agent->Debug()->DebugGiveAllUpgrades();
 	return true;
 }

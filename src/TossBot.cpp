@@ -100,13 +100,15 @@ namespace sc2 {
 			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
 		}
 
-		if (debug_mode)
+		/*if (debug_mode)
 		{
 			Debug()->SendDebug();
 			return;
-		}
+		}*/
 
-		ShowLocations();
+		if (!debug_mode)
+			ShowLocations();
+
 
         if (!started)
         {
@@ -254,6 +256,8 @@ namespace sc2 {
 			build_order_manager.SetBuildOrder(curr_build_order);
 			started = true;
         }
+
+		UpdateEffectPositions();
 
 		UpdateEnemyUnitPositions();
 #ifdef DEBUG_TIMING
@@ -1900,6 +1904,36 @@ namespace sc2 {
 #endif
 	}
 
+	void TossBot::UpdateEffectPositions()
+	{
+		for (const auto& effect : Observation()->GetEffects())
+		{
+			if (effect.effect_id == 11) // EFFECT_CORROSIVEBILE
+			{
+				for (const auto& pos : effect.positions)
+				{
+					if (std::find(corrosive_bile_positions.begin(), corrosive_bile_positions.end(), pos) == corrosive_bile_positions.end())
+					{
+						corrosive_bile_positions.push_back(pos);
+						corrosive_bile_times.push_back(Observation()->GetGameLoop() + 56);
+					}
+				}
+			}
+		}
+		for (int i = 0; i < corrosive_bile_positions.size(); i++)
+		{
+			if (Observation()->GetGameLoop() > corrosive_bile_times[i])
+			{
+				corrosive_bile_positions.erase(corrosive_bile_positions.begin() + i);
+				corrosive_bile_times.erase(corrosive_bile_times.begin() + i);
+			}
+		}
+		for (int i = 0; i < corrosive_bile_positions.size(); i++)
+		{
+			Debug()->DebugSphereOut(ToPoint3D(corrosive_bile_positions[i]), .5, Color(255, 0, 255));
+			Debug()->DebugTextOut(std::to_string(corrosive_bile_times[i]), ToPoint3D(corrosive_bile_positions[i]), Color(255, 0, 255), 14);
+		}
+	}
 
 
 	Polygon TossBot::CreateNewBlocker(const Unit* unit)

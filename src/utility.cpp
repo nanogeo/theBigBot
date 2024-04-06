@@ -182,8 +182,18 @@ float Utility::DistanceToClosest(Units units, Point2D position)
 
 float Utility::DistanceToClosest(std::vector<Point2D> points, Point2D position)
 {
-	const Point2D closest_point = ClosestTo(points, position);
-	return Distance2D(closest_point, position);
+	Point2D current_closest;
+	float current_distance = INFINITY;
+	for (const auto& point : points)
+	{
+		float distance = Distance2D(point, position);
+		if (distance < current_distance)
+		{
+			current_closest = point;
+			current_distance = distance;
+		}
+	}
+	return current_distance;
 }
 
 float Utility::DistanceToFurthest(Units units, Point2D position)

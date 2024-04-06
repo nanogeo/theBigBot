@@ -337,6 +337,8 @@ public:
 	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
 	std::map<const Unit*, WarpgateStatus> warpgate_status;
 	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
+	std::vector<Point2D> corrosive_bile_positions;
+	std::vector<int> corrosive_bile_times;
 	int current_unique_id = 0;
 
 	bool has_blink = false;
@@ -435,6 +437,7 @@ public:
 	Point3D ToPoint3D(Point2D);
 	int GetUniqueId();
 	void UpdateWarpgateStatus();
+	void UpdateEffectPositions();
 
 
     // Pathing
