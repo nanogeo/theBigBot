@@ -1076,6 +1076,7 @@ bool BuildOrderManager::CannonRushAttack(BuildOrderResultArgData data)
 bool BuildOrderManager::SendAllInAttack(BuildOrderResultArgData data)
 {
 	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
+	army->attack_path_line = agent->locations->attack_path_line;
 
 	for (const auto& unit : agent->Observation()->GetUnits(IsFriendlyUnit(STALKER)))
 	{

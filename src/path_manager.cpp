@@ -379,6 +379,19 @@ std::vector<Point2D> PathManager::FindCircleIntersection(Point2D center, double 
 
 Point2D PathManager::GetPointFrom(Point2D point, double dist, bool forward)
 {
+	float new_pos = (x_based ? point.x : point.y) + (forward == pos_direction ? dist : - dist);
+	for (const auto& segment : segments)
+	{
+		if (new_pos >= segment->GetMin() && new_pos <= segment->GetMax())
+			return segment->EvaluateAt(new_pos);
+	}
+	if (new_pos < segments[0]->GetMin())
+		return segments[0]->EvaluateAt(segments[0]->GetMin());
+
+	return segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMax());
+
+
+
 	std::vector<Point2D> circle_intersections = FindCircleIntersection(point, dist);
 	if (circle_intersections.size() == 0)
 	{

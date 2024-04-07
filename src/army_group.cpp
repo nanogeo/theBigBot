@@ -1441,8 +1441,8 @@ namespace sc2 {
 			float dist_to_move_origin = std::min(1.0f, target_range - Distance2D(concave_origin, concave_target));
 			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, false);
 			// if new origin is closer then ignore it
-			if (Distance2D(concave_origin, concave_target) > Distance2D(new_origin, concave_target))
-				return;
+			/*if (Distance2D(concave_origin, concave_target) > Distance2D(new_origin, concave_target))
+				return;*/
 
 		}
 		else // perfect range

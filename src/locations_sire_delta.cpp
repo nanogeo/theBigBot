@@ -115,7 +115,7 @@ namespace sc2 {
 
 		proxy_pylon_locations = { P(101, 134) };
 
-		proxy_gateway_locations = {  };
+		proxy_gateway_locations = { P(103.5, 134.5) };
 
 		proxy_tech_locations = {  };
 

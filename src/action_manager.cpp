@@ -1001,13 +1001,36 @@ bool ActionManager::ActionAllIn(ActionArgData* data)
 bool ActionManager::ActionAllInAttack(ActionArgData* data)
 {
 	ArmyGroup* army = data->army_group;
-	Point2D retreat_point = army->attack_path[army->current_attack_index - 2];
-
-	Point2D attack_point = army->attack_path[army->current_attack_index];
-
 	Units stalkers = army->stalkers;
 
 	for (int i = 0; i < army->new_units.size(); i++)
+	{
+		const Unit* unit = army->new_units[i];
+		if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
+		{
+			if (army->stalkers.size() > 0)
+			{
+				if (unit->unit_type == PRISM)
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, Utility::MedianCenter(army->stalkers), true);
+				else
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, Utility::MedianCenter(army->stalkers), true);
+			}
+			else
+			{
+				if (unit->unit_type == PRISM)
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, army->attack_path[0], true);
+				else
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0], true);
+			}
+		}
+		if ((army->stalkers.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(army->stalkers)) < 5) || (army->stalkers.size() == 0 && Distance2D(unit->pos, army->attack_path[0]) < 2))
+		{
+			army->AddUnit(unit);
+			i--;
+		}
+	}
+
+	/*for (int i = 0; i < army->new_units.size(); i++)
 	{
 		const Unit* unit = army->new_units[i];
 		if (unit->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
@@ -1025,21 +1048,22 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 				agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[i], true);
 			}
 		}
-		if ((army->stalkers.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(army->stalkers)) < 5) || (army->stalkers.size() == 0 && Distance2D(unit->pos, army->attack_path[0]) < 2))
+		if ((army->stalkers.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(army->stalkers)) < 5) || (army->stalkers.size() == 0)
 		{
 			army->AddUnit(unit);
 			i--;
 		}
-	}
+	}*/
 
 	for (const auto& pos : agent->locations->attack_path_line.GetPoints())
 	{
 		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
 	}
 
-	if (army->stalkers.size() == 0)
-		return false;
+	army->AttackLine(0, 6);
 
+	/*if (army->stalkers.size() == 0)
+		return false;
 
 	Units enemies = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
 	Point2D stalkers_center = Utility::MedianCenter(army->stalkers);
@@ -1101,7 +1125,7 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 			army->current_attack_index++;
 		//else
 		//	army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);
-	}
+	}*/
 
 	return false;
 }
