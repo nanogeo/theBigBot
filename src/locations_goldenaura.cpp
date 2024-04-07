@@ -142,7 +142,8 @@ namespace sc2 {
 											new LineSegmentCurveX(.08, -20, 1310.4, 116, 130, false, center_point, true),
 											new LineSegmentCurveX(-.06, 16.5, -1068.68, 130, 144, false, center_point, true),
 											new LineSegmentCurveX(.1, -28.92, 2154.72, 144, 151.5, false, center_point, true),
-											new LineSegmentLinearX(.93, -72.86, 151.5, 159, false, center_point, true) }, true, true);
+											new LineSegmentLinearX(.93, -72.86, 151.5, 157, false, center_point, true),
+											new LineSegmentLinearX(-.2, 104.55, 157, 177, false, center_point, true) }, true, true);
 		}
 		else
 		{
@@ -150,7 +151,8 @@ namespace sc2 {
 											new LineSegmentCurveY(.08, -19.68, 1272.72, 114, 128, false, center_point, true),
 											new LineSegmentCurveY(-.06, 16.26, -1033.92, 128, 142, false, center_point, true),
 											new LineSegmentCurveY(.1, -28.52, 2099.28, 142, 149.5, false, center_point, true),
-											new LineSegmentLinearY(.93, -69, 149.5, 157, false, center_point, true)}, false, true);
+											new LineSegmentLinearY(.93, -69, 149.5, 155, false, center_point, true),
+											new LineSegmentLinearY(-.2, 106.15, 155, 175, false, center_point, true) }, false, true);
 		}
 
 		high_ground_index = 11;

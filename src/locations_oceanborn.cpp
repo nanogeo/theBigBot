@@ -127,10 +127,11 @@ namespace sc2 {
 						P(42, 126) };
 
 		attack_path_line = PathManager({new LineSegmentLinearX(-1, 205, 80, 95, swap, center_point, true),
-										new LineSegmentCurveX(-3/49, 438/49, 9715/49, 66, 80, swap, center_point, true),
+										new LineSegmentCurveX(-3.0f/49.0f, 438.0f/49.0f, -9715.0f/49.0f, 66, 80, swap, center_point, true),
 										new LineSegmentLinearX(1, 59, 58, 66, swap, center_point, true),
-										new LineSegmentCurveX(.085, -93415, 372.858, 49, 58, swap, center_point, true),
-										new LineSegmentLinearX(-1, 168.2, 42, 49, swap, center_point, true) }, false, swap);
+										new LineSegmentCurveX(.085, -9.3415, 372.858, 49, 58, swap, center_point, true),
+										new LineSegmentLinearX(-1, 168.2, 43, 49, swap, center_point, true),
+										new LineSegmentLinearX(-3, 254.2, 38, 43, swap, center_point, true) }, true, swap);
 
 		high_ground_index = 10;
 

@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
 		coordinator.SetRealtime(true);
 
 		coordinator.LaunchStarcraft();
-		coordinator.StartGame("Oceanborn512AIE.SC2Map");
+		coordinator.StartGame("Gresvan512AIE.SC2Map");
 	}
 	else
 	{

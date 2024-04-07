@@ -1348,16 +1348,38 @@ namespace sc2 {
 		return 0;
 	}
 
-	void ArmyGroup::FindUnitPositions(Units units, Units prisms, float dispersion, float target_range)
+	void ArmyGroup::FindUnitPositions(Units units, Units prisms, float dispersion, float max_range)
 	{
 		float unit_size = .625; // TODO figure this out by the larget unit in current_units?
-		target_range += unit_size;
 		// first concave origin can just be the closest points on the line
 		if (concave_origin == Point2D(0, 0))
 		{
 			Point2D army_center = Utility::MedianCenter(units);
 			concave_origin = attack_path_line.FindClosestPoint(army_center);
 		}
+
+		// find target range
+		Units enemies_in_range = Utility::GetUnitsWithin(agent->Observation()->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, 15);
+		float enemy_dps = 0;
+		for (const auto& unit : enemies_in_range)
+		{
+			enemy_dps += Utility::GetDPS(unit);
+		}
+
+		float friendly_dps = 0;
+		for (const auto& unit : units)
+		{
+			friendly_dps += Utility::GetDPS(unit);
+		}
+
+		float target_range = max_range;
+
+		if (friendly_dps > enemy_dps * 2)
+			target_range = 2;
+		else if (friendly_dps > enemy_dps)
+			target_range = 4;
+
+		target_range += unit_size;
 
 		// find concave target
 		Units close_enemies = Utility::NClosestUnits(agent->Observation()->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, 5);
@@ -1377,24 +1399,51 @@ namespace sc2 {
 		}
 
 		Point2D concave_target;
-		float max_range;
 		if (close_enemies.size() > 0)
 		{
 			concave_target = Utility::MedianCenter(close_enemies);
-			max_range = std::min(Utility::GetMaxRange(close_enemies) + 2, 6.0f); // dont retreat so far when fighting low range enemies
 			avg_distance /= close_enemies.size();
 		}
 		else
 		{
 			concave_target = attack_path_line.GetPointFrom(concave_origin, 8, true); // default target is 8 units in front of army center
-			max_range = 6;
 			avg_distance = 5;
 		}
 
 		Point2D new_origin;
 
-		// too far away
-		if (Distance2D(concave_origin, concave_target) > target_range + .1)
+		// too close
+		if (Distance2D(concave_origin, concave_target) < target_range - .1 || (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, concave_origin) < 2 + unit_size))
+		{
+
+			// if were already retreating and we have the correct number of points then check if we need a new concave
+			if (!advancing && unit_position_asignments.size() == units.size() + prisms.size())
+			{
+				float total_dist = 0;
+				for (const auto& pos : unit_position_asignments)
+				{
+					// maybe ignore very far off units
+					total_dist += Distance2D(pos.first->pos, pos.second);
+				}
+				if (total_dist / units.size() > 1)
+				{
+					// units are far away on average so dont make new concave
+					return;
+				}
+			}
+			// need a new concave
+			float dist_to_move_origin = std::min(1.0f, target_range - Distance2D(concave_origin, concave_target));
+
+			if (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, concave_origin) < 2)
+				dist_to_move_origin = std::max(dist_to_move_origin, 2 + unit_size - Utility::DistanceToClosest(close_enemies, concave_origin));
+
+			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, false);
+			// if new origin is closer then ignore it
+			/*if (Distance2D(concave_origin, concave_target) > Distance2D(new_origin, concave_target))
+				return;*/
+
+		}// too far away
+		else if (Distance2D(concave_origin, concave_target) > target_range + .1 && (close_enemies.size() == 0 || Utility::DistanceToClosest(close_enemies, concave_origin) > 2 + unit_size))
 		{
 			// if were already advancing and we have the correct number of points then check if we need a new concave
 			if (advancing && unit_position_asignments.size() == units.size() + prisms.size())
@@ -1417,32 +1466,6 @@ namespace sc2 {
 			// if new origin is further away then ignore it
 			if (Distance2D(concave_origin, concave_target) < Distance2D(new_origin, concave_target))
 				return;
-
-		} // too close
-		else if (Distance2D(concave_origin, concave_target) < target_range - .1)
-		{
-
-			// if were already retreating and we have the correct number of points then check if we need a new concave
-			if (!advancing && unit_position_asignments.size() == units.size() + prisms.size())
-			{
-				float total_dist = 0;
-				for (const auto& pos : unit_position_asignments)
-				{
-					// maybe ignore very far off units
-					total_dist += Distance2D(pos.first->pos, pos.second);
-				}
-				if (total_dist / units.size() > 1)
-				{
-					// units are far away on average so dont make new concave
-					return;
-				}
-			}
-			// need a new concave
-			float dist_to_move_origin = std::min(1.0f, target_range - Distance2D(concave_origin, concave_target));
-			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, false);
-			// if new origin is closer then ignore it
-			/*if (Distance2D(concave_origin, concave_target) > Distance2D(new_origin, concave_target))
-				return;*/
 
 		}
 		else // perfect range

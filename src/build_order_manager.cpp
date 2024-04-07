@@ -94,7 +94,8 @@ bool BuildOrderManager::HasUnits(Condition data)
 
 bool BuildOrderManager::ReadyToScour(Condition data)
 {
-	if (Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), agent->Observation()->GetGameInfo().enemy_start_locations[0]) > 15 || agent->Observation()->GetGameLoop() / 22.4 >= data.time)
+	if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsEnemyUnit(NEXUS)), agent->Observation()->GetGameInfo().enemy_start_locations[0]) > 15 
+		|| agent->Observation()->GetGameLoop() / 22.4 >= data.time)
 	{
 		return true;
 	}
@@ -1103,7 +1104,7 @@ bool BuildOrderManager::ScourMap(BuildOrderResultArgData data)
 	std::vector<ActionData*>* actions = &(agent->action_manager.active_actions);
 	for (int i = 0; i < actions->size(); i++)
 	{
-		if ((*actions)[i]->toString() == "Stalker Oracle pressure" || (*actions)[i]->toString() == "Zealot double prong")
+		if ((*actions)[i]->toString() == "Stalker Oracle pressure" || (*actions)[i]->toString() == "Zealot double prong" || (*actions)[i]->toString() == "All in attack")
 		{
 			actions->erase(std::remove(actions->begin(), actions->end(), (*actions)[i]), actions->end());
 			i--;

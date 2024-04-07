@@ -39,6 +39,7 @@ public:
 	static float DistanceToFurthest(Units, Point2D);
 	static float DistanceToFurthest(std::vector<Point2D>, Point2D);
 	static float AnyUnitWithin(Units, Point2D, float);
+	static Units GetUnitsWithin(Units, Point2D, float);
 	static Point2D ClosestPointOnLine(Point2D, Point2D, Point2D);
 	static Units CloserThan(Units, float, Point2D);
 	static bool HasBuff(const Unit*, BUFF_ID);
@@ -50,7 +51,7 @@ public:
 	static int DangerLevel(const Unit *, const ObservationInterface*);
 	static int DangerLevelAt(const Unit *, Point2D, const ObservationInterface*);
 	static int GetDamage(const Unit*, const Unit*, const ObservationInterface*);
-	static int GetDPS(const Unit*);
+	static float GetDPS(const Unit*);
 	static int GetArmor(const Unit*);
 	static int GetCargoSize(const Unit*);
 	static float GetRange(const Unit *);

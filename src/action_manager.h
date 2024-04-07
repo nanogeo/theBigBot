@@ -109,8 +109,8 @@ public:
 	bool ActionDTHarassTerran(ActionArgData*); // tostring
 	bool ActionUseProxyDoubleRobo(ActionArgData*);
 	bool ActionAllIn(ActionArgData*); // tostring
-	bool ActionAllInAttack(ActionArgData*); // tostring
-	bool ActionScourMap(ActionArgData*); // tostring
+	bool ActionAllInAttack(ActionArgData*);
+	bool ActionScourMap(ActionArgData*);
 
 	bool ActionAttackLine(ActionArgData*); // tostring // for testing
 };
@@ -241,6 +241,14 @@ struct ActionData
 				str += "immortals ";
 			}
 			str += "from proxy robos";
+		}
+		else if (action == &ActionManager::ActionAllInAttack)
+		{
+			str += "All in attack";
+		}
+		else if (action == &ActionManager::ActionScourMap)
+		{
+			str += "Scour map";
 		}
 		return str;
 	}

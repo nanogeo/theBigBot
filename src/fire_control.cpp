@@ -71,6 +71,7 @@ namespace sc2 {
 						info->priority = index - priority.begin();
 					info->units_in_range.push_back(new_unit);
 					info->total_damage_possible = GetDamage(Funit.first, Eunit);
+					info->dps = Utility::GetDPS(Eunit);
 
 					enemy_units.push_back(info);
 				}

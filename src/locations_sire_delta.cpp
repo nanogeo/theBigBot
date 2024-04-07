@@ -140,7 +140,8 @@ namespace sc2 {
 										new LineSegmentCurveY(-.1, 22.86, -1244.85, 110, 120, swap, center_point, true),
 										new LineSegmentLinearY(-1, 178.4, 120, 127, swap, center_point, true),
 										new LineSegmentCurveY(.11, -28.732, 1926.15, 127, 134.5, swap, center_point, true),
-										new LineSegmentLinearY(.85, -62.7, 134.5, 142, swap, center_point, true)}, false, swap);
+										new LineSegmentLinearY(.85, -62.7, 134.5, 140, swap, center_point, true),
+										new LineSegmentLinearY(-.2, 84.3, 140, 162, swap, center_point, true) }, false, !swap);
 
 		high_ground_index = 12;
 

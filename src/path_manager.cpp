@@ -386,9 +386,17 @@ Point2D PathManager::GetPointFrom(Point2D point, double dist, bool forward)
 			return segment->EvaluateAt(new_pos);
 	}
 	if (new_pos < segments[0]->GetMin())
-		return segments[0]->EvaluateAt(segments[0]->GetMin());
+	{
+		if (pos_direction)
+			return segments[0]->EvaluateAt(segments[0]->GetMin());
+		else
+			return segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMin());
+	}
 
-	return segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMax());
+	if (pos_direction)
+		return segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMax());
+	else
+		return segments[0]->EvaluateAt(segments[0]->GetMax());
 
 
 

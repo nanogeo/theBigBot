@@ -127,7 +127,8 @@ namespace sc2 {
 
 		attack_path_line = PathManager({new LineSegmentLinearY(-.86, 123, 50, 90, swap, center_point, false),
 										new LineSegmentCurveY(.07, -13.538, 697.062, 90, 97, swap, center_point, false),
-										new LineSegmentCurveY(-.075, 14.505, -658.817, 97, 106, swap, center_point, false)}, true, swap);
+										new LineSegmentCurveY(-.075, 14.505, -658.817, 97, 105, swap, center_point, false), 
+										new LineSegmentLinearY(.2, 16.333, 105, 127, swap, center_point, false) }, false, !swap);
 
 		high_ground_index = 5;
 
