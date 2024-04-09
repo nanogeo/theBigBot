@@ -94,7 +94,7 @@ bool BuildOrderManager::HasUnits(Condition data)
 
 bool BuildOrderManager::ReadyToScour(Condition data)
 {
-	if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsEnemyUnit(NEXUS)), agent->Observation()->GetGameInfo().enemy_start_locations[0]) > 15 
+	if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsUnits({ NEXUS, COMMAND_CENTER, ORBITAL, UNIT_TYPEID::ZERG_HATCHERY, UNIT_TYPEID::ZERG_LAIR })), agent->Observation()->GetGameInfo().enemy_start_locations[0]) > 15
 		|| agent->Observation()->GetGameLoop() / 22.4 >= data.time)
 	{
 		return true;

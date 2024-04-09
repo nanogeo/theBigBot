@@ -712,7 +712,11 @@ void WorkerManager::BalanceWorers()
 			if (worker != NULL)
 			{
 				RemoveWorker(worker);
-				PlaceWorker(worker);
+				try
+				{
+					PlaceWorker(worker);
+				}
+				catch (...) {};
 			}
 			else
 			{
