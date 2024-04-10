@@ -1263,7 +1263,7 @@ namespace sc2 {
 
 	}
 
-	// returns: 0 - normal operation, 1 - all units dead or in standby
+	// returns: 0 - normal operation, 1 - all units dead or in standby, 2 - reached the end of the attack path
 	int ArmyGroup::AttackLine(float dispersion, float target_range)
 	{
 		// Find current units to micro
@@ -1288,12 +1288,13 @@ namespace sc2 {
 			}
 		}
 
-		if (current_units.size() == 0)
+		if (static_cast<float>(current_units.size()) / all_units.size() < .25)
 			return 1;
 
+		int return_value = 0;
 
-		FindUnitPositions(current_units, warp_prisms, dispersion, target_range);
-
+		if (FindUnitPositions(current_units, warp_prisms, dispersion, target_range))
+			return_value = 2;
 
 		for (const auto& pos : agent->locations->attack_path_line.GetPoints())
 		{
@@ -1309,6 +1310,10 @@ namespace sc2 {
 		Units units_ready;
 		Units units_not_ready;
 		FindReadyUnits(current_units, units_ready, units_not_ready);
+
+		//if units are shooting then theres a reason to stay
+		if (units_not_ready.size() > 0)
+			return_value = 0;
 
 
 		float percent_units_needed = .25;
@@ -1329,26 +1334,31 @@ namespace sc2 {
 
 		if (using_standby)
 		{
-			for (const auto& unit : standby_units)
+			for (int i = 0; i < standby_units.size(); i++)
 			{
 				bool in_cargo = false;
 				for (const auto& cargo : units_in_cargo)
 				{
-					if (cargo.first == unit)
+					if (cargo.first == standby_units[i])
 					{
 						in_cargo = true;
 						break;
 					}
 				}
 				if (!in_cargo)
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, standby_pos);
+					agent->Actions()->UnitCommand(standby_units[i], ABILITY_ID::MOVE_MOVE, standby_pos);
 
+				if (standby_units[i]->shield == standby_units[i]->shield_max)
+				{
+					standby_units.erase(standby_units.begin() + i);
+					i--;
+				}
 			}
 		}
-		return 0;
+		return return_value;
 	}
 
-	void ArmyGroup::FindUnitPositions(Units units, Units prisms, float dispersion, float max_range)
+	bool ArmyGroup::FindUnitPositions(Units units, Units prisms, float dispersion, float max_range)
 	{
 		float unit_size = .625; // TODO figure this out by the larget unit in current_units?
 		// first concave origin can just be the closest points on the line
@@ -1398,15 +1408,22 @@ namespace sc2 {
 			}
 		}
 
+		bool reached_end = false;
 		Point2D concave_target;
 		if (close_enemies.size() > 0)
 		{
 			concave_target = Utility::MedianCenter(close_enemies);
+			Point2D attack_line_end = attack_path_line.GetEnd();
+			if (attack_line_end.x == 0 && attack_line_end.y == concave_target.y || attack_line_end.y == 0 && attack_line_end.x == concave_target.x)
+				reached_end = true;
 			avg_distance /= close_enemies.size();
 		}
 		else
 		{
 			concave_target = attack_path_line.GetPointFrom(concave_origin, 8, true); // default target is 8 units in front of army center
+			Point2D attack_line_end = attack_path_line.GetEnd();
+			if (attack_line_end.x == 0 && attack_line_end.y == concave_target.y || attack_line_end.y == 0 && attack_line_end.x == concave_target.x)
+				reached_end = true;
 			avg_distance = 5;
 		}
 
@@ -1428,7 +1445,7 @@ namespace sc2 {
 				if (total_dist / units.size() > 1)
 				{
 					// units are far away on average so dont make new concave
-					return;
+					return reached_end;
 				}
 			}
 			// need a new concave
@@ -1440,7 +1457,7 @@ namespace sc2 {
 			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, false);
 			// if new origin is closer then ignore it
 			/*if (Distance2D(concave_origin, concave_target) > Distance2D(new_origin, concave_target))
-				return;*/
+				return reached_end;*/
 
 		}// too far away
 		else if (Distance2D(concave_origin, concave_target) > target_range + .1 && (close_enemies.size() == 0 || Utility::DistanceToClosest(close_enemies, concave_origin) > 2 + unit_size))
@@ -1457,7 +1474,7 @@ namespace sc2 {
 				if (total_dist / units.size() > 1)
 				{
 					// units are far away on average so dont make new concave
-					return;
+					return reached_end;
 				}
 			}
 			// need a new concave
@@ -1465,16 +1482,16 @@ namespace sc2 {
 			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, true);
 			// if new origin is further away then ignore it
 			if (Distance2D(concave_origin, concave_target) < Distance2D(new_origin, concave_target))
-				return;
+				return reached_end;
 
 		}
 		else // perfect range
 		{
-			return;
+			return reached_end;
 		}
 
 		if (new_origin == Point2D(0, 0))
-			return;
+			return reached_end;
 
 		concave_origin = new_origin;
 		float concave_degree = (5 * avg_distance) + 4;
@@ -1497,6 +1514,7 @@ namespace sc2 {
 
 			unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
 		}
+		return reached_end;
 	}
 
 	void ArmyGroup::FindReadyUnits(Units units, Units& units_ready, Units& units_not_ready)

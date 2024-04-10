@@ -116,9 +116,9 @@ namespace sc2 {
 							P(166.5, 75.5),
 							P(163.5, 69.5) };
 
-		proxy_pylon_locations = { P(107, 127) };
+		proxy_pylon_locations = { P(87, 110) };
 
-		proxy_gateway_locations = { P(109.5, 126.5) };
+		proxy_gateway_locations = { P(86.5, 107.5) };
 
 		proxy_tech_locations = {  };
 
@@ -242,19 +242,19 @@ namespace sc2 {
 		if (!swap)
 		{
 			blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveX(-.06, 9, -205.5, 75, 85, false, center_point, true),
-														new LineSegmentCurveX(.13, -19.5, 863.25, 65, 75, false, center_point, true) }, true, false);
+														new LineSegmentCurveX(.13, -19.5, 863.25, 63, 75, false, center_point, true) }, true, false);
 
 
-			blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(-.3, 178.9, 65, 83, false, center_point, true) }, true, false),
+			blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(-.7, 212.1, 65, 83, false, center_point, true) }, true, false),
 											PathManager({ new LineSegmentCurveY(-.015, 4.62, -272.74, 154, 175, false, center_point, true) }, false, true) };
 		}
 		else
 		{
 			blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveY(-.06, 8.76, -185.75, 73, 83, false, center_point, true),
-														new LineSegmentCurveY(.13, -18.98, 826.77, 63, 73, false, center_point, true) }, false, false);
+														new LineSegmentCurveY(.13, -18.98, 826.77, 61, 73, false, center_point, true) }, false, false);
 
 
-			blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearY(-.3, 180.3, 63, 81, false, center_point, true) }, false, false),
+			blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearY(-.7, 212.3, 63, 81, false, center_point, true) }, false, false),
 											PathManager({ new LineSegmentCurveX(-.015, 4.68, -284.04, 156, 177, false, center_point, true) }, true, true) };
 		}
 

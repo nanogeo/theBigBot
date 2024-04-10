@@ -186,6 +186,10 @@ public:
 	Point2D GetPointFrom(Point2D, double, bool);
 	std::vector<Point2D> FindCircleIntersection(Point2D, double);
 	std::vector<Point2D> GetPoints();
+	Point2D GetStartPoint();
+	Point2D GetEndPoint();
+	Point2D GetStart();
+	Point2D GetEnd();
 };
 
 

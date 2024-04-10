@@ -70,14 +70,16 @@ namespace sc2 {
 								P(111.5, 63.75),
 								P(114.5, 62.75),
 								P(108.5, 64.5),
-								P(129.5, 27.5),
+								P(129.5, 24.5),
 								P(133.5, 26.5),
 								P(141.5, 37.5),
 								P(141.5, 40.5),
 								P(141.5, 43.5),
 								P(137.5, 47.5),
 								P(134.5, 47.5),
-								P(124.5, 49.5) };
+								P(124.5, 49.5),
+								P(127.5, 50.5),
+								P(127.5, 47.5) };
 
 		assimilator_locations = { P(126.5, 27.5),
 									P(137.5, 37.5),
@@ -96,7 +98,7 @@ namespace sc2 {
 
 
 		cyber_core_locations = { P(115.5, 39.5),
-								P(122.5, 52.5),
+								P(122.75, 52.25),
 								P(94.5, 36.5) };
 
 		tech_locations = { P(126.5, 32.5),
@@ -225,8 +227,8 @@ namespace sc2 {
 
 
 
-		blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveY(-.06, 14.088, -751.966, 112, 132, swap, center_point, true),
-													new LineSegmentLinearY(.535, 13.36, 104, 112, swap, center_point, true) }, false, !swap);
+		blink_nat_attacK_path_line = PathManager({ new LineSegmentLinearY(.535, 13.36, 104, 112, swap, center_point, true), 
+													new LineSegmentCurveY(-.05, 11.78, -618.842, 112, 135, swap, center_point, true) }, false, !swap);
 
 		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearY(.1, 35.7, 113, 127, swap, center_point, true) }, false, !swap),
 										PathManager({ new LineSegmentCurveX(.03, -2.82, 179.27, 27, 47, swap, center_point, true) }, true, !swap) };

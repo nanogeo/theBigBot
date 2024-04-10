@@ -562,6 +562,51 @@ std::vector<Point2D> PathManager::GetPoints()
 	return points;
 }
 
+Point2D PathManager::GetStartPoint()
+{
+	if (pos_direction)
+		return segments[0]->EvaluateAt(segments[0]->GetMin());
+	else
+		return segments[0]->EvaluateAt(segments[0]->GetMax());
+}
+
+Point2D PathManager::GetEndPoint()
+{
+
+	if (pos_direction)
+		return segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMax());
+	else
+		return segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMin());
+}
+
+Point2D PathManager::GetStart()
+{
+	double value;
+	if (pos_direction)
+		value = segments[0]->GetMin();
+	else
+		value = segments[0]->GetMax();
+
+	if (x_based)
+		return Point2D(value, 0);
+	else 
+		return Point2D(0, value);
+}
+
+Point2D PathManager::GetEnd()
+{
+	double value;
+	if (pos_direction)
+		value = segments[segments.size() - 1]->GetMax();
+	else
+		value = segments[segments.size() - 1]->GetMin();
+
+	if (x_based)
+		return Point2D(value, 0);
+	else
+		return Point2D(0, value);
+}
+
 
 
 }
