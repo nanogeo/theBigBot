@@ -112,7 +112,6 @@ public:
 	void SetNewBase(const Unit*);
 	void RemoveSpentMineralPatch(const Unit*);
 
-	void SaveFar3Extras(std::string);
 
 };
 
