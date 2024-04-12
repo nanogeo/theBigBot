@@ -2527,7 +2527,7 @@ namespace sc2 {
 				agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK, state_machine->consolidation_pos);
 		}
 
-		if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM && Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 1)
+		/*if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM && Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 1)
 		{
 			bool gates_almost_ready = true;
 			for (const auto &gate_status : agent->warpgate_status)
@@ -2582,7 +2582,7 @@ namespace sc2 {
 		{
 			agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMTRANSPORTMODE);
 			state_machine->warping_in = false;
-		}
+		}*/
 	}
 
 	void BlinkStalkerAttackTerranConsolidate::EnterState()
@@ -2847,7 +2847,7 @@ namespace sc2 {
 
 	State* BlinkStalkerAttackTerranLeaveHighground::TestTransitions()
 	{
-		if (stalkers_to_blink.size() == 0)
+		if (stalkers_to_blink.size() == 0 || Utility::DistanceToFurthest(state_machine->army_group->stalkers, state_machine->consolidation_pos) < 5)
 			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 		return NULL;
 	}

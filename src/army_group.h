@@ -135,7 +135,7 @@ public:
 	int AttackLine(float, float);
 	bool FindUnitPositions(Units, Units, float, float);
 	void FindReadyUnits(Units, Units&, Units&);
-	void MicroReadyUnits(Units, std::vector<UNIT_TYPEID>, float, int);
+	void MicroReadyUnits(Units, std::vector<std::vector<UNIT_TYPEID>>, float, int);
 	std::vector<std::pair<const Unit*, UnitDanger>> MicroNonReadyUnits(Units);
 	void MicroWarpPrisms(std::vector<std::pair<const Unit*, UnitDanger>>);
 

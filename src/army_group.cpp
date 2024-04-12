@@ -401,6 +401,8 @@ namespace sc2 {
 
 	std::vector<Point2D> ArmyGroup::FindConcaveWithPrism(Point2D origin, Point2D fallback_point, int num_units, int num_prisms, float unit_size, float dispersion, float concave_degree, std::vector<Point2D>& prism_positions)
 	{
+		float min_height = agent->Observation()->TerrainHeight(origin) - .5;
+		float max_height = agent->Observation()->TerrainHeight(origin) + .5;
 		float height = agent->ToPoint3D(origin).z;
 		float range = 0; //r
 		float unit_radius = unit_size + dispersion; //u
@@ -436,8 +438,13 @@ namespace sc2 {
 					float unit_direction = backwards_direction + i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
+					float point_height = agent->Observation()->TerrainHeight(unit_position);
+					if (agent->Observation()->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
+						if (point_height + .5 > max_height)
+							max_height = point_height + .5;
+						if (point_height - .5 < min_height)
+							min_height = point_height - .5;
 						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
 							concave_points.push_back(unit_position);
 					}
@@ -454,8 +461,13 @@ namespace sc2 {
 					float unit_direction = backwards_direction - i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
+					float point_height = agent->Observation()->TerrainHeight(unit_position);
+					if (agent->Observation()->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
+						if (point_height + .5 > max_height)
+							max_height = point_height + .5;
+						if (point_height - .5 < min_height)
+							min_height = point_height - .5;
 						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
 							concave_points.push_back(unit_position);
 					}
@@ -515,8 +527,13 @@ namespace sc2 {
 			float unit_direction = backwards_direction;
 			Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 				offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-			if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
+			float point_height = agent->Observation()->TerrainHeight(unit_position);
+			if (agent->Observation()->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 			{
+				if (point_height + .5 > max_height)
+					max_height = point_height + .5;
+				if (point_height - .5 < min_height)
+					min_height = point_height - .5;
 				if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
 					concave_points.push_back(unit_position);
 			}
@@ -531,8 +548,13 @@ namespace sc2 {
 					float unit_direction = backwards_direction + i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
+					float point_height = agent->Observation()->TerrainHeight(unit_position);
+					if (agent->Observation()->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
+						if (point_height + .5 > max_height)
+							max_height = point_height + .5;
+						if (point_height - .5 < min_height)
+							min_height = point_height - .5;
 						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
 							concave_points.push_back(unit_position);
 					}
@@ -549,8 +571,13 @@ namespace sc2 {
 					float unit_direction = backwards_direction - i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position)/* && agent->Observation()->TerrainHeight(unit_position) == height*/)
+					float point_height = agent->Observation()->TerrainHeight(unit_position);
+					if (agent->Observation()->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
+						if (point_height + .5 > max_height)
+							max_height = point_height + .5;
+						if (point_height - .5 < min_height)
+							min_height = point_height - .5;
 						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
 							concave_points.push_back(unit_position);
 					}
@@ -1221,16 +1248,22 @@ namespace sc2 {
 		{
 			persistent_fire_control.UpdateEnemyUnitHealth();
 			std::map<const Unit*, const Unit*> attacks = persistent_fire_control.FindAttacks(units_ready, 
-				{UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_VIKINGFIGHTER, UNIT_TYPEID::TERRAN_THORAP, UNIT_TYPEID::TERRAN_WIDOWMINE, 
-				UNIT_TYPEID::TERRAN_WIDOWMINEBURROWED, UNIT_TYPEID::TERRAN_CYCLONE, UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_SIEGETANK,
-				UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_MEDIVAC, UNIT_TYPEID::TERRAN_RAVEN, UNIT_TYPEID::TERRAN_BATTLECRUISER, 
-				UNIT_TYPEID::TERRAN_LIBERATOR, UNIT_TYPEID::TERRAN_LIBERATORAG, UNIT_TYPEID::TERRAN_BANSHEE, UNIT_TYPEID::TERRAN_GHOST, UNIT_TYPEID::TERRAN_VIKINGASSAULT,
-				UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_REAPER, UNIT_TYPEID::TERRAN_HELLION, UNIT_TYPEID::TERRAN_HELLIONTANK, 
-				UNIT_TYPEID::TERRAN_STARPORTREACTOR, UNIT_TYPEID::TERRAN_FACTORYREACTOR, UNIT_TYPEID::TERRAN_BARRACKSREACTOR, UNIT_TYPEID::TERRAN_REACTOR, 
-				UNIT_TYPEID::TERRAN_STARPORT, UNIT_TYPEID::TERRAN_STARPORTFLYING, UNIT_TYPEID::TERRAN_FACTORY, UNIT_TYPEID::TERRAN_FACTORYFLYING, 
-				UNIT_TYPEID::TERRAN_BARRACKS, UNIT_TYPEID::TERRAN_BARRACKSFLYING, UNIT_TYPEID::TERRAN_MISSILETURRET, UNIT_TYPEID::TERRAN_BUNKER, 
-				UNIT_TYPEID::TERRAN_REFINERY, UNIT_TYPEID::TERRAN_ORBITALCOMMAND, UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING, UNIT_TYPEID::TERRAN_COMMANDCENTER, 
-				UNIT_TYPEID::TERRAN_COMMANDCENTERFLYING }, 0);
+				{ {SIEGE_TANK_SIEGED}, //TODO redo this list
+					{SIEGE_TANK},
+					{WIDOW_MINE},
+					{CYCLONE},
+					{VIKING},
+					{RAVEN},
+					{MEDIVAC},
+					{GHOST},
+					{MARINE, MARAUDER, REAPER, HELLION, HELLBAT, THOR_AP, THOR_AOE, VIKING_LANDED, BANSHEE, BATTLECRUISER, LIBERATOR, LIBERATOR_SIEGED},
+					{SCV, MULE},
+					{BUNKER},
+					{PLANETARY},
+					{MISSILE_TURRET},
+					{BARRACKS_REACTOR, FACTORY_REACTOR, STARPORT_REACTOR},
+					{BARRACKS_TECH_LAB, FACTORY_TECH_LAB, STARPORT_TECH_LAB},
+					{REACTOR, TECH_LAB} }, 0);
 			for (const auto& unit : units_ready)
 			{
 				if (attacks.size() == 0)
@@ -1317,7 +1350,23 @@ namespace sc2 {
 
 
 		float percent_units_needed = .25;
-		std::vector<UNIT_TYPEID> target_priority = { SIEGE_TANK_SIEGED };
+		std::vector<std::vector<UNIT_TYPEID>> target_priority = { {SIEGE_TANK_SIEGED},
+																{SIEGE_TANK},
+																{WIDOW_MINE},
+																{CYCLONE},
+																{VIKING},
+																{RAVEN},
+																{MEDIVAC},
+																{GHOST},
+																{MARINE, MARAUDER, REAPER, HELLION, HELLBAT, THOR_AP, THOR_AOE, VIKING_LANDED, BANSHEE, BATTLECRUISER, LIBERATOR, LIBERATOR_SIEGED},
+																{SCV, MULE},
+																{BUNKER},
+																{PLANETARY},
+																{MISSILE_TURRET},
+																{BARRACKS_REACTOR, FACTORY_REACTOR, STARPORT_REACTOR},
+																{BARRACKS_TECH_LAB, FACTORY_TECH_LAB, STARPORT_TECH_LAB},
+																{REACTOR, TECH_LAB} };
+			
 		
 		MicroReadyUnits(units_ready, target_priority, percent_units_needed, current_units.size());
 		std::vector<std::pair<const Unit*, UnitDanger>> units_requesting_pickup = MicroNonReadyUnits(units_not_ready);
@@ -1553,7 +1602,7 @@ namespace sc2 {
 		}
 	}
 
-	void ArmyGroup::MicroReadyUnits(Units units, std::vector<UNIT_TYPEID> target_priority, float percent_needed, int total_units)
+	void ArmyGroup::MicroReadyUnits(Units units, std::vector<std::vector<UNIT_TYPEID>> target_priority, float percent_needed, int total_units)
 	{
 		// if enough units can attack something
 		if (static_cast<float>(units.size()) / static_cast<float>(total_units) >= percent_needed)
@@ -1641,11 +1690,11 @@ namespace sc2 {
 				persistent_fire_control.ConfirmAttack(unit, agent->Observation()->GetUnit(unit->engaged_target_tag));
 				attack_status[unit] = false;
 			} // TODO maybe reimplement this if necessary
-			//else if (unit->orders.size() == 0/* || unit->orders[0].ability_id == ABILITY_ID::MOVE_MOVE || unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE*/)
-			//{
-			//	// attack order is no longer valid
-			//	attack_status[unit] = false;
-			//}
+			else if (unit->orders.size() == 0/* || unit->orders[0].ability_id == ABILITY_ID::MOVE_MOVE || unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE*/)
+			{
+				// attack order is no longer valid
+				attack_status[unit] = false;
+			}
 		}
 		return incoming_damage;
 	}

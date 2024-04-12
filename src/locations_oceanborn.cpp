@@ -37,14 +37,15 @@ namespace sc2 {
 							P(76.5, 39.5) };
 
 		pylon_locations = { P(155, 50),
-							P(155, 52),
 							P(127, 53),
+							P(152, 79),
 							P(132, 58),
 							P(142, 100),
 							P(138, 94),
 							P(104, 44),
 							P(78, 43),
 							P(151, 122),
+							P(155, 52),
 							P(138, 41),
 							P(155, 39),
 							P(165, 47) };
@@ -212,11 +213,11 @@ namespace sc2 {
 		blink_pressure_blink_up = P(64, 137);
 		blink_pressure_blink_down = P(60, 142);
 
-		blink_nat_attacK_path_line = PathManager({ new LineSegmentLinearX(.59, 84.5, 45, 63, swap, center_point, true),
-													new LineSegmentCurveX(-.04, 5.76, -82.46, 63, 79, swap, center_point, true) }, true, swap);
+		blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveX(-.04, 5.76, -82.46, 63, 79, swap, center_point, true), 
+													new LineSegmentLinearX(.59, 84.5, 41, 63, swap, center_point, true) }, true, swap);
 
 		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(.75, 97, 45, 60, swap, center_point, true) }, true, swap),
-										PathManager({ new LineSegmentCurveY(-.14, 39.76, -2762.96, 142, 152, swap, center_point, true) }, false, swap) };
+										PathManager({ new LineSegmentCurveY(-.14, 39.76, -2762.96, 142, 152, swap, center_point, true) }, false, !swap) };
 	}
 	
 }

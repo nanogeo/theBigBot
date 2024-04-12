@@ -811,7 +811,7 @@ float Utility::GetDPS(const Unit* attacker)
 		return 7 + (upgrade_level * 1.75);
 		break;
 	default:
-		std::cout << "Error invalid unit type in GetDamage\n";
+		std::cout << "Error invalid unit type in GetDPS\n";
 		return 0;
 	}
 }

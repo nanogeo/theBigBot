@@ -134,9 +134,11 @@ public:
 	std::vector<EnemyUnitInfo*> enemy_units;
 	std::map<const Unit*, const Unit*> attacks;
 	std::vector<UNIT_TYPEID> priority;
+	std::vector<std::vector<UNIT_TYPEID>> priority2D;
 
-	FireControl(TossBot*, std::map<const Unit*, std::vector<const Unit*>>, std::vector<UNIT_TYPEID>);
+	FireControl(TossBot*, std::map<const Unit*, std::vector<const Unit*>>, std::vector<UNIT_TYPEID>); 
 	FireControl(TossBot*, std::map<const Unit*, Units>, std::map<const Unit*, int>, std::vector<UNIT_TYPEID>);
+	FireControl(TossBot*, std::map<const Unit*, Units>, std::map<const Unit*, int>, std::vector<std::vector<UNIT_TYPEID>>);
 
 	EnemyUnitInfo* GetEnemyUnitInfo(const Unit*);
 	FriendlyUnitInfo* GetFriendlyUnitInfo(const Unit*);
@@ -172,7 +174,7 @@ public:
 	void UpdateEnemyUnitHealth();
 
 	std::map<const Unit*, const Unit*> FindAttacks(std::vector<UNIT_TYPEID>);
-	std::map<const Unit*, const Unit*> FindAttacks(Units, std::vector<UNIT_TYPEID>, float);
+	std::map<const Unit*, const Unit*> FindAttacks(Units, std::vector<std::vector<UNIT_TYPEID>>, float);
 
 };
 

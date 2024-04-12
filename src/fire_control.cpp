@@ -86,6 +86,49 @@ namespace sc2 {
 		}
 	}
 
+	FireControl::FireControl(TossBot* agent, std::map<const Unit*, Units> units, std::map<const Unit*, int> enemy_health, std::vector<std::vector<UNIT_TYPEID>> priority)
+	{
+		this->agent = agent;
+		this->priority2D = priority;
+		for (const auto& Funit : units)
+		{
+			FriendlyUnitInfo* new_unit = new FriendlyUnitInfo();
+			new_unit->unit = Funit.first;
+			for (const auto& Eunit : Funit.second)
+			{
+				EnemyUnitInfo* info = GetEnemyUnitInfo(Eunit);
+				if (info == NULL)
+				{
+					info = new EnemyUnitInfo();
+					info->unit = Eunit;
+					info->health = enemy_health[Eunit];
+					info->priority = priority.size();
+					for (int i = 0; i < priority.size(); i++)
+					{
+						auto index = std::find(priority[i].begin(), priority[i].end(), Eunit->unit_type.ToType());
+						if (index != priority[i].end())
+						{
+							info->priority = index - priority[i].begin();
+							break;
+						}
+					}
+					info->units_in_range.push_back(new_unit);
+					info->total_damage_possible = GetDamage(Funit.first, Eunit);
+					info->dps = Utility::GetDPS(Eunit);
+
+					enemy_units.push_back(info);
+				}
+				else
+				{
+					info->units_in_range.push_back(new_unit);
+					info->total_damage_possible += GetDamage(Funit.first, Eunit);
+				}
+				new_unit->units_in_range.push_back(info);
+			}
+			friendly_units.push_back(new_unit);
+		}
+	}
+
 	EnemyUnitInfo* FireControl::GetEnemyUnitInfo(const Unit* unit)
 	{
 		for (auto &unit_info : enemy_units)
@@ -417,7 +460,7 @@ namespace sc2 {
 		return attacks;
 	}
 
-	std::map<const Unit*, const Unit*> PersistentFireControl::FindAttacks(Units units, std::vector<UNIT_TYPEID> prio, float extra_range)
+	std::map<const Unit*, const Unit*> PersistentFireControl::FindAttacks(Units units, std::vector<std::vector<UNIT_TYPEID>> prio, float extra_range)
 	{
 		UpdateEnemyUnitHealth();
 		std::map<const Unit*, std::vector<const Unit*>> unit_targets;
