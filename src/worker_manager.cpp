@@ -1,4 +1,6 @@
 #pragma once
+#include <fstream>
+
 #include "sc2api/sc2_interfaces.h"
 #include "sc2api/sc2_agent.h"
 #include "sc2api/sc2_map_info.h"
@@ -136,6 +138,13 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 
 void WorkerManager::PlaceWorker(const Unit* worker)
 {
+	std::ofstream far_3_extras_file;
+	far_3_extras_file.open("far3extras.txt", std::ios_base::app);
+
+	far_3_extras_file << "PlaceWorker " << std::to_string(worker->tag) << std::endl;
+
+	far_3_extras_file.close();
+
 	if (worker == NULL)
 		std::cout << "why";
 	if (first_2_mineral_patch_spaces.size() > 0)
@@ -210,7 +219,9 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		mineral_patch_space* space = new mineral_patch_space(closest->worker, closest->mineral_patch);
 		if (worker == NULL)
 			std::cout << "null";
+		SaveFar3Extras("Add unit: " + std::to_string((*space->worker)->tag));
 		far_3_mineral_patch_extras.push_back(space);
+		SaveFar3Extras("");
 
 		return;
 	}
@@ -238,6 +249,13 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 
 void WorkerManager::PlaceWorkerInGas(const Unit* worker, const Unit* gas, int index)
 {
+	std::ofstream far_3_extras_file;
+	far_3_extras_file.open("far3extras.txt", std::ios_base::app);
+
+	far_3_extras_file << "PlaceWorkerInGas " << std::to_string(worker->tag) << std::endl;
+
+	far_3_extras_file.close();
+
 	if (assimilators.find(gas) == assimilators.end())
 	{
 		assimilators[gas] = assimilator_data();
@@ -259,6 +277,13 @@ void WorkerManager::PlaceWorkerInGas(const Unit* worker, const Unit* gas, int in
 
 void WorkerManager::NewPlaceWorkerInGas(const Unit* worker, const Unit* gas)
 {
+	std::ofstream far_3_extras_file;
+	far_3_extras_file.open("far3extras.txt", std::ios_base::app);
+
+	far_3_extras_file << "NewPlaceWorkerInGas " << std::to_string(worker->tag) << std::endl;
+
+	far_3_extras_file.close();
+
 	if (assimilators.find(gas) == assimilators.end())
 	{
 		assimilators[gas] = assimilator_data();
@@ -279,6 +304,13 @@ void WorkerManager::NewPlaceWorkerInGas(const Unit* worker, const Unit* gas)
 
 void WorkerManager::PlaceWorkerOnMinerals(const Unit* worker, const Unit* mineral, int index)
 {
+	std::ofstream far_3_extras_file;
+	far_3_extras_file.open("far3extras.txt", std::ios_base::app);
+
+	far_3_extras_file << "PlaceWorkerOnMinerals " << std::to_string(worker->tag) << std::endl;
+
+	far_3_extras_file.close();
+
 	if (mineral_patches.find(mineral) == mineral_patches.end())
 	{
 		mineral_patches[mineral] = mineral_patch_data(mineral->mineral_contents == 1800);
@@ -300,6 +332,13 @@ void WorkerManager::PlaceWorkerOnMinerals(const Unit* worker, const Unit* minera
 
 void WorkerManager::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* mineral)
 {
+	std::ofstream far_3_extras_file;
+	far_3_extras_file.open("far3extras.txt", std::ios_base::app);
+
+	far_3_extras_file << "NewPlaceWorkerOnMinerals " << std::to_string(worker->tag) << std::endl;
+
+	far_3_extras_file.close();
+
 	if (mineral_patches.find(mineral) == mineral_patches.end())
 	{
 		mineral_patches[mineral] = mineral_patch_data(mineral->mineral_contents == 1800);
@@ -320,15 +359,27 @@ void WorkerManager::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* min
 
 void WorkerManager::RemoveWorker(const Unit* worker)
 {
-	auto rem = [&](mineral_patch_space* space) -> bool
+	std::ofstream far_3_extras_file;
+	far_3_extras_file.open("far3extras.txt", std::ios_base::app);
+
+	far_3_extras_file << "RemoveWorker " << std::to_string(worker->tag) << std::endl;
+
+	far_3_extras_file.close();
+
+	/*auto rem = [&](mineral_patch_space* space) -> bool
 	{
 		return *(space->worker) == worker;
-	};
+	};*/
 	if (mineral_patches_reversed.find(worker) != mineral_patches_reversed.end())
 	{
 		const Unit* mineral = mineral_patches_reversed[worker].mineral_tag;
 		mineral_patches_reversed.erase(worker);
 		bool is_close = mineral_patches[mineral].is_close;
+
+		auto rem = [&](mineral_patch_space* space) -> bool
+		{
+			return *(space->worker) == mineral_patches[mineral].workers[2];
+		};
 
 		if (mineral_patches[mineral].workers[0] == worker)
 		{
@@ -355,7 +406,9 @@ void WorkerManager::RemoveWorker(const Unit* worker)
 					else
 					{
 						far_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[2], mineral));
+						SaveFar3Extras("Remove unit1 : " + std::to_string(mineral_patches[mineral].workers[2]->tag));
 						far_3_mineral_patch_extras.erase(std::remove_if(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), rem), far_3_mineral_patch_extras.end());
+						SaveFar3Extras("");
 					}
 					mineral_patches[mineral].workers[1] = mineral_patches[mineral].workers[2];
 					mineral_patches[mineral].workers[2] = NULL;
@@ -379,7 +432,9 @@ void WorkerManager::RemoveWorker(const Unit* worker)
 				else
 				{
 					far_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[2], mineral));
+					SaveFar3Extras("Remove unit2: " + std::to_string(mineral_patches[mineral].workers[2]->tag));
 					far_3_mineral_patch_extras.erase(std::remove_if(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), rem), far_3_mineral_patch_extras.end());
+					SaveFar3Extras("");
 				}
 				mineral_patches[mineral].workers[1] = mineral_patches[mineral].workers[2];
 				mineral_patches[mineral].workers[2] = NULL;
@@ -395,7 +450,9 @@ void WorkerManager::RemoveWorker(const Unit* worker)
 			else
 			{
 				far_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[2], mineral));
+				SaveFar3Extras("Remove unit3: " + std::to_string(mineral_patches[mineral].workers[2]->tag));
 				far_3_mineral_patch_extras.erase(std::remove_if(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), rem), far_3_mineral_patch_extras.end());
+				SaveFar3Extras("");
 			}
 			mineral_patches[mineral].workers[2] = NULL;
 		}
@@ -528,6 +585,13 @@ void WorkerManager::SemiSaturateGas(const Unit* gas)
 
 void WorkerManager::AddNewBase()
 {
+	std::ofstream far_3_extras_file;
+	far_3_extras_file.open("far3extras.txt", std::ios_base::app);
+
+	far_3_extras_file << "AddNewBase " << std::endl;
+
+	far_3_extras_file.close();
+
 	Units minerals = agent->Observation()->GetUnits(IsMineralPatch());
 	Units close_minerals = Utility::CloserThan(minerals, 10, new_base->pos);
 	for (const auto &mineral_field : close_minerals)
@@ -712,15 +776,13 @@ void WorkerManager::BalanceWorers()
 			if (worker != NULL)
 			{
 				RemoveWorker(worker);
-				try
-				{
-					PlaceWorker(worker);
-				}
-				catch (...) {};
+				PlaceWorker(worker);
 			}
 			else
 			{
+				SaveFar3Extras("Remove unit4: pos0");
 				far_3_mineral_patch_extras.erase(far_3_mineral_patch_extras.begin());
+				SaveFar3Extras("");
 			}
 		}
 	}
@@ -742,7 +804,9 @@ void WorkerManager::BalanceWorers()
 			}
 			else
 			{
+				SaveFar3Extras("Remove unit5: pos0");
 				far_3_mineral_patch_extras.erase(far_3_mineral_patch_extras.begin());
+				SaveFar3Extras("");
 			}
 		}
 	}
@@ -815,10 +879,27 @@ void WorkerManager::SetNewBase(const Unit* nexus)
 
 void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
 {
+	std::ofstream far_3_extras_file;
+	far_3_extras_file.open("far3extras.txt", std::ios_base::app);
+
+	far_3_extras_file << "RemoveSpentMineralPatch " << std::to_string(spent_patch->tag) << std::endl;
+
+	far_3_extras_file.close();
+
 	if (mineral_patches.count(spent_patch) > 0)
 	{
 		Units assigned_workers;
 		mineral_patch_data spent_patch_data = mineral_patches[spent_patch];
+		if (spent_patch_data.workers[2] != NULL)
+		{
+			std::ofstream far_3_extras_file;
+			far_3_extras_file.open("far3extras.txt", std::ios_base::app);
+
+			far_3_extras_file << "3 workers on spent patch " << std::to_string(spent_patch->tag) << std::endl;
+
+			far_3_extras_file.close();
+		}
+
 		for (int i = 0; i < 3; i++)
 		{
 			const Unit* worker = spent_patch_data.workers[i];
@@ -829,57 +910,58 @@ void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
 			}
 			else
 			{
-				if (i < 2)
+				break;
+			}
+		}
+		for (int i = 0; i < first_2_mineral_patch_spaces.size(); i++)
+		{
+			if (first_2_mineral_patch_spaces[i]->mineral_patch == spent_patch)
+			{
+				first_2_mineral_patch_spaces.erase(first_2_mineral_patch_spaces.begin() + i);
+				i--;
+			}
+		}
+		if (spent_patch_data.is_close)
+		{
+			for (const auto& space : close_3_mineral_patch_spaces)
+			{
+				if (space->mineral_patch == spent_patch)
 				{
-					for (const auto &space : first_2_mineral_patch_spaces)
-					{
-						if (space->mineral_patch == spent_patch)
-						{
-							first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), space), first_2_mineral_patch_spaces.end());
-							break;
-						}
-					}
+					close_3_mineral_patch_spaces.erase(std::remove(close_3_mineral_patch_spaces.begin(), close_3_mineral_patch_spaces.end(), space), close_3_mineral_patch_spaces.end());
+					break;
 				}
-				else if (spent_patch_data.is_close)
+			}
+			for (const auto& space : close_3_mineral_patch_extras)
+			{
+				if (space->mineral_patch == spent_patch)
 				{
-					for (const auto &space : close_3_mineral_patch_spaces)
-					{
-						if (space->mineral_patch == spent_patch)
-						{
-							close_3_mineral_patch_spaces.erase(std::remove(close_3_mineral_patch_spaces.begin(), close_3_mineral_patch_spaces.end(), space), close_3_mineral_patch_spaces.end());
-							break;
-						}
-					}
-					for (const auto &space : close_3_mineral_patch_extras)
-					{
-						if (space->mineral_patch == spent_patch)
-						{
-							close_3_mineral_patch_extras.erase(std::remove(close_3_mineral_patch_extras.begin(), close_3_mineral_patch_extras.end(), space), close_3_mineral_patch_extras.end());
-							break;
-						}
-					}
-				}
-				else 
-				{
-					for (const auto &space : far_3_mineral_patch_spaces)
-					{
-						if (space->mineral_patch == spent_patch)
-						{
-							far_3_mineral_patch_spaces.erase(std::remove(far_3_mineral_patch_spaces.begin(), far_3_mineral_patch_spaces.end(), space), far_3_mineral_patch_spaces.end());
-							break;
-						}
-					}
-					for (const auto &space : far_3_mineral_patch_extras)
-					{
-						if (space->mineral_patch == spent_patch)
-						{
-							far_3_mineral_patch_extras.erase(std::remove(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), space), far_3_mineral_patch_extras.end());
-							break;
-						}
-					}
+					close_3_mineral_patch_extras.erase(std::remove(close_3_mineral_patch_extras.begin(), close_3_mineral_patch_extras.end(), space), close_3_mineral_patch_extras.end());
+					break;
 				}
 			}
 		}
+		else
+		{
+			for (const auto& space : far_3_mineral_patch_spaces)
+			{
+				if (space->mineral_patch == spent_patch)
+				{
+					far_3_mineral_patch_spaces.erase(std::remove(far_3_mineral_patch_spaces.begin(), far_3_mineral_patch_spaces.end(), space), far_3_mineral_patch_spaces.end());
+					break;
+				}
+			}
+			for (const auto& space : far_3_mineral_patch_extras)
+			{
+				if (space->mineral_patch == spent_patch)
+				{
+					SaveFar3Extras("Remove unit6: " + std::to_string((*space->worker)->tag));
+					far_3_mineral_patch_extras.erase(std::remove(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), space), far_3_mineral_patch_extras.end());
+					SaveFar3Extras("");
+					break;
+				}
+			}
+		}
+			
 
 		mineral_patches.erase(spent_patch);
 		for (const auto &worker : assigned_workers)
@@ -887,6 +969,24 @@ void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
 			PlaceWorker(worker);
 		}
 	}
+}
+
+void WorkerManager::SaveFar3Extras(std::string str)
+{
+	std::ofstream far_3_extras_file;
+	far_3_extras_file.open("far3extras.txt", std::ios_base::app);
+
+	far_3_extras_file << "Save far 3 extras" << std::endl;
+	if (str != "")
+		far_3_extras_file << str << std::endl;
+
+	for (const auto& space : far_3_mineral_patch_extras)
+	{
+		far_3_extras_file << "    mineral patch " << space->mineral_patch->tag % 1000 << " worker " << (*space->worker)->tag % 1000 << std::endl;
+	}
+	far_3_extras_file << "end \n\n";
+
+	far_3_extras_file.close();
 }
 
 }
