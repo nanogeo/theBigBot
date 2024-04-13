@@ -650,7 +650,7 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
 	}
 
-	army->AttackLine(0, 6);
+	army->AttackLine(0, 6, ZERG_PRIO);
 
 	return false;
 }
@@ -1060,7 +1060,7 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
 	}
 
-	army->AttackLine(0, 6);
+	army->AttackLine(0, 6, PROTOSS_PRIO);
 
 	/*if (army->stalkers.size() == 0)
 		return false;
@@ -1157,7 +1157,7 @@ bool ActionManager::ActionScourMap(ActionArgData* data)
 bool ActionManager::ActionAttackLine(ActionArgData* data)
 {
 	ArmyGroup* army = data->army_group;
-	army->AttackLine(0, 6);
+	army->AttackLine(0, 6, ZERG_PRIO);
 	return false;
 }
 

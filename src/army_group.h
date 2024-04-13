@@ -132,7 +132,7 @@ public:
 
 	void MicroUnits();
 
-	int AttackLine(float, float);
+	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>);
 	bool FindUnitPositions(Units, Units, float, float);
 	void FindReadyUnits(Units, Units&, Units&);
 	void MicroReadyUnits(Units, std::vector<std::vector<UNIT_TYPEID>>, float, int);

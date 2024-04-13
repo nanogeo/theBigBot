@@ -481,6 +481,8 @@ namespace sc2 {
 			}
 			if (concave_points.size() >= num_units)
 			{
+				if (num_prisms == 0)
+					break;
 				// find prism positions
 				row++;
 				float offset = .5;
@@ -591,6 +593,8 @@ namespace sc2 {
 			}
 			if (concave_points.size() >= num_units)
 			{
+				if (num_prisms == 0)
+					break;
 				// find prism positions
 				row++;
 				float offset = .5;
@@ -1297,7 +1301,7 @@ namespace sc2 {
 	}
 
 	// returns: 0 - normal operation, 1 - all units dead or in standby, 2 - reached the end of the attack path
-	int ArmyGroup::AttackLine(float dispersion, float target_range)
+	int ArmyGroup::AttackLine(float dispersion, float target_range, std::vector<std::vector<UNIT_TYPEID>> target_priority)
 	{
 		// Find current units to micro
 		Units current_units;
@@ -1350,22 +1354,6 @@ namespace sc2 {
 
 
 		float percent_units_needed = .25;
-		std::vector<std::vector<UNIT_TYPEID>> target_priority = { {SIEGE_TANK_SIEGED},
-																{SIEGE_TANK},
-																{WIDOW_MINE},
-																{CYCLONE},
-																{VIKING},
-																{RAVEN},
-																{MEDIVAC},
-																{GHOST},
-																{MARINE, MARAUDER, REAPER, HELLION, HELLBAT, THOR_AP, THOR_AOE, VIKING_LANDED, BANSHEE, BATTLECRUISER, LIBERATOR, LIBERATOR_SIEGED},
-																{SCV, MULE},
-																{BUNKER},
-																{PLANETARY},
-																{MISSILE_TURRET},
-																{BARRACKS_REACTOR, FACTORY_REACTOR, STARPORT_REACTOR},
-																{BARRACKS_TECH_LAB, FACTORY_TECH_LAB, STARPORT_TECH_LAB},
-																{REACTOR, TECH_LAB} };
 			
 		
 		MicroReadyUnits(units_ready, target_priority, percent_units_needed, current_units.size());
@@ -1544,24 +1532,18 @@ namespace sc2 {
 
 		concave_origin = new_origin;
 		float concave_degree = (5 * avg_distance) + 4;
+
+		std::vector<Point2D> prism_positions;
+		std::vector<Point2D> concave_positions = FindConcaveWithPrism(concave_origin, (2 * concave_origin) - concave_target, units.size(), prisms.size(), unit_size, dispersion, concave_degree, prism_positions);
+
+		unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
 		if (prisms.size() > 0)
 		{
-			std::vector<Point2D> prism_positions;
-			std::vector<Point2D> concave_positions = FindConcaveWithPrism(concave_origin, (2 * concave_origin) - concave_target, units.size(), prisms.size(), unit_size, dispersion, concave_degree, prism_positions);
-
-			unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
-
 			std::map<const Unit*, Point2D> prism_position_assignments = AssignUnitsToPositions(prisms, prism_positions);
 			for (const auto& assignment : prism_position_assignments)
 			{
 				unit_position_asignments[assignment.first] = assignment.second;
 			}
-		}
-		else
-		{
-			std::vector<Point2D> concave_positions = FindConcave(concave_origin, (2 * concave_origin) - concave_target, units.size(), unit_size, dispersion, concave_degree);
-
-			unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
 		}
 		return reached_end;
 	}
@@ -1647,6 +1629,7 @@ namespace sc2 {
 			if (attack_status[unit] == false)
 			{
 				float damage = agent->IncomingDamage(unit);
+				agent->Debug()->DebugTextOut(std::to_string(damage), unit->pos, Color(255, 255, 255), 16);
 				if (damage > 0)
 				{
 					float shield_damage = std::min(damage, unit->shield);

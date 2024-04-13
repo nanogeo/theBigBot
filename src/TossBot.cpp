@@ -1288,6 +1288,20 @@ namespace sc2 {
 				damage += Utility::GetDamage(attack.unit, unit, Observation());
 			}
 		}
+		for (int i = 0; i < corrosive_bile_times.size(); i++)
+		{
+			if (Observation()->GetGameLoop() + 5 > corrosive_bile_times[i])
+			{
+				if (Distance2D(corrosive_bile_positions[i], unit->pos) < .5 + unit->radius + .3) // TODO maybe change extra distance
+				{
+					damage += 60;
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
 		return damage;
 	}
 
@@ -1915,7 +1929,7 @@ namespace sc2 {
 					if (std::find(corrosive_bile_positions.begin(), corrosive_bile_positions.end(), pos) == corrosive_bile_positions.end())
 					{
 						corrosive_bile_positions.push_back(pos);
-						corrosive_bile_times.push_back(Observation()->GetGameLoop() + 56);
+						corrosive_bile_times.push_back(Observation()->GetGameLoop() + 48);
 					}
 				}
 			}

@@ -2707,7 +2707,7 @@ namespace sc2 {
 
 	State* BlinkStalkerAttackTerranAttack::TestTransitions()
 	{
-		int attack_line_status = state_machine->army_group->AttackLine(.2, 2);
+		int attack_line_status = state_machine->army_group->AttackLine(.2, 2, TERRAN_PRIO);
 		if (attack_line_status == 1 || attack_line_status == 2)
 		{
 			if (state_machine->attacking_main)

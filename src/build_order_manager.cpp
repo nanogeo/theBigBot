@@ -1085,7 +1085,7 @@ bool BuildOrderManager::SendAllInAttack(BuildOrderResultArgData data)
 			continue;
 		army->AddNewUnit(unit);
 	}
-	army->AutoAddNewUnits({ ZEALOT, ADEPT, SENTRY, STALKER, HIGH_TEMPLAR, ARCHON, IMMORTAL, PRISM, COLOSSUS, DISRUPTER, VOID_RAY, TEMPEST, CARRIER });
+	army->AutoAddNewUnits({ ZEALOT, ADEPT, SENTRY, STALKER, HIGH_TEMPLAR, ARCHON, IMMORTAL, PRISM, COLOSSUS, DISRUPTOR, VOID_RAY, TEMPEST, CARRIER });
 	agent->army_groups.push_back(army);
 	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionAllInAttack, new ActionArgData(army)));
 	return true;
