@@ -103,9 +103,9 @@ int main(int argc, char* argv[])
 	{
 		coordinator.SetParticipants({
 			CreateParticipant(sc2::Race::Protoss, &bot1),
-            CreateComputer(sc2::Race::Protoss, sc2::Difficulty::Hard, sc2::AIBuild::Macro)
+            CreateComputer(sc2::Race::Zerg, sc2::Difficulty::Hard, sc2::AIBuild::Macro)
 			});
-		coordinator.SetRealtime(!true);
+		coordinator.SetRealtime(true);
 
 		coordinator.LaunchStarcraft();
 		coordinator.StartGame("Equilibrium512AIE.SC2Map");

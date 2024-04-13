@@ -1401,6 +1401,8 @@ namespace sc2 {
 		// first concave origin can just be the closest points on the line
 		if (concave_origin == Point2D(0, 0))
 		{
+			if (units.size() == 0)
+				return false;
 			Point2D army_center = Utility::MedianCenter(units);
 			concave_origin = attack_path_line.FindClosestPoint(army_center);
 		}
@@ -1684,9 +1686,6 @@ namespace sc2 {
 
 	void ArmyGroup::MicroWarpPrisms(std::vector<std::pair<const Unit*, UnitDanger>> units_requesting_pickup)
 	{
-		if (warp_prisms.size() == 0)
-			return;
-
 		for (const auto& prism : warp_prisms)
 		{
 
@@ -1776,7 +1775,23 @@ namespace sc2 {
 				}
 			}
 			if (unit_found_space == false)
+			{
+				if (request.first->unit_type == STALKER && request.second.unit_prio >= 2)
+				{
+					float now = agent->Observation()->GetGameLoop() / 22.4;
+					bool blink_off_cooldown = now - last_time_blinked[request.first] > 7;
+
+					if (agent->has_blink && blink_off_cooldown)
+					{
+
+						agent->Actions()->UnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(request.first->pos, Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), request.first->pos)->pos, -4)); // TODO adjustable blink distance
+
+						attack_status[request.first] = false;
+						last_time_blinked[request.first] = now;
+					}
+				}
 				break;
+			}
 		}
 	}
 

@@ -18,6 +18,7 @@ class TossBot;
 
 struct UnitDanger
 {
+	// 1: lethal damage, 2: damage value* > 40, 3: damage > 0
 	int unit_prio;
 	float damage_value;
 	UnitDanger() {}

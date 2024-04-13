@@ -341,7 +341,7 @@ public:
 	std::vector<int> corrosive_bile_times;
 	int current_unique_id = 0;
 
-	bool has_blink = false;
+	bool has_blink = true;
 	bool has_charge = false;
 	bool has_storm = false;
 	bool has_dt_blink = false;
