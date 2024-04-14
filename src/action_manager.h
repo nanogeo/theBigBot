@@ -13,7 +13,7 @@
 namespace sc2
 {
 
-class TossBot;
+class TheBigBot;
 
 struct ActionArgData
 {
@@ -74,10 +74,10 @@ struct ActionData;
 class ActionManager
 {
 public:
-	TossBot* agent;
+	TheBigBot* agent;
 	std::vector<ActionData*> active_actions;
 
-	ActionManager(TossBot* agent)
+	ActionManager(TheBigBot* agent)
 	{
 		this->agent = agent;
 	}

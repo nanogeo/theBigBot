@@ -9,7 +9,7 @@
 namespace sc2
 {
 
-class TossBot;
+class TheBigBot;
 
 struct mineral_patch_data
 {
@@ -71,7 +71,7 @@ struct mineral_patch_space
 class WorkerManager
 {
 public:
-	TossBot* agent;
+	TheBigBot* agent;
 	std::map<const Unit*, mineral_patch_data> mineral_patches;
 	std::map<const Unit*, mineral_patch_reversed_data> mineral_patches_reversed;
 	std::map<const Unit*, assimilator_data> assimilators;
@@ -87,7 +87,7 @@ public:
 	bool should_build_workers;
 	int removed_gas_miners = 0;
 
-	WorkerManager(TossBot* agent)
+	WorkerManager(TheBigBot* agent)
 	{
 		this->agent = agent;
 	}

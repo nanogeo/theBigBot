@@ -11,7 +11,7 @@
 namespace sc2
 {
 
-class TossBot;
+class TheBigBot;
 
 
 struct BuildOrderConditionArgData
@@ -92,12 +92,12 @@ enum BuildOrder {
 class BuildOrderManager
 {
 public:
-	TossBot* agent;
+	TheBigBot* agent;
 	BuildOrder current_build_order;
 	std::vector<BuildOrderData> build_order;
 	int build_order_step = 0;
 
-	BuildOrderManager(TossBot* agent)
+	BuildOrderManager(TheBigBot* agent)
 	{
 		this->agent = agent;
 	}

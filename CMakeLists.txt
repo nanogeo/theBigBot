@@ -17,7 +17,7 @@ elseif (WSL2_CROSS_COMPILE)
                         WSL2_CROSS_COMPILE=ON for WSL only")
 endif ()
 
-project(TossBot)
+project(theBigBot)
 
 include(FetchContent)
 

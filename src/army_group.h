@@ -14,7 +14,7 @@
 namespace sc2
 {
 
-class TossBot;
+class TheBigBot;
 
 struct UnitDanger
 {
@@ -57,7 +57,7 @@ struct PrismCargo
 class ArmyGroup
 {
 public:
-	TossBot* agent;
+	TheBigBot* agent;
 	Units all_units;
 	Units zealots;
 	Units stalkers;
@@ -106,9 +106,9 @@ public:
 	PersistentFireControl persistent_fire_control;
 
 	ArmyGroup() : persistent_fire_control() {};
-	ArmyGroup(TossBot* agent);
-	ArmyGroup(TossBot*, Units, std::vector<Point2D>, int);
-	ArmyGroup(TossBot*, Units, PathManager);
+	ArmyGroup(TheBigBot* agent);
+	ArmyGroup(TheBigBot*, Units, std::vector<Point2D>, int);
+	ArmyGroup(TheBigBot*, Units, PathManager);
 
 	void AddUnit(const Unit* unit);
 	void AddNewUnit(const Unit* unit);

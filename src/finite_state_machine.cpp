@@ -15,7 +15,7 @@
 #include "sc2api/sc2_unit_filters.h"
 #include "sc2lib/sc2_lib.h"
 
-#include "TossBot.h"
+#include "theBigBot.h"
 
 namespace sc2 {
 
@@ -3780,7 +3780,7 @@ namespace sc2 {
 	void CannonRushTerranStandByPhase2::TickState()
 	{
 		// build from stargate
-		if (next_unit == UNIT_TYPEID::VOIDSEEKER)
+		if (next_unit == UNIT_TYPEID::BEACON_PROTOSS)
 		{
 			if (state_machine->stargates.size() > 0 && state_machine->stargates[0]->build_progress == 1)
 			{
@@ -3812,7 +3812,7 @@ namespace sc2 {
 
 		if (next_unit == UNIT_TYPEID::PROTOSS_STARGATE && agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() > 0 &&
 			agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE))[0]->display_type != Unit::DisplayType::Placeholder)
-			next_unit = UNIT_TYPEID::VOIDSEEKER;
+			next_unit = UNIT_TYPEID::BEACON_PROTOSS;
 		else if (next_unit == UNIT_TYPEID::PROTOSS_FLEETBEACON && agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON)).size() > 0 &&
 			agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON))[0]->display_type != Unit::DisplayType::Placeholder)
 			next_unit = UNIT_TYPEID::PROTOSS_TEMPEST;
@@ -3976,7 +3976,7 @@ namespace sc2 {
 		if (agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0)
 			next_unit = UNIT_TYPEID::PROTOSS_STARGATE;
 		else if (agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0)
-			next_unit = UNIT_TYPEID::VOIDSEEKER; // represents a void ray + fleet beacon
+			next_unit = UNIT_TYPEID::BEACON_PROTOSS; // represents a void ray + fleet beacon
 		else if (agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON)).size() == 0)
 			next_unit = UNIT_TYPEID::PROTOSS_FLEETBEACON;
 		else

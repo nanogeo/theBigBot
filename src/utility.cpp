@@ -14,7 +14,7 @@
 
 #include "sc2api/sc2_unit_filters.h"
 
-#include "TossBot.h"
+#include "theBigBot.h"
 #include "utility.h"
 
 #include "quartic.h"
@@ -1997,7 +1997,7 @@ UnitCost Utility::GetCost(UNIT_TYPEID unit_type)
 		return UnitCost(250, 175, 5);
 	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
 		return UnitCost(400, 400, 8);
-	case UNIT_TYPEID::VOIDSEEKER: // represents void ray + fleet beacon
+	case UNIT_TYPEID::BEACON_PROTOSS: // represents void ray + fleet beacon
 		return UnitCost(550, 350, 4);
 	default:
 		std::cout << "Error invalid unit id in GetCost";

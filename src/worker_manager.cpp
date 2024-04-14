@@ -8,7 +8,7 @@
 
 #include "worker_manager.h"
 #include "utility.h"
-#include "TossBot.h"
+#include "theBigBot.h"
 
 namespace sc2
 {

@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2021-2022 Alexander Kurbatov
 
-#include "TossBot.h"
+#include "theBigBot.h"
 
 #include <sc2api/sc2_coordinator.h>
 #include <sc2api/sc2_gametypes.h>
@@ -61,10 +61,10 @@ int main(int argc, char* argv[])
     ParseArguments(argc, argv, &options);
 
     sc2::Coordinator coordinator;
-    Bot bot;
+    sc2::TheBigBot bot;
 
     size_t num_agents = 2;
-    coordinator.SetParticipants({ CreateParticipant(sc2::Race::Random, &bot, "BlankBot") });
+    coordinator.SetParticipants({ CreateParticipant(sc2::Race::Protoss, &bot, "theBigBot") });
 
     std::cout << "Connecting to port " << options.GamePort << std::endl;
     coordinator.Connect(options.GamePort);
