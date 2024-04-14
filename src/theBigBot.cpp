@@ -34,12 +34,12 @@ namespace sc2 {
     {
 		SetUpUnitTypeInfo();
 
-		Debug()->SendDebug();
+		//Debug()->Send//Debug();
 		if (debug_mode)
 		{
-			Debug()->DebugGiveAllResources();
-			Debug()->DebugFastBuild();
-			Debug()->SendDebug();
+			//Debug()->DebugGiveAllResources();
+			//Debug()->DebugFastBuild();
+			//Debug()->Send//Debug();
 		}
     }
 
@@ -47,13 +47,13 @@ namespace sc2 {
     {
 		/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Enemy))
 		{
-			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 255, 255));
-			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type), unit->pos, Color(255, 255, 255), 15);
+			//Debug()->DebugSphereOut(unit->pos, .5, Color(255, 255, 255));
+			//Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type), unit->pos, Color(255, 255, 255), 15);
 		}
 		for (const auto &unit : enemy_unit_saved_position)
 		{
-			Debug()->DebugSphereOut(ToPoint3D(unit.second.pos), .5, Color(255, 0, 255));
-			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit.first->unit_type), ToPoint3D(unit.second.pos), Color(255, 0, 255), 15);
+			//Debug()->DebugSphereOut(ToPoint3D(unit.second.pos), .5, Color(255, 0, 255));
+			//Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit.first->unit_type), ToPoint3D(unit.second.pos), Color(255, 0, 255), 15);
 		}*/
 
 #ifdef DEBUG_TIMING
@@ -97,17 +97,17 @@ namespace sc2 {
 
 		for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Neutral))
 		{
-			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
+			//Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
 		}
 
 		/*if (debug_mode)
 		{
-			Debug()->SendDebug();
+			//Debug()->Send//Debug();
 			return;
 		}*/
 
-		if (!debug_mode)
-			ShowLocations();
+		//if (!debug_mode)
+		//	ShowLocations();
 
 
         if (!started)
@@ -314,13 +314,13 @@ namespace sc2 {
 
 		RemoveCompletedAtacks();
 
-        DisplayDebugHud();
+        //DisplayDebugHud();
 #ifdef DEBUG_TIMING
 		std::chrono::microseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 #endif
-        Debug()->SendDebug();
+        //Debug()->Send//Debug();
 #ifdef DEBUG_TIMING
 		std::chrono::microseconds postSendDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
@@ -506,10 +506,10 @@ namespace sc2 {
 
 	void TheBigBot::RunInitialSetUp()
 	{
-		//Debug()->DebugFastBuild();
-		//Debug()->DebugGiveAllResources();
-		Debug()->DebugShowMap();
-		//Debug()->DebugGiveAllUpgrades();
+		////Debug()->DebugFastBuild();
+		////Debug()->DebugGiveAllResources();
+		//Debug()->DebugShowMap();
+		////Debug()->DebugGiveAllUpgrades();
 		//SpawnArmies();
 		initial_set_up = true;
 	}
@@ -520,16 +520,16 @@ namespace sc2 {
 		const Unit* closest_unit_to_enemies = Utility::ClosestTo(test_army.stalkers, closest_enemy->pos);
 		const Unit* furthest_unit_from_enemies = Utility::FurthestFrom(test_army.stalkers, closest_enemy->pos);
 
-		Debug()->DebugSphereOut(closest_unit_to_enemies->pos, .625, Color(255, 0, 255));
-		Debug()->DebugSphereOut(furthest_unit_from_enemies->pos, .625, Color(0, 255, 255));
+		//Debug()->DebugSphereOut(closest_unit_to_enemies->pos, .625, Color(255, 0, 255));
+		//Debug()->DebugSphereOut(furthest_unit_from_enemies->pos, .625, Color(0, 255, 255));
 
 		float unit_size = .625;
 		float unit_dispersion = 0;
 		Point2D retreating_concave_origin = Utility::PointBetween(Utility::ClosestPointOnLine(closest_unit_to_enemies->pos, enemy_army_spawn, fallback_point), fallback_point, unit_size + unit_dispersion);
 		Point2D attacking_concave_origin = Utility::PointBetween(Utility::ClosestPointOnLine(furthest_unit_from_enemies->pos, enemy_army_spawn, fallback_point), enemy_army_spawn, unit_size + unit_dispersion);
 
-		Debug()->DebugSphereOut(Point3D(retreating_concave_origin.x, retreating_concave_origin.y, Observation()->TerrainHeight(retreating_concave_origin)), .625, Color(255, 0, 128));
-		Debug()->DebugSphereOut(Point3D(attacking_concave_origin.x, attacking_concave_origin.y, Observation()->TerrainHeight(attacking_concave_origin)), .625, Color(0, 255, 128));
+		//Debug()->DebugSphereOut(Point3D(retreating_concave_origin.x, retreating_concave_origin.y, Observation()->TerrainHeight(retreating_concave_origin)), .625, Color(255, 0, 128));
+		//Debug()->DebugSphereOut(Point3D(attacking_concave_origin.x, attacking_concave_origin.y, Observation()->TerrainHeight(attacking_concave_origin)), .625, Color(0, 255, 128));
 
 		std::vector<Point2D> attacking_concave_positions = FindConcaveFromBack(attacking_concave_origin, fallback_point, test_army.stalkers.size(), .625, .2);
 		std::vector<Point2D> retreating_concave_positions = FindConcave(retreating_concave_origin, fallback_point, test_army.stalkers.size(), .625, .2);
@@ -539,16 +539,16 @@ namespace sc2 {
 		
 		for (const auto &pos : attacking_concave_positions)
 		{
-			Debug()->DebugSphereOut(Point3D(pos.x, pos.y, Observation()->TerrainHeight(pos)), .625, Color(255, 0, 0));
+			//Debug()->DebugSphereOut(Point3D(pos.x, pos.y, Observation()->TerrainHeight(pos)), .625, Color(255, 0, 0));
 		}
 		for (const auto &pos : retreating_concave_positions)
 		{
-			Debug()->DebugSphereOut(Point3D(pos.x, pos.y, Observation()->TerrainHeight(pos)), .625, Color(0, 255, 0));
+			//Debug()->DebugSphereOut(Point3D(pos.x, pos.y, Observation()->TerrainHeight(pos)), .625, Color(0, 255, 0));
 		}
 
 		for (const auto &unit : retreating_unit_positions)
 		{
-			Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
+			//Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
 			//Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
 		}
 		Actions()->UnitCommand(test_army.prisms[0], ABILITY_ID::MOVE_MOVE, Utility::PointBetween(Utility::MedianCenter(test_army.stalkers), fallback_point, 3));
@@ -563,22 +563,22 @@ namespace sc2 {
 
 	void TheBigBot::SpawnArmies()
 	{
-		Debug()->DebugEnemyControl();
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, locations->attack_path[locations->attack_path.size() - 1], 2, 10);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, locations->attack_path[locations->attack_path.size() - 1], 2, 32);
+		//Debug()->DebugEnemyControl();
+		////Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, locations->attack_path[locations->attack_path.size() - 1], 2, 10);
+		////Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
+		////Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, locations->attack_path[locations->attack_path.size() - 1], 2, 32);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 1, 8);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 1, 1);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, enemy_army_spawn, 1, 1);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 1, 8);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 1, 1);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, enemy_army_spawn, 1, 1);
 
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, enemy_army_spawn, 2, 8);
+		////Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, enemy_army_spawn, 2, 8);
 
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, locations->attack_path[0], 1, 1);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, locations->attack_path[0], 2, 12);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_WARPPRISM, locations->attack_path[0], 2, 1);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, locations->attack_path[0], 1, 3);
-		Debug()->SendDebug();
+		////Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, locations->attack_path[0], 1, 1);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, locations->attack_path[0], 2, 12);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_WARPPRISM, locations->attack_path[0], 2, 1);
+		////Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, locations->attack_path[0], 1, 3);
+		//Debug()->Send//Debug();
 	}
 
 	void TheBigBot::SetUpArmies()
@@ -1463,7 +1463,7 @@ namespace sc2 {
 				enemy_weapon_cooldown[Eunit] = 0;
 				enemy_unit_saved_position[Eunit].frames = -1;
 			}
-			//Debug()->DebugTextOut(std::to_string(enemy_weapon_cooldown[Eunit]), Eunit->pos + Point3D(0, 0, .2), Color(255, 0, 255), 20);
+			////Debug()->DebugTextOut(std::to_string(enemy_weapon_cooldown[Eunit]), Eunit->pos + Point3D(0, 0, .2), Color(255, 0, 255), 20);
 
 		}
 
@@ -1944,8 +1944,8 @@ namespace sc2 {
 		}
 		for (int i = 0; i < corrosive_bile_positions.size(); i++)
 		{
-			Debug()->DebugSphereOut(ToPoint3D(corrosive_bile_positions[i]), .5, Color(255, 0, 255));
-			Debug()->DebugTextOut(std::to_string(corrosive_bile_times[i]), ToPoint3D(corrosive_bile_positions[i]), Color(255, 0, 255), 14);
+			//Debug()->DebugSphereOut(ToPoint3D(corrosive_bile_positions[i]), .5, Color(255, 0, 255));
+			//Debug()->DebugTextOut(std::to_string(corrosive_bile_times[i]), ToPoint3D(corrosive_bile_positions[i]), Color(255, 0, 255), 14);
 		}
 	}
 
@@ -2137,15 +2137,15 @@ namespace sc2 {
 
     void TheBigBot::DisplayWorkerStatus()
     {
-        Debug()->DebugTextOut("first 2 spaces: " + std::to_string(worker_manager.first_2_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
-        if (worker_manager.close_3_mineral_patch_extras.size() > 0)
-            Debug()->DebugTextOut("\nclose 3rd extras: " + std::to_string(worker_manager.close_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
-        else
-            Debug()->DebugTextOut("\nclose 3rd spaces: " + std::to_string(worker_manager.close_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
-        if (worker_manager.far_3_mineral_patch_extras.size() > 0)
-            Debug()->DebugTextOut("\n\nfar 3rd extras: " + std::to_string(worker_manager.far_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
-        else
-            Debug()->DebugTextOut("\n\nfar 3rd spaces: " + std::to_string(worker_manager.far_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
+        //Debug()->DebugTextOut("first 2 spaces: " + std::to_string(worker_manager.first_2_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
+        //if (worker_manager.close_3_mineral_patch_extras.size() > 0)
+        //    //Debug()->DebugTextOut("\nclose 3rd extras: " + std::to_string(worker_manager.close_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
+        //else
+        //    //Debug()->DebugTextOut("\nclose 3rd spaces: " + std::to_string(worker_manager.close_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
+        //if (worker_manager.far_3_mineral_patch_extras.size() > 0)
+        //    //Debug()->DebugTextOut("\n\nfar 3rd extras: " + std::to_string(worker_manager.far_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
+        //else
+            //Debug()->DebugTextOut("\n\nfar 3rd spaces: " + std::to_string(worker_manager.far_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
 
 
 
@@ -2195,9 +2195,9 @@ namespace sc2 {
             gasses += "\n";
         }
 
-        Debug()->DebugTextOut(close_patches, Point2D(0, 0), Color(255, 255, 0), 20);
-        Debug()->DebugTextOut(far_patches, Point2D(0, 0), Color(255, 128, 0), 20);
-        Debug()->DebugTextOut(gasses, Point2D(0, 0), Color(0, 255, 0), 20);
+        //Debug()->DebugTextOut(close_patches, Point2D(0, 0), Color(255, 255, 0), 20);
+        //Debug()->DebugTextOut(far_patches, Point2D(0, 0), Color(255, 128, 0), 20);
+        //Debug()->DebugTextOut(gasses, Point2D(0, 0), Color(0, 255, 0), 20);
     }
 
     void TheBigBot::DisplayBuildOrder()
@@ -2209,7 +2209,7 @@ namespace sc2 {
                 break;
             build_order_message += build_order_manager.build_order[i].toString() + "\n";
         }
-        Debug()->DebugTextOut(build_order_message, Point2D(.7, .1), Color(0, 255, 0), 20);
+        //Debug()->DebugTextOut(build_order_message, Point2D(.7, .1), Color(0, 255, 0), 20);
     }
 
     void TheBigBot::DisplayActiveActions()
@@ -2219,10 +2219,10 @@ namespace sc2 {
         {
             actions_message += action_manager.active_actions[i]->toString() + "\n";
             const Unit* unit = action_manager.active_actions[i]->action_arg->unit;
-            if (unit != NULL)
-                Debug()->DebugTextOut(action_manager.active_actions[i]->toString(), unit->pos, Color(0, 255, 0), 20);
+            //if (unit != NULL)
+                //Debug()->DebugTextOut(action_manager.active_actions[i]->toString(), unit->pos, Color(0, 255, 0), 20);
         }
-        Debug()->DebugTextOut(actions_message, Point2D(.1, 0), Color(0, 255, 0), 20);
+        //Debug()->DebugTextOut(actions_message, Point2D(.1, 0), Color(0, 255, 0), 20);
     }
 
     void TheBigBot::DisplayActiveStateMachines()
@@ -2232,7 +2232,7 @@ namespace sc2 {
         {
             actions_message += active_FSMs[i]->toString() + "\n";
         }
-        Debug()->DebugTextOut(actions_message, Point2D(.3, 0), Color(0, 255, 0), 20);
+        //Debug()->DebugTextOut(actions_message, Point2D(.3, 0), Color(0, 255, 0), 20);
     }
 
     void TheBigBot::DisplayBuildingStatuses()
@@ -2283,7 +2283,7 @@ namespace sc2 {
                 {
                     info += "Orders: " + OrdersToString(building->orders);
                 }
-                Debug()->DebugTextOut(new_lines + info, Point2D(0, .5), text_color, 20);
+                //Debug()->DebugTextOut(new_lines + info, Point2D(0, .5), text_color, 20);
                 new_lines += "\n";
             }
 			new_lines += "\n";
@@ -2307,7 +2307,7 @@ namespace sc2 {
             army_info += "Immortals: " + std::to_string(army_groups[i]->immortals.size());
             army_info += "\n";
         }
-        Debug()->DebugTextOut(army_info, Point2D(.8, .5), Color(255, 255, 255), 20);
+        //Debug()->DebugTextOut(army_info, Point2D(.8, .5), Color(255, 255, 255), 20);
     }
 
     void TheBigBot::DisplaySupplyInfo()
@@ -2348,7 +2348,7 @@ namespace sc2 {
         supply_message += "nexi: " + std::to_string(nexi) + '\n';
         supply_message += "new supply: " + std::to_string(used + 2 * gates + 3 * other_prod + nexi) + '/' + std::to_string(cap + 8 * pending_pylons + 8 * build_pylon_actions) + '\n';
 
-        Debug()->DebugTextOut(supply_message, Point2D(.9, .05), Color(0, 255, 0), 20);
+        //Debug()->DebugTextOut(supply_message, Point2D(.9, .05), Color(0, 255, 0), 20);
     }
 
 	void TheBigBot::DisplayEnemyAttacks()
@@ -2366,7 +2366,7 @@ namespace sc2 {
 				message += " - " + std::to_string(attack.impact_frame) + "\n";
 			}
 		}
-		Debug()->DebugTextOut(message, Point2D(.8, .4), Color(255, 0, 0), 20);
+		//Debug()->DebugTextOut(message, Point2D(.8, .4), Color(255, 0, 0), 20);
 	}
 
 	void TheBigBot::DisplayAlliedAttackStatus()
@@ -2382,14 +2382,14 @@ namespace sc2 {
 			if (unit.second == true)
 			{
 				col2 = Color(0, 255, 255);
-				Debug()->DebugTextOut("true", unit.first->pos + Point3D(0, 0, .2), col2, 15);
+				//Debug()->DebugTextOut("true", unit.first->pos + Point3D(0, 0, .2), col2, 15);
 			}
 			else
 			{
-				Debug()->DebugTextOut("false", unit.first->pos + Point3D(0, 0, .2), col2, 15);
+				//Debug()->DebugTextOut("false", unit.first->pos + Point3D(0, 0, .2), col2, 15);
 			}
 
-			Debug()->DebugTextOut(std::to_string(unit.first->weapon_cooldown), unit.first->pos, col1, 15);
+			//Debug()->DebugTextOut(std::to_string(unit.first->weapon_cooldown), unit.first->pos, col1, 15);
 		}
 	}
 
@@ -2486,51 +2486,51 @@ namespace sc2 {
 			return;
 		for (int i = 0; i < locations->pylon_locations.size(); i++)
 		{
-			Debug()->DebugSphereOut(ToPoint3D(locations->pylon_locations[i]), 1, Color(255, 0, 255));
-			Debug()->DebugTextOut("Pylon " + std::to_string(i), ToPoint3D(locations->pylon_locations[i]), Color(255, 0, 255), 14);
+			//Debug()->DebugSphereOut(ToPoint3D(locations->pylon_locations[i]), 1, Color(255, 0, 255));
+			//Debug()->DebugTextOut("Pylon " + std::to_string(i), ToPoint3D(locations->pylon_locations[i]), Color(255, 0, 255), 14);
 		}
-		Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_protoss), 1, Color(255, 0, 255));
-		Debug()->DebugTextOut("Pylon P", ToPoint3D(locations->first_pylon_location_protoss), Color(255, 0, 255), 14);
-		Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_zerg), 1, Color(255, 0, 255));
-		Debug()->DebugTextOut("Pylon Z", ToPoint3D(locations->first_pylon_location_zerg), Color(255, 0, 255), 14);
-		Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_terran), 1, Color(255, 0, 255));
-		Debug()->DebugTextOut("Pylon T", ToPoint3D(locations->first_pylon_location_terran), Color(255, 0, 255), 14);
+		//Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_protoss), 1, Color(255, 0, 255));
+		//Debug()->DebugTextOut("Pylon P", ToPoint3D(locations->first_pylon_location_protoss), Color(255, 0, 255), 14);
+		//Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_zerg), 1, Color(255, 0, 255));
+		//Debug()->DebugTextOut("Pylon Z", ToPoint3D(locations->first_pylon_location_zerg), Color(255, 0, 255), 14);
+		//Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_terran), 1, Color(255, 0, 255));
+		//Debug()->DebugTextOut("Pylon T", ToPoint3D(locations->first_pylon_location_terran), Color(255, 0, 255), 14);
 		for (int i = 0; i < locations->nexi_locations.size(); i++)
 		{
-			Debug()->DebugSphereOut(ToPoint3D(locations->nexi_locations[i]), 2.5, Color(0, 0, 255));
-			Debug()->DebugTextOut("Nexus " + std::to_string(i), ToPoint3D(locations->nexi_locations[i]), Color(0, 0, 255), 14);
+			//Debug()->DebugSphereOut(ToPoint3D(locations->nexi_locations[i]), 2.5, Color(0, 0, 255));
+			//Debug()->DebugTextOut("Nexus " + std::to_string(i), ToPoint3D(locations->nexi_locations[i]), Color(0, 0, 255), 14);
 		}
 		for (int i = 0; i < locations->gateway_locations.size(); i++)
 		{
-			Debug()->DebugSphereOut(ToPoint3D(locations->gateway_locations[i]), 1.5, Color(255, 255, 0));
-			Debug()->DebugTextOut("Gate " + std::to_string(i), ToPoint3D(locations->gateway_locations[i]), Color(255, 255, 0), 14);
+			//Debug()->DebugSphereOut(ToPoint3D(locations->gateway_locations[i]), 1.5, Color(255, 255, 0));
+			//Debug()->DebugTextOut("Gate " + std::to_string(i), ToPoint3D(locations->gateway_locations[i]), Color(255, 255, 0), 14);
 		}
 		for (int i = 0; i < locations->tech_locations.size(); i++)
 		{
-			Debug()->DebugSphereOut(ToPoint3D(locations->tech_locations[i]), 1.5, Color(0, 255, 0));
-			Debug()->DebugTextOut("Tech " + std::to_string(i), ToPoint3D(locations->tech_locations[i]), Color(0, 255, 0), 14);
+			//Debug()->DebugSphereOut(ToPoint3D(locations->tech_locations[i]), 1.5, Color(0, 255, 0));
+			//Debug()->DebugTextOut("Tech " + std::to_string(i), ToPoint3D(locations->tech_locations[i]), Color(0, 255, 0), 14);
 		}
 		for (int i = 0; i < locations->cyber_core_locations.size(); i++)
 		{
-			Debug()->DebugSphereOut(ToPoint3D(locations->cyber_core_locations[i]), 1.5, Color(255, 0, 0));
-			Debug()->DebugTextOut("Cyber " + std::to_string(i), ToPoint3D(locations->cyber_core_locations[i]), Color(255, 0, 0), 14);
+			//Debug()->DebugSphereOut(ToPoint3D(locations->cyber_core_locations[i]), 1.5, Color(255, 0, 0));
+			//Debug()->DebugTextOut("Cyber " + std::to_string(i), ToPoint3D(locations->cyber_core_locations[i]), Color(255, 0, 0), 14);
 		}
 
 		for (const auto& pos : locations->blink_nat_attacK_path_line.GetPoints())
 		{
-			Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
+			//Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
 		}
 		for (const auto& pos : locations->blink_main_attack_path_lines[0].GetPoints())
 		{
-			Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
+			//Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
 		}
 		for (const auto& pos : locations->blink_main_attack_path_lines[1].GetPoints())
 		{
-			Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
+			//Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
 		}
 		for (const auto& pos : locations->attack_path_line.GetPoints())
 		{
-			Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
+			//Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
 		}
 	}
 
@@ -2565,11 +2565,11 @@ namespace sc2 {
                     break;
                 }
             }
-            Debug()->DebugTextOut(std::to_string(stalker->weapon_cooldown), stalker->pos, Color(0, 255, 255), 20);
-            if (stalker->weapon_cooldown == 0)
-                Debug()->DebugSphereOut(stalker->pos, .7, Color(0, 255, 0));
-            else
-                Debug()->DebugSphereOut(stalker->pos, .7, Color(255, 0, 0));
+            //Debug()->DebugTextOut(std::to_string(stalker->weapon_cooldown), stalker->pos, Color(0, 255, 255), 20);
+            //if (stalker->weapon_cooldown == 0)
+                //Debug()->DebugSphereOut(stalker->pos, .7, Color(0, 255, 0));
+            //else
+                //Debug()->DebugSphereOut(stalker->pos, .7, Color(255, 0, 0));
             if (find(stalker->buffs.begin(), stalker->buffs.end(), BUFF_ID::LOCKON) != stalker->buffs.end())
             {
                 if (blink_ready)
@@ -2643,11 +2643,11 @@ namespace sc2 {
                 }
             }
 
-            Debug()->DebugTextOut(std::to_string(stalker->weapon_cooldown), stalker->pos, Color(0, 255, 255), 20);
-            if (stalker->weapon_cooldown == 0)
-                Debug()->DebugSphereOut(stalker->pos, .7, Color(0, 255, 0));
-            else
-                Debug()->DebugSphereOut(stalker->pos, .7, Color(255, 0, 0));
+            //Debug()->DebugTextOut(std::to_string(stalker->weapon_cooldown), stalker->pos, Color(0, 255, 255), 20);
+            //if (stalker->weapon_cooldown == 0)
+                //Debug()->DebugSphereOut(stalker->pos, .7, Color(0, 255, 0));
+            //else
+                //Debug()->DebugSphereOut(stalker->pos, .7, Color(255, 0, 0));
 
             if (find(stalker->buffs.begin(), stalker->buffs.end(), BUFF_ID::LOCKON) != stalker->buffs.end())
             {
@@ -2716,11 +2716,11 @@ namespace sc2 {
 			}
 			bool weapon_ready = immortal->weapon_cooldown == 0;
 
-			Debug()->DebugTextOut(std::to_string(immortal->weapon_cooldown), immortal->pos, Color(0, 255, 255), 20);
-			if (immortal->weapon_cooldown == 0)
-				Debug()->DebugSphereOut(immortal->pos, .7, Color(0, 255, 0));
-			else
-				Debug()->DebugSphereOut(immortal->pos, .7, Color(255, 0, 0));
+			//Debug()->DebugTextOut(std::to_string(immortal->weapon_cooldown), immortal->pos, Color(0, 255, 255), 20);
+			//if (immortal->weapon_cooldown == 0)
+				//Debug()->DebugSphereOut(immortal->pos, .7, Color(0, 255, 0));
+			//else
+				//Debug()->DebugSphereOut(immortal->pos, .7, Color(255, 0, 0));
 
 			if (find(immortal->buffs.begin(), immortal->buffs.end(), BUFF_ID::LOCKON) != immortal->buffs.end())
 			{

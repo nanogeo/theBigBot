@@ -642,12 +642,12 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		).count();
 #endif
 
-	//agent->Debug()->DebugSphereOut(Point3D(fallback_point.x, fallback_point.y, agent->Observation()->TerrainHeight(fallback_point)), 3, Color(255, 0, 0));
-	//agent->Debug()->DebugSphereOut(Point3D(attack_point.x, attack_point.y, agent->Observation()->TerrainHeight(attack_point)), 3, Color(0, 255, 0));
+	////agent->Debug()->DebugSphereOut(Point3D(fallback_point.x, fallback_point.y, agent->Observation()->TerrainHeight(fallback_point)), 3, Color(255, 0, 0));
+	////agent->Debug()->DebugSphereOut(Point3D(attack_point.x, attack_point.y, agent->Observation()->TerrainHeight(attack_point)), 3, Color(0, 255, 0));
 
 	for (const auto &pos : agent->locations->attack_path_line.GetPoints())
 	{
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
+		//agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
 	}
 
 	army->AttackLine(0, 6, ZERG_PRIO);
@@ -785,7 +785,7 @@ bool ActionManager::ActionContinueVolleyWarpingInZealots(ActionArgData* data)
 			for (int i = 0; i < gates.size(); i++)
 			{
 				Point3D pos = Point3D(gates[i]->pos.x, gates[i]->pos.y, agent->Observation()->TerrainHeight(gates[i]->pos));
-				agent->Debug()->DebugSphereOut(pos, 1, Color(255, 0, 255));
+				//agent->Debug()->DebugSphereOut(pos, 1, Color(255, 0, 255));
 				agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_ZEALOT, spots[i]);
 				agent->warpgate_status[gates[i]].used = true;
 				agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(20 * 22.4);
@@ -1057,7 +1057,7 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 
 	for (const auto& pos : agent->locations->attack_path_line.GetPoints())
 	{
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
+		//agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
 	}
 
 	army->AttackLine(0, 6, PROTOSS_PRIO);
@@ -1088,7 +1088,7 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 		max_range = std::max(Utility::GetMaxRange(close_enemies) + 2, 6.0f);
 	}
 
-	agent->Debug()->DebugSphereOut(agent->ToPoint3D(concave_target), 1, Color(255, 255, 0));
+	//agent->Debug()->DebugSphereOut(agent->ToPoint3D(concave_target), 1, Color(255, 255, 0));
 
 
 	Point2D retreat_concave_origin = agent->locations->attack_path_line.GetPointFrom(concave_target, max_range, false);
@@ -1106,11 +1106,11 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 
 	for (const auto& pos : attack_concave_positions)
 	{
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(255, 0, 0));
+		//agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(255, 0, 0));
 	}
 	for (const auto& pos : retreat_concave_positions)
 	{
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(0, 255, 0));
+		//agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(0, 255, 0));
 	}
 
 	army->ApplyPressureGrouped(concave_target, (2 * retreat_concave_origin) - concave_target, retreat_unit_positions, attack_unit_positions);

@@ -710,7 +710,7 @@ bool BuildOrderManager::OracleHarass(BuildOrderResultArgData data)
 
 bool BuildOrderManager::SpawnUnits(BuildOrderResultArgData data)
 {
-	agent->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, agent->GetLocations(NEXUS)[2], 2, 15);
+	//agent->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, agent->GetLocations(NEXUS)[2], 2, 15);
 	return true;
 }
 
@@ -1118,13 +1118,13 @@ bool BuildOrderManager::ScourMap(BuildOrderResultArgData data)
 
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
-	agent->Debug()->DebugCreateUnit(STALKER, agent->locations->attack_path[0], 2, 10);
-	//agent->Debug()->DebugCreateUnit(PRISM, agent->locations->attack_path[0], 2, 1);
-	//agent->Debug()->DebugCreateUnit(MARINE, agent->locations->attack_path[2], 2, 18);
-	//agent->Debug()->DebugCreateUnit(MARAUDER, agent->locations->attack_path[2], 2, 6);
-	//agent->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, agent->locations->attack_path[2], 2, 1);
-	agent->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, agent->locations->attack_path[2], 1, 6);
-	agent->Debug()->DebugGiveAllUpgrades();
+	//agent->Debug()->DebugCreateUnit(STALKER, agent->locations->attack_path[0], 2, 10);
+	////agent->Debug()->DebugCreateUnit(PRISM, agent->locations->attack_path[0], 2, 1);
+	////agent->Debug()->DebugCreateUnit(MARINE, agent->locations->attack_path[2], 2, 18);
+	////agent->Debug()->DebugCreateUnit(MARAUDER, agent->locations->attack_path[2], 2, 6);
+	////agent->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, agent->locations->attack_path[2], 2, 1);
+	//agent->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, agent->locations->attack_path[2], 1, 6);
+	//agent->Debug()->DebugGiveAllUpgrades();
 	return true;
 }
 
