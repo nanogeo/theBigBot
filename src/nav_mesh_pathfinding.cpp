@@ -22,10 +22,10 @@ namespace sc2 {
 void NavMesh::LoadOrBuildNavmesh(ImageData map, std::string map_name)
 {
 	if (BuildNavMeshFromFile(map_name + "_navmesh.txt"))
-		std::cout << "Navmesh found!\n";
+		//std::cout << "Navmesh found!\n";
 	else
 	{
-		std::cout << "no navmesh found, bulding navmesh\n";
+		//std::cout << "no navmesh found, bulding navmesh\n";
 		std::vector<std::vector<bool>> grid_map = SetUpMap(map);
 		std::vector<Vec2D> isolines = FindIsolines(grid_map);
 
@@ -248,7 +248,7 @@ std::vector<std::vector<bool>> NavMesh::SetUpMap(ImageData raw_map)
 			blockers.push_back(unit->pos + Point2D(-2, -2));
 			break;
 		default:
-			std::cout << "Error unknown unit type in AddNeutralUnitsToMap\n";
+			//std::cout << "Error unknown unit type in AddNeutralUnitsToMap\n";
 			break;
 
 		}
@@ -342,7 +342,7 @@ std::vector<Vec2D> NavMesh::GetIsolineConfiguration(bool w, bool x, bool y, bool
 	case 15:
 		break;
 	default:
-		std::cout << "Error invalid input in GetIsolineConfiguration";
+		//std::cout << "Error invalid input in GetIsolineConfiguration";
 		break;
 	}
 	return lines;
@@ -446,7 +446,7 @@ std::vector<Polygon*> NavMesh::MakeTriangles(std::vector<Point2D> verticies, Ima
 	for (const auto &point : verticies)
 	{
 		if (point.x != RoundFloat(point.x) || point.y != RoundFloat(point.y))
-			std::cout << point.x << ' ' << point.y << '\n';
+			//std::cout << point.x << ' ' << point.y << '\n';
 		std::vector<Polygon*> bad_triangles;
 		//   loop through triangles
 		for (auto &triangle : triangles)
@@ -506,7 +506,7 @@ Circle NavMesh::ComputeCircumcircle(Polygon triangle)
 {
 	if (triangle.points.size() != 3)
 	{
-		std::cout << "Error non-triangle passed into ComputerCircumcircle";
+		//std::cout << "Error non-triangle passed into ComputerCircumcircle";
 		return Circle();
 	}
 	Point2D a = triangle.points[0];
@@ -950,7 +950,7 @@ void NavMesh::ReAddVerticies(std::vector<Point2D> removed_verticies, std::vector
 	for (const auto &point : verticies)
 	{
 		if (point.x != RoundFloat(point.x) || point.y != RoundFloat(point.y))
-			std::cout << point.x << '-' << point.y << '\n';
+			//std::cout << point.x << '-' << point.y << '\n';
 		std::vector<Triangle*> bad_triangles;
 		//   loop through triangles
 		for (auto &triangle : new_triangles)
@@ -1016,7 +1016,7 @@ void NavMesh::AddVerticies(std::vector<Point2D> verticies)
 	for (const auto &point : verticies)
 	{
 		if (point.x != RoundFloat(point.x) || point.y != RoundFloat(point.y))
-			std::cout << point.x << ',' << point.y << '\n';
+			//std::cout << point.x << ',' << point.y << '\n';
 		std::vector<Triangle*> bad_triangles;
 		//   loop through triangles
 		for (auto &triangle : triangles)
@@ -1187,7 +1187,7 @@ Triangle* NavMesh::FindTriangle(Point2D v1, Point2D v2, Point2D v3)
 			return triangle;
 		}
 	}
-	std::cout << "Error no triangle found in FindTriangle";
+	//std::cout << "Error no triangle found in FindTriangle";
 }
 
 void NavMesh::RemoveTriangle(Triangle* triangle)
@@ -1253,7 +1253,7 @@ Triangle* NavMesh::FindClosestTriangle(Point2D pos)
 		}
 	}
 	if (closest == NULL)
-		std::cout << "Error no triangle found in FindClosestTriangle\n";
+		//std::cout << "Error no triangle found in FindClosestTriangle\n";
 	return closest;
 }
 
@@ -1366,7 +1366,7 @@ Portal NavMesh::FindPortal(Triangle* start, Triangle* end)
 	}
 
 	if (point1 == Point2D(0, 0) || point2 == Point2D(0, 0))
-		std::cout << "Error triangles aren't neighbors in FindPortal";
+		//std::cout << "Error triangles aren't neighbors in FindPortal";
 	
 	Portal portal;
 	float orientation = ((point1.x - start->center.x) * (point2.y - start->center.y)) - ((point1.y - start->center.y) * (point2.x - start->center.x));
@@ -1384,7 +1384,7 @@ Portal NavMesh::FindPortal(Triangle* start, Triangle* end)
 	}
 	else
 	{
-		std::cout << "Error invalid orientation in FindPortal";
+		//std::cout << "Error invalid orientation in FindPortal";
 		return portal;
 	}
 

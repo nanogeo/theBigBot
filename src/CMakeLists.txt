@@ -3,8 +3,26 @@
 # Copyright (c) 2021-2022 Alexander Kurbatov
 
 set(bot_sources
+    action_manager.cpp
+    army_group.cpp
+    build_order_manager.cpp
+    finite_state_machine.cpp
+    fire_control.cpp
+    locations.cpp
+    locations_equilibrium.cpp
+    locations_goldenaura.cpp
+    locations_gresvan.cpp
+    locations_hard_lead.cpp
+    locations_oceanborn.cpp
+    locations_sire_delta.cpp
     main.cpp
-    theBigBot.cpp)
+    nav_mesh_pathfinding.cpp
+    path_manager.cpp
+    pathfinding.cpp
+    quartic.cpp
+    theBigBot.cpp
+    utility.cpp
+    worker_manager.cpp)
 
 add_executable(theBigBot ${bot_sources})
 

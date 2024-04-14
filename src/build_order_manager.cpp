@@ -110,7 +110,7 @@ bool BuildOrderManager::BuildBuilding(BuildOrderResultArgData data)
 	const Unit* builder = agent->worker_manager.GetBuilder(pos);
 	if (builder == NULL)
 	{
-		std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(builder);
@@ -144,7 +144,7 @@ bool BuildOrderManager::BuildFirstPylon(BuildOrderResultArgData data)
 	const Unit* builder = agent->worker_manager.GetBuilder(pos);
 	if (builder == NULL)
 	{
-		std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(builder);
@@ -158,7 +158,7 @@ bool BuildOrderManager::BuildBuildingMulti(BuildOrderResultArgData data)
 	const Unit* builder = agent->worker_manager.GetBuilder(pos);
 	if (builder == NULL)
 	{
-		std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(builder);
@@ -172,7 +172,7 @@ bool BuildOrderManager::BuildProxyMulti(BuildOrderResultArgData data)
 	const Unit* builder = agent->worker_manager.GetBuilder(pos);
 	if (builder == NULL)
 	{
-		std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(builder);
@@ -186,7 +186,7 @@ bool BuildOrderManager::Scout(BuildOrderResultArgData data)
 	const Unit* scouter = agent->worker_manager.GetBuilder(pos);
 	if (scouter == NULL)
 	{
-		std::cout << "Error could not find builder in Scout" << std::endl;
+		//std::cout << "Error could not find builder in Scout" << std::endl;
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(scouter);
@@ -209,7 +209,7 @@ bool BuildOrderManager::CannonRushProbe1(BuildOrderResultArgData data)
 	const Unit* scouter = agent->worker_manager.GetBuilder(pos);
 	if (scouter == NULL)
 	{
-		std::cout << "Error could not find builder in Scout" << std::endl;
+		//std::cout << "Error could not find builder in Scout" << std::endl;
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(scouter);
@@ -554,7 +554,7 @@ bool BuildOrderManager::BuildProxy(BuildOrderResultArgData data)
 	const Unit* builder = agent->worker_manager.GetBuilder(pos);
 	if (builder == NULL)
 	{
-		std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(builder);
@@ -1039,7 +1039,7 @@ bool BuildOrderManager::SendCannonRushTerranProbe1(BuildOrderResultArgData data)
 	const Unit* cannoneer = agent->worker_manager.GetBuilder(pos);
 	if (cannoneer == NULL)
 	{
-		std::cout << "Error could not find builder in SendCannonRushTerranProbe1" << std::endl;
+		//std::cout << "Error could not find builder in SendCannonRushTerranProbe1" << std::endl;
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(cannoneer);
@@ -1054,7 +1054,7 @@ bool BuildOrderManager::SendCannonRushTerranProbe2(BuildOrderResultArgData data)
 	const Unit* cannoneer = agent->worker_manager.GetBuilder(pos);
 	if (cannoneer == NULL)
 	{
-		std::cout << "Error could not find builder in SendCannonRushTerranProbe1" << std::endl;
+		//std::cout << "Error could not find builder in SendCannonRushTerranProbe1" << std::endl;
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(cannoneer);
@@ -1144,7 +1144,7 @@ bool BuildOrderManager::RemoveProbe(BuildOrderResultArgData data)
 	const Unit* builder = agent->worker_manager.GetBuilder(Point2D(0, 0));
 	if (builder == NULL)
 	{
-		std::cout << "Error could not find builder in RemoveProbe" << std::endl;
+		//std::cout << "Error could not find builder in RemoveProbe" << std::endl;
 		return false;
 	}
 	agent->worker_manager.RemoveWorker(builder);
@@ -1195,7 +1195,7 @@ void BuildOrderManager::SetBuildOrder(BuildOrder build)
 		SetThreeGateRobo();
 		break;
 	default:
-		std::cout << "Error invalid build order in SetBuildOrder" << std::endl;
+		//std::cout << "Error invalid build order in SetBuildOrder" << std::endl;
 	}
 }
 

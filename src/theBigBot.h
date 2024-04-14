@@ -291,7 +291,7 @@ public:
 				if (unit->weapon_cooldown > 0)
 				{
 					attacks[unit] = true;
-					std::cout << "attack launched" << std::endl;
+					//std::cout << "attack launched" << std::endl;
 				}
 			}
 		}

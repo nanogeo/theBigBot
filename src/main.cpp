@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
     size_t num_agents = 2;
     coordinator.SetParticipants({ CreateParticipant(sc2::Race::Protoss, &bot, "theBigBot") });
 
-    std::cout << "Connecting to port " << options.GamePort << std::endl;
+    //std::cout << "Connecting to port " << options.GamePort << std::endl;
     coordinator.Connect(options.GamePort);
     coordinator.SetupPorts(num_agents, options.StartPort, false);
 
@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
 
     coordinator.JoinGame();
     coordinator.SetTimeoutMS(10000);
-    std::cout << "Successfully joined game" << std::endl;
+    //std::cout << "Successfully joined game" << std::endl;
 
     while (coordinator.Update())
     {}
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 
     coordinator.SetMultithreaded(true);
     // Add the custom bot, it will control the players.
-    sc2::TossBot bot1;
+    sc2::TheBigBot bot1;
 	sc2::BlankBot bot2;
 	
 	if (true)

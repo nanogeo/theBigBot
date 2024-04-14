@@ -23,22 +23,22 @@ namespace sc2 {
 
 	void State::TickState()
 	{
-		std::cout << "TickState called on base State class";
+		//std::cout << "TickState called on base State class";
 	}
 
 	void State::EnterState()
 	{
-		std::cout << "EnterState called on base State class";
+		//std::cout << "EnterState called on base State class";
 	}
 
 	void State::ExitState()
 	{
-		std::cout << "ExitState called on base State class";
+		//std::cout << "ExitState called on base State class";
 	}
 
 	State* State::TestTransitions()
 	{
-		std::cout << "TestTransitions called on base State class";
+		//std::cout << "TestTransitions called on base State class";
 		return NULL;
 	}
 
@@ -186,12 +186,12 @@ namespace sc2 {
 
 	void OracleDefendLocation::OnUnitDamagedListener(const Unit* unit, float health, float shields)
 	{
-		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
+		//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
 		for (const auto &oracle : state_machine->oracles)
 		{
 			if (oracle->engaged_target_tag == unit->tag)
 			{
-				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
+				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
 				state_machine->has_attacked[oracle] = true;
 			}
 		}
@@ -199,12 +199,12 @@ namespace sc2 {
 
 	void OracleDefendLocation::OnUnitDestroyedListener(const Unit* unit)
 	{
-		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
 		for (const auto &oracle : state_machine->oracles)
 		{
 			if (oracle->engaged_target_tag == unit->tag)
 			{
-				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
 				state_machine->has_attacked[oracle] = true;
 			}
 		}
@@ -512,7 +512,7 @@ namespace sc2 {
 
 	void OracleDefendArmyGroup::OnUnitDamagedListener(const Unit* unit, float health, float shields)
 	{
-		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
+		//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
 		int i = 0;
 		//agent->Debug()->DebugTextOut(std::to_string(unit->tag), Point2D(.1, .35), Color(0, 255, 0), 20);
 
@@ -521,7 +521,7 @@ namespace sc2 {
 			if (state_machine->target[oracle] == unit->tag)
 			{
 				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " took " + std::to_string(health) + " damage from orale", Point2D(.2, .4 + .02 * i), Color(0, 255, 0), 20);
-				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
+				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
 				state_machine->has_attacked[oracle] = true;
 			}
 			i++;
@@ -530,7 +530,7 @@ namespace sc2 {
 
 	void OracleDefendArmyGroup::OnUnitDestroyedListener(const Unit* unit)
 	{
-		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
 		int i = 0;
 		//agent->Debug()->DebugTextOut(std::to_string(unit->tag), Point2D(.1, .39), Color(0, 255, 255), 20);
 		for (const auto &oracle : state_machine->oracles)
@@ -538,7 +538,7 @@ namespace sc2 {
 			if (state_machine->target[oracle] == unit->tag)
 			{
 				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " desroyed by oracle", Point2D(.2, .45 + .02 * i), Color(0, 255, 0), 20);
-				std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
 				state_machine->has_attacked[oracle] = true;
 			}
 			i++;
@@ -547,15 +547,6 @@ namespace sc2 {
 
 #pragma endregion
 
-
-#pragma region OracleCoverArmy
-
-	std::string OracleCoverArmy::toString()
-	{
-		return "Cover Army";
-	}
-
-#pragma endregion
 
 #pragma region OracleHarassGroupUp
 
@@ -822,7 +813,7 @@ namespace sc2 {
 
 	void OracleHarassAttackMineralLine::OnUnitDestroyedListener(const Unit* unit)
 	{
-		std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
 		if (target_drone != NULL && unit->tag == target_drone->tag)
 		{
 			target_drone = NULL;
@@ -832,7 +823,7 @@ namespace sc2 {
 				/*
 				if (state_machine->oracles[i]->engaged_target_tag == unit->tag || state_machine->oracles[i]->engaged_target_tag == 0)
 				{
-					std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+					//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
 					state_machine->has_attacked[i] = true;
 				}*/
 			}
@@ -2462,12 +2453,12 @@ namespace sc2 {
 			if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates.size(), agent->Observation()))
 			{
 				std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
-				std::cout << "spots " << spots.size() << "\n";
+				//std::cout << "spots " << spots.size() << "\n";
 				if (spots.size() >= gates.size())
 				{
 					for (int i = 0; i < gates.size(); i++)
 					{
-						std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
+						//std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
 						agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_STALKER, spots[i]);
 						agent->warpgate_status[gates[i]].used = true;
 						agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
@@ -2561,12 +2552,12 @@ namespace sc2 {
 				if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates.size(), agent->Observation()))
 				{
 					std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
-					std::cout << "spots " << spots.size() << "\n";
+					//std::cout << "spots " << spots.size() << "\n";
 					if (spots.size() >= gates.size())
 					{
 						for (int i = 0; i < gates.size(); i++)
 						{
-							std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
+							//std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
 							agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_STALKER, spots[i]);
 							agent->warpgate_status[gates[i]].used = true;
 							agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
@@ -4596,7 +4587,7 @@ namespace sc2 {
 
 	void BlinkStalkerAttackTerran::RunStateMachine()
 	{
-		__super::RunStateMachine();
+		StateMachine::RunStateMachine();
 		agent->Actions()->UnitCommand(army_group->new_units, ABILITY_ID::MOVE_MOVE, consolidation_pos);
 	}
 
@@ -4606,7 +4597,7 @@ namespace sc2 {
 
 	void CannonRushTerran::RunStateMachine()
 	{
-		__super::RunStateMachine();
+		StateMachine::RunStateMachine();
 
 		/*for (const auto& pos : cannon_places)
 		{

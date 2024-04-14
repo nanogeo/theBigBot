@@ -67,7 +67,7 @@ namespace sc2 {
 		Units nunits = Observation()->GetUnits(Unit::Alliance::Neutral);
 		Units eunits = Observation()->GetUnits(Unit::Alliance::Enemy);
 		frames_passed++;
-        //std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
+        ////std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
         
         
         worker_manager.DistributeWorkers();
@@ -80,8 +80,8 @@ namespace sc2 {
 
         if (worker_manager.new_base != NULL)
         {
-            std::cout << "add new base\n";
-            std::cout << worker_manager.new_base->pos.x << ' ' << worker_manager.new_base->pos.y << '\n';;
+            //std::cout << "add new base\n";
+            //std::cout << worker_manager.new_base->pos.x << ' ' << worker_manager.new_base->pos.y << '\n';;
             worker_manager.AddNewBase();
             if (Observation()->GetGameLoop() < 10)
             {
@@ -242,7 +242,7 @@ namespace sc2 {
             }
 
             const Unit *building = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS))[0];
-            std::cout << Utility::UnitTypeIdToString(building->unit_type);
+            //std::cout << Utility::UnitTypeIdToString(building->unit_type);
             if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
             {
 				worker_manager.new_base = building;
@@ -352,7 +352,7 @@ namespace sc2 {
     {
         if (debug_mode)
         {
-            std::cout << Utility::UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
+            //std::cout << Utility::UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
 			//nav_mesh.AddNewObstacle(building);
             return;
         }
@@ -384,7 +384,7 @@ namespace sc2 {
     {
         /*if (debug_mode)
         {
-            std::cout << UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
+            //std::cout << UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
             return;
         }*/
     }
@@ -414,15 +414,15 @@ namespace sc2 {
 
     void TheBigBot::OnUnitDamaged(const Unit *unit, float health_damage, float shield_damage)
     {
-        //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health_damage) << " damage\n";
+        ////std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health_damage) << " damage\n";
 		if (unit->alliance == Unit::Alliance::Self)
-	        std::cout << unit->tag << " took " << std::to_string(health_damage + shield_damage) << " damage\n";
+	        //std::cout << unit->tag << " took " << std::to_string(health_damage + shield_damage) << " damage\n";
         CallOnUnitDamagedEvent(unit, health_damage, shield_damage);
     }
 
     void TheBigBot::OnUnitDestroyed(const Unit *unit)
     {
-        //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+        ////std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
 		if (unit->mineral_contents > 0)
 			worker_manager.RemoveSpentMineralPatch(unit);
 		if (enemy_unit_saved_position.find(unit) != enemy_unit_saved_position.end())
@@ -430,7 +430,7 @@ namespace sc2 {
 		if (enemy_weapon_cooldown.find(unit) != enemy_weapon_cooldown.end())
 			enemy_weapon_cooldown.erase(unit);
 		if (unit->alliance == Unit::Alliance::Enemy)
-			std::cout << unit->tag << " destroyed\n";
+			//std::cout << unit->tag << " destroyed\n";
         CallOnUnitDestroyedEvent(unit);
 		nav_mesh.RemoveObstacle(unit);
 
@@ -626,7 +626,7 @@ namespace sc2 {
             return locations->assimilator_locations;
             break;
         default:
-            //std::cout << "Error invalid type id in GetLocations" << std::endl;
+            ////std::cout << "Error invalid type id in GetLocations" << std::endl;
             return std::vector<Point2D>();
         }
     }
@@ -679,7 +679,7 @@ namespace sc2 {
 					possible_locations = locations->shield_battery_locations_cannon_rush;
 					break;
 				default:
-					std::cout << "Error invalid type id in GetLocation" << std::endl;
+					//std::cout << "Error invalid type id in GetLocation" << std::endl;
 					return Point2D(0, 0);
 				}
 			}
@@ -713,7 +713,7 @@ namespace sc2 {
 					possible_locations = locations->cyber_core_locations;
 					break;
 				default:
-					std::cout << "Error invalid type id in GetLocation" << std::endl;
+					//std::cout << "Error invalid type id in GetLocation" << std::endl;
 					return Point2D(0, 0);
 				}
 			}
@@ -748,7 +748,7 @@ namespace sc2 {
 					pending_buildings--;
             
         }
-        std::cout << "Error no viable point found in GetLocation" << std::endl;
+        //std::cout << "Error no viable point found in GetLocation" << std::endl;
         return Point2D(0, 0);
 
         /*
@@ -813,7 +813,7 @@ namespace sc2 {
             num = Observation()->GetUnits(IsUnit(type)).size();
             return locations->cyber_core_locations[num + buildings_in_production];
         default:
-            std::cout << "Error invalid type id in GetLocation" << std::endl;
+            //std::cout << "Error invalid type id in GetLocation" << std::endl;
             return Point2D(0, 0);
         }*/
     }
@@ -854,7 +854,7 @@ namespace sc2 {
 					possible_locations = locations->shield_battery_locations_cannon_rush;
 					break;
 				default:
-					std::cout << "Error invalid type id in GetLocation" << std::endl;
+					//std::cout << "Error invalid type id in GetLocation" << std::endl;
 					return Point2D(0, 0);
 				}
 			}
@@ -882,7 +882,7 @@ namespace sc2 {
 					possible_locations = locations->proxy_gateway_locations;
 					break;
 				default:
-					std::cout << "Error invalid type id in GetLocation" << std::endl;
+					//std::cout << "Error invalid type id in GetLocation" << std::endl;
 					return Point2D(0, 0);
 				}
 			}
@@ -911,7 +911,7 @@ namespace sc2 {
 				return point;
 
 		}
-		std::cout << "Error no viable point found in GetLocation" << std::endl;
+		//std::cout << "Error no viable point found in GetLocation" << std::endl;
 		return Point2D(0, 0);
 	}
 
@@ -926,7 +926,7 @@ namespace sc2 {
             return locations->proxy_gateway_locations;
             break;
         default:
-            std::cout << "Error invalid type id in GetProxyLocations" << std::endl;
+            //std::cout << "Error invalid type id in GetProxyLocations" << std::endl;
             return std::vector<Point2D>();
         }
     }
@@ -1798,10 +1798,10 @@ namespace sc2 {
 
 	void TheBigBot::PrintAttacks(std::map<const Unit*, const Unit*> attacks)
 	{
-		std::cout << "Volley \n";
+		//std::cout << "Volley \n";
 		for (const auto &attack : attacks)
 		{
-			std::cout << "    attack from " << std::to_string(attack.first->tag) << " to " << std::to_string(attack.second->tag) << " health " << std::to_string(attack.second->health) << "\n";
+			//std::cout << "    attack from " << std::to_string(attack.first->tag) << " to " << std::to_string(attack.second->tag) << " health " << std::to_string(attack.second->health) << "\n";
 		}
 	}
 

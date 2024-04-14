@@ -37,7 +37,7 @@ const Unit* Utility::ClosestTo(Units units, Point2D position)
 	}
 	if (units.size() == 0 || current_closest == NULL)
 	{
-		std::cout << "Error current closest is NULL\n";
+		//std::cout << "Error current closest is NULL\n";
 		return NULL;
 	}
 	return current_closest;
@@ -57,7 +57,7 @@ const Unit* Utility::NthClosestTo(Units units, Point2D position, int n)
 		if (nthClosestPoint == Point2D(unit->pos))
 			return unit;
 	}
-	std::cout << "Error no unit found in NthClosestTo";
+	//std::cout << "Error no unit found in NthClosestTo";
 	return units[0];
 }
 
@@ -89,7 +89,7 @@ Point2D Utility::ClosestTo(std::vector<Point2D> points, Point2D position)
 	}
 	/*if (points.size() == 0 || current_closest == NULL)
 	{
-		std::cout << "Error current closest is NULL\n";
+		//std::cout << "Error current closest is NULL\n";
 		return NULL;
 	}*/
 	return current_closest;
@@ -110,7 +110,7 @@ const Unit* Utility::ClosestUnitTo(Units units, Point2D position)
 	}
 	if (units.size() == 0 || current_closest == NULL)
 	{
-		std::cout << "Error current closest is NULL\n";
+		//std::cout << "Error current closest is NULL\n";
 		return NULL;
 	}
 	return current_closest;
@@ -145,7 +145,7 @@ const Unit* Utility::FurthestFrom(Units units, Point2D position)
 	}
 	if (units.size() == 0 || current_furthest == NULL)
 	{
-		std::cout << "Error current closest is NULL\n";
+		//std::cout << "Error current closest is NULL\n";
 		return NULL;
 	}
 	return current_furthest;
@@ -166,7 +166,7 @@ Point2D Utility::FurthestFrom(std::vector<Point2D> points, Point2D position)
 	}
 	if (points.size() == 0 || current_furthest == Point2D(0, 0))
 	{
-		std::cout << "Error current closest is NULL\n";
+		//std::cout << "Error current closest is NULL\n";
 		return Point2D(0, 0);
 	}
 	return current_furthest;
@@ -379,7 +379,7 @@ Point2D Utility::PointBetween(Point2D start, Point2D end, float dist)
 	float total_dist = Distance2D(start, end);
 	if (total_dist == 0)
 	{
-		std::cout << "Warning PointBetween called on the same point";
+		//std::cout << "Warning PointBetween called on the same point";
 		return start;
 	}
 	return Point2D(start.x + dist * (end.x - start.x) / total_dist, start.y + dist * (end.y - start.y) / total_dist);
@@ -633,7 +633,7 @@ int Utility::GetDamage(const Unit* attacker, const Unit* target, const Observati
 		damage = 4 + (upgrade_level * 1);
 		break;
 	default:
-		std::cout << "Error invalid unit type in GetDamage\n";
+		//std::cout << "Error invalid unit type in GetDamage\n";
 		return 0;
 	}
 
@@ -811,7 +811,7 @@ float Utility::GetDPS(const Unit* attacker)
 		return 7 + (upgrade_level * 1.75);
 		break;
 	default:
-		std::cout << "Error invalid unit type in GetDPS\n";
+		//std::cout << "Error invalid unit type in GetDPS\n";
 		return 0;
 	}
 }
@@ -1112,7 +1112,7 @@ int Utility::GetArmor(const Unit* unit)
 		base_armor = 1;
 		break;
 	default:
-		std::cout << "Error invalid unit type in GetArmor\n";
+		//std::cout << "Error invalid unit type in GetArmor\n";
 		return 0;
 	}
 
@@ -1148,7 +1148,7 @@ int Utility::GetCargoSize(const Unit* unit)
 	case UNIT_TYPEID::PROTOSS_DISRUPTOR:
 		return 4;
 	default:
-		std::cout << "Error invalid unit type in GetCargoSize\n";
+		//std::cout << "Error invalid unit type in GetCargoSize\n";
 		return 0;
 	}
 
@@ -1279,7 +1279,7 @@ float Utility::GetRange(const Unit* unit)
 	case UNIT_TYPEID::ZERG_INFESTORBURROWED:
 		return 0;
 	default:
-		std::cout << "Error invalid unit type in GetRange\n";
+		//std::cout << "Error invalid unit type in GetRange\n";
 		return 0;
 	}
 }
@@ -1415,7 +1415,7 @@ float Utility::GetDamagePoint(const Unit* unit)
 	case UNIT_TYPEID::ZERG_BROODLING:
 		return .1193;
 	default:
-		std::cout << "Error invalid unit type in GetDamagePoint\n";
+		//std::cout << "Error invalid unit type in GetDamagePoint\n";
 		return 0;
 	}
 }
@@ -1533,7 +1533,7 @@ int Utility::GetProjectileTime(const Unit* unit, float dist)
 	case UNIT_TYPEID::ZERG_BROODLING:
 		return 0;
 	default:
-		std::cout << "Error invalid unit type in GetProjectileTime\n";
+		//std::cout << "Error invalid unit type in GetProjectileTime\n";
 		return 0;
 	}
 }
@@ -1651,7 +1651,7 @@ float Utility::GetWeaponCooldown(const Unit* unit)
 	case UNIT_TYPEID::ZERG_BROODLING:
 		return .46;
 	default:
-		std::cout << "Error invalid unit type in GetWeaponCooldown\n";
+		//std::cout << "Error invalid unit type in GetWeaponCooldown\n";
 		return 0;
 	}
 }
@@ -1691,7 +1691,7 @@ float Utility::GetTimeBuilt(const Unit* unit, const ObservationInterface* observ
 		build_time = 43;
 		break;
 	default:
-		std::cout << "Error Unknown building in GetTimeBuilt\n";
+		//std::cout << "Error Unknown building in GetTimeBuilt\n";
 		break;
 	}
 	return (observation->GetGameLoop() / 22.4) - (build_time * unit->build_progress);
@@ -1739,12 +1739,14 @@ float Utility::GetFacingAngle(const Unit* unit, const Unit* target)
 
 const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 {
+#ifdef DEBUG_TIMING
 	std::ofstream amaing_at_time;
 	amaing_at_time.open("amaing_at_time.txt", std::ios_base::app);
 
 	unsigned long long distance_check_total = 0;
 	unsigned long long angle_check_total = 0;
 	unsigned long long total = 0;
+#endif
 
 	float smallest_angle = 180;
 	const Unit* target = NULL;
@@ -1876,7 +1878,7 @@ ABILITY_ID Utility::GetBuildAbility(UNIT_TYPEID buildingId)
 	case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
 		return ABILITY_ID::BUILD_ASSIMILATOR;
 	default:
-		std::cout << "Error invalid building id in GetBuildAbility";
+		//std::cout << "Error invalid building id in GetBuildAbility";
 		return ABILITY_ID::BUILD_CANCEL;
 	}
 }
@@ -1922,7 +1924,7 @@ ABILITY_ID Utility::GetTrainAbility(UNIT_TYPEID unitId)
 	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
 		return ABILITY_ID::TRAIN_MOTHERSHIP;
 	default:
-		std::cout << "Error invalid unit id in GetTrainAbility";
+		//std::cout << "Error invalid unit id in GetTrainAbility";
 		return ABILITY_ID::BUILD_CANCEL;
 	}
 }
@@ -2000,7 +2002,7 @@ UnitCost Utility::GetCost(UNIT_TYPEID unit_type)
 	case UNIT_TYPEID::BEACON_PROTOSS: // represents void ray + fleet beacon
 		return UnitCost(550, 350, 4);
 	default:
-		std::cout << "Error invalid unit id in GetCost";
+		//std::cout << "Error invalid unit id in GetCost";
 		return UnitCost(0, 0, 0);
 	}
 }
@@ -2110,7 +2112,7 @@ bool Utility::CanAfford(UNIT_TYPEID unit, int amount, const ObservationInterface
 		cost = UnitCost(400, 400, 8);
 		break;
 	default:
-		std::cout << "Error invalid unit id in CanAfford";
+		//std::cout << "Error invalid unit id in CanAfford";
 		return false;
 	}
 	bool enough_minerals = observation->GetMinerals() >= cost.mineral_cost * amount;
@@ -2185,7 +2187,7 @@ bool Utility::CanAffordUpgrade(UPGRADE_ID upgrade, const ObservationInterface* o
 		cost = UnitCost(250, 250, 0);
 		break;
 	default:
-		std::cout << "Error invalid upgrade id in CanAffordUpgrade";
+		//std::cout << "Error invalid upgrade id in CanAffordUpgrade";
 		return false;
 	}
 	bool enough_minerals = observation->GetMinerals() >= cost.mineral_cost;
@@ -2474,7 +2476,7 @@ std::string Utility::UnitTypeIdToString(UNIT_TYPEID typeId)
 	case UNIT_TYPEID::ZERG_LURKERMPEGG:
 		return "lurker cocoon";
 	default:
-		std::cout << "Error invalid typeId in UnitTypeIdToString";
+		//std::cout << "Error invalid typeId in UnitTypeIdToString";
 		return "Error invalid abilityId in UnitTypeIdToString";
 		break;
 	}
@@ -2523,7 +2525,7 @@ std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
 	case ABILITY_ID::MORPH_WARPGATE:
 		return "morph into warpgate";
 	default:
-		std::cout << "Error invalid abilityId in AbilityIdToString\n";
+		//std::cout << "Error invalid abilityId in AbilityIdToString\n";
 		return "Error invalid abilityId in AbilityIdToString";
 		break;
 	}

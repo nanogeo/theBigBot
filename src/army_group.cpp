@@ -206,7 +206,7 @@ namespace sc2 {
 			tempests.push_back(unit);
 			break;
 		default:
-			std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
+			//std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
 		}
 	}
 
@@ -231,7 +231,7 @@ namespace sc2 {
 			units = &stalkers;
 			auto index = std::find(stalkers.begin(), stalkers.end(), unit);
 			if (index == stalkers.end())
-				std::cout << "Error trying to remove stalker not in stalkers in RemoveUnit\n";
+				//std::cout << "Error trying to remove stalker not in stalkers in RemoveUnit\n";
 			else
 			{
 				stalkers.erase(std::remove(stalkers.begin(), stalkers.end(), unit), stalkers.end());
@@ -271,7 +271,7 @@ namespace sc2 {
 			units = &tempests;
 		else
 		{
-			std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
+			//std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
 			return;
 		}
 
@@ -901,7 +901,7 @@ namespace sc2 {
 			if (found_targets.size() == 0)
 			{
 				found_targets = agent->FindTargets(stalkers_ready, {}, 2);
-				std::cout << "extra distance\n";
+				//std::cout << "extra distance\n";
 			}
 
 			//agent->PrintAttacks(found_targets);
@@ -1599,7 +1599,7 @@ namespace sc2 {
 				{
 					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, found_targets[unit]);
 					if (attack_status[unit])
-						std::cout << unit->tag << " second attack order given" << std::endl;
+						//std::cout << unit->tag << " second attack order given" << std::endl;
 					attack_status[unit] = true;
 				}
 				else // if a unit has no target, keep advancing
