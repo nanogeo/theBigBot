@@ -1,5 +1,5 @@
-#include "TossBot.h"
-#include "finish_state_machine.h"
+#include "theBigBot.h"
+#include "finite_state_machine.h"
 #include "pathfinding.h"
 #include "locations.h"
 #include "fire_control.h"
@@ -34,12 +34,12 @@ namespace sc2 {
     {
 		SetUpUnitTypeInfo();
 
-		Debug()->SendDebug();
+		//Debug()->SendDebug();
 		if (debug_mode)
 		{
-			Debug()->DebugGiveAllResources();
-			Debug()->DebugFastBuild();
-			Debug()->SendDebug();
+			//Debug()->DebugGiveAllResources();
+			//Debug()->DebugFastBuild();
+			//Debug()->SendDebug();
 		}
     }
 
@@ -95,10 +95,10 @@ namespace sc2 {
 			);
 #endif
 
-		for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Neutral))
+		/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Neutral))
 		{
 			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
-		}
+		}*/
 
 		/*if (debug_mode)
 		{
@@ -106,8 +106,8 @@ namespace sc2 {
 			return;
 		}*/
 
-		if (!debug_mode)
-			ShowLocations();
+		/*if (!debug_mode)
+			ShowLocations();*/
 
 
         if (!started)
@@ -314,13 +314,13 @@ namespace sc2 {
 
 		RemoveCompletedAtacks();
 
-        DisplayDebugHud();
+        //DisplayDebugHud();
 #ifdef DEBUG_TIMING
 		std::chrono::microseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
 #endif
-        Debug()->SendDebug();
+        //Debug()->SendDebug();
 #ifdef DEBUG_TIMING
 		std::chrono::microseconds postSendDebug = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
@@ -508,7 +508,7 @@ namespace sc2 {
 	{
 		//Debug()->DebugFastBuild();
 		//Debug()->DebugGiveAllResources();
-		Debug()->DebugShowMap();
+		//Debug()->DebugShowMap();
 		//Debug()->DebugGiveAllUpgrades();
 		//SpawnArmies();
 		initial_set_up = true;
@@ -563,22 +563,22 @@ namespace sc2 {
 
 	void TossBot::SpawnArmies()
 	{
-		Debug()->DebugEnemyControl();
+		//Debug()->DebugEnemyControl();
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, locations->attack_path[locations->attack_path.size() - 1], 2, 10);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, locations->attack_path[locations->attack_path.size() - 1], 2, 32);
 
-		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 1, 8);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 1, 1);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, enemy_army_spawn, 1, 1);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 1, 8);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 1, 1);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, enemy_army_spawn, 1, 1);
 
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, enemy_army_spawn, 2, 8);
 
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, locations->attack_path[0], 1, 1);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, locations->attack_path[0], 2, 12);
-		Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_WARPPRISM, locations->attack_path[0], 2, 1);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, locations->attack_path[0], 2, 12);
+		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_WARPPRISM, locations->attack_path[0], 2, 1);
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, locations->attack_path[0], 1, 3);
-		Debug()->SendDebug();
+		//Debug()->SendDebug();
 	}
 
 	void TossBot::SetUpArmies()
@@ -1942,11 +1942,11 @@ namespace sc2 {
 				corrosive_bile_times.erase(corrosive_bile_times.begin() + i);
 			}
 		}
-		for (int i = 0; i < corrosive_bile_positions.size(); i++)
+		/*for (int i = 0; i < corrosive_bile_positions.size(); i++)
 		{
 			Debug()->DebugSphereOut(ToPoint3D(corrosive_bile_positions[i]), .5, Color(255, 0, 255));
 			Debug()->DebugTextOut(std::to_string(corrosive_bile_times[i]), ToPoint3D(corrosive_bile_positions[i]), Color(255, 0, 255), 14);
-		}
+		}*/
 	}
 
 
@@ -2565,11 +2565,11 @@ namespace sc2 {
                     break;
                 }
             }
-            Debug()->DebugTextOut(std::to_string(stalker->weapon_cooldown), stalker->pos, Color(0, 255, 255), 20);
+            /*Debug()->DebugTextOut(std::to_string(stalker->weapon_cooldown), stalker->pos, Color(0, 255, 255), 20);
             if (stalker->weapon_cooldown == 0)
                 Debug()->DebugSphereOut(stalker->pos, .7, Color(0, 255, 0));
             else
-                Debug()->DebugSphereOut(stalker->pos, .7, Color(255, 0, 0));
+                Debug()->DebugSphereOut(stalker->pos, .7, Color(255, 0, 0));*/
             if (find(stalker->buffs.begin(), stalker->buffs.end(), BUFF_ID::LOCKON) != stalker->buffs.end())
             {
                 if (blink_ready)
@@ -2643,11 +2643,11 @@ namespace sc2 {
                 }
             }
 
-            Debug()->DebugTextOut(std::to_string(stalker->weapon_cooldown), stalker->pos, Color(0, 255, 255), 20);
+            /*Debug()->DebugTextOut(std::to_string(stalker->weapon_cooldown), stalker->pos, Color(0, 255, 255), 20);
             if (stalker->weapon_cooldown == 0)
                 Debug()->DebugSphereOut(stalker->pos, .7, Color(0, 255, 0));
             else
-                Debug()->DebugSphereOut(stalker->pos, .7, Color(255, 0, 0));
+                Debug()->DebugSphereOut(stalker->pos, .7, Color(255, 0, 0));*/
 
             if (find(stalker->buffs.begin(), stalker->buffs.end(), BUFF_ID::LOCKON) != stalker->buffs.end())
             {
@@ -2716,11 +2716,11 @@ namespace sc2 {
 			}
 			bool weapon_ready = immortal->weapon_cooldown == 0;
 
-			Debug()->DebugTextOut(std::to_string(immortal->weapon_cooldown), immortal->pos, Color(0, 255, 255), 20);
+			/*Debug()->DebugTextOut(std::to_string(immortal->weapon_cooldown), immortal->pos, Color(0, 255, 255), 20);
 			if (immortal->weapon_cooldown == 0)
 				Debug()->DebugSphereOut(immortal->pos, .7, Color(0, 255, 0));
 			else
-				Debug()->DebugSphereOut(immortal->pos, .7, Color(255, 0, 0));
+				Debug()->DebugSphereOut(immortal->pos, .7, Color(255, 0, 0));*/
 
 			if (find(immortal->buffs.begin(), immortal->buffs.end(), BUFF_ID::LOCKON) != immortal->buffs.end())
 			{

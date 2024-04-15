@@ -5,7 +5,7 @@
 #include "sc2api/sc2_agent.h"
 #include "sc2api/sc2_unit_filters.h"
 
-#include "TossBot.h"
+#include "theBigBot.h"
 #include "utility.h"
 #include "locations.h"
 

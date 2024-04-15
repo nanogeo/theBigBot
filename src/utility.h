@@ -131,7 +131,7 @@ public:
 	};
 	void Insert(T* element) {
 		if (size == capacity) {
-			std::cout << "Cannot insert. Heap is already full!\n";
+			//std::cout << "Cannot insert. Heap is already full!\n";
 			return;
 		}
 		// We can add it. Increase the size and add it to the end

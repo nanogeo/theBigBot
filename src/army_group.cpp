@@ -12,9 +12,9 @@
 #include "sc2lib/sc2_lib.h"
 
 #include "army_group.h"
-#include "TossBot.h"
+#include "theBigBot.h"
 #include "utility.h"
-#include "finish_state_machine.h"
+#include "finite_state_machine.h"
 #include "locations.h"
 #include "definitions.h"
 
@@ -206,7 +206,8 @@ namespace sc2 {
 			tempests.push_back(unit);
 			break;
 		default:
-			std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
+			//std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
+			break;
 		}
 	}
 
@@ -231,7 +232,9 @@ namespace sc2 {
 			units = &stalkers;
 			auto index = std::find(stalkers.begin(), stalkers.end(), unit);
 			if (index == stalkers.end())
-				std::cout << "Error trying to remove stalker not in stalkers in RemoveUnit\n";
+			{
+				//std::cout << "Error trying to remove stalker not in stalkers in RemoveUnit\n";
+			}
 			else
 			{
 				stalkers.erase(std::remove(stalkers.begin(), stalkers.end(), unit), stalkers.end());
@@ -271,7 +274,7 @@ namespace sc2 {
 			units = &tempests;
 		else
 		{
-			std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
+			//std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
 			return;
 		}
 
@@ -777,11 +780,11 @@ namespace sc2 {
 				{
 					agent->Actions()->UnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4));
 					agent->Actions()->UnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), true);
-					agent->Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
+					//agent->Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
 				}
 				else
 				{
-					agent->Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(255, 0, 0), 20);
+					//agent->Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(255, 0, 0), 20);//
 				}
 			}
 		}
@@ -830,14 +833,14 @@ namespace sc2 {
 		retreating_unit_positions = AssignUnitsToPositions(stalkers, retreat_concave_positions);
 
 
-		for (const auto &pos : attack_concave_positions)
+		/*for (const auto &pos : attack_concave_positions)
 		{
 			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(255, 0, 0));
 		}
 		for (const auto &pos : retreat_concave_positions)
 		{
 			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(0, 255, 0));
-		}
+		}*/
 	}
 
 	void ArmyGroup::MicroStalkerAttack()
@@ -845,10 +848,10 @@ namespace sc2 {
 		if (stalkers.size() == 0)
 			return;
 
-		for (const auto &pos : attack_path_line.GetPoints())
+		/*for (const auto &pos : attack_path_line.GetPoints())
 		{
 			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
-		}
+		}*/
 
 		std::map<const Unit*, Point2D> attacking_unit_positions;
 		std::map<const Unit*, Point2D> retreating_unit_positions;
@@ -901,7 +904,7 @@ namespace sc2 {
 			if (found_targets.size() == 0)
 			{
 				found_targets = agent->FindTargets(stalkers_ready, {}, 2);
-				std::cout << "extra distance\n";
+				//std::cout << "extra distance\n";
 			}
 
 			//agent->PrintAttacks(found_targets);
@@ -955,8 +958,8 @@ namespace sc2 {
 					units_requesting_pickup[stalker] = danger;
 				}
 
-				agent->Debug()->DebugSphereOut(stalker->pos, .5, Color(0, 255, 255));
-				agent->Debug()->DebugTextOut(std::to_string(danger), stalker->pos, Color(0, 255, 255), 15);
+				//agent->Debug()->DebugSphereOut(stalker->pos, .5, Color(0, 255, 255));
+				//agent->Debug()->DebugTextOut(std::to_string(danger), stalker->pos, Color(0, 255, 255), 15);
 
 				if (attack_status[stalker] == false)
 				{
@@ -1156,10 +1159,10 @@ namespace sc2 {
 			agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism);
 		}
 
-		for (const auto& unit : units_requesting_pickup)
+		/*for (const auto& unit : units_requesting_pickup)
 		{
 			agent->Debug()->DebugTextOut(std::to_string(unit.second), unit.first->pos, Color(255, 255, 255), 14);
-		}
+		}*/
 
 		PickUpUnits(units_requesting_pickup);
 
@@ -1219,14 +1222,14 @@ namespace sc2 {
 				retreat_pos = Utility::PointBetween(closest_enemy->pos, retreat_pos, 8);
 		}
 		
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(attack_pos), 2, Color(255, 255, 0));
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(retreat_pos), 2, Color(0, 255, 0));
+		//agent->Debug()->DebugSphereOut(agent->ToPoint3D(attack_pos), 2, Color(255, 255, 0));
+		//agent->Debug()->DebugSphereOut(agent->ToPoint3D(retreat_pos), 2, Color(0, 255, 0));
 
 		Units units_ready;
 		Units units_on_cd;
 		for (const auto &tempest : tempests)
 		{
-			agent->Debug()->DebugSphereOut(agent->ToPoint3D(tempest->pos), 10, Color(255, 255, 255));
+			//agent->Debug()->DebugSphereOut(agent->ToPoint3D(tempest->pos), 10, Color(255, 255, 255));
 			if (attack_status[tempest] == false && tempest->weapon_cooldown == 0)
 				units_ready.push_back(tempest);
 			if (tempest->weapon_cooldown > 0)
@@ -1278,13 +1281,13 @@ namespace sc2 {
 				{
 					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK, attacks[unit]);
 					attack_status[unit] = true;
-					agent->Debug()->DebugLineOut(unit->pos, attacks[unit]->pos, Color(0, 255, 0));
+					//agent->Debug()->DebugLineOut(unit->pos, attacks[unit]->pos, Color(0, 255, 0));
 				}
 			}
 			agent->PrintAttacks(attacks);
 		}
 
-		for (const auto& unit : persistent_fire_control.enemy_unit_hp)
+		/*for (const auto& unit : persistent_fire_control.enemy_unit_hp)
 		{
 			agent->Debug()->DebugTextOut(std::to_string(unit.second), unit.first->pos, Color(0, 255, 0), 15);
 		}
@@ -1292,7 +1295,7 @@ namespace sc2 {
 		for (const auto& unit : units_on_cd)
 		{
 			agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, retreat_pos);
-		}
+		}*/
 	}
 
 	void ArmyGroup::MicroUnits()
@@ -1333,14 +1336,14 @@ namespace sc2 {
 		if (FindUnitPositions(current_units, warp_prisms, dispersion, target_range))
 			return_value = 2;
 
-		for (const auto& pos : agent->locations->attack_path_line.GetPoints())
+		/*for (const auto& pos : agent->locations->attack_path_line.GetPoints())
 		{
 			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
 		}
 		for (const auto& pos : unit_position_asignments)
 		{
 			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos.second), .625, Color(255, 0, 0));
-		}
+		}*/
 
 
 		// Find units that can attack and those that cant
@@ -1363,7 +1366,7 @@ namespace sc2 {
 		{
 			std::stringstream str;
 			str << request.second.unit_prio << ": " << std::fixed << std::setprecision(1) << request.second.damage_value;
-			agent->Debug()->DebugTextOut(str.str(), request.first->pos, Color(0, 255, 0), 14);
+			//agent->Debug()->DebugTextOut(str.str(), request.first->pos, Color(0, 255, 0), 14);
 		}
 
 		MicroWarpPrisms(units_requesting_pickup);
@@ -1599,7 +1602,9 @@ namespace sc2 {
 				{
 					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, found_targets[unit]);
 					if (attack_status[unit])
-						std::cout << unit->tag << " second attack order given" << std::endl;
+					{
+						//std::cout << unit->tag << " second attack order given" << std::endl;
+					}
 					attack_status[unit] = true;
 				}
 				else // if a unit has no target, keep advancing
@@ -1631,7 +1636,7 @@ namespace sc2 {
 			if (attack_status[unit] == false)
 			{
 				float damage = agent->IncomingDamage(unit);
-				agent->Debug()->DebugTextOut(std::to_string(damage), unit->pos, Color(255, 255, 255), 16);
+				//agent->Debug()->DebugTextOut(std::to_string(damage), unit->pos, Color(255, 255, 255), 16);
 				if (damage > 0)
 				{
 					float shield_damage = std::min(damage, unit->shield);

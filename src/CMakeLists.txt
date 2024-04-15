@@ -3,28 +3,46 @@
 # Copyright (c) 2021-2022 Alexander Kurbatov
 
 set(bot_sources
+    action_manager.cpp
+    army_group.cpp
+    build_order_manager.cpp
+    finite_state_machine.cpp
+    fire_control
+    locations.cpp
+    locations_equilibrium.cpp
+    locations_goldenaura.cpp
+    locations_gresvan.cpp
+    locations_hard_lead.cpp
+    locations_oceanborn.cpp
+    locations_site_delta.cpp
     main.cpp
-    TossBot.cpp)
+    nav_mesh_pathfinding.cpp
+    path_manager.cpp
+    pathfinding.cpp
+    quartic.cpp
+    theBigBot.cpp
+    utility.cpp
+    worker_manager.cpp)
 
-add_executable(TossBot ${bot_sources})
+add_executable(TheBigBot ${bot_sources})
 
 if (BUILD_FOR_LADDER)
-    target_compile_definitions(TossBot PRIVATE BUILD_FOR_LADDER)
+    target_compile_definitions(TheBigBot PRIVATE BUILD_FOR_LADDER)
 endif ()
 
 if (MSVC)
-    target_compile_options(TossBot PRIVATE /W4 /EHsc)
+    target_compile_options(TheBigBot PRIVATE /W4 /EHsc)
 else ()
-    target_compile_options(TossBot PRIVATE -Wall -Wextra -pedantic)
+    target_compile_options(TheBigBot PRIVATE -Wall -Wextra -pedantic)
 endif ()
 
-target_link_libraries(TossBot PRIVATE cpp_sc2)
+target_link_libraries(TheBigBot PRIVATE cpp_sc2)
 
 if (MINGW)
-    target_link_libraries(TossBot PRIVATE ssp)
+    target_link_libraries(TheBigBot PRIVATE ssp)
 elseif (APPLE)
-    target_link_libraries(TossBot PRIVATE "-framework Carbon")
+    target_link_libraries(TheBigBot PRIVATE "-framework Carbon")
 # Building on Linux
 elseif (UNIX AND NOT APPLE)
-    target_link_libraries(TossBot PRIVATE pthread dl)
+    target_link_libraries(TheBigBot PRIVATE pthread dl)
 endif ()

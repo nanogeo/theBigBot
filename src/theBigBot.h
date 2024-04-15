@@ -269,8 +269,8 @@ public:
 
 	virtual void OnGameStart()
 	{
-		Debug()->DebugGiveAllUpgrades();
-		Debug()->SendDebug();
+		//Debug()->DebugGiveAllUpgrades();
+		//Debug()->SendDebug();
 	}
 
 	virtual void OnStep()

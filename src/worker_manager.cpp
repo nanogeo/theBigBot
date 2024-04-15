@@ -8,7 +8,7 @@
 
 #include "worker_manager.h"
 #include "utility.h"
-#include "TossBot.h"
+#include "theBigBot.h"
 
 namespace sc2
 {
@@ -101,7 +101,7 @@ const Unit* WorkerManager::GetWorker()
 			}
 		}
 	}
-	std::cout << "Error no available worker found";
+	//std::cout << "Error no available worker found";
 	return NULL;
 }
 
@@ -131,15 +131,12 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 		else
 			return c;
 	}
-	std::cout << "Error mineral patches reversed is empty in GetBuilder";
+	//std::cout << "Error mineral patches reversed is empty in GetBuilder";
 	return NULL;
 }
 
 void WorkerManager::PlaceWorker(const Unit* worker)
 {
-
-	if (worker == NULL)
-		std::cout << "why";
 	if (first_2_mineral_patch_spaces.size() > 0)
 	{
 		float distance = INFINITY;
@@ -210,8 +207,6 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		NewPlaceWorkerOnMinerals(worker, closest->mineral_patch);
 		far_3_mineral_patch_spaces.erase(std::remove(far_3_mineral_patch_spaces.begin(), far_3_mineral_patch_spaces.end(), closest), far_3_mineral_patch_spaces.end());
 		mineral_patch_space* space = new mineral_patch_space(closest->worker, closest->mineral_patch);
-		if (worker == NULL)
-			std::cout << "null";
 		far_3_mineral_patch_extras.push_back(space);
 
 		return;
@@ -235,7 +230,7 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		close_3_mineral_patch_extras.push_back(new mineral_patch_space(closest->worker, closest->mineral_patch));
 		return;
 	}
-	std::cout << "Error no place for worker\n";
+	//std::cout << "Error no place for worker\n";
 }
 
 void WorkerManager::PlaceWorkerInGas(const Unit* worker, const Unit* gas, int index)
@@ -597,7 +592,7 @@ void WorkerManager::DistributeWorkers()
 			}
 			else
 			{
-				std::cout << "Error null mineral patching in DistributeWorkers 1";
+				//std::cout << "Error null mineral patching in DistributeWorkers 1";
 			}
 		}
 		else
@@ -619,7 +614,7 @@ void WorkerManager::DistributeWorkers()
 			}
 			else
 			{
-				std::cout << "Error null mineral patching in DistributeWorkers 2";
+				//std::cout << "Error null mineral patching in DistributeWorkers 2";
 			}
 		}
 	}
@@ -675,7 +670,7 @@ void WorkerManager::DistributeWorkers()
 			}
 			else
 			{
-				std::cout << "Error null assimilator in DistributeWorkers 3";
+				//std::cout << "Error null assimilator in DistributeWorkers 3";
 			}
 		}
 		else
@@ -697,7 +692,7 @@ void WorkerManager::DistributeWorkers()
 			}
 			else
 			{
-				std::cout << "Error null assimilator in DistributeWorkers 4";
+				//std::cout << "Error null assimilator in DistributeWorkers 4";
 			}
 		}
 	}

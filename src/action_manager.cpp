@@ -1,5 +1,5 @@
 
-#include "TossBot.h"
+#include "theBigBot.h"
 #include "action_manager.h"
 #include "locations.h"
 
@@ -645,10 +645,10 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 	//agent->Debug()->DebugSphereOut(Point3D(fallback_point.x, fallback_point.y, agent->Observation()->TerrainHeight(fallback_point)), 3, Color(255, 0, 0));
 	//agent->Debug()->DebugSphereOut(Point3D(attack_point.x, attack_point.y, agent->Observation()->TerrainHeight(attack_point)), 3, Color(0, 255, 0));
 
-	for (const auto &pos : agent->locations->attack_path_line.GetPoints())
+	/*for (const auto &pos : agent->locations->attack_path_line.GetPoints())
 	{
 		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
-	}
+	}*/
 
 	army->AttackLine(0, 6, ZERG_PRIO);
 
@@ -706,10 +706,10 @@ bool ActionManager::ActionContinueWarpingInStalkers(ActionArgData* data)
 		if (max_warpins == 0)
 			return false;
 		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], max_warpins);
-		std::cout << "spots " << spots.size() << "\n";
+		//std::cout << "spots " << spots.size() << "\n";
 		for (int i = 0; i < spots.size(); i++)
 		{
-			std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
+			//std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
 			agent->Actions()->UnitCommand(gates_ready[i], ABILITY_ID::TRAINWARP_STALKER, spots[i]);
 			agent->warpgate_status[gates_ready[i]].used = true;
 			agent->warpgate_status[gates_ready[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
@@ -732,16 +732,16 @@ bool ActionManager::ActionContinueVolleyWarpingInStalkers(ActionArgData* data)
 	}
 	if (all_gates_ready && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates.size(), agent->Observation()))
 	{
-		std::cout << "warp in stalkers/n";
-		std::cout << "all gates ready " << all_gates_ready << "\n";
+		//std::cout << "warp in stalkers/n";
+		//std::cout << "all gates ready " << all_gates_ready << "\n";
 
 		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
-		std::cout << "spots " << spots.size() << "\n";
+		//std::cout << "spots " << spots.size() << "\n";
 		if (spots.size() >= gates.size())
 		{
 			for (int i = 0; i < gates.size(); i++)
 			{
-				std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
+				//std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
 				agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_STALKER, spots[i]);
 				agent->warpgate_status[gates[i]].used = true;
 				agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
@@ -785,7 +785,7 @@ bool ActionManager::ActionContinueVolleyWarpingInZealots(ActionArgData* data)
 			for (int i = 0; i < gates.size(); i++)
 			{
 				Point3D pos = Point3D(gates[i]->pos.x, gates[i]->pos.y, agent->Observation()->TerrainHeight(gates[i]->pos));
-				agent->Debug()->DebugSphereOut(pos, 1, Color(255, 0, 255));
+				//agent->Debug()->DebugSphereOut(pos, 1, Color(255, 0, 255));
 				agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_ZEALOT, spots[i]);
 				agent->warpgate_status[gates[i]].used = true;
 				agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(20 * 22.4);
@@ -1055,10 +1055,10 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 		}
 	}*/
 
-	for (const auto& pos : agent->locations->attack_path_line.GetPoints())
+	/*for (const auto& pos : agent->locations->attack_path_line.GetPoints())
 	{
 		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
-	}
+	}*/
 
 	army->AttackLine(0, 6, PROTOSS_PRIO);
 

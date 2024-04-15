@@ -1,5 +1,5 @@
 
-#include "TossBot.h"
+#include "theBigBot.h"
 #include "path_manager.h"
 
 
@@ -94,7 +94,7 @@ Point2D LineSegmentCurveX::FindClosestPoint(Point2D point)
 	{
 		// 2 solutions
 		// very very unlikely
-		std::cout << "2 solutions in LineSegmentCurveX::FindClosestPoint";
+		//std::cout << "2 solutions in LineSegmentCurveX::FindClosestPoint";
 		return point;
 	}
 }
@@ -155,7 +155,7 @@ Point2D LineSegmentCurveY::FindClosestPoint(Point2D point)
 	{
 		// 2 solutions
 		// very very unlikely
-		std::cout << "2 solutions in LineSegmentCurveY::FindClosestPoint";
+		//std::cout << "2 solutions in LineSegmentCurveY::FindClosestPoint";
 		return point;
 	}
 }
@@ -403,7 +403,7 @@ Point2D PathManager::GetPointFrom(Point2D point, double dist, bool forward)
 	std::vector<Point2D> circle_intersections = FindCircleIntersection(point, dist);
 	if (circle_intersections.size() == 0)
 	{
-		std::cout << "Error no intersections found in PathManager::GetPointFrom\n";
+		//std::cout << "Error no intersections found in PathManager::GetPointFrom\n";
 		circle_intersections = FindCircleIntersection(point, dist);
 		return Point2D(0, 0);
 	}
@@ -415,12 +415,12 @@ Point2D PathManager::GetPointFrom(Point2D point, double dist, bool forward)
 			for (int j = 1; j < circle_intersections.size(); j++)
 			{
 				Point2D p2 = circle_intersections[j];
-				std::cout << "check for dupe points " << p1.x << ", " << p1.y << " - " << p2.x << ", " << p2.y << "\n";
+				//std::cout << "check for dupe points " << p1.x << ", " << p1.y << " - " << p2.x << ", " << p2.y << "\n";
 				if (p1.x + 1 > p2.x && p1.x - 1 < p2.x && p1.y + 1 > p2.y && p1.y - 1 < p2.y)
 				{
 					circle_intersections.erase(circle_intersections.begin() + j);
 					j--;
-					std::cout << "removing " << p2.x << ", " << p2.y << "\n";
+					//std::cout << "removing " << p2.x << ", " << p2.y << "\n";
 					if (circle_intersections.size() <= 2)
 						break;
 				}
