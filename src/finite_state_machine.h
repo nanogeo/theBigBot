@@ -14,7 +14,7 @@ namespace sc2 {
 class State
 {
 public:
-    TossBot* agent;
+    TheBigBot* agent;
     State() {};
     virtual std::string toString();
     virtual void TickState();
@@ -57,7 +57,7 @@ public:
 	OracleHarassStateMachine* state_machine;
 	Point2D denfensive_position;
 	int event_id;
-	OracleDefendLocation(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D denfensive_position)
+	OracleDefendLocation(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D denfensive_position)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -78,7 +78,7 @@ class OracleDefendArmyGroup : public State {
 public:
 	OracleHarassStateMachine* state_machine;
 	int event_id;
-	OracleDefendArmyGroup(TossBot* agent, OracleHarassStateMachine* state_machine)
+	OracleDefendArmyGroup(TheBigBot* agent, OracleHarassStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -98,7 +98,7 @@ class OracleHarassGroupUp : public State {
 public:
 	OracleHarassStateMachine* state_machine;
 	Point2D consolidation_pos;
-	OracleHarassGroupUp(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D consolidation_pos)
+	OracleHarassGroupUp(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D consolidation_pos)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -115,7 +115,7 @@ class OracleHarassMoveToEntrance : public State {
 public:
 	OracleHarassStateMachine* state_machine;
 	Point2D entrance_pos;
-	OracleHarassMoveToEntrance(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D entrance_pos)
+	OracleHarassMoveToEntrance(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D entrance_pos)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -135,7 +135,7 @@ public:
 	const Unit* target_drone = NULL;
 	int event_id;
 	bool lost_oracle = false;
-	OracleHarassAttackMineralLine(TossBot* agent, OracleHarassStateMachine* state_machine, Point2D exit_pos)
+	OracleHarassAttackMineralLine(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D exit_pos)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -155,7 +155,7 @@ class OracleHarassReturnToBase : public State {
 public:
 	OracleHarassStateMachine* state_machine;
 	std::vector<Point2D> exfil_path;
-	OracleHarassReturnToBase(TossBot* agent, OracleHarassStateMachine* state_machine, std::vector<Point2D> exfil_path)
+	OracleHarassReturnToBase(TheBigBot* agent, OracleHarassStateMachine* state_machine, std::vector<Point2D> exfil_path)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -179,7 +179,7 @@ class ChargelotAllInStateMachine;
 class ChargeAllInMovingToWarpinSpot : public State {
 public:
     ChargelotAllInStateMachine* state_machine;
-    ChargeAllInMovingToWarpinSpot(TossBot* agent, ChargelotAllInStateMachine* state_machine)
+    ChargeAllInMovingToWarpinSpot(TheBigBot* agent, ChargelotAllInStateMachine* state_machine)
     {
         this->agent = agent;
         this->state_machine = state_machine;
@@ -194,7 +194,7 @@ public:
 class ChargeAllInWarpingIn : public State {
 public:
     ChargelotAllInStateMachine* state_machine;
-    ChargeAllInWarpingIn(TossBot* agent, ChargelotAllInStateMachine* state_machine)
+    ChargeAllInWarpingIn(TheBigBot* agent, ChargelotAllInStateMachine* state_machine)
     {
         this->agent = agent;
         this->state_machine = state_machine;
@@ -216,7 +216,7 @@ class ScoutZInitialMove : public State
 {
 public:
     ScoutZergStateMachine* state_machine;
-    ScoutZInitialMove(TossBot* agent, ScoutZergStateMachine* state_machine)
+    ScoutZInitialMove(TheBigBot* agent, ScoutZergStateMachine* state_machine)
     {
         this->agent = agent;
         this->state_machine = state_machine;
@@ -232,7 +232,7 @@ class ScoutZScoutMain : public State
 {
 public:
     ScoutZergStateMachine* state_machine;
-    ScoutZScoutMain(TossBot* agent, ScoutZergStateMachine* state_machine)
+    ScoutZScoutMain(TheBigBot* agent, ScoutZergStateMachine* state_machine)
     {
         this->agent = agent;
         this->state_machine = state_machine;
@@ -248,7 +248,7 @@ class ScoutZScoutNatural : public State
 {
 public:
     ScoutZergStateMachine* state_machine;
-    ScoutZScoutNatural(TossBot* agent, ScoutZergStateMachine* state_machine)
+    ScoutZScoutNatural(TheBigBot* agent, ScoutZergStateMachine* state_machine)
     {
         this->agent = agent;
         this->state_machine = state_machine;
@@ -264,7 +264,7 @@ class ScoutZLookFor3rd : public State
 {
 public:
     ScoutZergStateMachine* state_machine;
-    ScoutZLookFor3rd(TossBot* agent, ScoutZergStateMachine* state_machine)
+    ScoutZLookFor3rd(TheBigBot* agent, ScoutZergStateMachine* state_machine)
     {
         this->agent = agent;
         this->state_machine = state_machine;
@@ -286,7 +286,7 @@ class ScoutTInitialMove : public State
 {
 public:
     ScoutTerranStateMachine* state_machine;
-    ScoutTInitialMove(TossBot* agent, ScoutTerranStateMachine* state_machine)
+    ScoutTInitialMove(TheBigBot* agent, ScoutTerranStateMachine* state_machine)
     {
         this->agent = agent;
         this->state_machine = state_machine;
@@ -302,7 +302,7 @@ class ScoutTScoutMain : public State
 {
 public:
     ScoutTerranStateMachine* state_machine;
-    ScoutTScoutMain(TossBot* agent, ScoutTerranStateMachine* state_machine)
+    ScoutTScoutMain(TheBigBot* agent, ScoutTerranStateMachine* state_machine)
     {
         this->agent = agent;
         this->state_machine = state_machine;
@@ -318,7 +318,7 @@ class ScoutTScoutNatural : public State
 {
 public:
     ScoutTerranStateMachine* state_machine;
-    ScoutTScoutNatural(TossBot* agent, ScoutTerranStateMachine* state_machine)
+    ScoutTScoutNatural(TheBigBot* agent, ScoutTerranStateMachine* state_machine)
     {
         this->agent = agent;
         this->state_machine = state_machine;
@@ -335,7 +335,7 @@ class ScoutTScoutRax : public State
 public:
 	const Unit* rax;
 	ScoutTerranStateMachine* state_machine;
-	ScoutTScoutRax(TossBot* agent, ScoutTerranStateMachine* state_machine)
+	ScoutTScoutRax(TheBigBot* agent, ScoutTerranStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -351,7 +351,7 @@ class ScoutTReturnToBase : public State
 {
 public:
 	ScoutTerranStateMachine* state_machine;
-	ScoutTReturnToBase(TossBot* agent, ScoutTerranStateMachine* state_machine)
+	ScoutTReturnToBase(TheBigBot* agent, ScoutTerranStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -373,7 +373,7 @@ class ImmortalDropWaitForImmortals : public State
 {
 public:
 	class ImmortalDropStateMachine* state_machine;
-	ImmortalDropWaitForImmortals(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	ImmortalDropWaitForImmortals(TheBigBot* agent, ImmortalDropStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -389,7 +389,7 @@ class ImmortalDropInitialMove : public State
 {
 public:
 	class ImmortalDropStateMachine* state_machine;
-	ImmortalDropInitialMove(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	ImmortalDropInitialMove(TheBigBot* agent, ImmortalDropStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -408,7 +408,7 @@ public:
 	bool first_immortal_turn = true;
 	bool immortal1_has_attack_order = false;
 	bool immortal2_has_attack_order = false;
-	ImmortalDropMicroDrop(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	ImmortalDropMicroDrop(TheBigBot* agent, ImmortalDropStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -425,7 +425,7 @@ class ImmortalDropMicroDropCarrying1 : public State
 public:
 	class ImmortalDropStateMachine* state_machine;
 	int entry_frame;
-	ImmortalDropMicroDropCarrying1(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	ImmortalDropMicroDropCarrying1(TheBigBot* agent, ImmortalDropStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -443,7 +443,7 @@ class ImmortalDropMicroDropCarrying2 : public State
 public:
 	class ImmortalDropStateMachine* state_machine;
 	int entry_frame;
-	ImmortalDropMicroDropCarrying2(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	ImmortalDropMicroDropCarrying2(TheBigBot* agent, ImmortalDropStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -462,7 +462,7 @@ public:
 	class ImmortalDropStateMachine* state_machine;
 	bool immortal1_has_attack_order = false;
 	bool immortal2_has_attack_order = false;
-	ImmortalDropMicroDropDropped1(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	ImmortalDropMicroDropDropped1(TheBigBot* agent, ImmortalDropStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -480,7 +480,7 @@ public:
 	class ImmortalDropStateMachine* state_machine;
 	bool immortal1_has_attack_order = false;
 	bool immortal2_has_attack_order = false;
-	ImmortalDropMicroDropDropped2(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	ImmortalDropMicroDropDropped2(TheBigBot* agent, ImmortalDropStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -496,7 +496,7 @@ class ImmortalDropWaitForShields : public State
 {
 public:
 	class ImmortalDropStateMachine* state_machine;
-	ImmortalDropWaitForShields(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	ImmortalDropWaitForShields(TheBigBot* agent, ImmortalDropStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -512,7 +512,7 @@ class ImmortalDropLeave : public State
 {
 public:
 	class ImmortalDropStateMachine* state_machine;
-	ImmortalDropLeave(TossBot* agent, ImmortalDropStateMachine* state_machine)
+	ImmortalDropLeave(TheBigBot* agent, ImmortalDropStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -533,7 +533,7 @@ class DoorOpen : public State
 {
 public:
 	class DoorGuardStateMachine* state_machine;
-	DoorOpen(TossBot* agent, DoorGuardStateMachine* state_machine)
+	DoorOpen(TheBigBot* agent, DoorGuardStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -549,7 +549,7 @@ class DoorClosed : public State
 {
 public:
 	class DoorGuardStateMachine* state_machine;
-	DoorClosed(TossBot* agent, DoorGuardStateMachine* state_machine)
+	DoorClosed(TheBigBot* agent, DoorGuardStateMachine* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -570,7 +570,7 @@ class AdeptBaseDefenseTerranClearBase : public State
 public:
 	class AdeptBaseDefenseTerran* state_machine;
 	bool checked_dead_space = false;
-	AdeptBaseDefenseTerranClearBase(TossBot* agent, AdeptBaseDefenseTerran* state_machine)
+	AdeptBaseDefenseTerranClearBase(TheBigBot* agent, AdeptBaseDefenseTerran* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -587,7 +587,7 @@ class AdeptBaseDefenseTerranDefendFront : public State
 public:
 	class AdeptBaseDefenseTerran* state_machine;
 	bool forward = true;
-	AdeptBaseDefenseTerranDefendFront(TossBot* agent, AdeptBaseDefenseTerran* state_machine)
+	AdeptBaseDefenseTerranDefendFront(TheBigBot* agent, AdeptBaseDefenseTerran* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -603,7 +603,7 @@ class AdeptBaseDefenseTerranMoveAcross : public State
 {
 public:
 	class AdeptBaseDefenseTerran* state_machine;
-	AdeptBaseDefenseTerranMoveAcross(TossBot* agent, AdeptBaseDefenseTerran* state_machine)
+	AdeptBaseDefenseTerranMoveAcross(TheBigBot* agent, AdeptBaseDefenseTerran* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -627,7 +627,7 @@ public:
 	std::vector<Point2D> adept_scout_nat_path;
 	std::vector<Point2D> adept_scout_base_spots;
 	int base_spots_index;
-	AdeptBaseDefenseTerranScoutBase(TossBot* agent, AdeptBaseDefenseTerran* state_machine, Point2D adept_scout_shade, Point2D adept_scout_runaway,
+	AdeptBaseDefenseTerranScoutBase(TheBigBot* agent, AdeptBaseDefenseTerran* state_machine, Point2D adept_scout_shade, Point2D adept_scout_runaway,
 		Point2D adept_scout_ramptop, std::vector<Point2D> adept_scout_nat_path, std::vector<Point2D> adept_scout_base_spots)
 	{
 		this->agent = agent;
@@ -657,7 +657,7 @@ class StalkerBaseDefenseTerranDefendFront : public State
 public:
 	class StalkerBaseDefenseTerran* state_machine;
 	bool forward = true;
-	StalkerBaseDefenseTerranDefendFront(TossBot* agent, StalkerBaseDefenseTerran* state_machine)
+	StalkerBaseDefenseTerranDefendFront(TheBigBot* agent, StalkerBaseDefenseTerran* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -673,7 +673,7 @@ class StalkerBaseDefenseTerranMoveAcross : public State
 {
 public:
 	class StalkerBaseDefenseTerran* state_machine;
-	StalkerBaseDefenseTerranMoveAcross(TossBot* agent, StalkerBaseDefenseTerran* state_machine)
+	StalkerBaseDefenseTerranMoveAcross(TheBigBot* agent, StalkerBaseDefenseTerran* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -692,7 +692,7 @@ public:
 	Point2D attack_pos;
 	Point2D retreat_pos;
 	bool shields_regening = false;
-	ScoutBaseDefenseTerranHarrassFront(TossBot* agent, StalkerBaseDefenseTerran* state_machine, Point2D adept_scout_shade, Point2D adept_scout_runaway)
+	ScoutBaseDefenseTerranHarrassFront(TheBigBot* agent, StalkerBaseDefenseTerran* state_machine, Point2D adept_scout_shade, Point2D adept_scout_runaway)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -716,7 +716,7 @@ class BlinkStalkerAttackTerranMoveAcross : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranMoveAcross(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	BlinkStalkerAttackTerranMoveAcross(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -732,7 +732,7 @@ class BlinkStalkerAttackTerranWarpIn : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranWarpIn(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	BlinkStalkerAttackTerranWarpIn(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -748,7 +748,7 @@ class BlinkStalkerAttackTerranConsolidate : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranConsolidate(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	BlinkStalkerAttackTerranConsolidate(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -764,7 +764,7 @@ class BlinkStalkerAttackTerranAttack : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranAttack(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	BlinkStalkerAttackTerranAttack(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -780,7 +780,7 @@ class BlinkStalkerAttackTerranSnipeUnit : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranSnipeUnit(TossBot* agent, BlinkStalkerAttackTerran* state_machine)
+	BlinkStalkerAttackTerranSnipeUnit(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -797,7 +797,7 @@ class BlinkStalkerAttackTerranBlinkUp : public State
 public:
 	class BlinkStalkerAttackTerran* state_machine;
 	Units stalkers_to_blink;
-	BlinkStalkerAttackTerranBlinkUp(TossBot* agent, BlinkStalkerAttackTerran* state_machine, Units stalkers)
+	BlinkStalkerAttackTerranBlinkUp(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine, Units stalkers)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -815,7 +815,7 @@ class BlinkStalkerAttackTerranLeaveHighground : public State
 public:
 	class BlinkStalkerAttackTerran* state_machine;
 	Units stalkers_to_blink;
-	BlinkStalkerAttackTerranLeaveHighground(TossBot* agent, BlinkStalkerAttackTerran* state_machine, Units stalkers)
+	BlinkStalkerAttackTerranLeaveHighground(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine, Units stalkers)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -838,7 +838,7 @@ class CannonRushTerranMoveAcross : public State
 public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
-	CannonRushTerranMoveAcross(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranMoveAcross(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -858,7 +858,7 @@ public:
 	const Unit* probe;
 	int curr_index;
 	Point2D current_target;
-	CannonRushTerranFindAvaibleCorner(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, int curr_index)
+	CannonRushTerranFindAvaibleCorner(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, int curr_index)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -881,7 +881,7 @@ public:
 	std::vector<Point2D> main_scout_path;
 	Point2D current_target;
 	bool gas_stolen;
-	CannonRushTerranScout(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, int index, std::vector<Point2D> main_scout_path, bool gas_stolen)
+	CannonRushTerranScout(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, int index, std::vector<Point2D> main_scout_path, bool gas_stolen)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -902,7 +902,7 @@ class CannonRushTerranFindThreePylonWallOff : public State
 public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
-	CannonRushTerranFindThreePylonWallOff(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranFindThreePylonWallOff(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -922,7 +922,7 @@ public:
 	const Unit* probe;
 	int scouting_index;
 	const Unit* gas;
-	CannonRushTerranGasSteal(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, int scouting_index, const Unit* gas)
+	CannonRushTerranGasSteal(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, int scouting_index, const Unit* gas)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -942,7 +942,7 @@ class CannonRushTerranMoveAcross2 : public State
 public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
-	CannonRushTerranMoveAcross2(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranMoveAcross2(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -961,7 +961,7 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	int index;
-	CannonRushTerranFindWallOffSpot(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, int index)
+	CannonRushTerranFindWallOffSpot(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, int index)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -984,7 +984,7 @@ public:
 	Point2D cannon_move_to;
 	std::vector<BuildingPlacement> wall_pos;
 	int index = 0;
-	CannonRushTerranWallOff(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos, 
+	CannonRushTerranWallOff(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos, 
 		Point2D cannon_move_to, std::vector<BuildingPlacement> wall_pos)
 	{
 		this->agent = agent;
@@ -1012,7 +1012,7 @@ public:
 	bool cannon_placed = false;
 	std::vector<BuildingPlacement> wall = {};
 	bool wall_set = false;
-	CannonRushTerranCannonFirstWallOff(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos, 
+	CannonRushTerranCannonFirstWallOff(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos, 
 		std::vector<BuildingPlacement> pylon_wall_pos, std::vector<BuildingPlacement> gateway_wall_pos)
 	{
 		this->agent = agent;
@@ -1035,7 +1035,7 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	Point2D stand_by_spot;
-	CannonRushTerranStandBy(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D stand_by_spot)
+	CannonRushTerranStandBy(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D stand_by_spot)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1056,7 +1056,7 @@ public:
 	const Unit* probe;
 	std::vector<Point2D> loop_path;
 	int index = 0;
-	CannonRushTerranStandByLoop(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, std::vector<Point2D> loop_path)
+	CannonRushTerranStandByLoop(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, std::vector<Point2D> loop_path)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1076,7 +1076,7 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	Point2D pylon_pos;
-	CannonRushTerranExtraPylon(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranExtraPylon(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1096,7 +1096,7 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	Point2D cannon_pos;
-	CannonRushTerranExtraCannon(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranExtraCannon(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1116,7 +1116,7 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	Point2D gate_pos;
-	CannonRushTerranBuildGateway(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranBuildGateway(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1136,7 +1136,7 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	Point2D stargate_pos;
-	CannonRushTerranBuildStargate(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranBuildStargate(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1158,7 +1158,7 @@ public:
 	bool probe_busy = false;
 	Point2D stand_by_spot;
 	UNIT_TYPEID next_unit;
-	CannonRushTerranStandByPhase2(TossBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D stand_by_spot)
+	CannonRushTerranStandByPhase2(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D stand_by_spot)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1182,7 +1182,7 @@ public:
 	class CannonRushTerran* state_machine;
 	ArmyGroup army;
 	int event_id;
-	CannonRushTerranUnitMicro(TossBot* agent, CannonRushTerran* state_machine, const Unit* zealot) : army(agent)
+	CannonRushTerranUnitMicro(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* zealot) : army(agent)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1203,7 +1203,7 @@ class AdeptHarassProtossMoveAcross : public State
 {
 public:
 	class AdeptHarassProtoss* state_machine;
-	AdeptHarassProtossMoveAcross(TossBot* agent, AdeptHarassProtoss* state_machine)
+	AdeptHarassProtossMoveAcross(TheBigBot* agent, AdeptHarassProtoss* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1219,7 +1219,7 @@ class AdeptHarassProtossConsolidate : public State
 {
 public:
 	class AdeptHarassProtoss* state_machine;
-	AdeptHarassProtossConsolidate(TossBot* agent, AdeptHarassProtoss* state_machine)
+	AdeptHarassProtossConsolidate(TheBigBot* agent, AdeptHarassProtoss* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1235,7 +1235,7 @@ class AdeptHarassProtossShadeIntoBase : public State
 {
 public:
 	class AdeptHarassProtoss* state_machine;
-	AdeptHarassProtossShadeIntoBase(TossBot* agent, AdeptHarassProtoss* state_machine)
+	AdeptHarassProtossShadeIntoBase(TheBigBot* agent, AdeptHarassProtoss* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1251,7 +1251,7 @@ class AdeptHarassProtossShadeToOtherSide : public State
 {
 public:
 	class AdeptHarassProtoss* state_machine;
-	AdeptHarassProtossShadeToOtherSide(TossBot* agent, AdeptHarassProtoss* state_machine)
+	AdeptHarassProtossShadeToOtherSide(TheBigBot* agent, AdeptHarassProtoss* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1267,7 +1267,7 @@ class AdeptHarassProtossKillProbes : public State
 {
 public:
 	class AdeptHarassProtoss* state_machine;
-	AdeptHarassProtossKillProbes(TossBot* agent, AdeptHarassProtoss* state_machine)
+	AdeptHarassProtossKillProbes(TheBigBot* agent, AdeptHarassProtoss* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
@@ -1286,11 +1286,11 @@ public:
 class StateMachine
 {
 public:
-    TossBot* agent;
+    TheBigBot* agent;
     State* current_state;
     std::string name;
     StateMachine() {}
-    StateMachine(TossBot* agent, State* starting_state, std::string name) {
+    StateMachine(TheBigBot* agent, State* starting_state, std::string name) {
         this->agent = agent;
         current_state = starting_state;
         this->name = name;
@@ -1353,7 +1353,7 @@ public:
 	int harass_index = 0;
 	ArmyGroup* attached_army_group = NULL;
 	int event_id;
-	OracleHarassStateMachine(TossBot* agent, Units oracles, Point2D denfensive_position, std::string name)
+	OracleHarassStateMachine(TheBigBot* agent, Units oracles, Point2D denfensive_position, std::string name)
 	{
 		this->agent = agent;
 		this->oracles = oracles;
@@ -1375,7 +1375,7 @@ public:
 		}
 		current_state->EnterState();
 	}
-	OracleHarassStateMachine(TossBot* agent, Units oracles, std::string name)
+	OracleHarassStateMachine(TheBigBot* agent, Units oracles, std::string name)
 	{
 		this->agent = agent;
 		this->oracles = oracles;
@@ -1414,7 +1414,7 @@ public:
     std::vector<Point2D> prism_spots;
     int prism_spots_index;
     Point2D next_warp_in_location;
-    ChargelotAllInStateMachine(TossBot* agent, std::string name, std::vector<Point2D> prism_locations, Units zealots, const Unit* prism, float last_warp_in_time) {
+    ChargelotAllInStateMachine(TheBigBot* agent, std::string name, std::vector<Point2D> prism_locations, Units zealots, const Unit* prism, float last_warp_in_time) {
         this->agent = agent;
         this->name = name;
         current_state = new ChargeAllInMovingToWarpinSpot(agent, this);
@@ -1438,7 +1438,7 @@ public:
     std::vector<Point2D> possible_3rds;
     Point2D enemy_natural_pos;
     Point2D current_target;
-    ScoutZergStateMachine(TossBot* agent, std::string name, const Unit* scout, Point2D enemy_main, std::vector<Point2D> main_scout_path, std::vector<Point2D> natural_scout_path, Point2D enemy_natural_pos, std::vector<Point2D> possible_3rds)
+    ScoutZergStateMachine(TheBigBot* agent, std::string name, const Unit* scout, Point2D enemy_main, std::vector<Point2D> main_scout_path, std::vector<Point2D> natural_scout_path, Point2D enemy_natural_pos, std::vector<Point2D> possible_3rds)
     {
         this->agent = agent;
         this->name = name;
@@ -1515,7 +1515,7 @@ public:
     std::vector<Point2D> natural_scout_path;
     Point2D enemy_natural_pos;
     Point2D current_target;
-    ScoutTerranStateMachine(TossBot* agent, std::string name, const Unit* scout, Point2D enemy_main, std::vector<Point2D> main_scout_path, std::vector<Point2D> natural_scout_path, Point2D enemy_natural_pos)
+    ScoutTerranStateMachine(TheBigBot* agent, std::string name, const Unit* scout, Point2D enemy_main, std::vector<Point2D> main_scout_path, std::vector<Point2D> natural_scout_path, Point2D enemy_natural_pos)
     {
         this->agent = agent;
         this->name = name;
@@ -1594,7 +1594,7 @@ public:
 	int path_index;
 	std::vector<UNIT_TYPEID> target_priority = { UNIT_TYPEID::TERRAN_CYCLONE, UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_SIEGETANK,
 		UNIT_TYPEID::TERRAN_MULE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_WIDOWMINE, UNIT_TYPEID::TERRAN_TECHLAB, UNIT_TYPEID::TERRAN_REACTOR };
-	ImmortalDropStateMachine(TossBot* agent, std::string name, const Unit* immortal1, const Unit* immortal2, const Unit* prism, Point2D entry_pos, std::vector<Point2D> prism_path) {
+	ImmortalDropStateMachine(TheBigBot* agent, std::string name, const Unit* immortal1, const Unit* immortal2, const Unit* prism, Point2D entry_pos, std::vector<Point2D> prism_path) {
 		this->agent = agent;
 		this->name = name;
 		current_state = new ImmortalDropWaitForImmortals(agent, this);
@@ -1658,7 +1658,7 @@ public:
 	const Unit* guard;
 	Point2D door_open_pos;
 	Point2D door_closed_pos;
-	DoorGuardStateMachine(TossBot* agent, std::string name, const Unit* guard, Point2D door_open_pos, Point2D door_closed_pos) {
+	DoorGuardStateMachine(TheBigBot* agent, std::string name, const Unit* guard, Point2D door_open_pos, Point2D door_closed_pos) {
 		this->agent = agent;
 		this->name = name;
 		current_state = new DoorClosed(agent, this);
@@ -1680,7 +1680,7 @@ public:
 	const Unit* target = NULL;
 	std::vector<Point2D> front_of_base;
 	int event_id;
-	AdeptBaseDefenseTerran(TossBot* agent, std::string name, const Unit* adept, Point2D dead_space_spot, std::vector<Point2D> front_of_base) {
+	AdeptBaseDefenseTerran(TheBigBot* agent, std::string name, const Unit* adept, Point2D dead_space_spot, std::vector<Point2D> front_of_base) {
 		this->agent = agent;
 		this->name = name;
 		current_state = new AdeptBaseDefenseTerranClearBase(agent, this);
@@ -1718,7 +1718,7 @@ public:
 	const Unit* target = NULL;
 	std::vector<Point2D> front_of_base;
 	int event_id;
-	StalkerBaseDefenseTerran(TossBot* agent, std::string name, const Unit* stalker, std::vector<Point2D> front_of_base) {
+	StalkerBaseDefenseTerran(TheBigBot* agent, std::string name, const Unit* stalker, std::vector<Point2D> front_of_base) {
 		this->agent = agent;
 		this->name = name;
 		current_state = new StalkerBaseDefenseTerranDefendFront(agent, this);
@@ -1755,7 +1755,7 @@ public:
 
 
 	int event_id;
-	BlinkStalkerAttackTerran(TossBot* agent, std::string name, ArmyGroup* army, Point2D consolidation_pos, Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos) {
+	BlinkStalkerAttackTerran(TheBigBot* agent, std::string name, ArmyGroup* army, Point2D consolidation_pos, Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos) {
 		this->agent = agent;
 		this->name = name;
 		this->army_group = army;
@@ -1798,7 +1798,7 @@ public:
 	std::vector<Point2D> gateway_places;
 
 	int event_id;
-	CannonRushTerran(TossBot* agent, std::string name, const Unit* probe, int variation) {
+	CannonRushTerran(TheBigBot* agent, std::string name, const Unit* probe, int variation) {
 		this->agent = agent;
 		this->name = name;
 		this->probe = probe;
@@ -1852,7 +1852,7 @@ public:
 	int index = 0;
 	int event_id;
 
-	AdeptHarassProtoss(TossBot* agent, std::string name, Units adepts, std::vector<Point2D> consolidation_points) {
+	AdeptHarassProtoss(TheBigBot* agent, std::string name, Units adepts, std::vector<Point2D> consolidation_points) {
 		this->agent = agent;
 		this->name = name;
 		this->adepts = adepts;

@@ -21,7 +21,7 @@ namespace sc2
 class State;
 class StateMachine;
 class Locations;
-class TossBot;
+class TheBigBot;
 
 struct OnUnitDamagedEvent
 {
@@ -314,10 +314,10 @@ public:
 	}
 };
 
-class TossBot : public sc2::Agent
+class TheBigBot : public sc2::Agent
 {
 public:
-	TossBot() : Agent(), worker_manager(this), action_manager(this), build_order_manager(this) {};
+	TheBigBot() : Agent(), worker_manager(this), action_manager(this), build_order_manager(this) {};
 	bool started = false;
 	BuildOrder curr_build_order = BuildOrder::testing;
 	WorkerManager worker_manager;

@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 
     coordinator.SetMultithreaded(true);
     // Add the custom bot, it will control the players.
-    sc2::TossBot bot1;
+    sc2::TheBigBot bot1;
 	sc2::BlankBot bot2;
 	
 	if (true)

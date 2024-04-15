@@ -8,7 +8,7 @@
 
 namespace sc2 {
 
-class TossBot;
+class TheBigBot;
 
 struct EnemyUnitInfo;
 
@@ -129,16 +129,16 @@ struct OutgoingDamage
 class FireControl
 {
 public:
-	TossBot* agent;
+	TheBigBot* agent;
 	std::vector<FriendlyUnitInfo*> friendly_units;
 	std::vector<EnemyUnitInfo*> enemy_units;
 	std::map<const Unit*, const Unit*> attacks;
 	std::vector<UNIT_TYPEID> priority;
 	std::vector<std::vector<UNIT_TYPEID>> priority2D;
 
-	FireControl(TossBot*, std::map<const Unit*, std::vector<const Unit*>>, std::vector<UNIT_TYPEID>); 
-	FireControl(TossBot*, std::map<const Unit*, Units>, std::map<const Unit*, int>, std::vector<UNIT_TYPEID>);
-	FireControl(TossBot*, std::map<const Unit*, Units>, std::map<const Unit*, int>, std::vector<std::vector<UNIT_TYPEID>>);
+	FireControl(TheBigBot*, std::map<const Unit*, std::vector<const Unit*>>, std::vector<UNIT_TYPEID>); 
+	FireControl(TheBigBot*, std::map<const Unit*, Units>, std::map<const Unit*, int>, std::vector<UNIT_TYPEID>);
+	FireControl(TheBigBot*, std::map<const Unit*, Units>, std::map<const Unit*, int>, std::vector<std::vector<UNIT_TYPEID>>);
 
 	EnemyUnitInfo* GetEnemyUnitInfo(const Unit*);
 	FriendlyUnitInfo* GetFriendlyUnitInfo(const Unit*);
@@ -155,14 +155,14 @@ public:
 class PersistentFireControl
 {
 public:
-	TossBot* agent;
+	TheBigBot* agent;
 	Units friendly_units;
 	int event_id;
 	std::map<const Unit*, int> enemy_unit_hp;
 	std::vector<OutgoingDamage> outgoing_attacks; // enemy unit, damage, frame
 
 	PersistentFireControl() {};
-	PersistentFireControl(TossBot*);
+	PersistentFireControl(TheBigBot*);
 
 	void OnUnitTakesDamageListener(const Unit*, float, float);
 	void OnUnitEntersVisionListener(const Unit*);

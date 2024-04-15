@@ -30,7 +30,7 @@ namespace sc2 {
 
 #pragma region Overrides
 
-    void TossBot::OnGameStart()
+    void TheBigBot::OnGameStart()
     {
 		SetUpUnitTypeInfo();
 
@@ -43,7 +43,7 @@ namespace sc2 {
 		}
     }
 
-    void TossBot::OnStep()
+    void TheBigBot::OnStep()
     {
 		/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Enemy))
 		{
@@ -348,7 +348,7 @@ namespace sc2 {
 #endif
     }
 
-    void TossBot::OnBuildingConstructionComplete(const Unit *building)
+    void TheBigBot::OnBuildingConstructionComplete(const Unit *building)
     {
         if (debug_mode)
         {
@@ -380,7 +380,7 @@ namespace sc2 {
         }
     }
 
-    void TossBot::OnNeutralUnitCreated(const Unit *building)
+    void TheBigBot::OnNeutralUnitCreated(const Unit *building)
     {
         /*if (debug_mode)
         {
@@ -389,7 +389,7 @@ namespace sc2 {
         }*/
     }
 
-    void TossBot::OnUnitCreated(const Unit *unit)
+    void TheBigBot::OnUnitCreated(const Unit *unit)
     {
         if (Observation()->GetGameLoop() == 0)
             return;
@@ -405,14 +405,14 @@ namespace sc2 {
                 print("adding " + str(unit.tag) + " <Adept> to army group 0")*/
     }
 
-	void TossBot::OnUnitEnterVision(const Unit* unit)
+	void TheBigBot::OnUnitEnterVision(const Unit* unit)
 	{
 		if (Observation()->GetGameLoop() == 0)
 			return;
 		CallOnUnitEntersVisionEvent(unit);
 	}
 
-    void TossBot::OnUnitDamaged(const Unit *unit, float health_damage, float shield_damage)
+    void TheBigBot::OnUnitDamaged(const Unit *unit, float health_damage, float shield_damage)
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health_damage) << " damage\n";
 		if (unit->alliance == Unit::Alliance::Self)
@@ -420,7 +420,7 @@ namespace sc2 {
         CallOnUnitDamagedEvent(unit, health_damage, shield_damage);
     }
 
-    void TossBot::OnUnitDestroyed(const Unit *unit)
+    void TheBigBot::OnUnitDestroyed(const Unit *unit)
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
 		if (unit->mineral_contents > 0)
@@ -449,7 +449,7 @@ namespace sc2 {
 		}
     }
 
-	void TossBot::OnUpgradeCompleted(UpgradeID upgrade)
+	void TheBigBot::OnUpgradeCompleted(UpgradeID upgrade)
 	{
 		switch (upgrade.ToType())
 		{
@@ -504,7 +504,7 @@ namespace sc2 {
 
 #pragma region testing
 
-	void TossBot::RunInitialSetUp()
+	void TheBigBot::RunInitialSetUp()
 	{
 		//Debug()->DebugFastBuild();
 		//Debug()->DebugGiveAllResources();
@@ -514,7 +514,7 @@ namespace sc2 {
 		initial_set_up = true;
 	}
 
-	void TossBot::RunTests()
+	void TheBigBot::RunTests()
 	{
 		/*const Unit* closest_enemy = Utility::ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), Utility::MedianCenter(test_army.stalkers));
 		const Unit* closest_unit_to_enemies = Utility::ClosestTo(test_army.stalkers, closest_enemy->pos);
@@ -561,7 +561,7 @@ namespace sc2 {
 		//Actions()->UnitCommand(enemy_attacking_units, ABILITY_ID::ATTACK, fallback_point);*/
 	}
 
-	void TossBot::SpawnArmies()
+	void TheBigBot::SpawnArmies()
 	{
 		//Debug()->DebugEnemyControl();
 		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, locations->attack_path[locations->attack_path.size() - 1], 2, 10);
@@ -581,7 +581,7 @@ namespace sc2 {
 		//Debug()->SendDebug();
 	}
 
-	void TossBot::SetUpArmies()
+	void TheBigBot::SetUpArmies()
 	{
 		/*OracleHarassStateMachine* state_machine = new OracleHarassStateMachine(this, Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE)), "Oracles");
 		active_FSMs.push_back(state_machine);
@@ -597,7 +597,7 @@ namespace sc2 {
 #pragma region Utility
 
 
-    std::vector<Point2D> TossBot::GetLocations(UNIT_TYPEID type)
+    std::vector<Point2D> TheBigBot::GetLocations(UNIT_TYPEID type)
     {
         switch (type)
         {
@@ -631,7 +631,7 @@ namespace sc2 {
         }
     }
 
-    Point2D TossBot::GetLocation(UNIT_TYPEID type)
+    Point2D TheBigBot::GetLocation(UNIT_TYPEID type)
     {
 		std::vector<Point2D> possible_locations;
 		int pending_buildings = 0;
@@ -818,7 +818,7 @@ namespace sc2 {
         }*/
     }
 
-	Point2D TossBot::GetProxyLocation(UNIT_TYPEID type)
+	Point2D TheBigBot::GetProxyLocation(UNIT_TYPEID type)
 	{
 		std::vector<Point2D> possible_locations;
 
@@ -915,7 +915,7 @@ namespace sc2 {
 		return Point2D(0, 0);
 	}
 
-    std::vector<Point2D> TossBot::GetProxyLocations(UNIT_TYPEID type)
+    std::vector<Point2D> TheBigBot::GetProxyLocations(UNIT_TYPEID type)
     {
         switch (type)
         {
@@ -931,7 +931,7 @@ namespace sc2 {
         }
     }
 
-    std::string TossBot::OrdersToString(std::vector<UnitOrder> orders)
+    std::string TheBigBot::OrdersToString(std::vector<UnitOrder> orders)
     {
         std::string text = "";
         for (const auto &order : orders)
@@ -945,7 +945,7 @@ namespace sc2 {
         return text;
     }
 
-    std::vector<Point2D> TossBot::FindWarpInSpots(Point2D close_to, int num)
+    std::vector<Point2D> TheBigBot::FindWarpInSpots(Point2D close_to, int num)
     {
 		// order pylons first
 #ifdef DEBUG_TIMING
@@ -1110,7 +1110,7 @@ namespace sc2 {
         return spots;
     }
 
-    std::vector<Point2D> TossBot::FindProxyWarpInSpots()
+    std::vector<Point2D> TheBigBot::FindProxyWarpInSpots()
     {
         std::vector<Point2D> spots;
         for (const auto &tag : proxy_pylons)
@@ -1129,7 +1129,7 @@ namespace sc2 {
         return spots;
     }
 
-    void TossBot::OraclesCoverStalkers(Units stalkers, Units oracles)
+    void TheBigBot::OraclesCoverStalkers(Units stalkers, Units oracles)
     {
         Point2D center = Utility::MedianCenter(stalkers);
         bool danger = Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(Observation()->GetUnits(Unit::Alliance::Enemy), center) < 5;
@@ -1161,7 +1161,7 @@ namespace sc2 {
         }
     }
 
-    void TossBot::ProcessFSMs()
+    void TheBigBot::ProcessFSMs()
     {
 #ifdef DEBUG_TIMING
 		std::chrono::microseconds fsmStart = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -1191,7 +1191,7 @@ namespace sc2 {
 #endif
     }
 
-	void TossBot::RemoveStateMachine(StateMachine* state_machine)
+	void TheBigBot::RemoveStateMachine(StateMachine* state_machine)
 	{
 		active_FSMs.erase(std::remove(active_FSMs.begin(), active_FSMs.end(), state_machine), active_FSMs.end());
 	}
@@ -1200,17 +1200,17 @@ namespace sc2 {
 
 #pragma region Events
 
-    void TossBot::AddListenerToOnUnitDamagedEvent(int id, std::function<void(const Unit*, float, float)> func)
+    void TheBigBot::AddListenerToOnUnitDamagedEvent(int id, std::function<void(const Unit*, float, float)> func)
     {
         on_unit_damaged_event.listeners[id] = func;
     }
 
-	void TossBot::RemoveListenerToOnUnitDamagedEvent(int id)
+	void TheBigBot::RemoveListenerToOnUnitDamagedEvent(int id)
 	{
 		on_unit_damaged_event.listeners.erase(id);
 	}
 
-    void TossBot::CallOnUnitDamagedEvent(const Unit* unit, float health, float shields)
+    void TheBigBot::CallOnUnitDamagedEvent(const Unit* unit, float health, float shields)
     {
         for (const auto &func : on_unit_damaged_event.listeners)
         {
@@ -1218,17 +1218,17 @@ namespace sc2 {
         }
     }
 
-    void TossBot::AddListenerToOnUnitDestroyedEvent(int id, std::function<void(const Unit*)> func)
+    void TheBigBot::AddListenerToOnUnitDestroyedEvent(int id, std::function<void(const Unit*)> func)
     {
         on_unit_destroyed_event.listeners[id] = func;
     }
 
-	void TossBot::RemoveListenerToOnUnitDestroyedEvent(int id)
+	void TheBigBot::RemoveListenerToOnUnitDestroyedEvent(int id)
 	{
 		on_unit_destroyed_event.listeners.erase(id);
 	}
 
-    void TossBot::CallOnUnitDestroyedEvent(const Unit* unit)
+    void TheBigBot::CallOnUnitDestroyedEvent(const Unit* unit)
     {
         for (const auto &listener : on_unit_destroyed_event.listeners)
         {
@@ -1237,17 +1237,17 @@ namespace sc2 {
         }
     }
 
-	void TossBot::AddListenerToOnUnitCreatedEvent(int id, std::function<void(const Unit*)> func)
+	void TheBigBot::AddListenerToOnUnitCreatedEvent(int id, std::function<void(const Unit*)> func)
 	{
 		on_unit_created_event.listeners[id] = func;
 	}
 
-	void TossBot::RemoveListenerToOnUnitCreatedEvent(int id)
+	void TheBigBot::RemoveListenerToOnUnitCreatedEvent(int id)
 	{
 		on_unit_created_event.listeners.erase(id);
 	}
 
-	void TossBot::CallOnUnitCreatedEvent(const Unit* unit)
+	void TheBigBot::CallOnUnitCreatedEvent(const Unit* unit)
 	{
 		for (const auto &listener : on_unit_created_event.listeners)
 		{
@@ -1256,17 +1256,17 @@ namespace sc2 {
 		}
 	}
 
-	void TossBot::AddListenerToOnUnitEntersVisionEvent(int id, std::function<void(const Unit*)> func)
+	void TheBigBot::AddListenerToOnUnitEntersVisionEvent(int id, std::function<void(const Unit*)> func)
 	{
 		on_unit_enters_vision_event.listeners[id] = func;
 	}
 
-	void TossBot::RemoveListenerToOnUnitEntersVisionEvent(int id)
+	void TheBigBot::RemoveListenerToOnUnitEntersVisionEvent(int id)
 	{
 		on_unit_enters_vision_event.listeners.erase(id);
 	}
 
-	void TossBot::CallOnUnitEntersVisionEvent(const Unit* unit)
+	void TheBigBot::CallOnUnitEntersVisionEvent(const Unit* unit)
 	{
 		for (const auto& listener : on_unit_enters_vision_event.listeners)
 		{
@@ -1278,7 +1278,7 @@ namespace sc2 {
 #pragma endregion
 
 
-	int TossBot::IncomingDamage(const Unit* unit)
+	int TheBigBot::IncomingDamage(const Unit* unit)
 	{
 		int damage = 0;
 		if (enemy_attacks.count(unit) > 0)
@@ -1305,7 +1305,7 @@ namespace sc2 {
 		return damage;
 	}
 
-	void TossBot::UpdateEnemyUnitPositions()
+	void TheBigBot::UpdateEnemyUnitPositions()
 	{
 		for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
 		{
@@ -1328,7 +1328,7 @@ namespace sc2 {
 		}
 	}
 
-	void TossBot::UpdateEnemyWeaponCooldowns()
+	void TheBigBot::UpdateEnemyWeaponCooldowns()
 	{
 #ifdef DEBUG_TIMING
 		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -1483,7 +1483,7 @@ namespace sc2 {
 #endif
 	}
 
-	void TossBot::RemoveCompletedAtacks()
+	void TheBigBot::RemoveCompletedAtacks()
 	{
 		for (auto &attack : enemy_attacks)
 		{
@@ -1497,7 +1497,7 @@ namespace sc2 {
 		}
 	}
 
-	std::vector<Point2D> TossBot::FindConcave(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
+	std::vector<Point2D> TheBigBot::FindConcave(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
 	{
 		float range = 0; //r
 		float unit_radius = unit_size + dispersion; //u
@@ -1618,7 +1618,7 @@ namespace sc2 {
 		return concave_points;
 	}
 
-	std::vector<Point2D> TossBot::FindConcaveFromBack(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
+	std::vector<Point2D> TheBigBot::FindConcaveFromBack(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
 	{
 		Point2D current_origin = origin;
 		while (true)
@@ -1632,7 +1632,7 @@ namespace sc2 {
 
 	}
 
-	void TossBot::SetUpUnitTypeInfo()
+	void TheBigBot::SetUpUnitTypeInfo()
 	{
 		unit_type_info[UNIT_TYPEID::PROTOSS_PROBE] =					UnitTypeInfo(true, false, true, false); // protoss
 		unit_type_info[UNIT_TYPEID::PROTOSS_ZEALOT] =					UnitTypeInfo(true, true, true, false);
@@ -1796,7 +1796,7 @@ namespace sc2 {
 		unit_type_info[UNIT_TYPEID::ZERG_CREEPTUMORQUEEN] =				UnitTypeInfo(false, false, false, false);
 	}
 
-	void TossBot::PrintAttacks(std::map<const Unit*, const Unit*> attacks)
+	void TheBigBot::PrintAttacks(std::map<const Unit*, const Unit*> attacks)
 	{
 		std::cout << "Volley \n";
 		for (const auto &attack : attacks)
@@ -1805,7 +1805,7 @@ namespace sc2 {
 		}
 	}
 
-	bool TossBot::UnitIsOccupied(const Unit* unit)
+	bool TheBigBot::UnitIsOccupied(const Unit* unit)
 	{
 		for (ArmyGroup* army_group : army_groups)
 		{
@@ -1818,19 +1818,19 @@ namespace sc2 {
 		return false;
 	}
 
-	Point3D TossBot::ToPoint3D(Point2D point)
+	Point3D TheBigBot::ToPoint3D(Point2D point)
 	{
 		float height = Observation()->TerrainHeight(point);
 		return Point3D(point.x, point.y, height);
 	}
 
-	int TossBot::GetUniqueId()
+	int TheBigBot::GetUniqueId()
 	{
 		current_unique_id++;
 		return current_unique_id;
 	}
 
-	void TossBot::UpdateWarpgateStatus()
+	void TheBigBot::UpdateWarpgateStatus()
 	{
 #ifdef DEBUG_TIMING
 		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -1918,7 +1918,7 @@ namespace sc2 {
 #endif
 	}
 
-	void TossBot::UpdateEffectPositions()
+	void TheBigBot::UpdateEffectPositions()
 	{
 		for (const auto& effect : Observation()->GetEffects())
 		{
@@ -1950,7 +1950,7 @@ namespace sc2 {
 	}
 
 
-	Polygon TossBot::CreateNewBlocker(const Unit* unit)
+	Polygon TheBigBot::CreateNewBlocker(const Unit* unit)
 	{
 		Polygon polygon;
 		switch (unit->unit_type.ToType())
@@ -2071,7 +2071,7 @@ namespace sc2 {
 
 #pragma region debug info
 
-    void TossBot::DisplayDebugHud()
+    void TheBigBot::DisplayDebugHud()
     {
 #ifdef DEBUG_TIMING
 		std::chrono::microseconds start_time = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -2135,7 +2135,7 @@ namespace sc2 {
 #endif
     }
 
-    void TossBot::DisplayWorkerStatus()
+    void TheBigBot::DisplayWorkerStatus()
     {
         Debug()->DebugTextOut("first 2 spaces: " + std::to_string(worker_manager.first_2_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
         if (worker_manager.close_3_mineral_patch_extras.size() > 0)
@@ -2200,7 +2200,7 @@ namespace sc2 {
         Debug()->DebugTextOut(gasses, Point2D(0, 0), Color(0, 255, 0), 20);
     }
 
-    void TossBot::DisplayBuildOrder()
+    void TheBigBot::DisplayBuildOrder()
     {
         std::string build_order_message = "";
         for (int i = build_order_manager.build_order_step; i < build_order_manager.build_order_step + 5; i++)
@@ -2212,7 +2212,7 @@ namespace sc2 {
         Debug()->DebugTextOut(build_order_message, Point2D(.7, .1), Color(0, 255, 0), 20);
     }
 
-    void TossBot::DisplayActiveActions()
+    void TheBigBot::DisplayActiveActions()
     {
         std::string actions_message = "Active Actions:\n";
         for (int i = 0; i < action_manager.active_actions.size(); i++)
@@ -2225,7 +2225,7 @@ namespace sc2 {
         Debug()->DebugTextOut(actions_message, Point2D(.1, 0), Color(0, 255, 0), 20);
     }
 
-    void TossBot::DisplayActiveStateMachines()
+    void TheBigBot::DisplayActiveStateMachines()
     {
         std::string actions_message = "Active StateMachines:\n";
         for (int i = 0; i < active_FSMs.size(); i++)
@@ -2235,7 +2235,7 @@ namespace sc2 {
         Debug()->DebugTextOut(actions_message, Point2D(.3, 0), Color(0, 255, 0), 20);
     }
 
-    void TossBot::DisplayBuildingStatuses()
+    void TheBigBot::DisplayBuildingStatuses()
     {
         std::string new_lines = "";
         std::vector<UNIT_TYPEID> builging_order = { UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_WARPGATE, UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE, UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL };
@@ -2291,7 +2291,7 @@ namespace sc2 {
 
     }
 
-    void TossBot::DisplayArmyGroups()
+    void TheBigBot::DisplayArmyGroups()
     {
         std::string army_info = "Armies:\n";
         for (int i = 0; i < army_groups.size(); i++)
@@ -2310,7 +2310,7 @@ namespace sc2 {
         Debug()->DebugTextOut(army_info, Point2D(.8, .5), Color(255, 255, 255), 20);
     }
 
-    void TossBot::DisplaySupplyInfo()
+    void TheBigBot::DisplaySupplyInfo()
     {
         std::string supply_message = "";
 		supply_message += std::to_string(Observation()->GetGameLoop()) + " - " + std::to_string(Observation()->GetGameLoop() / 22.4) + '\n';
@@ -2351,7 +2351,7 @@ namespace sc2 {
         Debug()->DebugTextOut(supply_message, Point2D(.9, .05), Color(0, 255, 0), 20);
     }
 
-	void TossBot::DisplayEnemyAttacks()
+	void TheBigBot::DisplayEnemyAttacks()
 	{
 		std::string message = "Current frame: " + std::to_string(Observation()->GetGameLoop()) + "\n";
 		message += "Current time: " + std::to_string(frames_passed / 22.4) + "\n";
@@ -2369,7 +2369,7 @@ namespace sc2 {
 		Debug()->DebugTextOut(message, Point2D(.8, .4), Color(255, 0, 0), 20);
 	}
 
-	void TossBot::DisplayAlliedAttackStatus()
+	void TheBigBot::DisplayAlliedAttackStatus()
 	{
 		return;
 		for (const auto &unit : test_army.attack_status)
@@ -2393,7 +2393,7 @@ namespace sc2 {
 		}
 	}
 
-	void TossBot::PrintNonPathablePoints()
+	void TheBigBot::PrintNonPathablePoints()
 	{
 		ImageData raw_map = Observation()->GetGameInfo().pathing_grid;
 		std::vector<std::vector<bool>> map;
@@ -2480,7 +2480,7 @@ namespace sc2 {
 		mineral_file.close();
 	}
 
-	void TossBot::ShowLocations()
+	void TheBigBot::ShowLocations()
 	{
 		if (!started)
 			return;
@@ -2535,7 +2535,7 @@ namespace sc2 {
 	}
 
 
-    void TossBot::ObserveAttackPath(Units observers, Point2D retreat_point, Point2D attack_point)
+    void TheBigBot::ObserveAttackPath(Units observers, Point2D retreat_point, Point2D attack_point)
     {
         for (const auto &ob : observers)
         {
@@ -2543,7 +2543,7 @@ namespace sc2 {
         }
     }
 
-    void TossBot::StalkerAttackTowards(Units stalkers, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
+    void TheBigBot::StalkerAttackTowards(Units stalkers, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
     {
         for (const auto &stalker : stalkers)
         {
@@ -2607,7 +2607,7 @@ namespace sc2 {
         }
     }
 
-    void TossBot::StalkerAttackTowardsWithPrism(Units stalkers, Units prisms, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
+    void TheBigBot::StalkerAttackTowardsWithPrism(Units stalkers, Units prisms, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
     {
         for (const auto &prism : prisms)
         {
@@ -2702,7 +2702,7 @@ namespace sc2 {
         }
     }
 
-    void TossBot::ImmortalAttackTowards(Units immortals, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
+    void TheBigBot::ImmortalAttackTowards(Units immortals, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
     {
 		for (const auto &immortal : immortals)
 		{
@@ -2751,12 +2751,12 @@ namespace sc2 {
 		}
     }
 
-    void TossBot::ImmortalAttackTowardsWithPrism(Units stalkers, Units prisms, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
+    void TheBigBot::ImmortalAttackTowardsWithPrism(Units stalkers, Units prisms, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
     {
 
     }
 
-	bool TossBot::FireVolley(Units units, std::vector<UNIT_TYPEID> prio)
+	bool TheBigBot::FireVolley(Units units, std::vector<UNIT_TYPEID> prio)
 	{
 		std::map<const Unit*, const Unit*> attacks = FindTargets(units, prio, 0);
 		if (attacks.size() == 0)
@@ -2768,7 +2768,7 @@ namespace sc2 {
 		return true;
 	}
 
-	std::map<const Unit*, const Unit*> TossBot::FindTargets(Units units, std::vector<UNIT_TYPEID> prio, float max_extra_range)
+	std::map<const Unit*, const Unit*> TheBigBot::FindTargets(Units units, std::vector<UNIT_TYPEID> prio, float max_extra_range)
 	{
 #ifdef DEBUG_TIMING
 		std::ofstream find_targets;

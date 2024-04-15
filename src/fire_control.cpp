@@ -10,7 +10,7 @@
 
 namespace sc2 {
 
-	FireControl::FireControl(TossBot* agent, std::map<const Unit*, Units> units, std::vector<UNIT_TYPEID> priority)
+	FireControl::FireControl(TheBigBot* agent, std::map<const Unit*, Units> units, std::vector<UNIT_TYPEID> priority)
 	{
 		this->agent = agent;
 		this->priority = priority;
@@ -48,7 +48,7 @@ namespace sc2 {
 		}
 	}
 
-	FireControl::FireControl(TossBot* agent, std::map<const Unit*, Units> units, std::map<const Unit*, int> enemy_health, std::vector<UNIT_TYPEID> priority)
+	FireControl::FireControl(TheBigBot* agent, std::map<const Unit*, Units> units, std::map<const Unit*, int> enemy_health, std::vector<UNIT_TYPEID> priority)
 	{
 		this->agent = agent;
 		this->priority = priority;
@@ -86,7 +86,7 @@ namespace sc2 {
 		}
 	}
 
-	FireControl::FireControl(TossBot* agent, std::map<const Unit*, Units> units, std::map<const Unit*, int> enemy_health, std::vector<std::vector<UNIT_TYPEID>> priority)
+	FireControl::FireControl(TheBigBot* agent, std::map<const Unit*, Units> units, std::map<const Unit*, int> enemy_health, std::vector<std::vector<UNIT_TYPEID>> priority)
 	{
 		this->agent = agent;
 		this->priority2D = priority;
@@ -313,7 +313,7 @@ namespace sc2 {
 
 #pragma region PersistentFireControl
 
-	PersistentFireControl::PersistentFireControl(TossBot* agent)
+	PersistentFireControl::PersistentFireControl(TheBigBot* agent)
 	{
 		this->agent = agent;
 

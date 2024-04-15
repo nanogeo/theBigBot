@@ -20,7 +20,7 @@
 
 namespace sc2 {
 
-	ArmyGroup::ArmyGroup(TossBot* agent) : persistent_fire_control(agent)
+	ArmyGroup::ArmyGroup(TheBigBot* agent) : persistent_fire_control(agent)
 	{
 		this->agent = agent;
 		event_id = agent->GetUniqueId();
@@ -30,7 +30,7 @@ namespace sc2 {
 		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 	}
 
-	ArmyGroup::ArmyGroup(TossBot* agent, Units all_units, std::vector<Point2D> path, int index) : persistent_fire_control(agent)
+	ArmyGroup::ArmyGroup(TheBigBot* agent, Units all_units, std::vector<Point2D> path, int index) : persistent_fire_control(agent)
 	{
 		this->agent = agent;
 		this->all_units = all_units;
@@ -85,7 +85,7 @@ namespace sc2 {
 		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 	}
 
-	ArmyGroup::ArmyGroup(TossBot* agent, Units all_units,PathManager path) : persistent_fire_control(agent)
+	ArmyGroup::ArmyGroup(TheBigBot* agent, Units all_units,PathManager path) : persistent_fire_control(agent)
 	{
 		this->agent = agent;
 		this->all_units = all_units;
