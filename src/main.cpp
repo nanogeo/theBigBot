@@ -61,10 +61,10 @@ int main(int argc, char* argv[])
     ParseArguments(argc, argv, &options);
 
     sc2::Coordinator coordinator;
-    Bot bot;
+    TheBigBot bot;
 
     size_t num_agents = 2;
-    coordinator.SetParticipants({ CreateParticipant(sc2::Race::Random, &bot, "BlankBot") });
+    coordinator.SetParticipants({ CreateParticipant(sc2::Race::Protoss, &bot, "theBigBot") });
 
     std::cout << "Connecting to port " << options.GamePort << std::endl;
     coordinator.Connect(options.GamePort);
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
 			CreateParticipant(sc2::Race::Protoss, &bot1),
             CreateComputer(sc2::Race::Terran, sc2::Difficulty::VeryHard, sc2::AIBuild::Macro)
 			});
-		coordinator.SetRealtime(true);
+		coordinator.SetRealtime(false);
 
 		coordinator.LaunchStarcraft();
 		coordinator.StartGame("Goldenaura512AIE.SC2Map");

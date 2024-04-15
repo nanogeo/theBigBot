@@ -46,18 +46,6 @@ public:
     virtual State* TestTransitions() override;
 };
 
-class OracleCoverArmy : public State {
-public:
-    Units oracles;
-    Point2D army_center;
-    float danger_level;
-    virtual std::string toString() override;
-    void TickState() override;
-    virtual void EnterState() override;
-    virtual void ExitState() override;
-    virtual State* TestTransitions() override;
-};
-
 #pragma endregion
 
 #pragma region Oracle

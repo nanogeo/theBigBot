@@ -1739,12 +1739,14 @@ float Utility::GetFacingAngle(const Unit* unit, const Unit* target)
 
 const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 {
+#ifdef DEBUG_TIMING
 	std::ofstream amaing_at_time;
 	amaing_at_time.open("amaing_at_time.txt", std::ios_base::app);
 
 	unsigned long long distance_check_total = 0;
 	unsigned long long angle_check_total = 0;
 	unsigned long long total = 0;
+#endif
 
 	float smallest_angle = 180;
 	const Unit* target = NULL;
@@ -1997,7 +1999,7 @@ UnitCost Utility::GetCost(UNIT_TYPEID unit_type)
 		return UnitCost(250, 175, 5);
 	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
 		return UnitCost(400, 400, 8);
-	case UNIT_TYPEID::VOIDSEEKER: // represents void ray + fleet beacon
+	case UNIT_TYPEID::BEACON_PROTOSS: // represents void ray + fleet beacon
 		return UnitCost(550, 350, 4);
 	default:
 		//std::cout << "Error invalid unit id in GetCost";
