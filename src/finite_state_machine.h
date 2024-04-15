@@ -1468,24 +1468,24 @@ public:
             {
                 if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_SPAWNINGPOOL && agent->scout_info_zerg.pool_timing == 0)
                 {
-                    std::cout << "pool built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+                    //std::cout << "pool built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
                     agent->scout_info_zerg.pool_timing = Utility::GetTimeBuilt(unit, agent->Observation());
                 }
                 else if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_ROACHWARREN && agent->scout_info_zerg.roach_warren_timing == 0)
                 {
-                    std::cout << "roach warren built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+                    //std::cout << "roach warren built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
                     agent->scout_info_zerg.roach_warren_timing = Utility::GetTimeBuilt(unit, agent->Observation());
                 }
                 else if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_EXTRACTOR && agent->scout_info_zerg.gas_timing == 0)
                 {
-                    std::cout << "gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+                    //std::cout << "gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
                     agent->scout_info_zerg.gas_timing = Utility::GetTimeBuilt(unit, agent->Observation());
                 }
                 else if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_HATCHERY && agent->scout_info_zerg.natural_timing == 0)
                 {
                     if (Distance2D(unit->pos, enemy_natural_pos) < 2)
                     {
-                        std::cout << "natural built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+                        //std::cout << "natural built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
                         agent->scout_info_zerg.natural_timing = Utility::GetTimeBuilt(unit, agent->Observation());
                     }
                 }
@@ -1495,7 +1495,7 @@ public:
                     {
                         if (Distance2D(unit->pos, pos) < 2)
                         {
-                            std::cout << "third built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+                            //std::cout << "third built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
                             agent->scout_info_zerg.third_timing = Utility::GetTimeBuilt(unit, agent->Observation());
                         }
                     }
@@ -1551,30 +1551,30 @@ public:
             {
                 if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_BARRACKS && agent->scout_info_terran.barrackes_timing == 0)
                 {
-                    std::cout << "barracks built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+                    //std::cout << "barracks built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
                     agent->scout_info_terran.barrackes_timing = Utility::GetTimeBuilt(unit, agent->Observation());
                 }
                 else if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_FACTORY && agent->scout_info_terran.factory_timing == 0)
                 {
-                    std::cout << "factory built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+                    //std::cout << "factory built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
                     agent->scout_info_terran.factory_timing = Utility::GetTimeBuilt(unit, agent->Observation());
                 }
                 else if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_COMMANDCENTER && agent->scout_info_terran.natural_timing == 0 && unit->build_progress < 1)
                 {
-                    std::cout << "natural built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+                    //std::cout << "natural built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
                     agent->scout_info_terran.natural_timing = Utility::GetTimeBuilt(unit, agent->Observation());
                 }
                 else if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_REFINERY)
                 {
 					if (agent->scout_info_terran.gas_timing == 0)
 					{
-						std::cout << "gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+						//std::cout << "gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
 						agent->scout_info_terran.gas_timing = Utility::GetTimeBuilt(unit, agent->Observation());
 						agent->scout_info_terran.gas_pos = unit->pos;
 					}
 					else if (agent->scout_info_terran.second_gas_timing == 0 && unit->pos != agent->scout_info_terran.gas_pos)
 					{
-						std::cout << "second gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
+						//std::cout << "second gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
 						agent->scout_info_terran.second_gas_timing = Utility::GetTimeBuilt(unit, agent->Observation());
 					}
                 }
@@ -1642,7 +1642,7 @@ public:
 		}
 
 		// move away from danger?
-		std::cout << Utility::DangerLevelAt(prism, prism_path[prev_index], agent->Observation()) << std::endl;
+		//std::cout << Utility::DangerLevelAt(prism, prism_path[prev_index], agent->Observation()) << std::endl;
 		if (Utility::DangerLevelAt(prism, prism_path[prev_index], agent->Observation()) > 0 && Utility::DangerLevelAt(prism, prism_path[prev_index], agent->Observation()) < Utility::DangerLevelAt(prism, prism_path[next_index], agent->Observation()))
 			return prism_path[prev_index];
 		else
