@@ -225,7 +225,10 @@ namespace sc2 {
 	{
 		Point2D center = state_machine->attached_army_group->attack_path[state_machine->attached_army_group->current_attack_index - 2];
 		if (state_machine->attached_army_group->all_units.size() > 0)
-			center = Utility::MedianCenter(state_machine->attached_army_group->all_units);
+		{
+			Point2D median_center = Utility::MedianCenter(state_machine->attached_army_group->all_units);
+			center = state_machine->attached_army_group->attack_path_line.GetPointFrom(median_center, 2, false);
+		}
 
 		Units enemy_units = agent->Observation()->GetUnits(IsUnits(Utility::GetBurrowedUnitTypes()));
 
@@ -2835,11 +2838,12 @@ namespace sc2 {
 	void BlinkStalkerAttackTerranLeaveHighground::ExitState()
 	{
 		state_machine->army_group->standby_pos = state_machine->consolidation_pos;
+		agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
 	}
 
 	State* BlinkStalkerAttackTerranLeaveHighground::TestTransitions()
 	{
-		if (stalkers_to_blink.size() == 0 || Utility::DistanceToFurthest(state_machine->army_group->stalkers, state_machine->consolidation_pos) < 5)
+		if (stalkers_to_blink.size() == 0 || Utility::DistanceToFurthest(state_machine->army_group->stalkers, state_machine->consolidation_pos) < 8)
 			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 		return NULL;
 	}
@@ -2848,6 +2852,20 @@ namespace sc2 {
 	{
 		return "leave high ground";
 	}
+
+
+	void BlinkStalkerAttackTerranLeaveHighground::OnUnitDestroyedListener(const Unit* unit)
+	{
+		if (stalkers_to_blink.size() == 0)
+			return;
+		auto found = std::find(stalkers_to_blink.begin(), stalkers_to_blink.end(), unit);
+		if (found != stalkers_to_blink.end())
+		{
+			int index = found - stalkers_to_blink.begin();
+			stalkers_to_blink.erase(stalkers_to_blink.begin() + index);
+		}
+	}
+
 
 #pragma endregion
 

@@ -408,9 +408,9 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 
 	if (agent->worker_manager.far_3_mineral_patch_extras.size() > 0)
 	{
-		for (const auto &pylon : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+		for (const auto &nexus : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 		{
-			if (pylon->build_progress < 1)
+			if (nexus->build_progress < 1)
 				return false;
 		}
 		for (const auto &action : active_actions)
@@ -420,8 +420,22 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 				return false;
 			}
 		}
-
-		agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_NEXUS);
+		if (agent->Observation()->GetUnits(IsFriendlyUnit(ASSIMILATOR)).size() < 2 * agent->Observation()->GetUnits(IsFriendlyUnit(NEXUS)).size())
+		{
+			for (const auto& action : active_actions)
+			{
+				if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == ASSIMILATOR)
+				{
+					return false;
+				}
+			}
+			agent->build_order_manager.BuildBuilding(ASSIMILATOR);
+		}
+		else
+		{
+			agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_NEXUS);
+		}
+		return false;
 	}
 
 #ifdef DEBUG_TIMING

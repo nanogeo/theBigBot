@@ -52,7 +52,11 @@ namespace sc2 {
 							P(148, 35),
 							P(158, 43),
 							P(159, 63),
-							P(161, 75) };
+							P(161, 75),
+							P(143, 42),
+							P(134, 42),
+							P(139, 59),
+							P(152, 33) };
 
 		first_pylon_location_zerg = P(149, 72);
 		first_pylon_location_protoss = P(141, 57);

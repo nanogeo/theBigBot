@@ -815,17 +815,27 @@ class BlinkStalkerAttackTerranLeaveHighground : public State
 public:
 	class BlinkStalkerAttackTerran* state_machine;
 	Units stalkers_to_blink;
+	int event_id;
 	BlinkStalkerAttackTerranLeaveHighground(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine, Units stalkers)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
 		stalkers_to_blink = stalkers;
+
+		event_id = agent->GetUniqueId();
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 	}
 	virtual std::string toString() override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
 	virtual State* TestTransitions() override;
+
+	void OnUnitDestroyedListener(const Unit*);
+
 };
 
 

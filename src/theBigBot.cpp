@@ -464,36 +464,52 @@ namespace sc2 {
 			break;
 		case sc2::UPGRADE_ID::PSISTORMTECH:
 			has_storm = true;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1:
 			upgrade_ground_weapon = 1;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2:
 			upgrade_ground_weapon = 2;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL3:
 			upgrade_ground_weapon = 3;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL1:
 			upgrade_ground_armor = 1;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL2:
 			upgrade_ground_armor = 2;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL3:
 			upgrade_ground_armor = 3;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL1:
 			upgrade_shields = 1;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL2:
 			upgrade_shields = 2;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL3:
 			upgrade_shields = 3;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1:
 			upgrade_air_weapon = 1;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL2:
 			upgrade_air_weapon = 2;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL3:
 			upgrade_air_weapon = 3;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL1:
 			upgrade_air_armor = 1;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL2:
 			upgrade_air_armor = 2;
+			break;
 		case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL3:
 			upgrade_air_armor = 3;
+			break;
 		default:
 			break;
 		}

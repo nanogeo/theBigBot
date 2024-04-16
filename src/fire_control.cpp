@@ -108,7 +108,7 @@ namespace sc2 {
 						auto index = std::find(priority[i].begin(), priority[i].end(), Eunit->unit_type.ToType());
 						if (index != priority[i].end())
 						{
-							info->priority = index - priority[i].begin();
+							info->priority = i;
 							break;
 						}
 					}
