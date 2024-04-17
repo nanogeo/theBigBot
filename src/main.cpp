@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
 		coordinator.SetRealtime(false);
 
 		coordinator.LaunchStarcraft();
-		coordinator.StartGame("Goldenaura512AIE.SC2Map");
+		coordinator.StartGame("Oceanborn512V2AIE.SC2Map");
 	}
 	else
 	{
@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
 		coordinator.StartGame("EternalEmpireLE.SC2Map");
 	}
 	// LightShadeLE, AncientCisternAIE, DragonScalesAIE, GoldenAuraAIE, GresvanAIE, InfestationStationAIE, RoyalBloodAIE
-    // Equilibrium512AIE, Goldenaura512AIE, HardLead512AIE, Oceanborn512AIE, SiteDelta512AIE, Gresvan512AIE
+    // Equilibrium512V2AIE, Goldenaura512V2AIE, HardLead512V2AIE, Oceanborn512V2AIE, SiteDelta512V2AIE, Gresvan512V2AIE
 	
 	// EternalEmpireLE
 

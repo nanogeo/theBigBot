@@ -1462,7 +1462,7 @@ namespace sc2 {
 		}
 		else
 		{
-			concave_target = attack_path_line.GetPointFrom(concave_origin, 8, true); // default target is 8 units in front of army center
+			concave_target = attack_path_line.GetPointFrom(concave_origin, 5, true); // default target is 8 units in front of army center
 			Point2D attack_line_end = attack_path_line.GetEnd();
 			if (attack_line_end.x == 0 && attack_line_end.y == concave_target.y || attack_line_end.y == 0 && attack_line_end.x == concave_target.x)
 				reached_end = true;

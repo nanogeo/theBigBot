@@ -1355,14 +1355,17 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(253.0f),			&BuildOrderManager::ChronoBuilding,						Result(TWILIGHT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::StartFourGateBlinkPressure,			Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::BuildProxy,							Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::BuildProxy,							Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::BuildBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::HasUnits,				Condition(STALKER, 8),		&BuildOrderManager::StopWarpingInStalkers,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::WarpInAtProxy,						Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY, GATEWAY, GATEWAY})),
-					Data(&BuildOrderManager::ReadyToScour,			Condition(600.0f),			&BuildOrderManager::ScourMap,							Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({FORGE, FORGE})),
+					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueUpgrades,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueChronos,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(410.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY, GATEWAY, GATEWAY})),
+					Data(&BuildOrderManager::ReadyToScour,			Condition(900.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
 

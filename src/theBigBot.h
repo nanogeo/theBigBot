@@ -14,6 +14,8 @@
 #include "sc2api/sc2_map_info.h"
 #include "sc2api/sc2_unit_filters.h"
 
+#include <map>
+
 namespace sc2
 {
 
@@ -291,7 +293,7 @@ public:
 				if (unit->weapon_cooldown > 0)
 				{
 					attacks[unit] = true;
-					std::cout << "attack launched" << std::endl;
+					//std::cout << "attack launched" << std::endl;
 				}
 			}
 		}
