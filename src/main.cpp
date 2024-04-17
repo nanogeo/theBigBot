@@ -57,30 +57,45 @@ void ParseArguments(int argc, char* argv[], Options* options_)
 
 int main(int argc, char* argv[])
 {
+    std::cerr << "Main begins\n";
     Options options;
     ParseArguments(argc, argv, &options);
+    std::cerr << "Parse args\n";
 
     sc2::Coordinator coordinator;
+    std::cerr << "Coord made\n";
+    if (!coordinator.LoadSettings(argc, argv))
+    {
+        std::cerr << "Coord load setting failed\n";
+        return 1;
+    }
+    std::cerr << "Coord load setting succeeded\n";
     sc2::TheBigBot bot;
+    std::cerr << "Bot made\n";
 
     size_t num_agents = 2;
     coordinator.SetParticipants({ CreateParticipant(sc2::Race::Protoss, &bot, "theBigBot") });
 
+    std::cerr << "Set parts done\n";
+    std::cerr << "Gameport: " << std::to_string(options.GamePort) << "\n";
     std::cout << "Connecting to port " << options.GamePort << std::endl;
     coordinator.Connect(options.GamePort);
+    std::cerr << "Connected\n";
     coordinator.SetupPorts(num_agents, options.StartPort, false);
 
+    std::cerr << "Setup ports done\n";
     // NB (alkurbatov): Increase speed of steps processing.
     // Disables ability to control your bot during game.
     // Recommended for competitions.
-    coordinator.SetRawAffectsSelection(true);
+    //coordinator.SetRawAffectsSelection(true);
 
     coordinator.JoinGame();
     coordinator.SetTimeoutMS(10000);
     std::cout << "Successfully joined game" << std::endl;
 
     while (coordinator.Update())
-    {}
+    {
+    }
 
     return 0;
 }
