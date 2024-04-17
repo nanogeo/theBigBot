@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
     ParseArguments(argc, argv, &options);
 
     sc2::Coordinator coordinator;
-    TheBigBot bot;
+    sc2::TheBigBot bot;
 
     size_t num_agents = 2;
     coordinator.SetParticipants({ CreateParticipant(sc2::Race::Protoss, &bot, "theBigBot") });

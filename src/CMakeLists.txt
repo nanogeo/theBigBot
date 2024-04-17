@@ -24,25 +24,25 @@ set(bot_sources
     utility.cpp
     worker_manager.cpp)
 
-add_executable(TheBigBot ${bot_sources})
+add_executable(theBigBot ${bot_sources})
 
 if (BUILD_FOR_LADDER)
-    target_compile_definitions(TheBigBot PRIVATE BUILD_FOR_LADDER)
+    target_compile_definitions(theBigBot PRIVATE BUILD_FOR_LADDER)
 endif ()
 
 if (MSVC)
-    target_compile_options(TheBigBot PRIVATE /W4 /EHsc)
+    target_compile_options(theBigBot PRIVATE /W4 /EHsc)
 else ()
-    target_compile_options(TheBigBot PRIVATE -Wall -Wextra -pedantic)
+    target_compile_options(theBigBot PRIVATE -Wall -Wextra -pedantic)
 endif ()
 
-target_link_libraries(TheBigBot PRIVATE cpp_sc2)
+target_link_libraries(theBigBot PRIVATE cpp_sc2)
 
 if (MINGW)
-    target_link_libraries(TheBigBot PRIVATE ssp)
+    target_link_libraries(theBigBot PRIVATE ssp)
 elseif (APPLE)
-    target_link_libraries(TheBigBot PRIVATE "-framework Carbon")
+    target_link_libraries(theBigBot PRIVATE "-framework Carbon")
 # Building on Linux
 elseif (UNIX AND NOT APPLE)
-    target_link_libraries(TheBigBot PRIVATE pthread dl)
+    target_link_libraries(theBigBot PRIVATE pthread dl)
 endif ()
