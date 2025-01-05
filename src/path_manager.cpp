@@ -1,4 +1,6 @@
 
+#include <stdlib.h>
+
 #include "theBigBot.h"
 #include "path_manager.h"
 
@@ -347,6 +349,91 @@ std::vector<Point2D> LineSegmentCurveY::FindCircleIntersection(Point2D center, d
 }
 
 
+Point2D LineSegmentLinearX::GetPointFrom(Point2D point, double dist, bool forward, double& dist_left)
+{
+	bool direction = forward & pos_direction;
+	if (!direction)
+		dist *= -1;
+
+	double new_pos = point.x + dist;
+	if (new_pos < min)
+	{
+		dist_left = abs(min - new_pos);
+		return EvaluateAt(min);
+	}
+	if (new_pos > max)
+	{
+		dist_left = abs(new_pos - max);
+		return EvaluateAt(max);
+	}
+	
+	return EvaluateAt(new_pos);
+}
+
+Point2D LineSegmentLinearY::GetPointFrom(Point2D point, double dist, bool forward, double& dist_left)
+{
+	bool direction = forward & pos_direction;
+	if (!direction)
+		dist *= -1;
+
+	double new_pos = point.y + dist;
+	if (new_pos < min)
+	{
+		dist_left = abs(min - new_pos);
+		return EvaluateAt(min);
+	}
+	if (new_pos > max)
+	{
+		dist_left = abs(new_pos - max);
+		return EvaluateAt(max);
+	}
+
+	return EvaluateAt(new_pos);
+}
+
+Point2D LineSegmentCurveX::GetPointFrom(Point2D point, double dist, bool forward, double& dist_left)
+{
+	bool direction = forward & pos_direction;
+	if (!direction)
+		dist *= -1;
+
+	double new_pos = point.x + dist;
+	if (new_pos < min)
+	{
+		dist_left = abs(min - new_pos);
+		return EvaluateAt(min);
+	}
+	if (new_pos > max)
+	{
+		dist_left = abs(new_pos - max);
+		return EvaluateAt(max);
+	}
+
+	return EvaluateAt(new_pos);
+}
+
+Point2D LineSegmentCurveY::GetPointFrom(Point2D point, double dist, bool forward, double& dist_left)
+{
+	bool direction = forward & pos_direction;
+	if (!direction)
+		dist *= -1;
+
+	double new_pos = point.y + dist;
+	if (new_pos < min)
+	{
+		dist_left = abs(min - new_pos);
+		return EvaluateAt(min);
+	}
+	if (new_pos > max)
+	{
+		dist_left = abs(new_pos - max);
+		return EvaluateAt(max);
+	}
+
+	return EvaluateAt(new_pos);
+}
+
+
 Point2D PathManager::FindClosestPoint(Point2D point)
 {
 	Point2D closest;
@@ -360,6 +447,24 @@ Point2D PathManager::FindClosestPoint(Point2D point)
 		{
 			distance_to_closest = dist;
 			closest = closest_on_segment;
+		}
+	}
+	return closest;
+}
+
+int PathManager::FindClosestSegmentIndex(Point2D point)
+{
+	int closest;
+	double distance_to_closest = INFINITY;
+
+	for (int i = 0; i < segments.size(); i++)
+	{
+		Point2D closest_on_segment = segments[i]->FindClosestPoint(point);
+		double dist = Distance2D(point, closest_on_segment);
+		if (dist < distance_to_closest)
+		{
+			distance_to_closest = dist;
+			closest = i;
 		}
 	}
 	return closest;
@@ -379,106 +484,22 @@ std::vector<Point2D> PathManager::FindCircleIntersection(Point2D center, double 
 
 Point2D PathManager::GetPointFrom(Point2D point, double dist, bool forward)
 {
-	float new_pos = (x_based ? point.x : point.y) + (forward == pos_direction ? dist : - dist);
-	for (const auto& segment : segments)
-	{
-		if (new_pos >= segment->GetMin() && new_pos <= segment->GetMax())
-			return segment->EvaluateAt(new_pos);
-	}
-	if (new_pos < segments[0]->GetMin())
-	{
-		if (pos_direction)
-			return segments[0]->EvaluateAt(segments[0]->GetMin());
-		else
-			return segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMin());
-	}
+	int index = FindClosestSegmentIndex(point);
+	double dist_left = 0;
+	Point2D new_point = segments[index]->GetPointFrom(point, dist, forward, dist_left);
 
-	if (pos_direction)
-		return segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMax());
+	if (dist_left > 0)
+	{
+		int next_segment_index = forward ? index + 1 : index - 1;
+		if (next_segment_index >= segments.size() || next_segment_index < 0)
+			return forward ? segments[index]->GetEnd() : segments[index]->GetStart();
+		else
+			return segments[next_segment_index]->GetPointFrom(point, dist_left, forward, dist);
+	}
 	else
-		return segments[0]->EvaluateAt(segments[0]->GetMax());
-
-
-
-	std::vector<Point2D> circle_intersections = FindCircleIntersection(point, dist);
-	if (circle_intersections.size() == 0)
 	{
-		//std::cout << "Error no intersections found in PathManager::GetPointFrom\n";
-		circle_intersections = FindCircleIntersection(point, dist);
-		return Point2D(0, 0);
+		return new_point;
 	}
-	if (circle_intersections.size() > 2)
-	{
-		for (int i = 0; i < circle_intersections.size() - 1; i++)
-		{
-			Point2D p1 = circle_intersections[i];
-			for (int j = 1; j < circle_intersections.size(); j++)
-			{
-				Point2D p2 = circle_intersections[j];
-				//std::cout << "check for dupe points " << p1.x << ", " << p1.y << " - " << p2.x << ", " << p2.y << "\n";
-				if (p1.x + 1 > p2.x && p1.x - 1 < p2.x && p1.y + 1 > p2.y && p1.y - 1 < p2.y)
-				{
-					circle_intersections.erase(circle_intersections.begin() + j);
-					j--;
-					//std::cout << "removing " << p2.x << ", " << p2.y << "\n";
-					if (circle_intersections.size() <= 2)
-						break;
-				}
-			}
-			if (circle_intersections.size() <= 2)
-				break;
-		}
-	}
-
-	if (circle_intersections.size() == 1)
-	{
-		Point2D end_point;
-		if (pos_direction && forward)
-			end_point = segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMax());
-		else if (pos_direction && !forward)
-			end_point = segments[0]->EvaluateAt(segments[0]->GetMin());
-		else if (!pos_direction && forward)
-			end_point = segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMin());
-		else if (!pos_direction && !forward)
-			end_point = segments[0]->EvaluateAt(segments[0]->GetMax());
-
-		if (Distance2D(end_point, point) > dist)
-			return circle_intersections[0];
-
-		if ((pos_direction && forward) || (!pos_direction && !forward))
-		{
-			if ((x_based && circle_intersections[0].x > end_point.x) || (!x_based && circle_intersections[0].y > end_point.y))
-				return circle_intersections[0];
-			else
-				return end_point;
-		}
-		else
-		{
-			if ((x_based && circle_intersections[0].x < end_point.x) || (!x_based && circle_intersections[0].y < end_point.y))
-				return circle_intersections[0];
-			else
-				return end_point;
-		}
-	}
-	else if (circle_intersections.size() == 2)
-	{
-		if ((pos_direction && forward) || (!pos_direction && !forward))
-		{
-			if ((x_based && circle_intersections[0].x > circle_intersections[1].x) || (!x_based && circle_intersections[0].y > circle_intersections[1].y))
-				return circle_intersections[0];
-			else
-				return circle_intersections[1];
-		}
-		else
-		{
-			if ((x_based && circle_intersections[0].x < circle_intersections[1].x) || (!x_based && circle_intersections[0].y < circle_intersections[1].y))
-				return circle_intersections[0];
-			else
-				return circle_intersections[1];
-		}
-	}
-
-
 }
 
 std::vector<Point2D> PathManager::GetPoints()
@@ -490,93 +511,22 @@ std::vector<Point2D> PathManager::GetPoints()
 		current = segments[0]->EvaluateAt(segments[0]->GetMax());
 
 	std::vector<Point2D> points;
-	while (true)
+	for each (LineSegment* segment in segments)
 	{
-		if (x_based)
-		{
-			if (pos_direction)
-			{
-				if (current.x >= segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMax()).x)
-				{
-					break;
-				}
-			}
-			else
-			{
-				if (current.x <= segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMin()).x)
-				{
-					break;
-				}
-			}
-		}
-		else
-		{
-			if (pos_direction)
-			{
-				if (current.y >= segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMax()).y)
-				{
-					break;
-				}
-			}
-			else
-			{
-				if (current.y <= segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMin()).y)
-				{
-					break;
-				}
-			}
-		}
-
-		points.push_back(current);
-		current = GetPointFrom(current, 1, true);
-
+		std::vector<Point2D> new_points = segment->GetPoints();
+		points.insert(points.end(), new_points.begin(), new_points.end());
 	}
-
-	/*int start;
-	if (pos_direction)
-		start = ceil(segments[0]->GetMin());
-	else
-		start = ceil(segments[0]->GetMax());
-
-	std::vector<Point2D> points;
-	int curr = start;
-	for (const auto &segment : segments)
-	{
-		if (pos_direction)
-		{
-			while (curr <= segment->GetMax())
-			{
-				points.push_back(segment->EvaluateAt(curr));
-				curr++;
-			}
-		}
-		else
-		{
-			while (curr >= segment->GetMin())
-			{
-				points.push_back(segment->EvaluateAt(curr));
-				curr--;
-			}
-		}
-	}*/
 	return points;
 }
 
 Point2D PathManager::GetStartPoint()
 {
-	if (pos_direction)
-		return segments[0]->EvaluateAt(segments[0]->GetMin());
-	else
-		return segments[0]->EvaluateAt(segments[0]->GetMax());
+	return segments[0]->GetStart();
 }
 
 Point2D PathManager::GetEndPoint()
 {
-
-	if (pos_direction)
-		return segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMax());
-	else
-		return segments[segments.size() - 1]->EvaluateAt(segments[segments.size() - 1]->GetMin());
+	return segments[segments.size() - 1]->GetEnd();
 }
 
 Point2D PathManager::GetStart()
@@ -608,5 +558,163 @@ Point2D PathManager::GetEnd()
 }
 
 
+LineSegment* PathManager::FitLineSegment(Point2D p1, Point2D p2, Point2D p3, Point2D p4)
+{
+
+	double curve_x_a, curve_x_b, curve_x_c, curve_x_loss;
+
+	{
+		double slope1 = (p1.y - p3.y) / (p1.x - p3.x);
+		double slope2 = (p2.y - p4.y) / (p2.x - p4.x);
+
+		#define d 2 * p1.x
+		#define f (p1.y - p2.y) / (p1.x - p2.x)
+		#define g - (p1.x * p1.x - p2.x * p2.x) / (p1.x - p2.x)
+		#define h - slope1
+		#define j 2 * p2.x
+		#define k - slope2
+
+		double df = d * f;
+		double dh = d * h;
+		double fg = 2 * f * g;
+		double gh = g * h;
+		double jf = j * f;
+		double jk = j * k;
+		double gk = g * k;
+		double dd = d * d;
+		double dg = 2 * d * g;
+		double gg = g * g;
+		double jj = j * j;
+		double jg = 2 * j * g;
+
+
+
+		double top = (d * f + d * h + 2 * f * g + g * h + j * f + j * k + g * k);
+		double bot = (d * d + 2 * d * g + 2 * g * g + j * j + 2 * j * g);
+
+		double a = -(d * f + d * h + 2 * f * g + g * h + j * f + j * k + g * k) / (d * d + 2 * d * g + 2 * g * g + j * j + 2 * j * g);
+		double b = ((p1.y - p2.y) - a * (p1.x * p1.x - p2.x * p2.x)) / (p1.x - p2.x);
+		double c = p1.y - a * p1.x * p1.x - b * p1.x;
+
+		curve_x_a = a;
+		curve_x_b = b;
+		curve_x_c = c;
+
+		curve_x_loss = (d * a + f + g * a + h) * (d * a + f + g * a + h) + (j * a + f + g * a + k) * (j * a + f + g * a + k);
+	}
+
+	double curve_y_a, curve_y_b, curve_y_c, curve_y_loss;
+
+	{
+		double slope1 = (p1.x - p3.x) / (p1.y - p3.y);
+		double slope2 = (p2.x - p4.x) / (p2.y - p4.y);
+
+		#define d 2 * p1.y
+		#define f (p1.x - p2.x) / (p1.y - p2.y)
+		#define g - (p1.y * p1.y - p2.y * p2.y) / (p1.y - p2.y)
+		#define h - slope1
+		#define j 2 * p2.y
+		#define k - slope2
+
+		double df = d * f;
+		double dh = d * h;
+		double fg = 2 * f * g;
+		double gh = g * h;
+		double jf = j * f;
+		double jk = j * k;
+		double gk = g * k;
+		double dd = d * d;
+		double dg = 2 * d * g;
+		double gg = g * g;
+		double jj = j * j;
+		double jg = 2 * j * g;
+
+
+
+		double top = (d * f + d * h + 2 * f * g + g * h + j * f + j * k + g * k);
+		double bot = (d * d + 2 * d * g + 2 * g * g + j * j + 2 * j * g);
+
+		double a = -(d * f + d * h + 2 * f * g + g * h + j * f + j * k + g * k) / (d * d + 2 * d * g + 2 * g * g + j * j + 2 * j * g);
+		double b = ((p1.x - p2.x) - a * (p1.y * p1.y - p2.y * p2.y)) / (p1.y - p2.y);
+		double c = p1.x - a * p1.y * p1.y - b * p1.y;
+
+		curve_y_a = a;
+		curve_y_b = b;
+		curve_y_c = c;
+
+		curve_y_loss = (d * a + f + g * a + h) * (d * a + f + g * a + h) + (j * a + f + g * a + k) * (j * a + f + g * a + k);
+	}
+
+	double line_x_a, line_x_b, line_x_loss;
+
+	{
+		double slope1 = (p1.y - p3.y) / (p1.x - p3.x);
+		double slope2 = (p2.y - p4.y) / (p2.x - p4.x);
+
+		double slope = (p1.y - p2.y) / (p1.x - p2.x);
+
+		line_x_a = slope;
+		line_x_b = p1.y - (slope * p1.x);
+
+		line_x_loss = (slope - slope1) * (slope - slope1) + (slope - slope2) * (slope - slope2);
+	}
+
+	double line_y_a, line_y_b, line_y_loss;
+
+	{
+		double slope1 = (p1.x - p3.x) / (p1.y - p3.y);
+		double slope2 = (p2.x - p4.x) / (p2.y - p4.y);
+
+		double slope = (p1.x - p2.x) / (p1.y - p2.y);
+
+		line_y_a = slope;
+		line_y_b = p1.x - (slope * p1.y);
+
+		line_y_loss = (slope - slope1) * (slope - slope1) + (slope - slope2) * (slope - slope2);
+	}
+
+
+
+
+	if (curve_x_loss < curve_y_loss)
+	{
+		if (curve_x_loss < line_x_loss)
+		{
+			return new LineSegmentCurveX(curve_x_a, curve_x_b, curve_x_c, p1.x, p2.x, false, Point2D(0, 0), false);
+		}
+		else
+		{
+			if (abs(p1.x - p2.x) > abs(p1.y - p2.y))
+			{
+				return new LineSegmentLinearX(line_x_a, line_x_b, p1.x, p2.x, false, Point2D(0, 0), false);
+			}
+			else
+			{
+				return new LineSegmentLinearY(line_y_a, line_y_b, p1.y, p2.y, false, Point2D(0, 0), false);
+			}
+		}
+	}
+	else
+	{
+		if (curve_x_loss < line_x_loss)
+		{
+			return new LineSegmentCurveY(curve_y_a, curve_y_b, curve_y_c, p1.y, p2.y, false, Point2D(0, 0), false);
+		}
+		else
+		{
+			if (abs(p1.x - p2.x) > abs(p1.y - p2.y))
+			{
+				return new LineSegmentLinearX(line_x_a, line_x_b, p1.x, p2.x, false, Point2D(0, 0), false);
+			}
+			else
+			{
+				return new LineSegmentLinearY(line_y_a, line_y_b, p1.y, p2.y, false, Point2D(0, 0), false);
+			}
+		}
+	}
+		
+
+
+}
 
 }
