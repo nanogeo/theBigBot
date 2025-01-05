@@ -200,12 +200,21 @@ public:
 		{
 			SetGresvanLocations(start_location, build_order);
 		}
+		else if (map_name == "Acropolis AIE")
+		{
+			SetAcropolisLocations(start_location, build_order);
+		}
 		else if (map_name == "Eternal Empire LE")
 		{
 			SetTestingLocations(start_location, build_order);
 		}
+		else
+		{
+			std::cerr << "Unknown map name " + map_name + '\n';
+		}
 
     }
+	void SetTestingLocations(Point3D, BuildOrder);
 
     void SetLightshadeLocations(Point3D, BuildOrder);
 	void SetLightshadeLocations2(Point3D, BuildOrder);
@@ -215,7 +224,8 @@ public:
 	void SetOceanbornLocations(Point3D, BuildOrder);
 	void SetSiteDeltaLocations(Point3D, BuildOrder);
 	void SetGresvanLocations(Point3D, BuildOrder);
-	void SetTestingLocations(Point3D, BuildOrder);
+	void SetAbyssalReefLocations(Point3D, BuildOrder);
+	void SetAcropolisLocations(Point3D, BuildOrder);
 
 };
 

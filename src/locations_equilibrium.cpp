@@ -55,6 +55,8 @@ namespace sc2 {
 							P(163, 122),
 							P(161, 110) };
 
+		std::cerr << "First pylon: " + std::to_string(pylon_locations[0].x) + ", " + std::to_string(pylon_locations[0].y) + "\n";
+
 		first_pylon_location_zerg = P(177, 91);
 		first_pylon_location_protoss = P(185, 109);
 		first_pylon_location_terran = P(161, 110);

@@ -130,13 +130,22 @@ bool BuildOrderManager::BuildFirstPylon(BuildOrderResultArgData data)
 		switch (agent->enemy_race)
 		{
 		case Race::Zerg:
+			std::cerr << "enemy race: zerg\n";
 			pos = agent->locations->first_pylon_location_zerg;
 			break;
 		case Race::Protoss:
+			std::cerr << "enemy race: protoss\n";
 			pos = agent->locations->first_pylon_location_protoss;
 			break;
 		case Race::Terran:
+			std::cerr << "enemy race: terran\n";
 			pos = agent->locations->first_pylon_location_terran;
+			break;
+		case Race::Random:
+			std::cerr << "enemy race: random\n";
+			break;
+		default:
+			std::cerr << "enemy race: unknown\n";
 			break;
 		}
 	}
