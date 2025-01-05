@@ -178,6 +178,7 @@ public:
         }
 		else if (map_name == "Equilibrium AIE")
 		{
+			std::cerr << "Set equilibrium locations\n";
 			SetEquilibriumLocations(start_location, build_order);
 		}
 		else if (map_name == "Goldenaura AIE")
