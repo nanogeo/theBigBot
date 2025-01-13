@@ -214,13 +214,9 @@ class PathManager
 {
 public:
 	std::vector<LineSegment*> segments;
-	bool x_based;
-	bool pos_direction;
 	PathManager() {};
 	PathManager(std::vector<LineSegment*> segments, bool x_based, bool pos_direction)
 	{
-		this->pos_direction = pos_direction;
-		this->x_based = x_based;
 		this->segments = segments;
 	}
 	Point2D FindClosestPoint(Point2D);

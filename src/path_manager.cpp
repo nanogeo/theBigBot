@@ -504,11 +504,7 @@ Point2D PathManager::GetPointFrom(Point2D point, double dist, bool forward)
 
 std::vector<Point2D> PathManager::GetPoints()
 {
-	Point2D current;
-	if (pos_direction)
-		current = segments[0]->EvaluateAt(segments[0]->GetMin());
-	else
-		current = segments[0]->EvaluateAt(segments[0]->GetMax());
+	Point2D current = segments[0]->GetStart();
 
 	std::vector<Point2D> points;
 	for each (LineSegment* segment in segments)
@@ -531,30 +527,12 @@ Point2D PathManager::GetEndPoint()
 
 Point2D PathManager::GetStart()
 {
-	double value;
-	if (pos_direction)
-		value = segments[0]->GetMin();
-	else
-		value = segments[0]->GetMax();
-
-	if (x_based)
-		return Point2D(value, 0);
-	else 
-		return Point2D(0, value);
+	return segments[0]->GetStart();
 }
 
 Point2D PathManager::GetEnd()
 {
-	double value;
-	if (pos_direction)
-		value = segments[segments.size() - 1]->GetMax();
-	else
-		value = segments[segments.size() - 1]->GetMin();
-
-	if (x_based)
-		return Point2D(value, 0);
-	else
-		return Point2D(0, value);
+	return segments[0]->GetEnd();
 }
 
 
