@@ -14,163 +14,174 @@ namespace sc2 {
 
 	void Locations::SetAbyssalReefLocations(Point3D start_location, BuildOrder build_order)
 	{
-		Point2D center_point = Point2D(100, 82);
+		Point2D center_point = Point2D(224, 0);
 
 		auto convert_location = [](Point2D point, bool swap)
 		{
 			if (swap)
-				return Point2D(38.5, 122.5) - point;
+				return Point2D(200, 144) - point;
 			else
 				return point;
 		};
 
-		bool swap = start_location.x == 46.5 && start_location.y == 119.5;
+		bool swap = start_location.x == 161.5 && start_location.y == 21.5;
 
 		this->start_location = start_location;
 
-		nexi_locations = { P(177.5, 119.5),
-							P(184.5, 91.5),
-							P(154.5, 100.5),
-							P(182.5, 61.5),
-							P(157.5, 59.5),
-							P(156.5, 34.5),
-							P(128.5, 37.5),
-							P(137.5, 122.5) };
+		nexi_locations = { P(129.5, 26.5),
+							P(157.5, 50.5),
+							P(141.5, 65.5),
+							P(129.5, 49.5),
+							P(100.5, 28.5),
+							P(159.5, 99.5) };
 
-		pylon_locations = { P(174, 116),
-							P(181, 58),
-							P(179, 64),
-							P(150, 102),
-							P(153, 97),
-							P(183, 88),
-							P(172, 116),
-							P(163, 128),
-							P(189, 98),
-							P(182, 126),
-							P(190, 86),
-							P(190, 67),
-							P(191, 58),
-							P(185, 107),
-							P(188, 122),
-							P(163, 122),
-							P(161, 110) };
+		pylon_locations = { P(159, 55),
+							P(121, 24),
+							P(130, 19),
+							P(161, 43),
+							P(166, 48),
+							P(160, 25),
+							P(158, 25),
+							P(32, 109),
+							P(59, 132),
+							P(36, 133),
+							P(27, 118) };
 
 		std::cerr << "First pylon: " + std::to_string(pylon_locations[0].x) + ", " + std::to_string(pylon_locations[0].y) + "\n";
 
-		first_pylon_location_zerg = P(177, 91);
-		first_pylon_location_protoss = P(185, 109);
-		first_pylon_location_terran = P(161, 110);
+		first_pylon_location_zerg = P(136, 39);
+		first_pylon_location_protoss = P(147, 21);
+		first_pylon_location_terran = P(158, 37);
 
-		gateway_locations = { P(183.5, 104.5),
-							P(172.5, 93.5),
-							P(174.5, 89.5),
-							P(159.5, 112.5),
-							P(179.5, 52.5),
-							P(178.5, 55.5),
-							P(178.5, 58.5),
-							P(178.5, 61.5),
-							P(148.5, 104.5),
-							P(147.5, 101.5),
-							P(148.5, 98.5),
-							P(150.5, 95.5),
-							P(155.5, 96.5),
-							P(164.5, 107.5),
-							P(164.5, 110.5),
-							P(164.5, 113.5),
-							P(160.5, 124.5),
-							P(163.5, 124.5),
-							P(166.5, 124.5),
-							P(166.5, 129.5),
-							P(182.5, 129.5),
-							P(179.5, 129.5),
-							P(187.5, 124.5),
-							P(189.5, 105.5),
-							P(189.5, 108.5),
-							P(189.5, 111.5) };
+		gateway_locations = { P(144.5, 22.5),
+							P(147.5, 23.5),
+							P(155.5, 35.5),
+							P(158.5, 34.5),
+							P(139.5, 37.5),
+							P(133.5, 37.5),
+							P(156.5, 60.5),
+							P(159.5, 58.5),
+							P(162.5, 56.5),
+							P(30.5, 112.5),
+							P(33.5, 112.5),
+							P(36.5, 112.5),
+							P(56.5, 131.5),
+							P(53.5, 131.5),
+							P(57.5, 127.5),
+							P(54.5, 127.5),
+							P(33.5, 131.5),
+							P(39.5, 132.5),
+							P(28.5, 115.5),
+							P(31.5, 115.5),
+							P(28.5, 120.5),
+							P(28.5, 123.5) };
 
-		assimilator_locations = { P(184.5, 116.5),
-									P(173.5, 126.5),
-									P(191.5, 88.5),
-									P(187.5, 84.5),
-									P(161.5, 97.5),
-									P(150.5, 107.5),
-									P(184.5, 68.5),
-									P(184.5, 54.5),
-									P(144.5, 119.5),
-									P(133.5, 129.5),
-									P(152.5, 27.5),
-									P(149.5, 31.5),
-									P(124.5, 30.5),
-									P(121.5, 34.5) };
+		assimilator_locations = { P(158.5, 14.5),
+									P(168.5, 24.5),
+									P(132.5, 19.5),
+									P(136.5, 23.5),
+									P(154.5, 43.5),
+									P(164.5, 53.5),
+									P(139.5, 72.5),
+									P(148.5, 62.5),
+									P(132.5, 42.5),
+									P(136.5, 46.5),
+									P(107.5, 27.5),
+									P(107.5, 31.5),
+									P(160.5, 106.5),
+									P(162.5, 92.5) };
 
 
-		cyber_core_locations = { P(182.5, 107.5),
-									P(176.5, 86.5),
-									P(160.5, 115.5) };
+		cyber_core_locations = { P(144.5, 22.5),
+									P(160.5, 37.5),
+									P(131.5, 34.5) };
 
-		tech_locations = { P(176.5, 115.5),
-							P(179.5, 115.5),
-							P(173.5, 118.5),
-							P(170.5, 118.5),
-							P(173.5, 121.5),
-							P(173.5, 113.5),
-							P(170.5, 113.5),
-							P(176.5, 112.5) };
+		tech_locations = { P(162.5, 25.5),
+							P(165.5, 25.5),
+							P(159.5, 27.5),
+							P(156.5, 27.5),
+							P(157.5, 22.5),
+							P(154.5, 22.5) };
 
-		proxy_pylon_locations = { P(84, 57),
-								P(79, 115) };
+		proxy_pylon_locations = {P(106, 97),
+								P(70, 83) };
 
-		proxy_gateway_locations = { P(86.5, 56.5),
-									P(81.5, 116.5) };
+		proxy_gateway_locations = { P(103.5, 98.5),
+									P(69.5, 80.5) };
 
-		proxy_tech_locations = { P(83.5, 54.5),
-								P(81.5, 113.5) };
+		proxy_tech_locations = { P(106.5, 99.5),
+								P(66.5, 83.5) };
 
 
-		attack_path = { P(105, 83),
-						P(57, 87),
-						P(52, 88),
-						P(50, 93),
-						P(48, 100),
-						P(42, 106) };
+		attack_path = { P(81, 38),
+						P(76, 41),
+						P(62, 55),
+						P(54, 60),
+						P(46, 65),
+						P(38, 75),
+						P(39, 84),
+						P(41, 87),
+						P(55, 100),
+						P(61, 104),
+						P(59, 115),
+						P(56, 118),
+						P(40, 123), };
 
-		attack_path_line = PathManager({ new LineSegmentLinearX(-.09, 92.8, 52.5, 105, swap, center_point, false),
-										new LineSegmentCurveX(.864, -90.8928, 2478.55, 49.4, 52.5, swap, center_point, false),
-										new LineSegmentCurveX(-.07, 5.11, 15.3085, 44, 49.4, swap, center_point, false),
-										new LineSegmentLinearX(-4, 280.629, 41, 44, swap, center_point, false) }, true, swap);
+		attack_path_line = PathManager({}, true, swap);
 
-		high_ground_index = 5;
+		for (int i = 0; i < attack_path.size() - 3; i += 2)
+		{
+			// line between potins i , i+1
+			if (abs(attack_path[i].x - attack_path[i + 1].x) > abs(attack_path[i].y - attack_path[i + 1].y))
+			{
+				double slope = (attack_path[i].y - attack_path[i + 1].y) / (attack_path[i].x - attack_path[i + 1].x);
 
-		attack_path_alt = { P(112, 130),
-							P(90, 120),
-							P(81, 107),
-							P(62, 90),
-							P(48, 90),
-							P(48, 100),
-							P(42, 106) };
+				double line_x_a = slope;
+				double line_x_b = attack_path[i].y - (slope * attack_path[i].x);
 
-		high_ground_index_alt = 6;
+				attack_path_line.segments.push_back(new LineSegmentLinearX(line_x_a, line_x_b, attack_path[i].x, attack_path[i + 1].x, false, Point2D(0, 0), false));
+			}
+			else
+			{
+				double slope = (attack_path[i].x - attack_path[i + 1].x) / (attack_path[i].y - attack_path[i + 1].y);
 
-		initial_scout_pos = P(43.5, 105);
+				double line_y_a = slope;
+				double line_y_b = attack_path[i].x - (slope * attack_path[i].y);
 
-		main_scout_path = { P(38, 107),
-							P(36, 116),
-							P(38, 125),
-							P(53, 130),
-							P(60, 117),
-							P(54, 110) };
+				attack_path_line.segments.push_back(new LineSegmentLinearY(line_y_a, line_y_b, attack_path[i].y, attack_path[i + 1].y, false, Point2D(0, 0), false));
+			}
 
-		natural_scout_path = { P(35, 99),
-								P(30, 89),
-								P(38, 81), };
+			// curve between attack_path i+1, i+2
+			LineSegment* curve = attack_path_line.FitLineSegment(attack_path[i + 1], attack_path[i + 2], attack_path[i], attack_path[i + 3]);
+			attack_path_line.segments.push_back(curve);
+		}
 
-		possible_3rds = { P(69.5, 100.5),
-						P(41.5, 61.5), };
+		/*high_ground_index = 5;
 
-		enemy_natural = P(39.5, 91.5);
+		attack_path_alt = { P(,),
+							P(,), };
 
+		high_ground_index_alt = 6;*/
 
-		Point2D entrance_point = P(75, 137);
+		initial_scout_pos = P(55.5, 119.5);
+
+		main_scout_path = { P(49, 129),
+							P(37, 132),
+							P(30, 126.5),
+							P(30, 117),
+							P(42.5, 113.5) };
+
+		natural_scout_path = { P(64, 125),
+								P(75, 125.5),
+								P(76.5, 114), };
+
+		possible_3rds = { P(70.5, 94.5),
+						P(42.5, 93.5), };
+
+		enemy_natural = P(70.5, 117.5);
+
+		
+		/*Point2D entrance_point = P(75, 137);
 		Point2D exit_point = P(28, 35);
 		std::vector<Point2D> entrance_points = { P(50, 129),
 												P(40, 102),
@@ -188,16 +199,16 @@ namespace sc2 {
 															P(28, 43)} };
 
 		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
+		*/
 
 
+		third_base_pylon_gap = P(158.5, 53.5);
+		natural_door_closed = P(137.5, 38.5);
+		natural_door_open = P(137.5, 42);
+		
 
-		third_base_pylon_gap = P(151.5, 102);
-		natural_door_closed = P(173.5, 91.5);
-		natural_door_open = P(171, 91.5);
-
-
-		adept_harrass_protoss_consolidation = { P(67, 93), P(55, 74) };
-
+		/*adept_harrass_protoss_consolidation = { P(,), P(,) };
+		
 		main_early_dead_space = P(160, 125);
 		natural_front = { P(173, 86),
 							P(171, 92) };
@@ -226,7 +237,7 @@ namespace sc2 {
 
 		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(-.1, 117.4, 45, 64, swap, center_point, false) }, true, swap),
 										PathManager({ new LineSegmentCurveY(-.04, 8.88, -428.84, 111, 127, swap, center_point, false) }, false, true) };
-
+*/
 
 	}
 

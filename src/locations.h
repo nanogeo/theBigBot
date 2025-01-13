@@ -227,6 +227,11 @@ public:
 	void SetGresvanLocations(Point3D, BuildOrder);
 	void SetAbyssalReefLocations(Point3D, BuildOrder);
 	void SetAcropolisLocations(Point3D, BuildOrder);
+	void SetAutomatonLocations(Point3D, BuildOrder);
+	void SetEphemeronLocations(Point3D, BuildOrder);
+	void SetInterloperLocations(Point3D, BuildOrder);
+	void SetThunderbirdLocations(Point3D, BuildOrder);
+	
 
 };
 

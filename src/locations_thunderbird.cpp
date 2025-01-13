@@ -12,130 +12,59 @@
 
 namespace sc2 {
 
-	void Locations::SetAcropolisLocations(Point3D start_location, BuildOrder build_order)
+	void Locations::SetThunderbirdLocations(Point3D start_location, BuildOrder build_order)
 	{
-		Point2D center_point = Point2D(88, 86);
+		Point2D center_point = Point2D(224, 0);
 
 		auto convert_location = [](Point2D point, bool swap)
 		{
 			if (swap)
-				return Point2D(176, 172) - point;
+				return Point2D(160, 160) - point;
 			else
 				return point;
 		};
 
-		bool swap = start_location.x == 33.5 && start_location.y == 138.5;
+		bool swap = start_location.x == 130.5 && start_location.y == 21.5;
 
 		this->start_location = start_location;
 
+		/*nexi_locations = {P(,),
+							P(,)) };
 
-
-		nexi_locations = {P(31.5, 113.5),
-							P(32.5, 85.5),
-							P(29.5, 53.5),
-							P(58.5, 111.5),
-							P(73.5, 138.5),
-							P(47.5, 28.5),
-							P(68.5, 42.5) };
-
-		pylon_locations = { P(34, 81), 
-							P(34, 89),
-							P(62, 112),
-							P(30, 125),
-							P(35, 135),
-							P(29, 145),
-							P(47, 146),
-							P(23, 113),
-							P(27, 120),
-							P(27, 79),
-							P(27, 92),
-							P(37, 135) };
+		pylon_locations = { P(,),
+							P(,) };
 
 		std::cerr << "First pylon: " + std::to_string(pylon_locations[0].x) + ", " + std::to_string(pylon_locations[0].y) + "\n";
 
-		first_pylon_location_zerg = P(34, 108);
-		first_pylon_location_protoss = P(45, 125);
-		first_pylon_location_terran = P(49, 134);
+		first_pylon_location_zerg = P(, );
+		first_pylon_location_protoss = P(, );
+		first_pylon_location_terran = P(, );
 
-		gateway_locations = { P(43.5, 122.5),
-							 P(45.5, 127.5),
-							 P(51.5, 131.5),
-							 P(38.5, 106.5),
-							 P(34.5, 105.5),
-							 P(34.5, 77.5),
-							 P(36.5, 80.5),
-							 P(36.5, 83.5),
-							 P(36.5, 86.5),
-							 P(63.5, 115.5),
-							 P(64.5, 112.5),
-							 P(62.5, 109.5),
-							 P(59.5, 107.5),
-							 P(27.5, 126.5),
-							 P(27.5, 129.5),
-							 P(30.5, 127.5),
-							 P(30.5, 130.5),
-							 P(26.5, 145.5),
-							 P(29.5, 147.5),
-							 P(49.5, 142.5),
-							 P(46.5, 142.5),
-							 P(43.5, 142.5),
-							 P(43.5, 146.5) };
+		gateway_locations = { P(,),
+							P(,) };
 
-		assimilator_locations = { P(26.5, 135.5),
-									P(37.5, 145.5),
-									P(25.5, 110.5),
-									P(28.5, 106.5),
-									P(25.5, 81.5),
-									P(30.5, 78.5),
-									P(26.5, 60.5),
-									P(22.5, 56.5),
-									P(62.5, 118.5),
-									P(51.5, 108.5),
-									P(66.5, 135.5),
-									P(77.5, 145.5),
-									P(40.5, 31.5),
-									P(51.5, 21.5),
-									P(61.5, 46.5),
-									P(70.5, 35.5) };
+		assimilator_locations = { P(,),
+									P(,) };
+
+		cyber_core_locations = { P(,),
+									P(,),
+									P(,) };
+
+		tech_locations = { P(,),
+							P(,) };
+
+		proxy_pylon_locations = { P(,),
+								P(,) };
+
+		proxy_gateway_locations = { P(,),
+									P(,) };
+
+		proxy_tech_locations = { P(,),
+								P(,) };
 
 
-		cyber_core_locations = { P(31.5, 105.5),
-									P(42.5, 125.5),
-									P(51.5, 134.5) };
-
-		tech_locations = {	P(32.5, 134.5),
-							P(29.5, 134.5),
-							P(35.5, 132.5),
-							P(38.5, 132.5),
-							P(32.5, 131.5),
-							P(37.5, 137.5),
-							P(40.5, 137.5),
-							P(41.5, 132.5) };
-
-		proxy_pylon_locations = {P(124, 109),
-								P(93, 57) };
-
-		proxy_gateway_locations = { P(124.5, 106.5),
-									P(92.5, 54.5) };
-
-		proxy_tech_locations = { P(127.5, 111.5),
-								P(88.5, 56.5) };
-		
-
-		attack_path = { P(120.5,122),
-						P(123.5,125.25),
-						P(130,125.5),
-						P(135,121),
-						P(137.5,109.75),
-						P(134,106),
-						P(135,97.5),
-						P(137.5,93.25),
-						P(139.25,72.75),
-						P(140.25,67.5),
-						P(138,52.25),
-						P(135.5,49.75),
-						P(140,36),
-						P(147,28) };
+		attack_path = { P(,),
+						P(,) };
 
 		attack_path_line = PathManager({}, true, swap);
 
@@ -165,35 +94,29 @@ namespace sc2 {
 			LineSegment* curve = attack_path_line.FitLineSegment(attack_path[i + 1], attack_path[i + 2], attack_path[i], attack_path[i + 3]);
 			attack_path_line.segments.push_back(curve);
 		}
-		/*
-		high_ground_index = 5;
 
-		attack_path_alt = { P(112, 130),
-							P(90, 120),
-							P(81, 107),
-							P(62, 90),
-							P(48, 90),
-							P(48, 100),
-							P(42, 106) };
+		/*high_ground_index = 5;
 
-		high_ground_index_alt = 6;
-		*/
-		initial_scout_pos = P(136, 50);
+		attack_path_alt = { P(, ),
+							P(, ), };
 
-		main_scout_path = { P(152, 39),
-							P(152, 29),
-							P(140, 23),
-							P(132, 32),
-							P(133, 44) };
+		high_ground_index_alt = 6;*/
 
-		natural_scout_path = { P(150, 52),
-								P(154, 63),
-								P(142, 138), };
+		/*initial_scout_pos = P(, );
 
-		possible_3rds = { P(143.5, 86.5),
-						P(117.5, 60.5), };
+		main_scout_path = { P(,),
+							P(,),
+							P(,),
+							P(,) };
 
-		enemy_natural = P(144.5, 59.5);
+		natural_scout_path = { P(,),
+								P(,),
+								P(,), };
+
+		possible_3rds = { P(,),
+						P(,) };
+
+		enemy_natural = P(, );
 
 		/*
 		Point2D entrance_point = P(75, 137);
@@ -215,15 +138,15 @@ namespace sc2 {
 
 		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
 
+
+
+		third_base_pylon_gap = P(151.5, 102);
+		natural_door_closed = P(173.5, 91.5);
+		natural_door_open = P(171, 91.5);
 		*/
 
-		third_base_pylon_gap = P(34, 82.5);
-		natural_door_closed = P(36.5, 106);
-		natural_door_open = P(36.5, 102);
-
+		/*adept_harrass_protoss_consolidation = { P(, ), P(, ) };
 		
-		adept_harrass_protoss_consolidation = { P(140, 80), P(123, 69) };
-		/*
 		main_early_dead_space = P(160, 125);
 		natural_front = { P(173, 86),
 							P(171, 92) };
