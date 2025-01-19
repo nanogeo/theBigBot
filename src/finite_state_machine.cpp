@@ -2691,7 +2691,7 @@ namespace sc2 {
 		if (state_machine->attacking_main)
 			state_machine->army_group->attack_path_line = agent->locations->blink_main_attack_path_lines[0];
 		else
-			state_machine->army_group->attack_path_line = agent->locations->blink_nat_attacK_path_line;
+			state_machine->army_group->attack_path_line = agent->locations->blink_nat_attack_path_line;
 	}
 
 	void BlinkStalkerAttackTerranAttack::ExitState()
