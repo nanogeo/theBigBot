@@ -55,8 +55,10 @@ namespace sc2 {
 
 		gateway_locations = { P(155.5, 37.5),
 							P(158.5, 36.5),
-							P(136.5, 30.5),
+							P(136.25, 30.25),
 							P(139.5, 30.5),
+							P(136.5, 27.5),
+							P(139.5, 27.5),
 							P(140.5, 46.5),
 							P(140.5, 49.5),
 							P(117.5, 22.5),
@@ -94,7 +96,7 @@ namespace sc2 {
 									P(73.5, 52.5 ) };
 
 		cyber_core_locations = { P(153.5, 34.5),
-									P(140.5, 34.5),
+									P(140.25, 34.25),
 									P(140.5, 53.5) };
 
 		tech_locations = { P(154.5, 26.5),
@@ -223,6 +225,8 @@ namespace sc2 {
 
 		blink_main_attack_path_lines = { PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
 		
+
+		bad_warpin_spots = { first_pylon_location_terran };
 
 	}
 	

@@ -221,6 +221,8 @@ namespace sc2 {
 		blink_main_attack_path_lines = { PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
 
 
+		bad_warpin_spots = { first_pylon_location_terran };
+
 	}
 	
 }

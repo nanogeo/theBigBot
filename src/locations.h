@@ -168,6 +168,8 @@ public:
 
 	std::vector<Point2D> adept_harrass_protoss_consolidation;
 
+	std::vector<Point2D> bad_warpin_spots;
+
     Locations() {}
     Locations(Point3D start_location, BuildOrder build_order, std::string map_name)
     {
