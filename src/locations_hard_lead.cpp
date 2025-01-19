@@ -231,7 +231,7 @@ namespace sc2 {
 
 
 
-		blink_nat_attacK_path_line = PathManager({ new LineSegmentLinearY(.535, 13.36, 104, 112, swap, center_point, true), 
+		blink_nat_attack_path_line = PathManager({ new LineSegmentLinearY(.535, 13.36, 104, 112, swap, center_point, true), 
 													new LineSegmentCurveY(-.05, 11.78, -618.842, 112, 135, swap, center_point, true) }, false, !swap);
 
 		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearY(.1, 35.7, 113, 135, swap, center_point, true) }, false, !swap),

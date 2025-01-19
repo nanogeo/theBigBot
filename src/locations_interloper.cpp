@@ -24,7 +24,7 @@ namespace sc2 {
 				return point;
 		};
 
-		bool swap = start_location.x == 125.5 && start_location.y == 30.5;
+		bool swap = start_location.x == 26.5 && start_location.y == 137.5;
 
 		this->start_location = start_location;
 
@@ -51,12 +51,12 @@ namespace sc2 {
 
 		first_pylon_location_zerg = P(116, 57);
 		first_pylon_location_protoss = P(113, 43);
-		first_pylon_location_terran = P(40, 124);
+		first_pylon_location_terran = P(112, 44);
 
 		gateway_locations = { P(114.5, 45.5),
 								P(115.5, 42.5),
-								P(39.5, 121.5),
-								P(41.5, 127.5),
+								P(112.5, 46.5),
+								P(110.5, 41.5),
 								P(113.5, 61.5),
 								P(113.5, 57.5),
 								P(88.5, 35.5),
@@ -116,37 +116,22 @@ namespace sc2 {
 								P(70.5, 111.5) };
 
 
-		/*attack_path = {P(,),
-						P(, ) };*/
+		attack_path = {P(106, 121),
+						P(102, 126),
+						P(82, 136),
+						P(72, 134.5),
+						P(55, 119),
+						P(49, 113),
+						P(40.5, 110),
+						P(35.5, 110.5),
+						P(32, 119.5),
+						P(34.5, 122.5),
+						P(34, 132),
+						P(24, 143) };
 
-		attack_path_line = PathManager({}, true, swap);
-
-		for (int i = 0; i < attack_path.size() - 3; i += 2)
-		{
-			// line between potins i , i+1
-			if (abs(attack_path[i].x - attack_path[i + 1].x) > abs(attack_path[i].y - attack_path[i + 1].y))
-			{
-				double slope = (attack_path[i].y - attack_path[i + 1].y) / (attack_path[i].x - attack_path[i + 1].x);
-
-				double line_x_a = slope;
-				double line_x_b = attack_path[i].y - (slope * attack_path[i].x);
-
-				attack_path_line.segments.push_back(new LineSegmentLinearX(line_x_a, line_x_b, attack_path[i].x, attack_path[i + 1].x, false, Point2D(0, 0), false));
-			}
-			else
-			{
-				double slope = (attack_path[i].x - attack_path[i + 1].x) / (attack_path[i].y - attack_path[i + 1].y);
-
-				double line_y_a = slope;
-				double line_y_b = attack_path[i].x - (slope * attack_path[i].y);
-
-				attack_path_line.segments.push_back(new LineSegmentLinearY(line_y_a, line_y_b, attack_path[i].y, attack_path[i + 1].y, false, Point2D(0, 0), false));
-			}
-
-			// curve between attack_path i+1, i+2
-			LineSegment* curve = attack_path_line.FitLineSegment(attack_path[i + 1], attack_path[i + 2], attack_path[i], attack_path[i + 3]);
-			attack_path_line.segments.push_back(curve);
-		}
+		attack_path_line = PathManager(attack_path);
+		
+		
 
 		/*high_ground_index = 5;
 
@@ -172,63 +157,73 @@ namespace sc2 {
 		enemy_natural = P(25.5, 111.5);
 
 		
-		Point2D entrance_point = P(75, 137);
-		Point2D exit_point = P(28, 35);
-		std::vector<Point2D> entrance_points = { P(50, 129),
-												P(40, 102),
-												P(38, 71) };
-		std::vector<Point2D> exit_points = { P(37, 116),
-											P(33, 85),
-											P(39, 53) };
-		std::vector<Point2D> base_points = { P(46.5, 119.5),
-											P(39.5, 91.5),
-											P(69.5, 100.5) };
-		std::vector<std::vector<Point2D>> exfi_paths = { {P(28, 106),
-															P(30, 132),
-															P(67, 137)},
-															{ P(28, 76),
-															P(28, 43)} };
+		Point2D entrance_point = P(83, 150);
+		Point2D exit_point = P(16, 90);
+		std::vector<Point2D> entrance_points = { P(62, 138),
+												P(30, 147),
+												P(28, 121) };
+		std::vector<Point2D> exit_points = { P(48, 125),
+											P(17, 134),
+											P(63, 110) };
+		std::vector<Point2D> base_points = { P(58.5, 128.5),
+											P(26.5, 137.5),
+											P(25.5, 111.5) };
+		std::vector<std::vector<Point2D>> exfi_paths = { {P(47, 151),
+															P(80, 151)},
+															{ P(12, 123),
+															P(12, 97)} };
 
 		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
 
-
-
-		third_base_pylon_gap = P(151.5, 102);
-		natural_door_closed = P(173.5, 91.5);
-		natural_door_open = P(171, 91.5);
+		
+		third_base_pylon_gap = P(90.5, 38);
+		natural_door_closed = P(113, 59.5);
+		natural_door_open = P(110, 59.5);
+		
 		
 
-		/*adept_harrass_protoss_consolidation = { P(, ), P(, ) };
+		adept_harrass_protoss_consolidation = { P(56, 116), P(48, 92) };
+
+		main_early_dead_space = P(107, 22);
+		natural_front = { P(112, 63),
+							P(112, 54) };
+
+
+		adept_scout_shade = P(42, 105);
+		adept_scout_runaway = P(48, 92);
+		adept_scout_ramptop = P(34, 122);
+		adept_scout_nat_path = { P(16, 110),
+									P(23, 120) };
+		adept_scout_base_spots = { P(17, 134),
+									P(22, 145),
+									P(35, 146),
+									P(45, 136) };
+
+
+		blink_presure_consolidation = P(60, 120);
+		blink_pressure_prism_consolidation = P(63, 119);
+		blink_pressure_blink_up = P(51, 140);
+		blink_pressure_blink_down = P(48, 141);
+
+
+		std::vector<Point2D> blink_nat_attack_path = { P(60, 120),
+														P(40, 110),
+														P(23, 111),
+														P(18, 116) };
+
+		blink_nat_attack_path_line = PathManager(blink_nat_attack_path);
+
+
+		std::vector<std::vector<Point2D>> blink_main_attack_path = { { P(48, 141),
+																	P(23, 142) },
+																	{ P(48, 141),
+																	P(40, 133),
+																	P(28, 130),
+																	P(18, 136) } };
+
+		blink_main_attack_path_lines = { PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
+
 		
-		main_early_dead_space = P(160, 125);
-		natural_front = { P(173, 86),
-							P(171, 92) };
-
-
-		adept_scout_shade = P(54, 84);
-		adept_scout_runaway = P(53, 73);
-		adept_scout_ramptop = P(43.5, 105);
-		adept_scout_nat_path = { P(30, 89),
-									P(40, 96) };
-		adept_scout_base_spots = { P(35, 115),
-									P(44, 129),
-									P(60, 125),
-									P(60, 111) };
-
-
-		blink_presure_consolidation = P(72, 86);
-		blink_pressure_prism_consolidation = P(75, 83);
-		blink_pressure_blink_up = P(67.5, 107);
-		blink_pressure_blink_down = P(64, 111);
-
-
-		blink_nat_attacK_path_line = PathManager({ new LineSegmentLinearX(-.069, 91.04, 57, 72, swap, center_point, false),
-													new LineSegmentCurveX(.04, -4.696, 224.828, 52, 57, swap, center_point, false),
-													new LineSegmentLinearX(-.4, 109.596, 36, 52, swap, center_point, false) }, true, swap);
-
-		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(-.1, 117.4, 45, 64, swap, center_point, false) }, true, swap),
-										PathManager({ new LineSegmentCurveY(-.04, 8.88, -428.84, 111, 127, swap, center_point, false) }, false, true) };
-*/
 
 	}
 	

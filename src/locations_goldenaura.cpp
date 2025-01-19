@@ -245,7 +245,7 @@ namespace sc2 {
 
 		if (!swap)
 		{
-			blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveX(-.06, 9, -205.5, 75, 85, false, center_point, true),
+			blink_nat_attack_path_line = PathManager({ new LineSegmentCurveX(-.06, 9, -205.5, 75, 85, false, center_point, true),
 														new LineSegmentCurveX(.13, -19.5, 863.25, 63, 75, false, center_point, true) }, true, false);
 
 
@@ -254,7 +254,7 @@ namespace sc2 {
 		}
 		else
 		{
-			blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveY(-.06, 8.76, -185.75, 73, 83, false, center_point, true),
+			blink_nat_attack_path_line = PathManager({ new LineSegmentCurveY(-.06, 8.76, -185.75, 73, 83, false, center_point, true),
 														new LineSegmentCurveY(.13, -18.98, 826.77, 61, 73, false, center_point, true) }, false, false);
 
 

@@ -216,7 +216,7 @@ namespace sc2 {
 		blink_pressure_blink_up = P(64, 137);
 		blink_pressure_blink_down = P(60, 142);
 
-		blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveX(-.04, 5.76, -82.46, 63, 79, swap, center_point, true), 
+		blink_nat_attack_path_line = PathManager({ new LineSegmentCurveX(-.04, 5.76, -82.46, 63, 79, swap, center_point, true), 
 													new LineSegmentLinearX(.59, 84.5, 41, 63, swap, center_point, true) }, true, swap);
 
 		blink_main_attack_path_lines = { PathManager({ new LineSegmentLinearX(.75, 97, 45, 60, swap, center_point, true) }, true, swap),

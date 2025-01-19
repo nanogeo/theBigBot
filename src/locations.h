@@ -158,7 +158,7 @@ public:
 	Point2D blink_pressure_blink_down;
 
 	std::vector<PathManager> blink_main_attack_path_lines;
-	PathManager blink_nat_attacK_path_line;
+	PathManager blink_nat_attack_path_line;
 	
 	std::vector<CannonRushTriplePylonWalloff> cannon_rush_terran_pylon_walloffs;
 
@@ -201,9 +201,29 @@ public:
 		{
 			SetGresvanLocations(start_location, build_order);
 		}
+		else if (map_name == "Abyssal Reef AIE")
+		{
+			SetAbyssalReefLocations(start_location, build_order);
+		}
 		else if (map_name == "Acropolis AIE")
 		{
 			SetAcropolisLocations(start_location, build_order);
+		}
+		else if (map_name == "Automaton AIE")
+		{
+			SetAutomatonLocations(start_location, build_order);
+		}
+		else if (map_name == "Ephemeron AIE")
+		{
+			SetEphemeronLocations(start_location, build_order);
+		}
+		else if (map_name == "Interloper AIE")
+		{
+			SetInterloperLocations(start_location, build_order);
+		}
+		else if (map_name == "ThunderbirdAIE")
+		{
+			SetThunderbirdLocations(start_location, build_order);
 		}
 		else if (map_name == "Eternal Empire LE")
 		{
