@@ -12,8 +12,8 @@ namespace sc2
 		double GetMin() { return min; };
 		double GetMax() { return max; };
 		virtual Point2D EvaluateAt(double) = 0;
-		Point2D GetStart() { return EvaluateAt(start); };
-		Point2D GetEnd() { return EvaluateAt(end); };
+		Point2D GetStartPoint() { return EvaluateAt(start); };
+		Point2D GetEndPoint() { return EvaluateAt(end); };
 		virtual Point2D FindClosestPoint(Point2D) = 0;
 		virtual std::vector<Point2D> FindCircleIntersection(Point2D, double) = 0;
 		virtual Point2D GetPointFrom(Point2D, double, bool, double&) = 0;
@@ -218,6 +218,37 @@ public:
 	PathManager(std::vector<LineSegment*> segments, bool x_based, bool pos_direction)
 	{
 		this->segments = segments;
+	}
+	PathManager(std::vector<Point2D> points)
+	{
+		for (int i = 0; i < points.size() - 1; i += 2)
+		{
+			// line between potins i , i+1
+			if (abs(points[i].x - points[i + 1].x) > abs(points[i].y - points[i + 1].y))
+			{
+				double slope = (points[i].y - points[i + 1].y) / (points[i].x - points[i + 1].x);
+
+				double line_x_a = slope;
+				double line_x_b = points[i].y - (slope * points[i].x);
+
+				segments.push_back(new LineSegmentLinearX(line_x_a, line_x_b, points[i].x, points[i + 1].x, false, Point2D(0, 0), false));
+			}
+			else
+			{
+				double slope = (points[i].x - points[i + 1].x) / (points[i].y - points[i + 1].y);
+
+				double line_y_a = slope;
+				double line_y_b = points[i].x - (slope * points[i].y);
+
+				segments.push_back(new LineSegmentLinearY(line_y_a, line_y_b, points[i].y, points[i + 1].y, false, Point2D(0, 0), false));
+			}
+			if (i + 3 >= points.size())
+				break;
+
+			// curve between points i+1, i+2
+			LineSegment* curve = FitLineSegment(points[i + 1], points[i + 2], points[i], points[i + 3]);
+			segments.push_back(curve);
+		}
 	}
 	Point2D FindClosestPoint(Point2D);
 	int FindClosestSegmentIndex(Point2D);

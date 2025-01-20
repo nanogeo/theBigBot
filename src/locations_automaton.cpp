@@ -121,9 +121,9 @@ namespace sc2 {
 						P(50, 99),
 						P(53, 95),
 						P(59, 85),
-						P(60, 79),
+						P(60.5, 79),
 						P(60, 54),
-						P(49, 44),
+						P(49, 44.5),
 						P(45, 44),
 						P(36, 48),
 						P(33, 51),
@@ -132,12 +132,14 @@ namespace sc2 {
 		attack_path_line = PathManager(attack_path);
 
 
-		/*high_ground_index = 5;
+		high_ground_index = 5;
 
-		attack_path_alt = { P(, ),
-							P(, ), };
+		attack_path_alt = { P(98, 30),
+							P(64, 28),
+							P(38, 38),
+							P(33, 71) };
 
-		high_ground_index_alt = 6;*/
+		high_ground_index_alt = 2;
 
 		initial_scout_pos = P(33.5, 50.5);
 

@@ -351,7 +351,7 @@ std::vector<Point2D> LineSegmentCurveY::FindCircleIntersection(Point2D center, d
 
 Point2D LineSegmentLinearX::GetPointFrom(Point2D point, double dist, bool forward, double& dist_left)
 {
-	bool direction = forward & pos_direction;
+	bool direction = forward == pos_direction;
 	if (!direction)
 		dist *= -1;
 
@@ -372,7 +372,7 @@ Point2D LineSegmentLinearX::GetPointFrom(Point2D point, double dist, bool forwar
 
 Point2D LineSegmentLinearY::GetPointFrom(Point2D point, double dist, bool forward, double& dist_left)
 {
-	bool direction = forward & pos_direction;
+	bool direction = forward == pos_direction;
 	if (!direction)
 		dist *= -1;
 
@@ -393,7 +393,7 @@ Point2D LineSegmentLinearY::GetPointFrom(Point2D point, double dist, bool forwar
 
 Point2D LineSegmentCurveX::GetPointFrom(Point2D point, double dist, bool forward, double& dist_left)
 {
-	bool direction = forward & pos_direction;
+	bool direction = forward == pos_direction;
 	if (!direction)
 		dist *= -1;
 
@@ -414,7 +414,7 @@ Point2D LineSegmentCurveX::GetPointFrom(Point2D point, double dist, bool forward
 
 Point2D LineSegmentCurveY::GetPointFrom(Point2D point, double dist, bool forward, double& dist_left)
 {
-	bool direction = forward & pos_direction;
+	bool direction = forward == pos_direction;
 	if (!direction)
 		dist *= -1;
 
@@ -492,7 +492,7 @@ Point2D PathManager::GetPointFrom(Point2D point, double dist, bool forward)
 	{
 		int next_segment_index = forward ? index + 1 : index - 1;
 		if (next_segment_index >= segments.size() || next_segment_index < 0)
-			return forward ? segments[index]->GetEnd() : segments[index]->GetStart();
+			return forward ? segments[index]->GetEndPoint() : segments[index]->GetStartPoint();
 		else
 			return segments[next_segment_index]->GetPointFrom(point, dist_left, forward, dist);
 	}
@@ -504,7 +504,7 @@ Point2D PathManager::GetPointFrom(Point2D point, double dist, bool forward)
 
 std::vector<Point2D> PathManager::GetPoints()
 {
-	Point2D current = segments[0]->GetStart();
+	Point2D current = segments[0]->GetStartPoint();
 
 	std::vector<Point2D> points;
 	for each (LineSegment* segment in segments)
@@ -517,22 +517,12 @@ std::vector<Point2D> PathManager::GetPoints()
 
 Point2D PathManager::GetStartPoint()
 {
-	return segments[0]->GetStart();
+	return segments[0]->GetStartPoint();
 }
 
 Point2D PathManager::GetEndPoint()
 {
-	return segments[segments.size() - 1]->GetEnd();
-}
-
-Point2D PathManager::GetStart()
-{
-	return segments[0]->GetStart();
-}
-
-Point2D PathManager::GetEnd()
-{
-	return segments[0]->GetEnd();
+	return segments[segments.size() - 1]->GetEndPoint();
 }
 
 
@@ -579,6 +569,8 @@ LineSegment* PathManager::FitLineSegment(Point2D p1, Point2D p2, Point2D p3, Poi
 		curve_x_c = c;
 
 		curve_x_loss = (d * a + f + g * a + h) * (d * a + f + g * a + h) + (j * a + f + g * a + k) * (j * a + f + g * a + k);
+		if (curve_x_loss != curve_x_loss)
+			curve_x_loss = INFINITY;
 	}
 
 	double curve_y_a, curve_y_b, curve_y_c, curve_y_loss;
@@ -621,6 +613,8 @@ LineSegment* PathManager::FitLineSegment(Point2D p1, Point2D p2, Point2D p3, Poi
 		curve_y_c = c;
 
 		curve_y_loss = (d * a + f + g * a + h) * (d * a + f + g * a + h) + (j * a + f + g * a + k) * (j * a + f + g * a + k);
+		if (curve_y_loss != curve_y_loss)
+			curve_y_loss = INFINITY;
 	}
 
 	double line_x_a, line_x_b, line_x_loss;

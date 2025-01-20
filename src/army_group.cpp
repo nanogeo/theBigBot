@@ -1351,12 +1351,13 @@ namespace sc2 {
 		Units units_not_ready;
 		FindReadyUnits(current_units, units_ready, units_not_ready);
 
+		float percent_units_needed = .25;
+
 		//if units are shooting then theres a reason to stay
-		if (units_not_ready.size() > 0)
+		if ((double)units_not_ready.size() / (double)current_units.size() > percent_units_needed)
 			return_value = 0;
 
 
-		float percent_units_needed = .25;
 			
 		
 		MicroReadyUnits(units_ready, target_priority, percent_units_needed, current_units.size());
@@ -1455,16 +1456,16 @@ namespace sc2 {
 		if (close_enemies.size() > 0)
 		{
 			concave_target = Utility::MedianCenter(close_enemies);
-			Point2D attack_line_end = attack_path_line.GetEnd();
-			if (attack_line_end.x == 0 && attack_line_end.y == concave_target.y || attack_line_end.y == 0 && attack_line_end.x == concave_target.x)
+			Point2D attack_line_end = attack_path_line.GetEndPoint();
+			if (Distance2D(concave_target, attack_line_end) < 1 || Distance2D(concave_origin, attack_line_end) < 1)
 				reached_end = true;
 			avg_distance /= close_enemies.size();
 		}
 		else
 		{
-			concave_target = attack_path_line.GetPointFrom(concave_origin, 5, true); // default target is 8 units in front of army center
-			Point2D attack_line_end = attack_path_line.GetEnd();
-			if (attack_line_end.x == 0 && attack_line_end.y == concave_target.y || attack_line_end.y == 0 && attack_line_end.x == concave_target.x)
+			concave_target = attack_path_line.GetPointFrom(concave_origin, 8, true); // default target is 8 units in front of army center
+			Point2D attack_line_end = attack_path_line.GetEndPoint();
+			if (Distance2D(concave_target, attack_line_end) < 1 || Distance2D(concave_origin, attack_line_end) < 1)
 				reached_end = true;
 			avg_distance = 5;
 		}

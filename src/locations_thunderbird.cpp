@@ -120,11 +120,11 @@ namespace sc2 {
 		attack_path = { P(130, 103),
 						P(126, 100),
 						P(98.5, 96.5),
-						P(93.5, 96.5),
+						P(93.5, 96),
 						P(64.5, 99),
 						P(59, 103),
 						P(53, 106.5),
-						P(49.5, 106.5),
+						P(49.5, 106),
 						P(43, 115),
 						P(38.5, 119),
 						P(36, 128),
@@ -134,12 +134,14 @@ namespace sc2 {
 
 		
 
-		/*high_ground_index = 5;
+		high_ground_index = 5;
 
-		attack_path_alt = { P(, ),
-							P(, ), };
+		attack_path_alt = { P(112, 100),
+							P(97, 127),
+							P(70, 124),
+							P(41, 132) };
 
-		high_ground_index_alt = 6;*/
+		high_ground_index_alt = 2;
 
 		initial_scout_pos = P(39.5, 118.5);
 
@@ -178,11 +180,10 @@ namespace sc2 {
 		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
 
 		
-		third_base_pylon_gap = P(151.5, 102);
-		natural_door_closed = P(173.5, 91.5);
-		natural_door_open = P(171, 91.5);
+		third_base_pylon_gap = P(121.5, 28.5);
+		natural_door_closed = P(140, 51.5);
+		natural_door_open = P(137, 51.5);
 		
-
 
 		adept_harrass_protoss_consolidation = { P(68, 95), P(64, 113) };
 		
@@ -211,7 +212,7 @@ namespace sc2 {
 		std::vector<Point2D> blink_nat_attack_path = { P(69, 97),
 														P(58, 103),
 														P(46, 105),
-														P(35, 105) };
+														P(35, 104) };
 
 		blink_nat_attack_path_line = PathManager(blink_nat_attack_path);
 

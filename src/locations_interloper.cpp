@@ -133,12 +133,14 @@ namespace sc2 {
 		
 		
 
-		/*high_ground_index = 5;
+		high_ground_index = 5;
 
-		attack_path_alt = { P(, ),
-							P(, ), };
+		attack_path_alt = { P(70, 91),
+							P(29, 81),
+							P(28, 112),
+							P(32, 140) };
 
-		high_ground_index_alt = 6;*/
+		high_ground_index_alt = 2;
 
 		initial_scout_pos = P(34.5, 122.5);
 
