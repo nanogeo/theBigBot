@@ -2689,7 +2689,7 @@ namespace sc2 {
 	{
 		state_machine->army_group->standby_units = {};
 		if (state_machine->attacking_main)
-			state_machine->army_group->attack_path_line = agent->locations->blink_main_attack_path_lines[0];
+			state_machine->army_group->attack_path_line = agent->locations->blink_main_attack_path_lines[agent->Observation()->GetGameLoop() % 2 ? 0 : 1];
 		else
 			state_machine->army_group->attack_path_line = agent->locations->blink_nat_attack_path_line;
 	}
