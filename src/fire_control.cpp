@@ -417,7 +417,7 @@ namespace sc2 {
 	{
 		for (const auto unit_hp : enemy_unit_hp)
 		{
-			enemy_unit_hp[unit_hp.first] = unit_hp.first->health + unit_hp.first->shield;
+			enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield);
 		}
 
 		for (int i = 0; i < outgoing_attacks.size(); i++)
