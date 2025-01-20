@@ -1002,6 +1002,14 @@ namespace sc2 {
 							).count();
 #endif
                         bool blocked = false;
+						for (const auto& avoid_spot : locations->bad_warpin_spots)
+						{
+							if (Distance2D(pos, avoid_spot) < 3)
+							{
+								blocked = true;
+								break;
+							}
+						}
                         for (const auto &building : Observation()->GetUnits(IsBuilding()))
                         {
                             if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON || building->unit_type == UNIT_TYPEID::PROTOSS_PHOTONCANNON || building->unit_type == UNIT_TYPEID::PROTOSS_SHIELDBATTERY)
@@ -2532,7 +2540,7 @@ namespace sc2 {
 			Debug()->DebugTextOut("Cyber " + std::to_string(i), ToPoint3D(locations->cyber_core_locations[i]), Color(255, 0, 0), 14);
 		}
 
-		for (const auto& pos : locations->blink_nat_attacK_path_line.GetPoints())
+		for (const auto& pos : locations->blink_nat_attack_path_line.GetPoints())
 		{
 			Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
 		}
