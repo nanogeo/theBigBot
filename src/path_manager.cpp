@@ -507,7 +507,7 @@ std::vector<Point2D> PathManager::GetPoints()
 	Point2D current = segments[0]->GetStartPoint();
 
 	std::vector<Point2D> points;
-	for each (LineSegment* segment in segments)
+	for (const auto* segment : segments)
 	{
 		std::vector<Point2D> new_points = segment->GetPoints();
 		points.insert(points.end(), new_points.begin(), new_points.end());

@@ -11,13 +11,13 @@ namespace sc2
 	public:
 		double GetMin() { return min; };
 		double GetMax() { return max; };
-		virtual Point2D EvaluateAt(double) = 0;
+		virtual Point2D EvaluateAt(double) const = 0;
 		Point2D GetStartPoint() { return EvaluateAt(start); };
-		Point2D GetEndPoint() { return EvaluateAt(end); };
+		Point2D GetEndPoint()  { return EvaluateAt(end); };
 		virtual Point2D FindClosestPoint(Point2D) = 0;
 		virtual std::vector<Point2D> FindCircleIntersection(Point2D, double) = 0;
 		virtual Point2D GetPointFrom(Point2D, double, bool, double&) = 0;
-		std::vector<Point2D> GetPoints()
+		std::vector<Point2D> GetPoints() const
 		{
 			std::vector<Point2D> points;
 			for (int i = min; i <= max; i++)
@@ -75,7 +75,7 @@ public:
 		}
 		pos_direction = min < max;
 	}
-	Point2D EvaluateAt(double x) override { return Point2D(x, a * x + b); };
+	Point2D EvaluateAt(double x) const override { return Point2D(x, a * x + b); };
 	Point2D FindClosestPoint(Point2D) override;
 	std::vector<Point2D> FindCircleIntersection(Point2D, double) override;
 	Point2D GetPointFrom(Point2D, double, bool, double&) override;
@@ -109,7 +109,7 @@ public:
 		}
 		pos_direction = min < max;
 	}
-	Point2D EvaluateAt(double y) override { return Point2D(a * y + b, y); };
+	Point2D EvaluateAt(double y) const override { return Point2D(a * y + b, y); };
 	Point2D FindClosestPoint(Point2D) override;
 	std::vector<Point2D> FindCircleIntersection(Point2D, double) override;
 	Point2D GetPointFrom(Point2D, double, bool, double&) override;
@@ -166,7 +166,7 @@ public:
 		}
 		pos_direction = min < max;
 	}
-	Point2D EvaluateAt(double x) override { return Point2D(x, a * pow(x, 2) + b * x + c); };
+	Point2D EvaluateAt(double x) const override { return Point2D(x, a * pow(x, 2) + b * x + c); };
 	Point2D FindClosestPoint(Point2D) override;
 	std::vector<Point2D> FindCircleIntersection(Point2D, double) override;
 	Point2D GetPointFrom(Point2D, double, bool, double&) override;
@@ -203,7 +203,7 @@ public:
 		}
 		pos_direction = min < max;
 	}
-	Point2D EvaluateAt(double y) override { return Point2D(a * pow(y, 2) + b * y + c, y); };
+	Point2D EvaluateAt(double y) const override { return Point2D(a * pow(y, 2) + b * y + c, y); };
 	Point2D FindClosestPoint(Point2D) override;
 	std::vector<Point2D> FindCircleIntersection(Point2D, double) override;
 	Point2D GetPointFrom(Point2D, double, bool, double&) override;
