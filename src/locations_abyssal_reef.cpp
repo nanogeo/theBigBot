@@ -36,16 +36,21 @@ namespace sc2 {
 							P(159.5, 99.5) };
 
 		pylon_locations = { P(159, 55),
+							P(160, 25),
 							P(121, 24),
 							P(130, 19),
 							P(161, 43),
 							P(166, 48),
-							P(160, 25),
 							P(158, 25),
-							P(32, 109),
-							P(59, 132),
-							P(36, 133),
-							P(27, 118) };
+							P(168, 35),
+							P(141, 12),
+							P(164, 11),
+							P(173, 26),
+							P(153, 51),
+							P(171, 26),
+							P(164, 13),
+							P(156, 25),
+							P(126, 32) };
 
 		std::cerr << "First pylon: " + std::to_string(pylon_locations[0].x) + ", " + std::to_string(pylon_locations[0].y) + "\n";
 
@@ -54,27 +59,29 @@ namespace sc2 {
 		first_pylon_location_terran = P(158, 37);
 
 		gateway_locations = { P(144.5, 22.5),
-							P(147.5, 23.5),
+							P(149.5, 20.5),
 							P(155.5, 35.5),
 							P(158.5, 34.5),
+							P(155.5, 32.5),
+							P(161.5, 34.5),
 							P(139.5, 37.5),
 							P(133.5, 37.5),
 							P(156.5, 60.5),
 							P(159.5, 58.5),
 							P(162.5, 56.5),
-							P(30.5, 112.5),
-							P(33.5, 112.5),
-							P(36.5, 112.5),
-							P(56.5, 131.5),
-							P(53.5, 131.5),
-							P(57.5, 127.5),
-							P(54.5, 127.5),
-							P(33.5, 131.5),
-							P(39.5, 132.5),
-							P(28.5, 115.5),
-							P(31.5, 115.5),
-							P(28.5, 120.5),
-							P(28.5, 123.5) };
+							P(169.5, 31.5),
+							P(166.5, 31.5),
+							P(163.5, 31.5),
+							P(143.5, 12.5),
+							P(146.5, 12.5),
+							P(142.5, 16.5),
+							P(145.5, 16.5),
+							P(166.5, 12.5),
+							P(160.5, 11.5),
+							P(171.5, 28.5),
+							P(168.5, 28.5),
+							P(171.5, 23.5),
+							P(171.5, 20.5) };
 
 		assimilator_locations = { P(158.5, 14.5),
 									P(168.5, 24.5),
@@ -92,7 +99,7 @@ namespace sc2 {
 									P(162.5, 92.5) };
 
 
-		cyber_core_locations = { P(144.5, 22.5),
+		cyber_core_locations = { P(147.5, 23.5),
 									P(160.5, 37.5),
 									P(131.5, 34.5) };
 
@@ -103,14 +110,14 @@ namespace sc2 {
 							P(157.5, 22.5),
 							P(154.5, 22.5) };
 
-		proxy_pylon_locations = {P(106, 97),
-								P(70, 83) };
+		proxy_pylon_locations = {P(70, 83),
+									P(106, 97) };
 
-		proxy_gateway_locations = { P(103.5, 98.5),
-									P(69.5, 80.5) };
+		proxy_gateway_locations = { P(69.5, 80.5), 
+									P(103.5, 98.5) };
 
-		proxy_tech_locations = { P(106.5, 99.5),
-								P(66.5, 83.5) };
+		proxy_tech_locations = { P(66.5, 83.5),
+								P(106.5, 99.5) };
 
 		attack_path = { P(81, 38),
 						P(76, 41),
@@ -124,7 +131,8 @@ namespace sc2 {
 						P(61, 104),
 						P(59, 115),
 						P(56, 118),
-						P(40, 123), };
+						P(40, 123),
+						P(33, 125) };
 
 		attack_path_line = PathManager(attack_path);
 
@@ -201,8 +209,8 @@ namespace sc2 {
 									P(40, 111) };
 
 
-		blink_presure_consolidation = P(52, 94);
-		blink_pressure_prism_consolidation = P(50, 92);
+		blink_presure_consolidation = P(56, 86);
+		blink_pressure_prism_consolidation = P(56, 82);
 		blink_pressure_blink_up = P(41, 103);
 		blink_pressure_blink_down = P(41, 106);
 
