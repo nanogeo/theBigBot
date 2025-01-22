@@ -64,11 +64,11 @@ int main(int argc, char* argv[])
 
     sc2::Coordinator coordinator;
     std::cerr << "Coord made\n";
-    if (!coordinator.LoadSettings(argc, argv))
+    /*if (!coordinator.LoadSettings(argc, argv))
     {
         std::cerr << "Coord load setting failed\n";
         return 1;
-    }
+    }*/
     std::cerr << "Coord load setting succeeded\n";
     sc2::TheBigBot bot;
     std::cerr << "Bot made\n";
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
     // NB (alkurbatov): Increase speed of steps processing.
     // Disables ability to control your bot during game.
     // Recommended for competitions.
-    //coordinator.SetRawAffectsSelection(true);
+    coordinator.SetRawAffectsSelection(true);
 
     coordinator.JoinGame();
     coordinator.SetTimeoutMS(10000);
