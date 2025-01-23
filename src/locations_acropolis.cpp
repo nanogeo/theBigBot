@@ -24,10 +24,11 @@ namespace sc2 {
 				return point;
 		};
 
-		bool swap = start_location.x == 33.5 && start_location.y == 138.5;
+		bool swap = start_location.x == 142.5 && start_location.y == 33.5;
 
 		this->start_location = start_location;
 
+		std::cerr << "start location: " + std::to_string(start_location.x) + ", " + std::to_string(start_location.y) + "\n";
 
 
 		nexi_locations = {P(31.5, 113.5),
@@ -38,11 +39,11 @@ namespace sc2 {
 							P(47.5, 28.5),
 							P(68.5, 42.5) };
 
-		pylon_locations = { P(34, 81), 
+		pylon_locations = { P(35, 135),
+							P(34, 81),
 							P(34, 89),
 							P(62, 112),
 							P(30, 125),
-							P(35, 135),
 							P(29, 145),
 							P(47, 146),
 							P(23, 113),
@@ -60,6 +61,9 @@ namespace sc2 {
 		gateway_locations = { P(43.5, 122.5),
 							 P(45.5, 127.5),
 							 P(51.5, 131.5),
+							 P(48.5, 131.5),
+							 P(46.5, 134.5),
+							 P(49.5, 138.5),
 							 P(38.5, 106.5),
 							 P(34.5, 105.5),
 							 P(34.5, 77.5),
@@ -142,10 +146,10 @@ namespace sc2 {
 		
 		high_ground_index = 5;
 
-		attack_path_alt = { P(80, 134),
-							P(63, 118),
-							P(34, 113),
-							P(37, 138) };
+		attack_path_alt = { P(96, 38),
+							P(113, 59),
+							P(142, 59),
+							P(139, 34) };
 
 		high_ground_index_alt = 2;
 		
@@ -166,22 +170,22 @@ namespace sc2 {
 
 		enemy_natural = P(144.5, 59.5);
 
-		Point2D entrance_point = P(62, 150);
-		Point2D exit_point = P(24, 62);
-		std::vector<Point2D> entrance_points = { P(38, 147),
-												P(29, 124),
-												P(28, 94) };
-		std::vector<Point2D> exit_points = { P(24, 136),
-											P(27, 106),
-											P(30, 78) };
-		std::vector<Point2D> base_points = { P(33.5, 138.5),
-											P(31.5, 113.),
-											P(32.5, 85.5) };
-		std::vector<std::vector<Point2D>> exfi_paths = { {P(21, 124),
-															P(21, 150),
-															P(50, 150)},
-															{ P(21, 98),
-															P(21, 68)} };
+		Point2D entrance_point = P(114, 22);
+		Point2D exit_point = P(152, 110);
+		std::vector<Point2D> entrance_points = { P(138, 25),
+												P(147, 48),
+												P(148, 78) };
+		std::vector<Point2D> exit_points = { P(152, 36),
+											P(149, 66),
+											P(146, 94) };
+		std::vector<Point2D> base_points = { P(142.5, 33.5),
+											P(144.5, 59),
+											P(143.5, 86.5) };
+		std::vector<std::vector<Point2D>> exfi_paths = { {P(155, 48),
+															P(155, 22),
+															P(126, 22)},
+															{ P(155, 74),
+															P(155, 104)} };
 
 		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
 
@@ -236,7 +240,7 @@ namespace sc2 {
 		blink_main_attack_path_lines = { PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
 
 
-		bad_warpin_spots = { first_pylon_location_terran };
+		bad_warpin_spots = { first_pylon_location_terran, P(56.5, 132) };
 
 	}
 	
