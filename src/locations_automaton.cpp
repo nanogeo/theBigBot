@@ -19,7 +19,7 @@ namespace sc2 {
 		auto convert_location = [](Point2D point, bool swap)
 		{
 			if (swap)
-				return Point2D(184, 180) + point;
+				return Point2D(184, 180) - point;
 			else
 				return point;
 		};
@@ -35,32 +35,42 @@ namespace sc2 {
 							P(54.5, 151.5),
 							P(150.5, 74.5) };
 
-		pylon_locations = { P(126, 110),
+		pylon_locations = { P(151, 116),
+							P(126, 110),
+							P(141, 96),
 							P(132, 108),
 							P(147, 153),
-							P(151, 116),
 							P(157, 145),
 							P(119, 161),
 							P(129, 153),
 							P(151, 118),
 							P(157, 96),
-							P(141, 96),
-							P(138, 114) };
+							P(138, 114),
+							P(140, 114),
+							P(157, 98),
+							P(118, 149),
+							P(143, 146),
+							P(144, 145),
+							P(161, 109),
+							P(140, 98) };
 
 		std::cerr << "First pylon: " + std::to_string(pylon_locations[0].x) + ", " + std::to_string(pylon_locations[0].y) + "\n";
 
 		first_pylon_location_zerg = P(139, 137);
-		first_pylon_location_protoss = P(137, 126);
-		first_pylon_location_terran = P(155, 127);
+		first_pylon_location_protoss = P(155, 127);
+		first_pylon_location_terran = P(137, 126);
 
 		gateway_locations = { P(153.5, 129.5),
 							P(156.5, 129.5),
 							P(136.5, 123.5),
+							P(142.5, 127.5),
 							P(139.5, 124.5),
-							P(136.5, 136.5),
+							P(142.5, 124.5),
+							P(139.5, 124.5),
 							P(138.5, 133.5),
-							P(126.5, 107.5),
+							P(136.5, 136.5),
 							P(123.5, 108.5),
+							P(126.25, 107.25),
 							P(123.5, 111.5),
 							P(123.5, 114.5),
 							P(154.5, 96.5),
@@ -78,7 +88,7 @@ namespace sc2 {
 
 		assimilator_locations = { P(161.5, 117.5),
 									P(157.5, 121.5),
-									P(144.5, 145.5),
+									P(144.5, 152.5),
 									P(155.5, 142.5),
 									P(129.5, 107.5),
 									P(129.5, 121.5),
