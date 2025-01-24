@@ -994,7 +994,7 @@ namespace sc2 {
 #endif
 
                     Point2D pos = Point2D(pylon->pos.x + i + .5, pylon->pos.y + j + .5);
-                    if (Observation()->IsPathable(pos) && Distance2D(pos, pylon->pos) <= 6)
+                    if (Observation()->IsPathable(pos) && Distance2D(pos, pylon->pos) <= 6 && ToPoint3D(pos).y > pylon->pos.y + .5)
                     {
 #ifdef DEBUG_TIMING
 						unsigned long long initial = std::chrono::duration_cast<std::chrono::microseconds>(
