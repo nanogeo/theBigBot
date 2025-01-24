@@ -54,18 +54,20 @@ Point2D LineSegmentCurveX::FindClosestPoint(Point2D point)
 
 	double num_roots = pow(q / 2, 2) + pow(p / 3, 3);
 
+	Point2D closest_point;
+
 	if (num_roots > 0)
 	{
 		// only 1 solutions
 		double x_value = std::cbrt(-1 * (q / 2) - std::sqrt(num_roots)) + std::cbrt(-1 * (q / 2) + std::sqrt(num_roots)) - (b1 / (3 * a1));
 		if (x_value < min)
-			return Point2D(min, a * pow(min, 2) + b * min + c);
+			closest_point = Point2D(min, a * pow(min, 2) + b * min + c);
 		if (x_value > max)
-			return Point2D(max, a * pow(max, 2) + b * max + c);
+			closest_point = Point2D(max, a * pow(max, 2) + b * max + c);
 		else
-			return Point2D(x_value, a * pow(x_value, 2) + b * x_value + c);
+			closest_point = Point2D(x_value, a * pow(x_value, 2) + b * x_value + c);
 	}
-	if (num_roots < 0)
+	else if (num_roots < 0)
 	{
 		// 3 solutions
 		double r = -1 * q / 2;
@@ -86,19 +88,24 @@ Point2D LineSegmentCurveX::FindClosestPoint(Point2D point)
 		double dist3 = Distance2D(point, p3);
 
 		if (dist1 <= dist2 && dist1 <= dist3)
-			return p1;
+			closest_point = p1;
 		if (dist2 <= dist3)
-			return p2;
+			closest_point = p2;
 		else
-			return p3;
+			closest_point = p3;
 	}
 	else
 	{
 		// 2 solutions
 		// very very unlikely
 		//std::cout << "2 solutions in LineSegmentCurveX::FindClosestPoint";
-		return point;
+		closest_point = point;
 	}
+	if (closest_point.x < min)
+		return EvaluateAt(min);
+	if (closest_point.x > max)
+		return EvaluateAt(max);
+	return closest_point;
 }
 
 Point2D LineSegmentCurveY::FindClosestPoint(Point2D point)
@@ -115,18 +122,20 @@ Point2D LineSegmentCurveY::FindClosestPoint(Point2D point)
 
 	double num_roots = pow(q / 2, 2) + pow(p / 3, 3);
 
+	Point2D closest_point;
+
 	if (num_roots > 0)
 	{
 		// only 1 solutions
 		double y_value = std::cbrt(-1 * (q / 2) - std::sqrt(num_roots)) + std::cbrt(-1 * (q / 2) + std::sqrt(num_roots)) - (b1 / (3 * a1));
 		if (y_value < min)
-			return Point2D(a * pow(min, 2) + b * min + c, min);
+			closest_point = Point2D(a * pow(min, 2) + b * min + c, min);
 		if (y_value > max)
-			return Point2D(a * pow(max, 2) + b * max + c, max);
+			closest_point = Point2D(a * pow(max, 2) + b * max + c, max);
 		else
-			return Point2D( a * pow(y_value, 2) + b * y_value + c,y_value);
+			closest_point = Point2D( a * pow(y_value, 2) + b * y_value + c,y_value);
 	}
-	if (num_roots < 0)
+	else if (num_roots < 0)
 	{
 		// 3 solutions
 		double r = -1 * q / 2;
@@ -147,19 +156,24 @@ Point2D LineSegmentCurveY::FindClosestPoint(Point2D point)
 		double dist3 = Distance2D(point, p3);
 
 		if (dist1 <= dist2 && dist1 <= dist3)
-			return p1;
+			closest_point = p1;
 		if (dist2 <= dist3)
-			return p2;
+			closest_point = p2;
 		else
-			return p3;
+			closest_point = p3;
 	}
 	else
 	{
 		// 2 solutions
 		// very very unlikely
 		//std::cout << "2 solutions in LineSegmentCurveY::FindClosestPoint";
-		return point;
+		closest_point = point;
 	}
+	if (closest_point.y < min)
+		return EvaluateAt(min);
+	if (closest_point.y > max)
+		return EvaluateAt(max);
+	return closest_point;
 }
 
 std::vector<Point2D> LineSegmentLinearX::FindCircleIntersection(Point2D center, double radius)
