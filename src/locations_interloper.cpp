@@ -38,14 +38,22 @@ namespace sc2 {
 
 		pylon_locations = { P(89, 38),
 							P(124, 34),
-							P(122, 34),
 							P(96, 32),
+							P(104, 28),
 							P(130, 49),
 							P(135, 57),
 							P(127, 19),
 							P(137, 30),
 							P(112, 18),
-							P(104, 28) };
+							P(127, 21),
+							P(137, 28),
+							P(122, 34),
+							P(112, 20),
+							P(104, 30),
+							P(128, 79),
+							P(124, 61),
+							P(121, 88),
+							P(126, 44) };
 
 		std::cerr << "First pylon: " + std::to_string(pylon_locations[0].x) + ", " + std::to_string(pylon_locations[0].y) + "\n";
 
@@ -55,13 +63,13 @@ namespace sc2 {
 
 		gateway_locations = { P(114.5, 45.5),
 								P(115.5, 42.5),
-								P(112.5, 46.5),
-								P(110.5, 41.5),
+								P(110.5, 40.5),
 								P(113.5, 61.5),
 								P(113.5, 57.5),
-								P(88.5, 35.5),
+								P(113.5, 39.5),
 								P(86.5, 38.5),
-								P(89.5, 40.5),
+								P(88.25, 35.25),
+								P(89.25, 40.75),
 								P(91.5, 43.5),
 								P(124.5, 19.5),
 								P(132.5, 20.5),
@@ -94,9 +102,9 @@ namespace sc2 {
 									P(29.5, 23.5),
 									P(19.5, 33.5) };
 
-		cyber_core_locations = {P(109.5, 43.5),
+		cyber_core_locations = {P(109.75, 43.25),
 									P(113.5, 54.5),
-									P(42.5, 124.5) };
+									P(109.75, 43.25) };
 
 		tech_locations = { P(126.5, 34.5),
 							P(123.5, 36.5),
@@ -106,14 +114,14 @@ namespace sc2 {
 							P(118.5, 31.5),
 							P(117.5, 36.5) };
 
-		proxy_pylon_locations = {P(45, 72),
-								P(70, 109) };
+		proxy_pylon_locations = { P(70, 109),
+									P(45, 72) };
 
-		proxy_gateway_locations = { P(46.5, 69.5),
-									P(72.5, 108.5) };
+		proxy_gateway_locations = { P(72.5, 108.5),
+									P(46.5, 69.5) };
 
-		proxy_tech_locations = { P(47.5, 72.5),
-								P(70.5, 111.5) };
+		proxy_tech_locations = { P(70.5, 111.5),
+									P(47.5, 72.5) };
 
 
 		attack_path = {P(106, 121),
@@ -226,7 +234,7 @@ namespace sc2 {
 		blink_main_attack_path_lines = { PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
 
 
-		bad_warpin_spots = { first_pylon_location_terran };
+		bad_warpin_spots = { first_pylon_location_terran, P(108, 42), P(112.5, 48) };
 		
 
 	}
