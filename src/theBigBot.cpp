@@ -1153,6 +1153,26 @@ namespace sc2 {
                 }
             }
         }
+
+		std::vector<Point2D> prism_spots;
+
+		for (const auto& prism : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)))
+		{
+			for (int i = -4; i <= 4; i += 1)
+			{
+				for (int j = -4; j <= 4; j += 1)
+				{
+					Point2D pos = Point2D(prism->pos.x + i + .5, prism->pos.y + j + .5);
+					if (Observation()->IsPathable(pos) && Distance2D(pos, prism->pos) <= 3.75 && Utility::DistanceToClosest(Observation()->GetUnits(), pos) > 1)
+					{
+						prism_spots.push_back(pos);
+					}
+				}
+			}
+		}
+
+		spots.insert(spots.begin(), prism_spots.begin(), prism_spots.end());
+
         return spots;
     }
 
