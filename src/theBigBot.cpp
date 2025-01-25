@@ -1086,6 +1086,7 @@ namespace sc2 {
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
 #endif
+		std::vector<Point2D> prism_spots;
 
         for (const auto &prism : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)))
         {
@@ -1096,7 +1097,7 @@ namespace sc2 {
                     Point2D pos = Point2D(prism->pos.x + i + .5, prism->pos.y + j + .5);
                     if (Observation()->IsPathable(pos) && Distance2D(pos, prism->pos) <= 3.75 && Utility::DistanceToClosest(Observation()->GetUnits(), pos) > 1)
                     {
-                        spots.push_back(pos);
+                        prism_spots.push_back(pos);
                     }
                 }
             }
@@ -1113,6 +1114,8 @@ namespace sc2 {
         {
             return Distance2D(a, close_to) < Distance2D(b, close_to);
         });
+
+		spots.insert(spots.begin(), prism_spots.begin(), prism_spots.end());
 
 #ifdef DEBUG_TIMING
 		unsigned long long sort_spots = std::chrono::duration_cast<std::chrono::microseconds>(
