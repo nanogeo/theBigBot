@@ -9,3 +9,6 @@ build/
 
 # IDEs
 .vscode/
+
+# Build log
+*.log
