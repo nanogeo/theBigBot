@@ -28,7 +28,8 @@ namespace sc2 {
 
 		this->start_location = start_location;
 
-		nexi_locations = {P(148.5, 145.5),
+		nexi_locations = { P(154.5, 114.5),
+							P(148.5, 145.5),
 							P(127.5, 114.5),
 							P(120.5, 153.5),
 							P(85.5, 153.5),

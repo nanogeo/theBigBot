@@ -31,7 +31,8 @@ namespace sc2 {
 		std::cerr << "start location: " + std::to_string(start_location.x) + ", " + std::to_string(start_location.y) + "\n";
 
 
-		nexi_locations = {P(31.5, 113.5),
+		nexi_locations = { P(33.5, 138.5),
+							P(31.5, 113.5),
 							P(32.5, 85.5),
 							P(29.5, 53.5),
 							P(58.5, 111.5),
