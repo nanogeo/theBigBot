@@ -119,14 +119,14 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 
 	}
 	const Unit* closest;
-	if (far_only_mineral_patches_reversed_keys.size() > 0)
+	if (far_only_mineral_patches_reversed_keys.size() > 0) 
 	{
 		closest = Utility::ClosestTo(far_only_mineral_patches_reversed_keys, position);
 	}
 	if (mineral_patches_reversed_keys.size() > 0)
 	{
 		const Unit* c = Utility::ClosestTo(mineral_patches_reversed_keys, position);
-		if (Distance2D(closest->pos, position) < Distance2D(c->pos, position) * 1.2) // TODO check this
+		if (Distance2D(closest->pos, position) < Distance2D(c->pos, position) * 1.2 && closest != NULL) 
 			return closest;
 		else
 			return c;
