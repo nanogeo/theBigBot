@@ -1695,7 +1695,8 @@ namespace sc2 {
 
 	State* DoorOpen::TestTransitions()
 	{
-		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), state_machine->guard->pos) < 8)
+		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && 
+			Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), state_machine->guard->pos) < 8)
 			return new DoorClosed(agent, state_machine);
 		return NULL;
 	}
@@ -1727,7 +1728,8 @@ namespace sc2 {
 
 	State* DoorClosed::TestTransitions()
 	{
-		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), state_machine->guard->pos) > 8)
+		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && 
+			Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), state_machine->guard->pos) > 8)
 			return new DoorOpen(agent, state_machine);
 		return NULL;
 	}
