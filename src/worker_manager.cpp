@@ -569,7 +569,10 @@ void WorkerManager::DistributeWorkers()
 		if (IsCarryingMinerals(*worker))
 		{
 			// close to nexus then return the mineral
-			Point2D closest_nexus = Utility::ClosestTo(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
+			std::vector<const Unit*> nexi = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
+			if (nexi.size() == 0)
+				return;
+			Point2D closest_nexus = Utility::ClosestTo(nexi, worker->pos)->pos;
 			if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
 			{
 				agent->Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_RETURN_PROBE);
