@@ -195,7 +195,7 @@ namespace sc2 {
 		natural_door_open = P(36.5, 102);
 
 		
-		adept_harrass_protoss_consolidation = { P(136, 88), P(119, 69) };
+		adept_harrass_protoss_consolidation = { P(138, 82), P(119, 69) };
 		
 		main_early_dead_space = P(49, 142);
 		natural_front = { P(40, 103),
