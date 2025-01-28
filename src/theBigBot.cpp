@@ -764,7 +764,13 @@ namespace sc2 {
 					pending_buildings--;
             
         }
-        //std::cout << "Error no viable point found in GetLocation" << std::endl;
+        std::cerr << "Error no viable point found in GetLocation for type " << UnitTypeToName(type) << std::endl;
+		std::cerr << "Possible locations:" << std::endl;
+		for (const auto& location : possible_locations)
+		{
+			std::cerr << location.x << ", " << location.y << std::endl;
+		}
+		std::cerr << std::endl;
         return Point2D(0, 0);
 
         /*
