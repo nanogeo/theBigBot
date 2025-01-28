@@ -2113,6 +2113,20 @@ namespace sc2 {
 		return unit_.unit_type == m_type && unit_.alliance == Unit::Alliance::Enemy;
 	}
 
+	IsFlyingUnit::IsFlyingUnit()  {
+	}
+
+	bool IsFlyingUnit::operator()(const Unit& unit_) const {
+		return unit_.is_flying;
+	}
+
+	IsNotFlyingUnit::IsNotFlyingUnit() {
+	}
+
+	bool IsNotFlyingUnit::operator()(const Unit& unit_) const {
+		return !unit_.is_flying;
+	}
+
 
 #pragma endregion
 

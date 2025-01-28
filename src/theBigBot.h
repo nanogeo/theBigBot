@@ -209,6 +209,18 @@ private:
 	UNIT_TYPEID m_type;
 };
 
+struct IsFlyingUnit {
+	explicit IsFlyingUnit();
+
+	bool operator()(const Unit& unit_) const;
+};
+
+struct IsNotFlyingUnit {
+	explicit IsNotFlyingUnit();
+
+	bool operator()(const Unit& unit_) const;
+};
+
 struct EnemyUnitPosition
 {
 	Point2D pos;
