@@ -84,7 +84,7 @@ public:
 	std::vector<mineral_patch_space*> close_3_mineral_patch_extras;
 
 	const Unit *new_base = NULL;
-	bool should_build_workers;
+	bool should_build_workers = true;
 	int removed_gas_miners = 0;
 
 	WorkerManager(TheBigBot* agent)
