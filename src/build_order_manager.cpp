@@ -366,6 +366,7 @@ bool BuildOrderManager::TrainPrism(BuildOrderResultArgData data)
 			if (robo->build_progress == 1 && robo->orders.size() == 0)
 			{
 				agent->Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
+				std::cerr << "Prism trained at " << agent->Observation()->GetGameLoop() / 22.4 << std::endl;
 				return true;
 				/*for (const auto & ability : agent->Query()->GetAbilitiesForUnit(robo).abilities)
 				{
