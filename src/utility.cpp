@@ -1878,7 +1878,7 @@ ABILITY_ID Utility::GetBuildAbility(UNIT_TYPEID buildingId)
 	case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
 		return ABILITY_ID::BUILD_ASSIMILATOR;
 	default:
-		//std::cout << "Error invalid building id in GetBuildAbility";
+		std::cout << "Error invalid building id in GetBuildAbility " << UnitTypeToName(buildingId) << std::endl;
 		return ABILITY_ID::BUILD_CANCEL;
 	}
 }
@@ -1924,7 +1924,7 @@ ABILITY_ID Utility::GetTrainAbility(UNIT_TYPEID unitId)
 	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
 		return ABILITY_ID::TRAIN_MOTHERSHIP;
 	default:
-		//std::cout << "Error invalid unit id in GetTrainAbility";
+		std::cout << "Error invalid unit id in GetTrainAbility " << UnitTypeToName(unitId) << std::endl;
 		return ABILITY_ID::BUILD_CANCEL;
 	}
 }
@@ -2002,7 +2002,7 @@ UnitCost Utility::GetCost(UNIT_TYPEID unit_type)
 	case UNIT_TYPEID::BEACON_PROTOSS: // represents void ray + fleet beacon
 		return UnitCost(550, 350, 4);
 	default:
-		//std::cout << "Error invalid unit id in GetCost";
+		std::cerr << "Error invalid unit id in GetCost " << UnitTypeToName(unit_type) << std::endl;
 		return UnitCost(0, 0, 0);
 	}
 }
@@ -2112,7 +2112,7 @@ bool Utility::CanAfford(UNIT_TYPEID unit, int amount, const ObservationInterface
 		cost = UnitCost(400, 400, 8);
 		break;
 	default:
-		//std::cout << "Error invalid unit id in CanAfford";
+		std::cerr << "Error invalid unit id in CanAfford " << UnitTypeToName(unit) << std::endl;
 		return false;
 	}
 	bool enough_minerals = observation->GetMinerals() >= cost.mineral_cost * amount;
@@ -2187,7 +2187,7 @@ bool Utility::CanAffordUpgrade(UPGRADE_ID upgrade, const ObservationInterface* o
 		cost = UnitCost(250, 250, 0);
 		break;
 	default:
-		//std::cout << "Error invalid upgrade id in CanAffordUpgrade";
+		std::cerr << "Error invalid upgrade id in CanAffordUpgrade " << UpgradeIDToName(upgrade) << std::endl;
 		return false;
 	}
 	bool enough_minerals = observation->GetMinerals() >= cost.mineral_cost;
