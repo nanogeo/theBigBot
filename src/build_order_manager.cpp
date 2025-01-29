@@ -273,18 +273,23 @@ bool BuildOrderManager::CancelImmediatelySemiSaturateGasses(BuildOrderResultArgD
 
 bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 {
-	if (Utility::CanAfford(STALKER, 1, agent->Observation()))
+	if (Utility::CanAfford(STALKER, data.amount, agent->Observation()) && agent->Observation()->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0)
 	{
-		for (const auto &gateway : agent->Observation()->GetUnits(IsFriendlyUnit(GATEWAY)))
+		Units gates_ready;
+		for (const auto& gateway : agent->Observation()->GetUnits(IsFriendlyUnit(GATEWAY)))
 		{
 			if (gateway->build_progress == 1 && gateway->orders.size() == 0)
 			{
-				if (agent->Observation()->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0)
-				{
-					agent->Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_STALKER);
-					return true;
-				}
+				gates_ready.push_back(gateway);
 			}
+		}
+		if (gates_ready.size() >= data.amount)
+		{
+			for (int i = 0; i < data.amount; i++)
+			{
+				agent->Actions()->UnitCommand(gates_ready[i], ABILITY_ID::TRAIN_STALKER);
+			}
+			return true;
 		}
 	}
 	return false;
@@ -1312,12 +1317,10 @@ void BuildOrderManager::SetThreeGateRobo()
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::SafeRallyPoint,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(126.0f),			&BuildOrderManager::BuildBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(127.0f),			&BuildOrderManager::RemoveScoutToProxy,					Result(GATEWAY, 0)),
-					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
-					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 2)),
 					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::SendAdeptHarassProtoss,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::SendAllInAttack,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
-					Data(&BuildOrderManager::TimePassed,			Condition(175.1f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 2)),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::TrainPrism,							Result(PRISM)),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(186.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
@@ -1340,11 +1343,11 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainAdept,							Result(ADEPT, 1)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::AdeptDefendBaseTerran,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(148.0f),			&BuildOrderManager::BuildBuilding,						Result(TWILIGHT)),
-					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::StalkerDefendBaseTerran,			Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::BuildBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(183.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
