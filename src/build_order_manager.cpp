@@ -289,6 +289,7 @@ bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 			{
 				agent->Actions()->UnitCommand(gates_ready[i], ABILITY_ID::TRAIN_STALKER);
 			}
+			std::cerr << "Stalkers trained at " << agent->Observation()->GetGameLoop() / 22.4 << std::endl;
 			return true;
 		}
 	}
@@ -359,10 +360,14 @@ bool BuildOrderManager::TrainOracle(BuildOrderResultArgData data)
 
 bool BuildOrderManager::TrainPrism(BuildOrderResultArgData data)
 {
+	std::cerr << "Trying to train prism at " << agent->Observation()->GetGameLoop() / 22.4 << std::endl;
 	if (Utility::CanAfford(PRISM, 1, agent->Observation()))
 	{
+		std::cerr << "Can afford prism" << std::endl;
 		for (const auto &robo : agent->Observation()->GetUnits(IsFriendlyUnit(ROBO)))
 		{
+			std::cerr << "Robo build progress: " << robo->build_progress << std::endl;
+			std::cerr << "Robo orders: " << robo->orders.size() << std::endl;
 			if (robo->build_progress == 1 && robo->orders.size() == 0)
 			{
 				agent->Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
