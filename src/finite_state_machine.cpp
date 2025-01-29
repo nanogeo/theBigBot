@@ -1695,8 +1695,8 @@ namespace sc2 {
 
 	State* DoorOpen::TestTransitions()
 	{
-		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && 
-			Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), state_machine->guard->pos) < 8)
+		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()).size() > 0 && 
+			Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), state_machine->door_closed_pos) < 10)
 			return new DoorClosed(agent, state_machine);
 		return NULL;
 	}
@@ -1712,13 +1712,39 @@ namespace sc2 {
 
 	void DoorClosed::TickState()
 	{
-		return;
+		Units enemies = agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
+		if (enemies.size() == 0)
+			return;
+
+		const Unit* closest_to_door = Utility::ClosestTo(enemies, state_machine->door_closed_pos);
+		double dist_to_closest = Distance2D(closest_to_door->pos, state_machine->door_closed_pos);
+
+		Point2D guard_move_to = Utility::PointBetween(state_machine->door_closed_pos, closest_to_door->pos, std::min(4.0, std::max(0.0, (dist_to_closest / 2) - 1)));
+
+
+		// TODO use fire control to find the best target
+		const Unit* closest_to_guard = Utility::ClosestTo(enemies, state_machine->guard->pos);
+		if (Distance2D(closest_to_guard->pos, state_machine->guard->pos) < Utility::RealGroundRange(state_machine->guard, closest_to_guard))
+		{
+			// enemy in range
+			if (Distance2D(state_machine->guard->pos, guard_move_to) > .5)
+			{
+				agent->Actions()->UnitCommand(state_machine->guard, ABILITY_ID::MOVE_MOVE, guard_move_to);
+			}
+			else
+			{
+				agent->Actions()->UnitCommand(state_machine->guard, ABILITY_ID::ATTACK_ATTACK, closest_to_guard);
+			}
+		}
+		else
+		{
+			agent->Actions()->UnitCommand(state_machine->guard, ABILITY_ID::MOVE_MOVE, guard_move_to);
+		}
 	}
 
 	void DoorClosed::EnterState()
 	{
-		agent->Actions()->UnitCommand(state_machine->guard, ABILITY_ID::MOVE_MOVE, state_machine->door_closed_pos);
-		agent->Actions()->UnitCommand(state_machine->guard, ABILITY_ID::GENERAL_HOLDPOSITION, true);
+		return;
 	}
 
 	void DoorClosed::ExitState()
@@ -1728,8 +1754,8 @@ namespace sc2 {
 
 	State* DoorClosed::TestTransitions()
 	{
-		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && 
-			Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), state_machine->guard->pos) > 8)
+		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()).size() == 0 || 
+			Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), state_machine->door_closed_pos) > 10)
 			return new DoorOpen(agent, state_machine);
 		return NULL;
 	}
