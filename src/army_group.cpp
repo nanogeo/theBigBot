@@ -1184,7 +1184,7 @@ namespace sc2 {
 		agent->active_FSMs.push_back(door_guard_fsm);
 	}
 
-	void ArmyGroup::DefendExpansion(Point2D base_location, Point2D pylon_gap_location)
+	void ArmyGroup::DefendExpansion(Point2D base_pos, Point2D door_guard_pos, Point2D pylon_gap_location)
 	{
 		for (const auto &adept : adepts)
 		{
@@ -1194,7 +1194,7 @@ namespace sc2 {
 				agent->Actions()->UnitCommand(adept, ABILITY_ID::GENERAL_HOLDPOSITION, true);
 			}
 		}
-		StateMachine* oracle_fsm = new OracleHarassStateMachine(agent, oracles, base_location, "Oracles");
+		StateMachine* oracle_fsm = new OracleHarassStateMachine(agent, oracles, base_pos, door_guard_pos, "Oracles");
 		agent->active_FSMs.push_back(oracle_fsm);
 	}
 

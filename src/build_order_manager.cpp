@@ -986,7 +986,7 @@ bool BuildOrderManager::DefendThirdBase(BuildOrderResultArgData data)
 		defenders->AddUnit(unit);
 	}
 	agent->army_groups.push_back(defenders);
-	defenders->DefendExpansion(agent->GetLocations(NEXUS)[2], agent->locations->third_base_pylon_gap);
+	defenders->DefendExpansion(agent->GetLocations(NEXUS)[2], agent->locations->natural_door_closed, agent->locations->third_base_pylon_gap);
 	return true;
 }
 

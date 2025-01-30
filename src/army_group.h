@@ -127,7 +127,7 @@ public:
 	void MicroStalkerAttack();
 	void ApplyPressureGrouped(Point2D, Point2D, std::map<const Unit*, Point2D>, std::map<const Unit*, Point2D>);
 	void DefendFrontDoor(Point2D, Point2D);
-	void DefendExpansion(Point2D, Point2D);
+	void DefendExpansion(Point2D, Point2D, Point2D);
 	void CannonRushPressure();
 
 

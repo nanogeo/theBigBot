@@ -58,7 +58,8 @@ namespace sc2 {
 
 	void OracleDefendLocation::TickState()
 	{
-		if (agent->Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), denfensive_position) < 10)
+		Units enemy_units = agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
+		if (enemy_units.size() > 0 && Utility::DistanceToClosest(enemy_units, denfensive_position) < 10)
 		{
 			for (const auto &oracle : state_machine->oracles)
 			{
@@ -70,7 +71,7 @@ namespace sc2 {
 				if (!beam_active && oracle->energy >= 40)
 					beam_activatable = true;
 
-				const Unit* closest_unit = Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), oracle->pos);
+				const Unit* closest_unit = Utility::ClosestTo(enemy_units, oracle->pos);
 				if (beam_active)
 				{
 					if (Distance2D(oracle->pos, closest_unit->pos) > 4)
@@ -201,6 +202,193 @@ namespace sc2 {
 	{
 		//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
 		for (const auto &oracle : state_machine->oracles)
+		{
+			if (oracle->engaged_target_tag == unit->tag)
+			{
+				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+				state_machine->has_attacked[oracle] = true;
+			}
+		}
+	}
+
+
+#pragma endregion
+
+#pragma region OracleDefendLine
+
+	std::string OracleDefendLine::toString()
+	{
+		return "Oracle Defend Line";
+	}
+
+	void OracleDefendLine::TickState()
+	{
+		Units enemy_units = agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
+		if (enemy_units.size() > 0 && Utility::DistanceToClosestOnLine(enemy_units, *line) < 10)
+		{
+			for (const auto& oracle : state_machine->oracles)
+			{
+				float now = agent->Observation()->GetGameLoop() / 22.4;
+				bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .61;
+				bool beam_active = state_machine->is_beam_active[oracle];
+				bool beam_activatable = false;
+
+				if (!beam_active && oracle->energy >= 40)
+					beam_activatable = true;
+
+				const Unit* closest_unit = Utility::ClosestTo(enemy_units, oracle->pos);
+				if (beam_active)
+				{
+					if (Distance2D(oracle->pos, closest_unit->pos) > 4)
+					{
+						float dist = Distance2D(oracle->pos, closest_unit->pos);
+						agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), false);
+					}
+					else if (weapon_ready)
+					{
+						agent->Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit, false);
+						state_machine->time_last_attacked[oracle] = now;
+						state_machine->has_attacked[oracle] = false;
+						//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 255, 0));
+					}
+					else if (state_machine->has_attacked[oracle])
+					{
+						agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+						//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
+					}
+					else
+					{
+						//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
+					}
+				}
+				else if (beam_activatable)
+				{
+					if (Distance2D(oracle->pos, closest_unit->pos) < 3)
+					{
+						agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
+						state_machine->is_beam_active[oracle] = true;
+					}
+					else
+					{
+						agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+					}
+				}
+				else
+				{
+					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
+				}
+				//agent->Debug()->DebugTextOut(std::to_string(now - state_machine->time_last_attacked[oracle]), Point2D(.7, .7), Color(0, 255, 255), 20);
+				//agent->Debug()->DebugTextOut(std::to_string(agent->Observation()->GetGameLoop()), Point2D(.7, .75), Color(0, 255, 255), 20);
+
+			}
+		}
+		else
+		{
+			for (const auto& oracle : state_machine->oracles)
+			{
+				if (state_machine->is_beam_active[oracle])
+				{
+					agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+					state_machine->is_beam_active[oracle] = false;
+					continue;
+				}
+
+				double dist_to_start = Distance2D(oracle->pos, line->GetStartPoint());
+				double dist_to_end = Distance2D(oracle->pos, line->GetEndPoint());
+
+				if (oracle->orders.size() > 0 &&
+					(oracle->orders[0].target_pos == line->GetStartPoint() || oracle->orders[0].target_pos == line->GetEndPoint()))
+				{
+					continue;
+				}
+				else if (dist_to_start < 1)
+				{
+					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetEndPoint());
+				}
+				else if (dist_to_end < 1)
+				{
+					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetStartPoint());
+				}
+				else
+				{
+					if (dist_to_end < dist_to_start)
+						agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetEndPoint());
+					else
+						agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetStartPoint());
+				}
+			}
+		}
+
+
+	}
+
+	void OracleDefendLine::EnterState()
+	{
+		for (const auto& oracle : state_machine->oracles)
+		{
+			agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetStartPoint());
+		}
+		std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
+			this->OnUnitDamagedListener(unit, health, shields);
+		};
+		agent->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
+
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+	}
+
+	void OracleDefendLine::ExitState()
+	{
+		for (const auto& oracle : state_machine->oracles)
+		{
+			// remove event onUnitDamaged
+			agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+		}
+		agent->RemoveListenerToOnUnitDamagedEvent(event_id);
+		agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+		return;
+	}
+
+	State* OracleDefendLine::TestTransitions()
+	{
+		if (state_machine->oracles.size() > 1) //> 1
+		{
+			if (true) //(agent->Observation()->GetGameLoop() % 2 == 0)
+			{
+				state_machine->harass_direction = true;
+				state_machine->harass_index = 0;
+				return new OracleHarassGroupUp(agent, state_machine, agent->locations->oracle_path.entrance_point);
+			}
+			else
+			{
+				state_machine->harass_direction = false;
+				state_machine->harass_index = agent->locations->oracle_path.entrance_points.size() - 1;
+				return new OracleHarassGroupUp(agent, state_machine, agent->locations->oracle_path.exit_point);
+			}
+		}
+		return NULL;
+	}
+
+	void OracleDefendLine::OnUnitDamagedListener(const Unit* unit, float health, float shields)
+	{
+		//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
+		for (const auto& oracle : state_machine->oracles)
+		{
+			if (oracle->engaged_target_tag == unit->tag)
+			{
+				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
+				state_machine->has_attacked[oracle] = true;
+			}
+		}
+	}
+
+	void OracleDefendLine::OnUnitDestroyedListener(const Unit* unit)
+	{
+		//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		for (const auto& oracle : state_machine->oracles)
 		{
 			if (oracle->engaged_target_tag == unit->tag)
 			{

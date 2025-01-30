@@ -8,6 +8,7 @@
 #include "theBigBot.h"
 #include "utility.h"
 #include "locations.h"
+#include "path_manager.h"
 
 namespace sc2 {
 
@@ -62,6 +63,35 @@ public:
 		this->agent = agent;
 		this->state_machine = state_machine;
 		this->denfensive_position = denfensive_position;
+		event_id = agent->GetUniqueId();
+	}
+	virtual std::string toString() override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+
+	void OnUnitDamagedListener(const Unit*, float, float);
+	void OnUnitDestroyedListener(const Unit*);
+};
+
+class OracleDefendLine : public State {
+public:
+	OracleHarassStateMachine* state_machine;
+	LineSegmentLinearX* line;
+	int event_id;
+	OracleDefendLine(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D start, Point2D end)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+
+		double slope = (start.y - end.y) / (start.x - end.x);
+
+		double line_a = slope;
+		double line_b = start.y - (slope * start.x);
+
+		line = new LineSegmentLinearX(line_a, line_b, start.x, end.x, false, Point2D(0, 0), false);
+
 		event_id = agent->GetUniqueId();
 	}
 	virtual std::string toString() override;
@@ -1363,7 +1393,7 @@ public:
 	int harass_index = 0;
 	ArmyGroup* attached_army_group = NULL;
 	int event_id;
-	OracleHarassStateMachine(TheBigBot* agent, Units oracles, Point2D denfensive_position, std::string name)
+	OracleHarassStateMachine(TheBigBot* agent, Units oracles, Point2D third_base_pos, Point2D door_guard_pos, std::string name)
 	{
 		this->agent = agent;
 		this->oracles = oracles;
@@ -1374,7 +1404,7 @@ public:
 		};
 		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 
-		current_state = new OracleDefendLocation(agent, this, denfensive_position);
+		current_state = new OracleDefendLine(agent, this, third_base_pos, door_guard_pos);
 		for (int i = 0; i < oracles.size(); i++)
 		{
 			time_last_attacked[oracles[i]] = 0;
