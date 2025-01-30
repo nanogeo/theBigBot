@@ -527,12 +527,14 @@ bool ActionManager::ActionConstantChrono(ActionArgData* data)
 bool ActionManager::ActionWarpInAtProxy(ActionArgData* data)
 {
 	std::vector<Point2D> possible_spots = agent->FindProxyWarpInSpots();
+	std::cerr << "Warp in spots found: " << possible_spots.size() << std::endl;
 	if (possible_spots.size() == 0)
 		return false;
 	for (const auto &warpgate : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE)))
 	{
 		if (agent->warpgate_status[warpgate].frame_ready == 0)
 		{
+			std::cerr << "Warp in at " << possible_spots.back().x << ", " << possible_spots.back().y << std::endl;
 			agent->Actions()->UnitCommand(warpgate, ABILITY_ID::TRAINWARP_STALKER, possible_spots.back());
 			agent->warpgate_status[warpgate].used = true;
 			agent->warpgate_status[warpgate].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
