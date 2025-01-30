@@ -143,6 +143,7 @@ bool BuildOrderManager::BuildFirstPylon(BuildOrderResultArgData data)
 			break;
 		case Race::Random:
 			std::cerr << "enemy race: random\n";
+			pos = agent->locations->first_pylon_location_protoss;
 			break;
 		default:
 			std::cerr << "enemy race: unknown\n";
