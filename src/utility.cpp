@@ -43,6 +43,27 @@ const Unit* Utility::ClosestTo(Units units, Point2D position)
 	return current_closest;
 }
 
+const Unit* Utility::ClosestToLine(Units units, LineSegmentLinearX line)
+{
+	const Unit* current_closest;
+	float current_distance = INFINITY;
+	for (const auto& unit : units)
+	{
+		float distance = Distance2D(unit->pos, line.FindClosestPoint(unit->pos));
+		if (distance < current_distance)
+		{
+			current_closest = unit;
+			current_distance = distance;
+		}
+	}
+	if (units.size() == 0 || current_closest == NULL)
+	{
+		//std::cout << "Error current closest is NULL\n";
+		return NULL;
+	}
+	return current_closest;
+}
+
 const Unit* Utility::NthClosestTo(Units units, Point2D position, int n)
 {
 	std::vector<Point2D> points;
@@ -190,6 +211,20 @@ float Utility::DistanceToClosest(std::vector<Point2D> points, Point2D position)
 		if (distance < current_distance)
 		{
 			current_closest = point;
+			current_distance = distance;
+		}
+	}
+	return current_distance;
+}
+
+float Utility::DistanceToClosestOnLine(Units units, LineSegmentLinearX line)
+{
+	float current_distance = INFINITY;
+	for (const auto& unit : units)
+	{
+		float distance = Distance2D(unit->pos, line.FindClosestPoint(unit->pos));
+		if (distance < current_distance)
+		{
 			current_distance = distance;
 		}
 	}

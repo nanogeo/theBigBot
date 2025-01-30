@@ -5,6 +5,8 @@
 
 #include "sc2api/sc2_unit_filters.h"
 
+#include "path_manager.h"
+
 
 namespace sc2
 {
@@ -27,6 +29,7 @@ class Utility
 {
 public:
 	static const Unit* ClosestTo(Units, Point2D);
+	static const Unit* ClosestToLine(Units, LineSegmentLinearX);
 	static const Unit* NthClosestTo(Units, Point2D, int);
 	static Units NClosestUnits(Units, Point2D, int);
 	static Point2D ClosestTo(std::vector<Point2D>, Point2D);
@@ -36,6 +39,7 @@ public:
 	static Point2D FurthestFrom(std::vector<Point2D>, Point2D);
 	static float DistanceToClosest(Units, Point2D);
 	static float DistanceToClosest(std::vector<Point2D>, Point2D);
+	static float DistanceToClosestOnLine(Units, LineSegmentLinearX);
 	static float DistanceToFurthest(Units, Point2D);
 	static float DistanceToFurthest(std::vector<Point2D>, Point2D);
 	static float AnyUnitWithin(Units, Point2D, float);
