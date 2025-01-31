@@ -338,6 +338,11 @@ namespace sc2 {
 			this->OnUnitDestroyedListener(unit);
 		};
 		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
+		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
+			this->OnUnitCreatedListener(unit);
+		};
+		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
 	}
 
 	void OracleDefendLine::ExitState()
@@ -349,12 +354,16 @@ namespace sc2 {
 		}
 		agent->RemoveListenerToOnUnitDamagedEvent(event_id);
 		agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+		agent->RemoveListenerToOnUnitCreatedEvent(event_id);
 		return;
 	}
 
 	State* OracleDefendLine::TestTransitions()
 	{
-		if (state_machine->oracles.size() > 1) //> 1
+		if (state_machine->attached_army_group != NULL)
+			return new OracleDefendArmyGroup(agent, state_machine);
+
+		if (state_machine->oracles.size() > 1 && state_machine->sent_harass == false) 
 		{
 			if (true) //(agent->Observation()->GetGameLoop() % 2 == 0)
 			{
@@ -395,6 +404,15 @@ namespace sc2 {
 				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
 				state_machine->has_attacked[oracle] = true;
 			}
+		}
+	}
+
+	void OracleDefendLine::OnUnitCreatedListener(const Unit* unit)
+	{
+		//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+		if (unit->unit_type == ORACLE)
+		{
+			state_machine->oracles.push_back(unit);
 		}
 	}
 
@@ -749,6 +767,7 @@ namespace sc2 {
 
 	void OracleHarassGroupUp::EnterState()
 	{
+		state_machine->sent_harass = true;
 		for (const auto &oracle : state_machine->oracles)
 		{
 			agent->Actions()->UnitCommand(oracle, ABILITY_ID::MOVE_MOVE, consolidation_pos);
@@ -1047,12 +1066,10 @@ namespace sc2 {
 	{
 		for (const auto &oracle : state_machine->oracles)
 		{
-			if (Distance2D(oracle->pos, agent->locations->start_location) > 20)
+			if (Distance2D(oracle->pos, agent->locations->start_location) > 40)
 				return NULL;
 		}
-		if (state_machine->attached_army_group == NULL)
-			return NULL;
-		return new OracleDefendArmyGroup(agent, state_machine);
+		return new OracleDefendLine(agent, state_machine, state_machine->third_base_pos, state_machine->door_guard_pos);
 	}
 
 	void OracleHarassReturnToBase::TickState()
@@ -1062,6 +1079,13 @@ namespace sc2 {
 
 	void OracleHarassReturnToBase::ExitState()
 	{
+		for (const auto& oracle : agent->Observation()->GetUnits(IsFriendlyUnit(ORACLE)))
+		{
+			if (std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle) == state_machine->oracles.end())
+			{
+				state_machine->AddOracle(oracle);
+			}
+		}
 		return;
 	}
 

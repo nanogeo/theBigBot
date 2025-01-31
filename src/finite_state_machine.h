@@ -102,6 +102,7 @@ public:
 
 	void OnUnitDamagedListener(const Unit*, float, float);
 	void OnUnitDestroyedListener(const Unit*);
+	void OnUnitCreatedListener(const Unit*);
 };
 
 class OracleDefendArmyGroup : public State {
@@ -1383,6 +1384,8 @@ class OracleHarassStateMachine : public StateMachine
 {
 public:
 	Units oracles;
+	Point2D third_base_pos, door_guard_pos;
+	bool sent_harass = false;
 	std::map<const Unit*, float> time_last_attacked;
 	std::map<const Unit*, bool> has_attacked;
 	std::map<const Unit*, uint64_t> target;
@@ -1398,6 +1401,8 @@ public:
 		this->agent = agent;
 		this->oracles = oracles;
 		this->name = name;
+		this->third_base_pos = third_base_pos;
+		this->door_guard_pos = door_guard_pos;
 		event_id = agent->GetUniqueId();
 		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
 			this->OnUnitDestroyedListener(unit);
