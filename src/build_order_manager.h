@@ -186,6 +186,9 @@ public:
 	bool SendAllInAttack(BuildOrderResultArgData);
 	bool SendAdeptHarassProtoss(BuildOrderResultArgData);
 	bool ScourMap(BuildOrderResultArgData); // to string
+	bool CheckForEarlyPool(BuildOrderResultArgData); // to string
+	bool BuildNaturalDefensiveBuilding(BuildOrderResultArgData); // to string
+	bool ReturnToMainBuild(BuildOrderResultArgData); // to string
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string
@@ -207,6 +210,9 @@ public:
 	void SetThreeGateRobo();
 
 	void SetRecessedCannonRush();
+
+
+	void SetEarlyPoolInterrupt();
 
 };
 

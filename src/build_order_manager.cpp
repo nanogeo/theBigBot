@@ -1136,6 +1136,59 @@ bool BuildOrderManager::ScourMap(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
+{
+	ScoutInfoZerg info = agent->scout_info_zerg;
+	if (agent->Observation()->GetGameLoop() / 22.4 >= 80)
+	{
+		SetEarlyPoolInterrupt();
+		build_order_step = 0;
+	}
+	if (info.third_timing < 90)
+	{
+		// 3 hatch before pool
+	}
+	else if (info.pool_timing == 0)
+	{
+		return false;
+	}
+	else if (info.pool_timing < 25)
+	{
+		// 12 pool
+	}
+	else if (info.pool_timing < 45)
+	{
+		// pool first
+	}
+	else if (info.pool_timing < 80)
+	{
+		// hatch first
+		return false;
+	}
+	return false;
+}
+
+bool BuildOrderManager::BuildNaturalDefensiveBuilding(BuildOrderResultArgData data)
+{
+	Point2D pos = agent->GetNaturalDefensiveLocation(data.unitId);
+	const Unit* builder = agent->worker_manager.GetBuilder(pos);
+	if (builder == NULL)
+	{
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		return false;
+	}
+	agent->worker_manager.RemoveWorker(builder);
+	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
+	return true;
+}
+
+bool BuildOrderManager::ReturnToMainBuild(BuildOrderResultArgData data)
+{
+	SetOracleGatewaymanPvZ();
+	build_order_step = 21;
+	return true;
+}
+
 
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
@@ -1236,6 +1289,28 @@ void BuildOrderManager::SetTesting()
 	};
 }
 
+
+void BuildOrderManager::SetEarlyPoolInterrupt()
+{
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(100.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(110.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(112.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainAdept,							Result(ADEPT, 1)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(138.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(139.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)),
+					Data(&BuildOrderManager::HasUnits,				Condition(ADEPT, 1),		&BuildOrderManager::SetDoorGuard,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(154.0f),			&BuildOrderManager::ResearchWarpgate,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),			&BuildOrderManager::TrainAdept,							Result(ADEPT, 1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::TrainOracle,						Result(STARGATE)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::ChronoBuilding,						Result(STARGATE)),
+					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
+					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::ReturnToMainBuild,					Result()),
+	};
+}
+
 // finished
 void BuildOrderManager::SetOracleGatewaymanPvZ()
 {
@@ -1246,6 +1321,8 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(48.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(48.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(68.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, CYBERCORE})),
+					Data(&BuildOrderManager::TimePassed,			Condition(75.0f),			&BuildOrderManager::CheckForEarlyPool,					Result()),
+
 					Data(&BuildOrderManager::TimePassed,			Condition(95.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(102.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(123.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)),
@@ -1260,6 +1337,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(173.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(186.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(191.0f),			&BuildOrderManager::ChronoBuilding,						Result(STARGATE)),
+
 					Data(&BuildOrderManager::TimePassed,			Condition(202.0f),			&BuildOrderManager::TrainOracle,						Result(STARGATE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(203.0f),			&BuildOrderManager::DefendThirdBase,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(205.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, PYLON})),

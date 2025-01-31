@@ -937,6 +937,47 @@ namespace sc2 {
 		return Point2D(0, 0);
 	}
 
+	Point2D TheBigBot::GetNaturalDefensiveLocation(UNIT_TYPEID type)
+	{
+		std::vector<Point2D> possible_locations;
+
+		switch (type)
+		{
+		case BATTERY:
+			possible_locations = locations->defensive_natural_battery_locations;
+			break;
+		default:
+			std::cerr << "Unknown unit type in GetNaturalDefensiveLocation: " << UnitTypeToName(type) << std::endl;
+			break;
+		}
+
+		for (const auto& point : possible_locations)
+		{
+			bool blocked = false;
+			bool in_energy_field = (type == UNIT_TYPEID::PROTOSS_PYLON || type == UNIT_TYPEID::PROTOSS_ASSIMILATOR || type == UNIT_TYPEID::PROTOSS_NEXUS);
+			for (const auto& building : Observation()->GetUnits(IsBuilding()))
+			{
+				if (Point2D(building->pos) == point)
+				{
+					blocked = true;
+					break;
+				}
+				if (!in_energy_field && building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
+				{
+					if (Distance2D(Point2D(building->pos), point) < 6.5)
+					{
+						in_energy_field = true;
+					}
+				}
+			}
+			if (!blocked && in_energy_field)
+				return point;
+
+		}
+		return Point2D(0, 0);
+
+	}
+
     std::vector<Point2D> TheBigBot::GetProxyLocations(UNIT_TYPEID type)
     {
         switch (type)

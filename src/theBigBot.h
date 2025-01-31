@@ -398,6 +398,7 @@ public:
     std::vector<Point2D> GetLocations(UNIT_TYPEID);
     Point2D GetLocation(UNIT_TYPEID);
 	Point2D GetProxyLocation(UNIT_TYPEID);
+	Point2D GetNaturalDefensiveLocation(UNIT_TYPEID);
     std::vector<Point2D> GetProxyLocations(UNIT_TYPEID);
     std::vector<Point2D> FindWarpInSpots(Point2D, int);
     std::vector<Point2D> FindProxyWarpInSpots();
