@@ -224,7 +224,16 @@ namespace sc2 {
 	void OracleDefendLine::TickState()
 	{
 		Units enemy_units = agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
-		if (enemy_units.size() > 0 && Utility::DistanceToClosestOnLine(enemy_units, *line) < 10)
+		for (int i = 0; i < enemy_units.size(); i++) // remove any enemies too far from defense location
+		{
+			Point2D closest_pos = line->FindClosestPoint(enemy_units[i]->pos);
+			if (Distance2D(enemy_units[i]->pos, closest_pos) > 10)
+			{
+				enemy_units.erase(enemy_units.begin() + i);
+				i--;
+			}
+		}
+		if (enemy_units.size() > 0)
 		{
 			for (const auto& oracle : state_machine->oracles)
 			{
