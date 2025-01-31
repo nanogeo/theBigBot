@@ -37,7 +37,7 @@ namespace sc2 {
 							P(131.5, 86.5) };
 
 		pylon_locations = { P(127, 25),
-							P(94, 26),
+							P(94, 25),
 							P(98, 18),
 							P(112, 22),
 							P(136, 55),
@@ -64,9 +64,9 @@ namespace sc2 {
 							P(123.5, 34.5),
 							P(120.5, 52.5),
 							P(120.5, 48.5),
-							P(94.5, 28.5),
-							P(91.5, 28.5),
-							P(88.5, 27.5),
+							P(88.75, 27.75),
+							P(94.75, 27.75),
+							P(91.5, 27.75),
 							P(97.5, 29.5),
 							P(113.5, 19.5),
 							P(116.5, 19.5),
@@ -176,7 +176,7 @@ namespace sc2 {
 		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
 
 		
-		third_base_pylon_gap = P(95.5, 26);
+		third_base_pylon_gap = P(95.5, 25);
 		natural_door_closed = P(120, 50.5);
 		natural_door_open = P(116, 50.5);
 		
