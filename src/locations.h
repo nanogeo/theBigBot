@@ -107,6 +107,8 @@ public:
     std::vector<Point2D> proxy_gateway_locations;
     std::vector<Point2D> proxy_tech_locations;
 
+	std::vector<Point2D> defensive_natural_battery_locations;
+
     std::vector<Point2D> attack_path;
 	std::vector<Point2D> attack_path_alt;
 	PathManager attack_path_line;

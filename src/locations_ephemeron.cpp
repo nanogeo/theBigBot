@@ -113,6 +113,9 @@ namespace sc2 {
 		proxy_tech_locations = { P(70.5, 115.5),
 									P(51.5, 77.5) };
 
+		defensive_natural_battery_locations = { P(123, 52),
+												P(125, 52) };
+
 
 		attack_path = { P(110, 108),
 						P(106, 105),
