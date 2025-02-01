@@ -1254,7 +1254,7 @@ namespace sc2 {
 
 	void ScoutZScoutMain::TickState()
 	{
-		if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 3)
+		if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 2)
 		{
 			state_machine->index++;
 			if (state_machine->index < state_machine->main_scout_path.size())
@@ -1292,7 +1292,7 @@ namespace sc2 {
 
 	void ScoutZScoutNatural::TickState()
 	{
-		if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 3)
+		if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 2)
 		{
 			state_machine->index++;
 			if (state_machine->index < state_machine->natural_scout_path.size())
@@ -1401,7 +1401,7 @@ namespace sc2 {
 
 	void ScoutTScoutMain::TickState()
 	{
-		if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 3)
+		if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 2)
 		{
 			state_machine->index++;
 			if (state_machine->index < state_machine->main_scout_path.size())
@@ -1458,7 +1458,7 @@ namespace sc2 {
 
 	void ScoutTScoutNatural::TickState()
 	{
-		if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 3)
+		if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 2)
 		{
 			state_machine->index++;
 			if (state_machine->index < state_machine->natural_scout_path.size())
