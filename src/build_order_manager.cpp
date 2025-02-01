@@ -897,13 +897,17 @@ bool BuildOrderManager::RemoveScoutToProxy(BuildOrderResultArgData data)
 		{
 			scout = ((ScoutTerranStateMachine*)fsm)->scout;
 		}
-		if (scout != NULL)
+		if (scout != NULL && scout->is_alive)
 		{
 			agent->active_FSMs.erase(std::remove(agent->active_FSMs.begin(), agent->active_FSMs.end(), fsm), agent->active_FSMs.end());
 			Point2D pos = agent->locations->proxy_pylon_locations[0];
 			agent->Actions()->UnitCommand(scout, ABILITY_ID::MOVE_MOVE, pos);
 			agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionRemoveScoutToProxy, new ActionArgData(scout, data.unitId, pos, data.amount)));
 			return true;
+		}
+		else
+		{
+			return BuildProxyMulti(BuildOrderResultArgData({ PYLON, GATEWAY }));
 		}
 	}
 	return false;
@@ -1402,14 +1406,14 @@ void BuildOrderManager::SetThreeGateRobo()
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(CYBERCORE)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::SafeRallyPoint,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(122.0f),			&BuildOrderManager::RemoveScoutToProxy,					Result(GATEWAY, 0)),
 					Data(&BuildOrderManager::TimePassed,			Condition(126.0f),			&BuildOrderManager::BuildBuilding,						Result(ROBO)),
-					Data(&BuildOrderManager::TimePassed,			Condition(127.0f),			&BuildOrderManager::RemoveScoutToProxy,					Result(GATEWAY, 0)),
 					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 2)),
 					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::SendAdeptHarassProtoss,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::SendAllInAttack,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(174.0f),			&BuildOrderManager::TrainPrism,							Result(PRISM)),
+					Data(&BuildOrderManager::TimePassed,			Condition(174.0f),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 2)),
-					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(186.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::WarpInAtProxy,						Result()),
