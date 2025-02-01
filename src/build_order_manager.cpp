@@ -1150,6 +1150,11 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		// 3 hatch before pool
 		return true;
 	}
+	else if (agent->Observation()->GetGameLoop() / 22.4 >= 90)
+	{
+		// late pool
+		return true;
+	}
 	else if (info.pool_timing == 0)
 	{
 		return false;
@@ -1166,7 +1171,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		SetEarlyPoolInterrupt();
 		build_order_step = 0;
 	}
-	else if (info.pool_timing < 80)
+	else if (info.pool_timing >= 45)
 	{
 		// hatch first
 		return true;
