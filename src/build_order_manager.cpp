@@ -1140,14 +1140,11 @@ bool BuildOrderManager::ScourMap(BuildOrderResultArgData data)
 bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 {
 	ScoutInfoZerg info = agent->scout_info_zerg;
-	if (agent->Observation()->GetGameLoop() / 22.4 >= 80)
-	{
-		SetEarlyPoolInterrupt();
-		build_order_step = 0;
-	}
-	if (info.third_timing < 90)
+	
+	if (info.third_timing != 0 && info.third_timing < 90)
 	{
 		// 3 hatch before pool
+		return true;
 	}
 	else if (info.pool_timing == 0)
 	{
@@ -1156,15 +1153,19 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 	else if (info.pool_timing < 25)
 	{
 		// 12 pool
+		SetEarlyPoolInterrupt(); // TODO new interrupt for 12 pool
+		build_order_step = 0;
 	}
 	else if (info.pool_timing < 45)
 	{
 		// pool first
+		SetEarlyPoolInterrupt();
+		build_order_step = 0;
 	}
 	else if (info.pool_timing < 80)
 	{
 		// hatch first
-		return false;
+		return true;
 	}
 	return false;
 }
