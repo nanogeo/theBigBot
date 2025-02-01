@@ -435,10 +435,11 @@ bool BuildOrderManager::ResearchWarpgate(BuildOrderResultArgData data)
 {
 	for (const auto &cyber : agent->Observation()->GetUnits(IsFinishedUnit(CYBERCORE)))
 	{
+		if (cyber->orders.size() > 0 && cyber->orders[0].ability_id == ABILITY_ID::RESEARCH_WARPGATE)
+			return true;
 		if (Utility::CanAffordUpgrade(UPGRADE_ID::WARPGATERESEARCH, agent->Observation()))
 		{
 			agent->Actions()->UnitCommand(cyber, ABILITY_ID::RESEARCH_WARPGATE);
-			return true;
 		}
 	}
 	return false;
