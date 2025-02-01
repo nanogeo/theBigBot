@@ -30,6 +30,17 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	UNIT_TYPEID buildingId = data->unitId;
 	Point2D pos = data->position;
 	const Unit *builder = data->unit;
+	if (builder->is_alive == false)
+	{
+		// builder died
+		const Unit* builder = agent->worker_manager.GetBuilder(pos);
+		if (builder == NULL)
+		{
+			return false;
+		}
+		agent->worker_manager.RemoveWorker(builder);
+		data->unit = builder;
+	}
 	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
 	{
 		if (Distance2D(building->pos, pos) < 1 && building->display_type != Unit::DisplayType::Placeholder)
@@ -64,6 +75,17 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	UNIT_TYPEID buildingId = data->unitIds[data->index];
 	Point2D pos = data->position;
 	const Unit *builder = data->unit;
+	if (builder->is_alive == false)
+	{
+		// builder died
+		const Unit* builder = agent->worker_manager.GetBuilder(pos);
+		if (builder == NULL)
+		{
+			return false;
+		}
+		agent->worker_manager.RemoveWorker(builder);
+		data->unit = builder;
+	}
 	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
 	{
 		if (Distance2D(building->pos, pos) < 1 && building->display_type != Unit::DisplayType::Placeholder)
@@ -107,6 +129,17 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data)
 	UNIT_TYPEID buildingId = data->unitIds[data->index];
 	Point2D pos = data->position;
 	const Unit *builder = data->unit;
+	if (builder->is_alive == false)
+	{
+		// builder died
+		const Unit* builder = agent->worker_manager.GetBuilder(pos);
+		if (builder == NULL)
+		{
+			return false;
+		}
+		agent->worker_manager.RemoveWorker(builder);
+		data->unit = builder;
+	}
 	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
 	{
 		if (Point2D(building->pos) == pos && building->display_type != Unit::DisplayType::Placeholder)
