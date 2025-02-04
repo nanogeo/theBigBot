@@ -562,8 +562,12 @@ bool ActionManager::ActionWarpInAtProxy(ActionArgData* data)
 	std::vector<Point2D> possible_spots = agent->FindProxyWarpInSpots();
 	if (possible_spots.size() == 0)
 		return false;
+	int num_stalkers = 0;
 	for (const auto &warpgate : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE)))
 	{
+		num_stalkers++;
+		if (Utility::CanAfford(STALKER, num_stalkers, agent->Observation()) == false)
+			break;
 		if (agent->warpgate_status[warpgate].frame_ready == 0)
 		{
 			agent->Actions()->UnitCommand(warpgate, ABILITY_ID::TRAINWARP_STALKER, possible_spots.back());
