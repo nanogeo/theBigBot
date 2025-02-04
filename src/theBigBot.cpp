@@ -1189,6 +1189,9 @@ namespace sc2 {
         std::vector<Point2D> spots;
         for (const auto &tag : proxy_pylons)
         {
+			const Unit* pylon = Observation()->GetUnit(tag);
+			if (pylon == NULL || pylon->is_alive == false)
+				continue;
             Point2D pylon_pos = Observation()->GetUnit(tag)->pos;
             for (int i = -6; i <= 6; i += 2)
             {
@@ -1200,6 +1203,10 @@ namespace sc2 {
                 }
             }
         }
+		if (spots.size() == 0)
+		{
+			spots = FindWarpInSpots(Observation()->GetGameInfo().enemy_start_locations[0], 5);
+		}
 
 		std::vector<Point2D> prism_spots;
 
