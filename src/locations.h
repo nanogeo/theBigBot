@@ -109,9 +109,11 @@ public:
 
 	std::vector<Point2D> defensive_natural_battery_locations;
 
+	std::vector<Point2D> attack_path_short;
+	PathManager attack_path_short_line;
     std::vector<Point2D> attack_path;
-	std::vector<Point2D> attack_path_alt;
 	PathManager attack_path_line;
+	std::vector<Point2D> attack_path_alt;
     int high_ground_index;
 	int high_ground_index_alt;
     Graph* air_graph; // unused

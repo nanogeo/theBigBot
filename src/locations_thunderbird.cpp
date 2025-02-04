@@ -128,6 +128,31 @@ namespace sc2 {
 		defensive_natural_battery_locations = { P(143, 53),
 												P(143, 55) };
 
+		attack_path_short = { P(142, 49),
+								P(137.5, 51),
+								P(133, 54),
+								P(128, 59),
+								P(118, 61.5),
+								P(112, 60.5),
+								P(98, 59),
+								P(94, 61),
+								P(89, 72),
+								P(103, 84),
+								P(98, 95),
+								P(94, 97),
+								P(80, 95.5),
+								P(74, 94.5),
+								P(64, 97),
+								P(59, 102),
+								P(54.5, 105),
+								P(50, 107),
+								P(43, 115),
+								P(38.5, 119.5),
+								P(39, 131),
+								P(42, 140) };
+
+		attack_path_short_line = PathManager(attack_path_short);
+
 		attack_path = { P(130, 103),
 						P(126, 100),
 						P(98.5, 96.5),
