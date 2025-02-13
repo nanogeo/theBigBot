@@ -1,4 +1,5 @@
 #include "theBigBot.h"
+#include "mediator.h"
 #include "finite_state_machine.h"
 #include "pathfinding.h"
 #include "locations.h"
@@ -37,30 +38,80 @@ namespace sc2 {
 		//Debug()->SendDebug();
 		if (debug_mode)
 		{
-			//Debug()->DebugGiveAllResources();
-			//Debug()->DebugFastBuild();
-			//Debug()->SendDebug();
+			std::cout << "start location: " << Observation()->GetStartLocation().x << ' ' << Observation()->GetStartLocation().y << "\n";
+			std::cout << "enemy start location: " << Observation()->GetGameInfo().enemy_start_locations[0].x << ' ' << Observation()->GetGameInfo().enemy_start_locations[0].y << "\n";
+			Debug()->DebugGiveAllResources();
+			Debug()->DebugGiveAllResources();
+			Debug()->DebugFastBuild();
+			Debug()->SendDebug();
 		}
     }
 
     void TheBigBot::OnStep()
     {
-		/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Enemy))
+		if (debug_mode)
 		{
-			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 255, 255));
-			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type), unit->pos, Color(255, 255, 255), 15);
-		}
-		for (const auto &unit : enemy_unit_saved_position)
-		{
-			Debug()->DebugSphereOut(ToPoint3D(unit.second.pos), .5, Color(255, 0, 255));
-			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit.first->unit_type), ToPoint3D(unit.second.pos), Color(255, 0, 255), 15);
-		}*/
+			if (!started)
+			{
+				mediator.SetBuildOrder(curr_build_order);
+				started = true;
+			}
+			if (!started && Observation()->GetGameLoop() < 1800)
+			{
+				for (const auto& probe : Observation()->GetUnits(IsUnit(PROBE)))
+				{
+					std::cout << probe->pos.x << ", " << probe->pos.y << std::endl;
+				}
+				started = false;
+			}
 
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds startTime = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-#endif
+			for each (auto &point in locations->attack_path_line.GetPoints())
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(0, 255, 255));
+			}
+
+			PathManager path;
+			/*LineSegment* line = path.FitLineSegment(Point2D(40.25, 77.5), Point2D(44.5, 98.25), Point2D(41.5, 73.75), Point2D(47.75, 101.25));
+
+			path.segments.push_back(line);
+
+			std::vector<Point2D> points = path.GetPoints();
+
+			for each (Point2D point in points)
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 0, 255));
+			}*/
+
+
+			for each (Point2D point in locations->attack_path_short)
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));
+				Debug()->DebugTextOut(std::to_string(point.x) + ", " + std::to_string(point.y), ToPoint3D(point), Color(255, 0, 0), 20);
+			}
+
+			for each (Point2D point in locations->attack_path_short_line.GetPoints())
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
+			}
+
+			/*std::vector<Point2D> points2;
+			Point2D point = path.GetStartPoint();
+			while (Distance2D(point, path.GetEndPoint()) > 1)
+			{
+				points2.push_back(point);
+				point = path.GetPointFrom(point, 1, true);
+			}
+
+			for each (Point2D point in points2)
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 0, 255));
+			}*/
+
+			Debug()->SendDebug();
+			return;
+		}
+
+
 
 		Units bla = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ADEPT));
 		Units funits = Observation()->GetUnits(Unit::Alliance::Self);
@@ -70,41 +121,13 @@ namespace sc2 {
         //std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
         
         
-        worker_manager.DistributeWorkers();
 
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds postDistributeWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-#endif
-
-        if (worker_manager.new_base != NULL)
-        {
-            //std::cout << "add new base\n";
-            //std::cout << worker_manager.new_base->pos.x << ' ' << worker_manager.new_base->pos.y << '\n';;
-            worker_manager.AddNewBase();
-            if (Observation()->GetGameLoop() < 10)
-            {
-                worker_manager.SplitWorkers();
-            }
-        }
-
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds postNewBase = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-#endif
 
 		/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Neutral))
 		{
 			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
 		}*/
 
-		/*if (debug_mode)
-		{
-			Debug()->SendDebug();
-			return;
-		}*/
 
 		/*if (!debug_mode)
 			ShowLocations();*/
@@ -114,107 +137,7 @@ namespace sc2 {
         {
 			//PrintNonPathablePoints();
 
-#ifdef DEBUG_TIMING
-			std::ofstream frame_time_file;
-			frame_time_file.open("frame_time.txt", std::ios_base::out);
-			frame_time_file << "Distribute workers,New base,Update enemy pos,Update enemy weapon cd,Update warpgate status,Build workers,Check build order,Process actions,Process FSM,Display debug,Send debug,TOTAL\n";
-			frame_time_file.close();
 
-			std::ofstream action_time_file;
-			action_time_file.open("action_time.txt", std::ios_base::out);
-			action_time_file << "New units,Critical points,Close targets,Concave origins,Positions,Apply pressure\n";
-			action_time_file.close();
-
-			std::ofstream find_targets_time_file;
-			find_targets_time_file.open("find_targets.txt", std::ios_base::out);
-			find_targets_time_file << "Set up,Constructor\n";
-			find_targets_time_file.close();
-
-			std::ofstream fire_control_time_file;
-			fire_control_time_file.open("fire_control_time.txt", std::ios_base::out);
-			fire_control_time_file << "Single target,Enemy min heap,Friendly min heap\n";
-			fire_control_time_file.close();
-
-			std::ofstream oracle_time_file;
-			oracle_time_file.open("oracle_time.txt", std::ios_base::out);
-			oracle_time_file << "Enemy in range,Query abilities,Beam active,Beam activatable,Neither,Debug text,No enemy in range\n";
-			oracle_time_file.close();
-
-			std::ofstream pressure_time_file;
-			pressure_time_file.open("pressure_time.txt", std::ios_base::out);
-			pressure_time_file << "Ready check,Find targets,Print attacks,Give targets,Not ready,Pick up\n";
-			pressure_time_file.close();
-
-			std::ofstream debug_hud_file;
-			debug_hud_file.open("debug_hud_time.txt", std::ios_base::out);
-			debug_hud_file << "Worker status,Build order,Active actions,Active FSM,Building status,Army groups,Supply info\n";
-			debug_hud_file.close();
-
-			std::ofstream update_weapon_cd_file;
-			update_weapon_cd_file.open("update_weapon_cd_time.txt", std::ios_base::out);
-			update_weapon_cd_file << "Get allied units,Get enemy units,Melee unit,Count,Aiming at,Add attack,Total time\n";
-			update_weapon_cd_file.close();
-
-			std::ofstream aiming_at_file;
-			aiming_at_file.open("aiming_at_time.txt", std::ios_base::out);
-			aiming_at_file << "Setup,Distance,Get facing angle,End unit,Loop total\n";
-			aiming_at_file.close();
-
-			std::ofstream real_range_file;
-			real_range_file.open("real_range_file.txt", std::ios_base::out);
-			real_range_file << "Radius,Switch\n";
-			real_range_file.close();
-
-			std::ofstream make_workers;
-			make_workers.open("make_workers.txt", std::ios_base::out);
-			make_workers << "Make workers\n";
-			make_workers.close();
-
-			std::ofstream build_pylons;
-			build_pylons.open("build_pylons.txt", std::ios_base::out);
-			build_pylons << "Build pylons\n";
-			build_pylons.close();
-
-			std::ofstream get_upgrades;
-			get_upgrades.open("get_upgrades.txt", std::ios_base::out);
-			get_upgrades << "Continue upgrades\n";
-			get_upgrades.close();
-
-			std::ofstream chronoing;
-			chronoing.open("chronoing.txt", std::ios_base::out);
-			chronoing << "Constant chronos\n";
-			chronoing.close();
-
-			std::ofstream expanding;
-			expanding.open("expanding.txt", std::ios_base::out);
-			expanding << "Continue expanding\n";
-			expanding.close();
-
-			std::ofstream constant_chrono;
-			constant_chrono.open("constant_chrono.txt", std::ios_base::out);
-			constant_chrono << "Constant chrono\n";
-			constant_chrono.close();
-
-			std::ofstream zealot_warp;
-			zealot_warp.open("zealot_warp.txt", std::ios_base::out);
-			zealot_warp << "Z - Get abilities,Z - All gates ready\n";
-			zealot_warp.close();
-
-			std::ofstream wind_spots;
-			wind_spots.open("wind_spots.txt", std::ios_base::out);
-			wind_spots << "Find,- Initial check,- Blocked check,- Spot check,Prism spots,Sort spots\n";
-			wind_spots.close();
-
-			std::ofstream amaing_at_time;
-			amaing_at_time.open("amaing_at_time.txt", std::ios_base::out);
-			amaing_at_time << "Distance check,Angle check\n";
-			amaing_at_time.close();
-
-			std::ofstream update_warpgates;
-			update_warpgates.open("update_warpgates.txt", std::ios_base::out);
-			update_warpgates << "Zero,Used,Ready,Total\n";
-			update_warpgates.close();
-#endif
 			
 			int id = Observation()->GetPlayerID();
             auto infos = Observation()->GetGameInfo().player_info;
@@ -241,68 +164,18 @@ namespace sc2 {
 				}
             }
 
-            const Unit *building = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS))[0];
-            //std::cout << Utility::UnitTypeIdToString(building->unit_type);
-            if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
-            {
-				worker_manager.new_base = building;
-            }
-            else if (building->unit_type == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
-            {
-				worker_manager.assimilators[building] = assimilator_data();
-                //SaturateGas(building->tag);
-            }
-            
-			build_order_manager.SetBuildOrder(curr_build_order);
+
+			mediator.SetUpManagers(curr_build_order);
+
 			started = true;
         }
 
 		UpdateEffectPositions();
 
 		UpdateEnemyUnitPositions();
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds postUpdateEnemyUnitPositions = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-#endif
-		UpdateEnemyWeaponCooldowns();
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds postUpdateEnemyWeaponCooldowns = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-#endif
-		UpdateWarpgateStatus();
 
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds postUpdateWarpgateStatus = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-#endif
-		if (Observation()->GetGameLoop() % 5 == 0)
-	        worker_manager.BuildWorkers();
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds postBuildWorkers = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-#endif
-		build_order_manager.CheckBuildOrder();
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds postCheckBuildOrder = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-#endif
-		action_manager.ProcessActions();
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds postProcessActions = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-#endif
-        ProcessFSMs();
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds postProcessFSM = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-#endif
+		UpdateEnemyWeaponCooldowns();
+
 		UpdateEnemyUnitPositions();
 
 		UpdateEnemyWeaponCooldowns();
@@ -314,61 +187,30 @@ namespace sc2 {
 
 		RemoveCompletedAtacks();
 
-        //DisplayDebugHud();
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds postDisplayDebug = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
-#endif
-        //Debug()->SendDebug();
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds postSendDebug = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			);
+		mediator.RunManagers();
+
+
+
+        DisplayDebugHud();
+
+        Debug()->SendDebug();
 
 
 
 
-		std::ofstream frame_time_file;
-		frame_time_file.open("frame_time.txt", std::ios_base::app);
-		frame_time_file << postDistributeWorkers.count() - startTime.count() << ", ";
-		frame_time_file << postNewBase.count() - postDistributeWorkers.count() << ", ";
-		frame_time_file << postUpdateEnemyUnitPositions.count() - postNewBase.count() << ", ";
-		frame_time_file << postUpdateEnemyWeaponCooldowns.count() - postUpdateEnemyUnitPositions.count() << ", ";
-		frame_time_file << postUpdateWarpgateStatus.count() - postUpdateEnemyWeaponCooldowns.count() << ", ";
-		frame_time_file << postBuildWorkers.count() - postUpdateWarpgateStatus.count() << ", ";
-		frame_time_file << postCheckBuildOrder.count() - postBuildWorkers.count() << ", ";
-		frame_time_file << postProcessActions.count() - postCheckBuildOrder.count() << ", ";
-		frame_time_file << postProcessFSM.count() - postProcessActions.count() << ", ";
-		frame_time_file << postDisplayDebug.count() - postProcessFSM.count() << ", ";
-		frame_time_file << postSendDebug.count() - postDisplayDebug.count() << ", ";
-		frame_time_file << postSendDebug.count() - startTime.count() << "\n";
-
-		frame_time_file.close();
-#endif
     }
 
     void TheBigBot::OnBuildingConstructionComplete(const Unit *building)
     {
+		mediator.OnBuildingConstructionComplete(building);
         if (debug_mode)
         {
-            //std::cout << Utility::UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
+            std::cout << Utility::UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
 			//nav_mesh.AddNewObstacle(building);
             return;
         }
-        if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
-        {
-			worker_manager.SetNewBase(building);
-        }
-        else if (building->unit_type == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
-        {
-			worker_manager.AddAssimilator(building);
-            if (immediatelySaturateGasses)
-                worker_manager.SaturateGas(building);
-			else if (immediatelySemiSaturateGasses)
-				worker_manager.SemiSaturateGas(building);
-        }
-        else if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
+        
+        if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
         {
             for (const auto &location : locations->proxy_pylon_locations)
             {
@@ -382,6 +224,7 @@ namespace sc2 {
 
     void TheBigBot::OnNeutralUnitCreated(const Unit *building)
     {
+		mediator.OnNeutralUnitCreated(building);
         /*if (debug_mode)
         {
             std::cout << UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
@@ -394,15 +237,16 @@ namespace sc2 {
         if (Observation()->GetGameLoop() == 0)
             return;
 		CallOnUnitCreatedEvent(unit);
-        if (unit->unit_type == UNIT_TYPEID::PROTOSS_PROBE)
-        {
-            worker_manager.PlaceWorker(unit);
-        }
+
+		mediator.OnUnitCreated(unit);
+
+        
         /*if len(self.adept_groups) > 0:
-            if unit.type_id == UnitTypeId.ADEPT :
+            if unit.type_id == UNIT_TYPEID.ADEPT :
                 self.adept_groups[0].adept_ids.append(unit.tag)
                 self.adept_groups[0].adept_order_status.append(False)
                 print("adding " + str(unit.tag) + " <Adept> to army group 0")*/
+
     }
 
 	void TheBigBot::OnUnitEnterVision(const Unit* unit)
@@ -410,6 +254,8 @@ namespace sc2 {
 		if (Observation()->GetGameLoop() == 0)
 			return;
 		CallOnUnitEntersVisionEvent(unit);
+
+		mediator.OnUnitEnterVision(unit);
 	}
 
     void TheBigBot::OnUnitDamaged(const Unit *unit, float health_damage, float shield_damage)
@@ -418,13 +264,12 @@ namespace sc2 {
 		//if (unit->alliance == Unit::Alliance::Self)
 	        //std::cout << unit->tag << " took " << std::to_string(health_damage + shield_damage) << " damage\n";
         CallOnUnitDamagedEvent(unit, health_damage, shield_damage);
+		mediator.OnUnitDamaged(unit, health_damage, shield_damage);
     }
 
     void TheBigBot::OnUnitDestroyed(const Unit *unit)
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
-		if (unit->mineral_contents > 0)
-			worker_manager.RemoveSpentMineralPatch(unit);
 		if (enemy_unit_saved_position.find(unit) != enemy_unit_saved_position.end())
 			enemy_unit_saved_position.erase(unit);
 		if (enemy_weapon_cooldown.find(unit) != enemy_weapon_cooldown.end())
@@ -434,10 +279,7 @@ namespace sc2 {
         CallOnUnitDestroyedEvent(unit);
 		nav_mesh.RemoveObstacle(unit);
 
-		for (auto &army : army_groups)
-		{
-			army->RemoveUnit(unit);
-		}
+		mediator.OnUnitDestroyed(unit);
 
 		if (debug_mode)
 		{
@@ -451,68 +293,7 @@ namespace sc2 {
 
 	void TheBigBot::OnUpgradeCompleted(UpgradeID upgrade)
 	{
-		switch (upgrade.ToType())
-		{
-		case sc2::UPGRADE_ID::BLINKTECH:
-			has_blink = true;
-			break;
-		case sc2::UPGRADE_ID::CHARGE:
-			has_charge = true;
-			break;
-		case sc2::UPGRADE_ID::DARKTEMPLARBLINKUPGRADE:
-			has_dt_blink = true;
-			break;
-		case sc2::UPGRADE_ID::PSISTORMTECH:
-			has_storm = true;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1:
-			upgrade_ground_weapon = 1;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2:
-			upgrade_ground_weapon = 2;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL3:
-			upgrade_ground_weapon = 3;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL1:
-			upgrade_ground_armor = 1;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL2:
-			upgrade_ground_armor = 2;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL3:
-			upgrade_ground_armor = 3;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL1:
-			upgrade_shields = 1;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL2:
-			upgrade_shields = 2;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL3:
-			upgrade_shields = 3;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1:
-			upgrade_air_weapon = 1;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL2:
-			upgrade_air_weapon = 2;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL3:
-			upgrade_air_weapon = 3;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL1:
-			upgrade_air_armor = 1;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL2:
-			upgrade_air_armor = 2;
-			break;
-		case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL3:
-			upgrade_air_armor = 3;
-			break;
-		default:
-			break;
-		}
+		mediator.OnUpgradeCompleted(upgrade);
 	}
 
 
@@ -565,9 +346,9 @@ namespace sc2 {
 		for (const auto &unit : retreating_unit_positions)
 		{
 			Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
-			//Actions()->UnitCommand(unit.first, ABILITY_ID::MOVE_MOVE, unit.second);
+			//Actions()->UnitCommand(unit.first, ABILITY_ID::GENERAL_MOVE, unit.second);
 		}
-		Actions()->UnitCommand(test_army.prisms[0], ABILITY_ID::MOVE_MOVE, Utility::PointBetween(Utility::MedianCenter(test_army.stalkers), fallback_point, 3));
+		Actions()->UnitCommand(test_army.prisms[0], ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(Utility::MedianCenter(test_army.stalkers), fallback_point, 3));
 		Actions()->UnitCommand(test_army.prisms[0], ABILITY_ID::UNLOADALLAT_WARPPRISM, test_army.prisms[0]);
 		ApplyPressureGrouped(&test_army, enemy_army_spawn, fallback_point, retreating_unit_positions, attacking_unit_positions);
 
@@ -613,329 +394,6 @@ namespace sc2 {
 #pragma region Utility
 
 
-    std::vector<Point2D> TheBigBot::GetLocations(UNIT_TYPEID type)
-    {
-        switch (type)
-        {
-        case UNIT_TYPEID::PROTOSS_PYLON:
-            return locations->pylon_locations;
-            break;
-        case UNIT_TYPEID::PROTOSS_GATEWAY:
-            return locations->gateway_locations;
-            break;
-        case UNIT_TYPEID::PROTOSS_NEXUS:
-            return locations->nexi_locations;
-            break;
-        case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-            return locations->cyber_core_locations;
-            break;
-        case UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
-            return locations->tech_locations;
-            break;
-        case UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
-            return locations->tech_locations;
-            break;
-        case UNIT_TYPEID::PROTOSS_STARGATE:
-            return locations->tech_locations;
-            break;
-        case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-            return locations->assimilator_locations;
-            break;
-        default:
-            //std::cout << "Error invalid type id in GetLocations" << std::endl;
-            return std::vector<Point2D>();
-        }
-    }
-
-    Point2D TheBigBot::GetLocation(UNIT_TYPEID type)
-    {
-		std::vector<Point2D> possible_locations;
-		int pending_buildings = 0;
-		for (const auto &action : action_manager.active_actions)
-		{
-			if (action->action == &ActionManager::ActionBuildBuilding)
-			{
-				if (action->action_arg->unitId == type)
-				{
-					pending_buildings++;
-				}
-			}
-		}
-
-		if (build_order_manager.current_build_order == BuildOrder::recessed_cannon_rush)
-		{
-
-			std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
-				UNIT_TYPEID::PROTOSS_CYBERNETICSCORE, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
-				UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_DARKSHRINE, UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE };
-			if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
-			{
-				possible_locations = locations->tech_locations_cannon_rush;
-			}
-			else
-			{
-				switch (type)
-				{
-				case UNIT_TYPEID::PROTOSS_PYLON:
-					possible_locations = locations->pylon_locations_cannon_rush;
-					break;
-				case UNIT_TYPEID::PROTOSS_NEXUS:
-					possible_locations = locations->nexi_locations;
-					break;
-				case UNIT_TYPEID::PROTOSS_GATEWAY:
-					possible_locations = locations->gateway_locations_cannon_rush;
-					break;
-				case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-					possible_locations = locations->assimilator_locations;
-					break;
-				case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
-					possible_locations = locations->cannon_locations_cannon_rush;
-					break;
-				case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
-					possible_locations = locations->shield_battery_locations_cannon_rush;
-					break;
-				default:
-					//std::cout << "Error invalid type id in GetLocation" << std::endl;
-					return Point2D(0, 0);
-				}
-			}
-		}
-		else
-		{
-			std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
-				UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
-				UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_DARKSHRINE, UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE };
-			if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
-			{
-				possible_locations = locations->tech_locations;
-			}
-			else
-			{
-				switch (type)
-				{
-				case UNIT_TYPEID::PROTOSS_PYLON:
-					possible_locations = locations->pylon_locations;
-					break;
-				case UNIT_TYPEID::PROTOSS_NEXUS:
-					possible_locations = locations->nexi_locations;
-					break;
-				case UNIT_TYPEID::PROTOSS_GATEWAY:
-					possible_locations = locations->gateway_locations;
-					break;
-				case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-					possible_locations = locations->assimilator_locations;
-					break;
-				case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-					possible_locations = locations->cyber_core_locations;
-					break;
-				default:
-					//std::cout << "Error invalid type id in GetLocation" << std::endl;
-					return Point2D(0, 0);
-				}
-			}
-		}
-
-        for (const auto &point : possible_locations)
-        {
-            bool blocked = false;
-            bool in_base = !(type == UNIT_TYPEID::PROTOSS_PYLON);
-            bool in_energy_field = (type == UNIT_TYPEID::PROTOSS_PYLON || type == UNIT_TYPEID::PROTOSS_ASSIMILATOR || type == UNIT_TYPEID::PROTOSS_NEXUS);
-            for (const auto &building : Observation()->GetUnits(IsBuilding()))
-            {
-                if (Distance2D(building->pos, point) < 1)
-                {
-                    blocked = true;
-                    break;
-                }
-                if (!in_energy_field && building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
-                {
-                    if (Distance2D(Point2D(building->pos), point) < 6.5)
-                    {
-                        in_energy_field = true;
-                    }
-                }
-                if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS && Distance2D(building->pos, point) < 22)
-                    in_base = true;
-            }
-			if (in_base && !blocked && in_energy_field)
-				if (pending_buildings == 0)
-					return point;
-				else
-					pending_buildings--;
-            
-        }
-        std::cerr << "Error no viable point found in GetLocation for type " << UnitTypeToName(type) << std::endl;
-		std::cerr << "Possible locations:" << std::endl;
-		for (const auto& location : possible_locations)
-		{
-			std::cerr << location.x << ", " << location.y << std::endl;
-		}
-		std::cerr << std::endl;
-        return Point2D(0, 0);
-
-        /*
-        if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
-        {
-            int tech_buildings_in_production = 0;
-            for (const auto &action : active_actions)
-            {
-                if (action->action == &TossBot::ActionBuildBuilding)
-                {
-                    for (const auto &building : tech_buildings)
-                    {
-                        if (building == action->action_arg->unitId)
-                        {
-                            tech_buildings_in_production++;
-                        }
-                    }
-                }
-            }
-            int num = Observation()->GetUnits(IsUnits(tech_buildings)).size();
-            return locations->tech_locations[num + tech_buildings_in_production];
-        }
-
-        int buildings_in_production = 0;
-        for (const auto &action : active_actions)
-        {
-            if (action->action == &TossBot::ActionBuildBuilding)
-            {
-                if (type == action->action_arg->unitId)
-                {
-                    buildings_in_production++;
-                }
-            }
-        }
-        int num = 0;
-        switch (type)
-        {
-        case UNIT_TYPEID::PROTOSS_PYLON:
-            num = Observation()->GetUnits(IsUnit(type)).size();
-            return locations->pylon_locations[num + buildings_in_production];
-        case UNIT_TYPEID::PROTOSS_GATEWAY:
-            num = Observation()->GetUnits(IsUnits({UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_WARPGATE})).size();
-            buildings_in_production = 0;
-            for (const auto &action : active_actions)
-            {
-                if (action->action == &TossBot::ActionBuildBuilding)
-                {
-                    if (UNIT_TYPEID::PROTOSS_GATEWAY == action->action_arg->unitId || UNIT_TYPEID::PROTOSS_WARPGATE == action->action_arg->unitId)
-                    {
-                        buildings_in_production++;
-                    }
-                }
-            }
-            return locations->gateway_locations[num + buildings_in_production];
-        case UNIT_TYPEID::PROTOSS_NEXUS:
-            num = Observation()->GetUnits(IsUnit(type)).size();
-            return locations->nexi_locations[num + buildings_in_production];
-        case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-            num = Observation()->GetUnits(IsUnit(type)).size();
-            return locations->assimilator_locations[num + buildings_in_production];
-        case UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-            num = Observation()->GetUnits(IsUnit(type)).size();
-            return locations->cyber_core_locations[num + buildings_in_production];
-        default:
-            std::cout << "Error invalid type id in GetLocation" << std::endl;
-            return Point2D(0, 0);
-        }*/
-    }
-
-	Point2D TheBigBot::GetProxyLocation(UNIT_TYPEID type)
-	{
-		std::vector<Point2D> possible_locations;
-
-		if (build_order_manager.current_build_order == BuildOrder::recessed_cannon_rush)
-		{
-			std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
-				UNIT_TYPEID::PROTOSS_CYBERNETICSCORE, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
-				UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_DARKSHRINE, UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE };
-			if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
-			{
-				possible_locations = locations->tech_locations_cannon_rush;
-			}
-			else
-			{
-				switch (type)
-				{
-				case UNIT_TYPEID::PROTOSS_PYLON:
-					possible_locations = locations->pylon_locations_cannon_rush;
-					break;
-				case UNIT_TYPEID::PROTOSS_NEXUS:
-					possible_locations = locations->nexi_locations;
-					break;
-				case UNIT_TYPEID::PROTOSS_GATEWAY:
-					possible_locations = locations->gateway_locations_cannon_rush;
-					break;
-				case UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-					possible_locations = locations->assimilator_locations;
-					break;
-				case UNIT_TYPEID::PROTOSS_PHOTONCANNON:
-					possible_locations = locations->cannon_locations_cannon_rush;
-					break;
-				case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
-					possible_locations = locations->shield_battery_locations_cannon_rush;
-					break;
-				default:
-					//std::cout << "Error invalid type id in GetLocation" << std::endl;
-					return Point2D(0, 0);
-				}
-			}
-		}
-		else
-		{
-			std::vector<UNIT_TYPEID> tech_buildings = { UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL,
-				UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_ROBOTICSBAY, UNIT_TYPEID::PROTOSS_STARGATE,
-				UNIT_TYPEID::PROTOSS_FLEETBEACON, UNIT_TYPEID::PROTOSS_DARKSHRINE, UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE };
-			if (std::find(tech_buildings.begin(), tech_buildings.end(), type) != tech_buildings.end())
-			{
-				possible_locations = locations->proxy_tech_locations;
-			}
-			else
-			{
-				switch (type)
-				{
-				case UNIT_TYPEID::PROTOSS_PYLON:
-					possible_locations = locations->proxy_pylon_locations;
-					break;
-				case UNIT_TYPEID::PROTOSS_NEXUS:
-					possible_locations = locations->nexi_locations;
-					break;
-				case UNIT_TYPEID::PROTOSS_GATEWAY:
-					possible_locations = locations->proxy_gateway_locations;
-					break;
-				default:
-					//std::cout << "Error invalid type id in GetLocation" << std::endl;
-					return Point2D(0, 0);
-				}
-			}
-		}
-
-		for (const auto &point : possible_locations)
-		{
-			bool blocked = false;
-			bool in_energy_field = (type == UNIT_TYPEID::PROTOSS_PYLON || type == UNIT_TYPEID::PROTOSS_ASSIMILATOR || type == UNIT_TYPEID::PROTOSS_NEXUS);
-			for (const auto &building : Observation()->GetUnits(IsBuilding()))
-			{
-				if (Point2D(building->pos) == point)
-				{
-					blocked = true;
-					break;
-				}
-				if (!in_energy_field && building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
-				{
-					if (Distance2D(Point2D(building->pos), point) < 6.5)
-					{
-						in_energy_field = true;
-					}
-				}
-			}
-			if (!blocked && in_energy_field)
-				return point;
-
-		}
-		//std::cout << "Error no viable point found in GetLocation" << std::endl;
-		return Point2D(0, 0);
-	}
 
 	Point2D TheBigBot::GetNaturalDefensiveLocation(UNIT_TYPEID type)
 	{
@@ -1229,73 +687,6 @@ namespace sc2 {
 
         return spots;
     }
-
-    void TheBigBot::OraclesCoverStalkers(Units stalkers, Units oracles)
-    {
-        Point2D center = Utility::MedianCenter(stalkers);
-        bool danger = Observation()->GetUnits(Unit::Alliance::Enemy).size() > 0 && Utility::DistanceToClosest(Observation()->GetUnits(Unit::Alliance::Enemy), center) < 5;
-        
-        for (const auto &oracle : oracles)
-        {
-            if (danger && Distance2D(oracle->pos, center) < 5)
-            {
-                for (const auto & ability : Query()->GetAbilitiesForUnit(oracle).abilities)
-                {
-                    if (ability.ability_id.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMON)
-                        Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
-                }
-                const Unit* closest_unit = Utility::ClosestTo(Observation()->GetUnits(Unit::Alliance::Enemy), oracle->pos);
-                if (oracle->orders.size() == 0 || oracle->orders[0].ability_id.ToType() == ABILITY_ID::GENERAL_MOVE)
-                {
-                    Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK, closest_unit, false);
-                }
-            }
-            else
-            {
-                for (const auto &ability : Query()->GetAbilitiesForUnit(oracle).abilities)
-                {
-                    if (ability.ability_id.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMOFF)
-                        Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
-                }
-                Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center);
-            }
-        }
-    }
-
-    void TheBigBot::ProcessFSMs()
-    {
-#ifdef DEBUG_TIMING
-		std::chrono::microseconds fsmStart = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			); 
-		std::ofstream fsm_time_file;
-		fsm_time_file.open("fsm_time_file.txt", std::ios_base::app);
-#endif
-
-        for (const auto &state_machine : active_FSMs)
-        {
-            state_machine->RunStateMachine();
-#ifdef DEBUG_TIMING
-			std::chrono::microseconds fsmNext = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-			fsm_time_file << fsmNext.count() - fsmStart.count() << ", ";
-
-			fsmStart = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				);
-#endif
-        }
-#ifdef DEBUG_TIMING
-		fsm_time_file << "\n";
-		fsm_time_file.close();
-#endif
-    }
-
-	void TheBigBot::RemoveStateMachine(StateMachine* state_machine)
-	{
-		active_FSMs.erase(std::remove(active_FSMs.begin(), active_FSMs.end(), state_machine), active_FSMs.end());
-	}
 
 #pragma endregion
 
@@ -1906,19 +1297,6 @@ namespace sc2 {
 		}*/
 	}
 
-	bool TheBigBot::UnitIsOccupied(const Unit* unit)
-	{
-		for (ArmyGroup* army_group : army_groups)
-		{
-			for (const Unit* army_unit : army_group->all_units)
-			{
-				if (unit == army_unit)
-					return true;
-			}
-		}
-		return false;
-	}
-
 	Point3D TheBigBot::ToPoint3D(Point2D point)
 	{
 		float height = Observation()->TerrainHeight(point);
@@ -1929,94 +1307,6 @@ namespace sc2 {
 	{
 		current_unique_id++;
 		return current_unique_id;
-	}
-
-	void TheBigBot::UpdateWarpgateStatus()
-	{
-#ifdef DEBUG_TIMING
-		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count();
-
-		unsigned long long zero_total = 0;
-		unsigned long long used_total = 0;
-		unsigned long long ready_total = 0;
-#endif
-
-		for (const auto &warpgate : Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPGATE)))
-		{
-#ifdef DEBUG_TIMING
-			unsigned long long gate_start = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				).count();
-#endif
-
-			if (warpgate_status.count(warpgate) == 0)
-			{
-				warpgate_status[warpgate] = WarpgateStatus(Observation()->GetGameLoop());
-			}
-
-#ifdef DEBUG_TIMING
-			unsigned long long zero = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				).count();
-#endif
-
-			if (warpgate_status[warpgate].used)
-			{
-				bool gate_ready = false;
-				for (const auto &ability : Query()->GetAbilitiesForUnit(warpgate).abilities)
-				{
-					if (ability.ability_id == ABILITY_ID::TRAINWARP_ZEALOT)
-					{
-						gate_ready = true;
-						break;
-					}
-				}
-				if (gate_ready)
-				{
-					warpgate_status[warpgate].frame_ready = 0;
-				}
-				warpgate_status[warpgate].used = false;
-			}
-
-#ifdef DEBUG_TIMING
-			unsigned long long used = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				).count();
-#endif
-
-			if (warpgate_status[warpgate].frame_ready > 0)
-			{
-				// TODO deal with warpgates being chrono'd
-				if (warpgate_status[warpgate].frame_ready <= Observation()->GetGameLoop())
-					warpgate_status[warpgate].frame_ready = 0;
-			}
-#ifdef DEBUG_TIMING
-			unsigned long long ready = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				).count();
-			
-			zero_total += zero - gate_start;
-			used_total += used - zero;
-			ready_total += ready - used;
-#endif
-		}
-
-#ifdef DEBUG_TIMING
-		unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count();
-
-		std::ofstream update_warpgates;
-		update_warpgates.open("update_warpgates.txt", std::ios_base::app);
-
-		update_warpgates << zero_total << ", ";
-		update_warpgates << used_total << ", ";
-		update_warpgates << ready_total << ", ";
-		update_warpgates << end_time - start_time << "\n";
-		update_warpgates.close();
-#endif
 	}
 
 	void TheBigBot::UpdateEffectPositions()
@@ -2089,101 +1379,6 @@ namespace sc2 {
 #pragma endregion
 
 
-#pragma region other
-
-    IsFinishedUnit::IsFinishedUnit(UNIT_TYPEID type_) : m_type(type_) {
-    }
-
-    bool IsFinishedUnit::operator()(const Unit& unit_) const {
-        return unit_.unit_type == m_type && unit_.build_progress == 1;
-    }
-
-	IsFightingUnit::IsFightingUnit(Unit::Alliance alliance_) : m_type(alliance_) {
-	}
-
-	bool IsFightingUnit::operator()(const Unit& unit_) const {
-		if (unit_.alliance != m_type)
-			return false;
-		for (const auto &type : { UNIT_TYPEID::PROTOSS_PHOTONCANNON, /*UNIT_TYPEID::PROTOSS_PROBE,*/ UNIT_TYPEID::PROTOSS_ZEALOT, UNIT_TYPEID::PROTOSS_SENTRY,
-			UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_HIGHTEMPLAR, UNIT_TYPEID::PROTOSS_DARKTEMPLAR, UNIT_TYPEID::PROTOSS_ARCHON, PRISM, PRISM_SIEGED,
-			UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_COLOSSUS, UNIT_TYPEID::PROTOSS_PHOENIX, UNIT_TYPEID::PROTOSS_VOIDRAY, UNIT_TYPEID::PROTOSS_ORACLE,
-			UNIT_TYPEID::PROTOSS_CARRIER, UNIT_TYPEID::PROTOSS_TEMPEST, UNIT_TYPEID::PROTOSS_MOTHERSHIP, UNIT_TYPEID::TERRAN_PLANETARYFORTRESS, UNIT_TYPEID::TERRAN_MISSILETURRET,
-			/*UNIT_TYPEID::TERRAN_SCV,*/ UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_REAPER, UNIT_TYPEID::TERRAN_GHOST,
-			UNIT_TYPEID::TERRAN_HELLION, UNIT_TYPEID::TERRAN_HELLIONTANK, UNIT_TYPEID::TERRAN_SIEGETANK, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_CYCLONE,
-			UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_THORAP, UNIT_TYPEID::TERRAN_AUTOTURRET, UNIT_TYPEID::TERRAN_VIKINGASSAULT, UNIT_TYPEID::TERRAN_VIKINGFIGHTER,
-			UNIT_TYPEID::TERRAN_LIBERATOR, UNIT_TYPEID::TERRAN_LIBERATORAG, UNIT_TYPEID::TERRAN_BANSHEE, UNIT_TYPEID::TERRAN_BATTLECRUISER, UNIT_TYPEID::ZERG_SPINECRAWLER,
-			UNIT_TYPEID::ZERG_SPORECRAWLER, /*UNIT_TYPEID::ZERG_DRONE,*/ UNIT_TYPEID::ZERG_QUEEN, UNIT_TYPEID::ZERG_ZERGLING, UNIT_TYPEID::ZERG_BANELING, UNIT_TYPEID::ZERG_ROACH,
-			UNIT_TYPEID::ZERG_RAVAGER, UNIT_TYPEID::ZERG_HYDRALISK, UNIT_TYPEID::ZERG_LURKERMP, UNIT_TYPEID::ZERG_ULTRALISK, UNIT_TYPEID::ZERG_MUTALISK, UNIT_TYPEID::ZERG_CORRUPTOR,
-			UNIT_TYPEID::ZERG_BROODLORD, UNIT_TYPEID::ZERG_LOCUSTMP, UNIT_TYPEID::ZERG_BROODLING })
-		{
-			if (unit_.unit_type.ToType() == type)
-				return true;
-		}
-		return false;
-	}
-
-	IsNonbuilding::IsNonbuilding(Unit::Alliance alliance_) : m_type(alliance_) {
-	}
-
-	bool IsNonbuilding::operator()(const Unit& unit_) const {
-		if (unit_.alliance != m_type)
-			return false;
-		for (const auto& type : { UNIT_TYPEID::PROTOSS_PHOTONCANNON, UNIT_TYPEID::PROTOSS_PROBE, UNIT_TYPEID::PROTOSS_ZEALOT, UNIT_TYPEID::PROTOSS_SENTRY,
-			UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_HIGHTEMPLAR, UNIT_TYPEID::PROTOSS_DARKTEMPLAR, UNIT_TYPEID::PROTOSS_ARCHON, PRISM, PRISM_SIEGED,
-			UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_COLOSSUS, UNIT_TYPEID::PROTOSS_PHOENIX, UNIT_TYPEID::PROTOSS_VOIDRAY, UNIT_TYPEID::PROTOSS_ORACLE,
-			UNIT_TYPEID::PROTOSS_CARRIER, UNIT_TYPEID::PROTOSS_TEMPEST, UNIT_TYPEID::PROTOSS_MOTHERSHIP, UNIT_TYPEID::TERRAN_PLANETARYFORTRESS, UNIT_TYPEID::TERRAN_MISSILETURRET,
-			UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_REAPER, UNIT_TYPEID::TERRAN_GHOST,
-			UNIT_TYPEID::TERRAN_HELLION, UNIT_TYPEID::TERRAN_HELLIONTANK, UNIT_TYPEID::TERRAN_SIEGETANK, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_CYCLONE,
-			UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_THORAP, UNIT_TYPEID::TERRAN_AUTOTURRET, UNIT_TYPEID::TERRAN_VIKINGASSAULT, UNIT_TYPEID::TERRAN_VIKINGFIGHTER, MEDIVAC, 
-			UNIT_TYPEID::TERRAN_LIBERATOR, UNIT_TYPEID::TERRAN_LIBERATORAG, UNIT_TYPEID::TERRAN_BANSHEE, UNIT_TYPEID::TERRAN_BATTLECRUISER, UNIT_TYPEID::ZERG_SPINECRAWLER,
-			UNIT_TYPEID::ZERG_SPORECRAWLER, UNIT_TYPEID::ZERG_DRONE, UNIT_TYPEID::ZERG_QUEEN, UNIT_TYPEID::ZERG_ZERGLING, UNIT_TYPEID::ZERG_BANELING, UNIT_TYPEID::ZERG_ROACH,
-			UNIT_TYPEID::ZERG_RAVAGER, UNIT_TYPEID::ZERG_HYDRALISK, UNIT_TYPEID::ZERG_LURKERMP, UNIT_TYPEID::ZERG_ULTRALISK, UNIT_TYPEID::ZERG_MUTALISK, UNIT_TYPEID::ZERG_CORRUPTOR, // TODO overlord
-			UNIT_TYPEID::ZERG_BROODLORD, UNIT_TYPEID::ZERG_LOCUSTMP, UNIT_TYPEID::ZERG_BROODLING })
-		{
-			if (unit_.unit_type.ToType() == type)
-				return true;
-		}
-		return false;
-	}
-
-	IsNonPlaceholderUnit::IsNonPlaceholderUnit(UNIT_TYPEID type_) : m_type(type_) {
-	}
-
-	bool IsNonPlaceholderUnit::operator()(const Unit& unit_) const {
-		return unit_.unit_type == m_type && unit_.display_type != Unit::DisplayType::Placeholder;
-	}
-
-	IsFriendlyUnit::IsFriendlyUnit(UNIT_TYPEID type_) : m_type(type_) {
-	}
-
-	bool IsFriendlyUnit::operator()(const Unit& unit_) const {
-		return unit_.unit_type == m_type && unit_.alliance == Unit::Alliance::Self;
-	}
-
-	IsEnemyUnit::IsEnemyUnit(UNIT_TYPEID type_) : m_type(type_) {
-	}
-
-	bool IsEnemyUnit::operator()(const Unit& unit_) const {
-		return unit_.unit_type == m_type && unit_.alliance == Unit::Alliance::Enemy;
-	}
-
-	IsFlyingUnit::IsFlyingUnit()  {
-	}
-
-	bool IsFlyingUnit::operator()(const Unit& unit_) const {
-		return unit_.is_flying;
-	}
-
-	IsNotFlyingUnit::IsNotFlyingUnit() {
-	}
-
-	bool IsNotFlyingUnit::operator()(const Unit& unit_) const {
-		return !unit_.is_flying;
-	}
-
-
-#pragma endregion
-
 #pragma region debug info
 
     void TheBigBot::DisplayDebugHud()
@@ -2252,22 +1447,22 @@ namespace sc2 {
 
     void TheBigBot::DisplayWorkerStatus()
     {
-        Debug()->DebugTextOut("first 2 spaces: " + std::to_string(worker_manager.first_2_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
-        if (worker_manager.close_3_mineral_patch_extras.size() > 0)
-            Debug()->DebugTextOut("\nclose 3rd extras: " + std::to_string(worker_manager.close_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
+        Debug()->DebugTextOut("first 2 spaces: " + std::to_string(mediator.worker_manager.first_2_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
+        if (mediator.worker_manager.close_3_mineral_patch_extras.size() > 0)
+            Debug()->DebugTextOut("\nclose 3rd extras: " + std::to_string(mediator.worker_manager.close_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
         else
-            Debug()->DebugTextOut("\nclose 3rd spaces: " + std::to_string(worker_manager.close_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
-        if (worker_manager.far_3_mineral_patch_extras.size() > 0)
-            Debug()->DebugTextOut("\n\nfar 3rd extras: " + std::to_string(worker_manager.far_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
+            Debug()->DebugTextOut("\nclose 3rd spaces: " + std::to_string(mediator.worker_manager.close_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
+        if (mediator.worker_manager.far_3_mineral_patch_extras.size() > 0)
+            Debug()->DebugTextOut("\n\nfar 3rd extras: " + std::to_string(mediator.worker_manager.far_3_mineral_patch_extras.size()), Point2D(0, 0), Color(255, 0, 255), 20);
         else
-            Debug()->DebugTextOut("\n\nfar 3rd spaces: " + std::to_string(worker_manager.far_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
+            Debug()->DebugTextOut("\n\nfar 3rd spaces: " + std::to_string(mediator.worker_manager.far_3_mineral_patch_spaces.size()), Point2D(0, 0), Color(0, 255, 255), 20);
 
 
 
         std::string close_patches = "\n\n\n";
         std::string far_patches = "\n\n\n";
         std::string gasses = "\n\n\n";
-        for (const auto &data : worker_manager.mineral_patches)
+        for (const auto &data : mediator.worker_manager.mineral_patches)
         {
             if (data.second.is_close)
             {
@@ -2283,7 +1478,7 @@ namespace sc2 {
                 close_patches += "\n";
             }
         }
-        for (const auto &data : worker_manager.mineral_patches)
+        for (const auto &data : mediator.worker_manager.mineral_patches)
         {
             if (!data.second.is_close)
             {
@@ -2298,7 +1493,7 @@ namespace sc2 {
                 far_patches += "\n";
             }
         }
-        for (const auto &data : worker_manager.assimilators)
+        for (const auto &data : mediator.worker_manager.assimilators)
         {
             gasses += "gas:";
             if (data.second.workers[0] != NULL)
@@ -2318,11 +1513,11 @@ namespace sc2 {
     void TheBigBot::DisplayBuildOrder()
     {
         std::string build_order_message = "";
-        for (int i = build_order_manager.build_order_step; i < build_order_manager.build_order_step + 5; i++)
+        for (int i = mediator.build_order_manager.build_order_step; i < mediator.build_order_manager.build_order_step + 5; i++)
         {
-            if (i >= build_order_manager.build_order.size())
+            if (i >= mediator.build_order_manager.build_order.size())
                 break;
-            build_order_message += build_order_manager.build_order[i].toString() + "\n";
+            build_order_message += mediator.build_order_manager.build_order[i].toString() + "\n";
         }
         Debug()->DebugTextOut(build_order_message, Point2D(.7, .1), Color(0, 255, 0), 20);
     }
@@ -2330,12 +1525,12 @@ namespace sc2 {
     void TheBigBot::DisplayActiveActions()
     {
         std::string actions_message = "Active Actions:\n";
-        for (int i = 0; i < action_manager.active_actions.size(); i++)
+        for (int i = 0; i < mediator.action_manager.active_actions.size(); i++)
         {
-            actions_message += action_manager.active_actions[i]->toString() + "\n";
-            const Unit* unit = action_manager.active_actions[i]->action_arg->unit;
+            actions_message += mediator.action_manager.active_actions[i]->toString() + "\n";
+            const Unit* unit = mediator.action_manager.active_actions[i]->action_arg->unit;
             if (unit != NULL)
-                Debug()->DebugTextOut(action_manager.active_actions[i]->toString(), unit->pos, Color(0, 255, 0), 20);
+                Debug()->DebugTextOut(mediator.action_manager.active_actions[i]->toString(), unit->pos, Color(0, 255, 0), 20);
         }
         Debug()->DebugTextOut(actions_message, Point2D(.1, 0), Color(0, 255, 0), 20);
     }
@@ -2343,9 +1538,9 @@ namespace sc2 {
     void TheBigBot::DisplayActiveStateMachines()
     {
         std::string actions_message = "Active StateMachines:\n";
-        for (int i = 0; i < active_FSMs.size(); i++)
+        for (int i = 0; i < mediator.finite_state_machine_manager.active_state_machines.size(); i++)
         {
-            actions_message += active_FSMs[i]->toString() + "\n";
+            actions_message += mediator.finite_state_machine_manager.active_state_machines[i]->toString() + "\n";
         }
         Debug()->DebugTextOut(actions_message, Point2D(.3, 0), Color(0, 255, 0), 20);
     }
@@ -2365,18 +1560,23 @@ namespace sc2 {
 				
                 if (building_type == UNIT_TYPEID::PROTOSS_WARPGATE)
                 {
-					if (warpgate_status.count(building) > 0 && warpgate_status[building].frame_ready == 0)
+					if (mediator.unit_production_manager.warpgate_status.count(building) == 0)
+					{
+						std::string todo(10, '-');
+						info += " <" + todo + "> ";
+					}
+					else if (mediator.unit_production_manager.warpgate_status[building].frame_ready == 0)
 					{
 						text_color = Color(255, 0, 0);
 					}
 					else
 					{
-						int curr_frame = Observation()->GetGameLoop();
-						int start_frame = warpgate_status[building].frame_ready - 720;
+						/*int curr_frame = Observation()->GetGameLoop();
+						int start_frame = mediator.unit_production_manager.warpgate_status[building].frame_ready - 720;
 						int percent = floor((curr_frame - start_frame) / 72);
 						std::string completed(percent, '|');
 						std::string todo(10 - percent, '-');
-						info += " <" + completed + todo + "> ";
+						info += " <" + completed + todo + "> ";*/
 					}
                 }
                 else if (building->orders.empty())
@@ -2409,18 +1609,188 @@ namespace sc2 {
     void TheBigBot::DisplayArmyGroups()
     {
         std::string army_info = "Armies:\n";
-        for (int i = 0; i < army_groups.size(); i++)
+		std::vector<ArmyGroup*> groups = { mediator.army_manager.unassigned_group };
+		groups.insert(groups.begin() + 1, mediator.army_manager.army_groups.begin(), mediator.army_manager.army_groups.end());
+        for (int i = 0; i < groups.size(); i++)
         {
-            army_info += "    Army " + std::to_string(i+1);
-            army_info += ":\n";
-            army_info += "Stalkers: " + std::to_string(army_groups[i]->stalkers.size());
-            army_info += ", ";
-            army_info += "Observers: " + std::to_string(army_groups[i]->observers.size());
-            army_info += ", \n";
-            army_info += "Prisms: " + std::to_string(army_groups[i]->warp_prisms.size());
-            army_info += ", ";
-            army_info += "Immortals: " + std::to_string(army_groups[i]->immortals.size());
-            army_info += "\n";
+            army_info += "Army " + std::to_string(i+1) + ":\n";
+			army_info += "  Role - " + ARMY_ROLE_TO_STRING.at(groups[i]->role) + "\n";
+			if (groups[i]->all_units.size() > 0)
+			{
+				army_info += "  Units: \n    ";
+				int num_per_line = 0;
+				if (groups[i]->zealots.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Zealots-" + std::to_string(groups[i]->zealots.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->stalkers.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Stalkers-" + std::to_string(groups[i]->stalkers.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->adepts.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Adepts-" + std::to_string(groups[i]->adepts.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->sentries.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Sentries-" + std::to_string(groups[i]->sentries.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->high_templar.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "High templar-" + std::to_string(groups[i]->high_templar.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->dark_templar.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Dark templar-" + std::to_string(groups[i]->dark_templar.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->archons.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Archons-" + std::to_string(groups[i]->archons.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->immortals.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Immortals - " + std::to_string(groups[i]->immortals.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->collossi.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Collossi-" + std::to_string(groups[i]->collossi.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->disrupter.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Disrupter-" + std::to_string(groups[i]->disrupter.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->observers.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Observers-" + std::to_string(groups[i]->observers.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->warp_prisms.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Warp prisms-" + std::to_string(groups[i]->warp_prisms.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->phoenixes.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Phoenixes-" + std::to_string(groups[i]->phoenixes.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->void_rays.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Void rays-" + std::to_string(groups[i]->void_rays.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->oracles.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Oracles-" + std::to_string(groups[i]->oracles.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->carriers.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Carriers-" + std::to_string(groups[i]->carriers.size()) + ", ";
+					num_per_line++;
+				}
+				if (groups[i]->tempests.size() > 0)
+				{
+					if (num_per_line > 5)
+					{
+						army_info += "\n    ";
+						num_per_line = 0;
+					}
+					army_info += "Tempests-" + std::to_string(groups[i]->tempests.size()) + ", ";
+					num_per_line++;
+				}
+				army_info += "\n";
+			}
         }
         Debug()->DebugTextOut(army_info, Point2D(.8, .5), Color(255, 255, 255), 20);
     }
@@ -2433,7 +1803,7 @@ namespace sc2 {
         int used = Observation()->GetFoodUsed();
         supply_message += "supply: " + std::to_string(used) + '/' + std::to_string(cap) + '\n';
         int build_pylon_actions = 0;
-        for (const auto &action : action_manager.active_actions)
+        for (const auto &action : mediator.action_manager.active_actions)
         {
             if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == UNIT_TYPEID::PROTOSS_PYLON)
             {
@@ -2647,240 +2017,6 @@ namespace sc2 {
 		{
 			Debug()->DebugSphereOut(ToPoint3D(pos), .5, Color(255, 255, 255));
 		}
-	}
-
-
-    void TheBigBot::ObserveAttackPath(Units observers, Point2D retreat_point, Point2D attack_point)
-    {
-        for (const auto &ob : observers)
-        {
-            Actions()->UnitCommand(ob, ABILITY_ID::GENERAL_MOVE, attack_point);
-        }
-    }
-
-    void TheBigBot::StalkerAttackTowards(Units stalkers, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
-    {
-        for (const auto &stalker : stalkers)
-        {
-            Units close_enemies;
-            for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
-            {
-                if (unit->is_building)
-                    continue;
-                if (Distance2D(unit->pos, stalker->pos) < 10)
-                    close_enemies.push_back(unit);
-            }
-            bool weapon_ready = stalker->weapon_cooldown == 0;
-            bool blink_ready = false;
-            for (const auto &abiliy : Query()->GetAbilitiesForUnit(stalker).abilities)
-            {
-                if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK_STALKER)
-                {
-                    blink_ready = true;
-                    break;
-                }
-            }
-            /*Debug()->DebugTextOut(std::to_string(stalker->weapon_cooldown), stalker->pos, Color(0, 255, 255), 20);
-            if (stalker->weapon_cooldown == 0)
-                Debug()->DebugSphereOut(stalker->pos, .7, Color(0, 255, 0));
-            else
-                Debug()->DebugSphereOut(stalker->pos, .7, Color(255, 0, 0));*/
-            if (find(stalker->buffs.begin(), stalker->buffs.end(), BUFF_ID::LOCKON) != stalker->buffs.end())
-            {
-                if (blink_ready)
-                    Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK_STALKER, Utility::PointBetween(stalker->pos, retreat_point, 4));
-                else
-                    Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
-            }
-            else if (stalker->shield == 0)
-            {
-                if (Utility::DangerLevel(stalker, Observation()) > 0 && blink_ready)
-                    Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK_STALKER, Utility::PointBetween(stalker->pos, retreat_point, 4));
-                else
-                    Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
-            }
-            else if (!weapon_ready)
-            {
-                if (Utility::DangerLevel(stalker, Observation()) > stalker->shield && blink_ready)
-                    Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK_STALKER, Utility::PointBetween(stalker->pos, retreat_point, 4));
-                else if (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, stalker->pos) - 2 < Utility::RealGroundRange(stalker, Utility::ClosestTo(close_enemies, stalker->pos)))
-                    Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
-                else
-                    Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point);
-            }
-            else if (close_enemies.size() > 0)
-            {
-                if (!ob_in_position && Utility::IsOnHighGround(stalker->pos, Utility::ClosestTo(close_enemies, stalker->pos)->pos) || Utility::ClosestTo(close_enemies, stalker->pos)->display_type == Unit::DisplayType::Snapshot)
-                    Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
-                else
-                    Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, Utility::ClosestTo(close_enemies, stalker->pos));
-            }
-            else
-            {
-                Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point);
-            }
-        }
-    }
-
-    void TheBigBot::StalkerAttackTowardsWithPrism(Units stalkers, Units prisms, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
-    {
-        for (const auto &prism : prisms)
-        {
-            Units close_enemies;
-            for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
-            {
-                if (Distance2D(unit->pos, prism->pos) < 10)
-                    close_enemies.push_back(unit);
-            }
-            if (close_enemies.size() == 0)
-                Actions()->UnitCommand(prism, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(stalkers));
-            else
-                Actions()->UnitCommand(prism, ABILITY_ID::GENERAL_MOVE, retreat_point);
-            Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT_WARPPRISM, prism);
-        }
-
-        for (const auto &stalker : stalkers)
-        {
-            Units close_enemies;
-            for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
-            {
-                if (Distance2D(unit->pos, stalker->pos) < 10)
-                    close_enemies.push_back(unit);
-            }
-            bool weapon_ready = stalker->weapon_cooldown == 0;
-            bool blink_ready = false;
-            for (const auto &abiliy : Query()->GetAbilitiesForUnit(stalker).abilities)
-            {
-                if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK_STALKER)
-                {
-                    blink_ready = true;
-                    break;
-                }
-            }
-
-            /*Debug()->DebugTextOut(std::to_string(stalker->weapon_cooldown), stalker->pos, Color(0, 255, 255), 20);
-            if (stalker->weapon_cooldown == 0)
-                Debug()->DebugSphereOut(stalker->pos, .7, Color(0, 255, 0));
-            else
-                Debug()->DebugSphereOut(stalker->pos, .7, Color(255, 0, 0));*/
-
-            if (find(stalker->buffs.begin(), stalker->buffs.end(), BUFF_ID::LOCKON) != stalker->buffs.end())
-            {
-                const Unit* prism = Utility::GetLeastFullPrism(prisms);
-                if (prism->cargo_space_max - prism->cargo_space_taken > 4)
-                {
-                    //Actions()->UnitCommand(prism, ABILITY_ID::LOAD_WARPPRISM, stalker, true);
-                    Actions()->UnitCommand(stalker, ABILITY_ID::SMART, prism);
-                }
-                else if (blink_ready)
-                {
-                    Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK_STALKER, Utility::PointBetween(stalker->pos, retreat_point, 4));
-                }
-                else
-                {
-                    Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
-                }
-            }
-            else if (stalker->shield == 0) // TODO pull this out?
-            {
-                if (Utility::DangerLevel(stalker, Observation()) > 0 && blink_ready)
-                    Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK_STALKER, Utility::PointBetween(stalker->pos, retreat_point, 4));
-                else
-                    Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
-            }
-            else if (!weapon_ready)
-            {
-                const Unit* prism = Utility::GetLeastFullPrism(prisms);
-                if (prism->cargo_space_max - prism->cargo_space_taken > 6)
-                {
-                    //Actions()->UnitCommand(prism, ABILITY_ID::LOAD_WARPPRISM, stalker, true);
-                    Actions()->UnitCommand(stalker, ABILITY_ID::SMART, prism);
-                }
-                if (Utility::DangerLevel(stalker, Observation()) > stalker->shield && blink_ready)
-                    Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK_STALKER, Utility::PointBetween(stalker->pos, retreat_point, 4));
-                else if (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, stalker->pos) - 2 < Utility::RealGroundRange(stalker, Utility::ClosestTo(close_enemies, stalker->pos)))
-                    Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
-                else
-                    Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point);
-            }
-            else if (close_enemies.size() > 0)
-            {
-                if (!ob_in_position && Utility::IsOnHighGround(stalker->pos, Utility::ClosestTo(close_enemies, stalker->pos)->pos) || Utility::ClosestTo(close_enemies, stalker->pos)->display_type == Unit::DisplayType::Snapshot)
-                    Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, retreat_point);
-                else
-                    Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, Utility::ClosestTo(close_enemies, stalker->pos));
-            }
-            else
-            {
-                Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point);
-            }
-        }
-    }
-
-    void TheBigBot::ImmortalAttackTowards(Units immortals, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
-    {
-		for (const auto &immortal : immortals)
-		{
-			Units close_enemies;
-			for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
-			{
-				if (unit->is_building)
-					continue;
-				if (Distance2D(unit->pos, immortal->pos) < 10)
-					close_enemies.push_back(unit);
-			}
-			bool weapon_ready = immortal->weapon_cooldown == 0;
-
-			/*Debug()->DebugTextOut(std::to_string(immortal->weapon_cooldown), immortal->pos, Color(0, 255, 255), 20);
-			if (immortal->weapon_cooldown == 0)
-				Debug()->DebugSphereOut(immortal->pos, .7, Color(0, 255, 0));
-			else
-				Debug()->DebugSphereOut(immortal->pos, .7, Color(255, 0, 0));*/
-
-			if (find(immortal->buffs.begin(), immortal->buffs.end(), BUFF_ID::LOCKON) != immortal->buffs.end())
-			{
-				Actions()->UnitCommand(immortal, ABILITY_ID::MOVE_MOVE, retreat_point);
-			}
-			else if (immortal->shield == 0)
-			{
-				Actions()->UnitCommand(immortal, ABILITY_ID::MOVE_MOVE, retreat_point);
-			}
-			else if (!weapon_ready)
-			{
-				if (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, immortal->pos) - 2 < Utility::RealGroundRange(immortal, Utility::ClosestTo(close_enemies, immortal->pos)))
-					Actions()->UnitCommand(immortal, ABILITY_ID::MOVE_MOVE, retreat_point);
-				else
-					Actions()->UnitCommand(immortal, ABILITY_ID::ATTACK, attack_point);
-			}
-			else if (close_enemies.size() > 0)
-			{
-				if (!ob_in_position && Utility::IsOnHighGround(immortal->pos, Utility::ClosestTo(close_enemies, immortal->pos)->pos) || Utility::ClosestTo(close_enemies, immortal->pos)->display_type == Unit::DisplayType::Snapshot)
-					Actions()->UnitCommand(immortal, ABILITY_ID::MOVE_MOVE, retreat_point);
-				else
-					Actions()->UnitCommand(immortal, ABILITY_ID::ATTACK, Utility::ClosestTo(close_enemies, immortal->pos));
-			}
-			else
-			{
-				Actions()->UnitCommand(immortal, ABILITY_ID::ATTACK, attack_point);
-			}
-		}
-    }
-
-    void TheBigBot::ImmortalAttackTowardsWithPrism(Units stalkers, Units prisms, Point2D retreat_point, Point2D attack_point, bool ob_in_position)
-    {
-
-    }
-
-	bool TheBigBot::FireVolley(Units units, std::vector<UNIT_TYPEID> prio)
-	{
-		std::map<const Unit*, const Unit*> attacks = FindTargets(units, prio, 0);
-		if (attacks.size() == 0)
-			return false;
-		for (const auto &attack : attacks)
-		{
-			Actions()->UnitCommand(attack.first, ABILITY_ID::ATTACK, attack.second);
-		}
-		return true;
 	}
 
 	std::map<const Unit*, const Unit*> TheBigBot::FindTargets(Units units, std::vector<UNIT_TYPEID> prio, float max_extra_range)

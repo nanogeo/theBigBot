@@ -1,12 +1,10 @@
 #pragma once
 #include "pathfinding.h"
 #include "nav_mesh_pathfinding.h"
-#include "worker_manager.h"
 #include "army_group.h"
 #include "utility.h"
-#include "action_manager.h"
-#include "build_order_manager.h"
 #include "definitions.h"
+#include "mediator.h"
 
 
 #include "sc2api/sc2_interfaces.h"
@@ -47,42 +45,6 @@ struct OnUnitEntersVisionEvent
 {
 	std::map<int, std::function<void(const Unit*)>> listeners;
 	OnUnitEntersVisionEvent() {};
-};
-
-struct ScoutInfoZerg
-{
-    float natural_timing = 0;
-    float third_timing = 0;
-    float gas_timing = 0;
-    int gas_mined = 0;
-    float pool_timing = 0;
-    bool pool_active = 0;
-    int drone_count = 0;
-    float roach_warren_timing = 0;
-};
-
-
-enum FirstRaxProduction {
-	idle,
-	marine,
-	reaper,
-	reactor,
-	techlab
-};
-
-struct ScoutInfoTerran
-{
-    float natural_timing = 0;
-    float third_timing = 0;
-    float gas_timing = 0;
-	Point3D gas_pos;
-	float second_gas_timing = 0;
-    int gas_mined = 0;
-    float barrackes_timing = 0;
-    bool factory_timing = 0;
-    int scv_count = 0;
-    int num_barracks = 0;
-	FirstRaxProduction first_rax_production = FirstRaxProduction::idle;
 };
 
 struct BaseInfo
@@ -155,72 +117,6 @@ struct Army
 
 
 
-struct IsFinishedUnit {
-    explicit IsFinishedUnit(UNIT_TYPEID type_);
-
-    bool operator()(const Unit& unit_) const;
-
-private:
-    UNIT_TYPEID m_type;
-};
-
-struct IsFightingUnit {
-	explicit IsFightingUnit(Unit::Alliance alliance_);
-
-	bool operator()(const Unit& unit_) const;
-
-private:
-	Unit::Alliance m_type;
-};
-
-struct IsNonbuilding {
-	explicit IsNonbuilding(Unit::Alliance alliance_);
-
-	bool operator()(const Unit& unit_) const;
-
-private:
-	Unit::Alliance m_type;
-};
-
-struct IsNonPlaceholderUnit {
-	explicit IsNonPlaceholderUnit(UNIT_TYPEID type_);
-
-	bool operator()(const Unit& unit_) const;
-
-private:
-	UNIT_TYPEID m_type;
-};
-
-struct IsFriendlyUnit {
-	explicit IsFriendlyUnit(UNIT_TYPEID type_);
-
-	bool operator()(const Unit& unit_) const;
-
-private:
-	UNIT_TYPEID m_type;
-};
-
-struct IsEnemyUnit {
-	explicit IsEnemyUnit(UNIT_TYPEID type_);
-
-	bool operator()(const Unit& unit_) const;
-
-private:
-	UNIT_TYPEID m_type;
-};
-
-struct IsFlyingUnit {
-	explicit IsFlyingUnit();
-
-	bool operator()(const Unit& unit_) const;
-};
-
-struct IsNotFlyingUnit {
-	explicit IsNotFlyingUnit();
-
-	bool operator()(const Unit& unit_) const;
-};
-
 struct EnemyUnitPosition
 {
 	Point2D pos;
@@ -261,18 +157,6 @@ struct UnitTypeInfo
 		is_army_unit = army;
 		has_anti_ground_attack = anti_ground;
 		has_anti_air_attack = anti_air;
-	}
-};
-
-struct WarpgateStatus
-{
-	bool used;
-	int frame_ready;
-	WarpgateStatus() {};
-	WarpgateStatus(int curr_frame)
-	{
-		used = false;
-		frame_ready = curr_frame + 1;
 	}
 };
 
@@ -331,15 +215,13 @@ public:
 class TheBigBot : public sc2::Agent
 {
 public:
-	TheBigBot() : Agent(), worker_manager(this), action_manager(this), build_order_manager(this) {};
+	TheBigBot() : Agent(), mediator(this) {};
 	bool started = false;
 	BuildOrder curr_build_order = BuildOrder::testing;
-	WorkerManager worker_manager;
-	ActionManager action_manager;
-	BuildOrderManager build_order_manager;
-    bool debug_mode = !true;
+	Mediator mediator;
+    bool debug_mode = false;
 	int frames_passed = 0;
-    ScoutInfoZerg scout_info_zerg;
+    ScoutInfoZerg scout_info_zerg; // TODO create scouting manager
     ScoutInfoTerran scout_info_terran;
     Race enemy_race;
     std::vector<std::vector<bool>> grid_map;
@@ -349,21 +231,11 @@ public:
 	std::map<const Unit*, EnemyUnitPosition> enemy_unit_saved_position;
 	std::map<const Unit*, float> enemy_weapon_cooldown;
 	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
-	std::map<const Unit*, WarpgateStatus> warpgate_status;
 	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
 	std::vector<Point2D> corrosive_bile_positions;
 	std::vector<int> corrosive_bile_times;
 	int current_unique_id = 0;
 
-	bool has_blink = true;
-	bool has_charge = false;
-	bool has_storm = false;
-	bool has_dt_blink = false;
-	int upgrade_ground_weapon = 0;
-	int upgrade_ground_armor = 0;
-	int upgrade_shields = 0;
-	int upgrade_air_weapon = 0;
-	int upgrade_air_armor = 0;
 
 	// testing
 	Point2D enemy_army_spawn = Point2D(34, 139);
@@ -380,32 +252,20 @@ public:
 	void SetUpArmies();
 
 
-    //const Unit *new_base = NULL;
-    std::vector<StateMachine*> active_FSMs;
     Locations* locations;
     //bool should_build_workers;
     int extra_pylons = 0;
     //int removed_gas_miners = 0;
-    bool immediatelySaturateGasses = false;
-	bool immediatelySemiSaturateGasses = false;
     std::vector<Tag> proxy_pylons;
-    std::vector<ArmyGroup*> army_groups;
     OnUnitDamagedEvent on_unit_damaged_event;
     OnUnitDestroyedEvent on_unit_destroyed_event;
 	OnUnitCreatedEvent on_unit_created_event;
 	OnUnitEntersVisionEvent on_unit_enters_vision_event;
 
-    std::vector<Point2D> GetLocations(UNIT_TYPEID);
-    Point2D GetLocation(UNIT_TYPEID);
-	Point2D GetProxyLocation(UNIT_TYPEID);
 	Point2D GetNaturalDefensiveLocation(UNIT_TYPEID);
     std::vector<Point2D> GetProxyLocations(UNIT_TYPEID);
     std::vector<Point2D> FindWarpInSpots(Point2D, int);
     std::vector<Point2D> FindProxyWarpInSpots();
-    void OraclesCoverStalkers(Units, Units);
-
-    void ProcessFSMs();
-	void RemoveStateMachine(StateMachine*);
 
     // Events
     void AddListenerToOnUnitDamagedEvent(int, std::function<void(const Unit*, float, float)>);
@@ -451,7 +311,6 @@ public:
 	bool UnitIsOccupied(const Unit*);
 	Point3D ToPoint3D(Point2D);
 	int GetUniqueId();
-	void UpdateWarpgateStatus();
 	void UpdateEffectPositions();
 
 
@@ -473,15 +332,8 @@ public:
 	void PrintNonPathablePoints();
 	void ShowLocations();
 
-    // Micro
-    void ObserveAttackPath(Units, Point2D, Point2D);
-    void StalkerAttackTowards(Units, Point2D, Point2D, bool);
-    void StalkerAttackTowardsWithPrism(Units, Units, Point2D, Point2D, bool);
-    void ImmortalAttackTowards(Units, Point2D, Point2D, bool);
-    void ImmortalAttackTowardsWithPrism(Units, Units, Point2D, Point2D, bool);
 
 	// Other
-	bool FireVolley(Units, std::vector<UNIT_TYPEID>);
 	std::map<const Unit*, const Unit*> FindTargets(Units, std::vector<UNIT_TYPEID>, float);
 
 };

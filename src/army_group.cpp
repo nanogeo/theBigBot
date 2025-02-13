@@ -13,6 +13,7 @@
 
 #include "army_group.h"
 #include "theBigBot.h"
+#include "mediator.h"
 #include "utility.h"
 #include "finite_state_machine.h"
 #include "locations.h"
@@ -20,122 +21,43 @@
 
 namespace sc2 {
 
-	ArmyGroup::ArmyGroup(TheBigBot* agent) : persistent_fire_control(agent)
+	ArmyGroup::ArmyGroup(Mediator* mediator, PathManager attack_line, std::vector<Point2D> attack_path, ArmyRole role, std::vector<UNIT_TYPEID> unit_types) : persistent_fire_control(mediator->agent)
 	{
-		this->agent = agent;
-		event_id = agent->GetUniqueId();
-		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
-			this->OnUnitDestroyedListener(unit);
-		};
-		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+		this->mediator = mediator;
+		event_id = mediator->GetUniqueId();
+
+		this->attack_path = attack_path;
+		attack_path_line = attack_line;
+		this->role = role;
+		for (const auto& type : unit_types)
+		{
+			this->unit_types.push_back(type);
+		}
 	}
 
-	ArmyGroup::ArmyGroup(TheBigBot* agent, Units all_units, std::vector<Point2D> path, int index) : persistent_fire_control(agent)
+	ArmyGroup::ArmyGroup(Mediator* mediator, std::vector<Point2D> attack_path, ArmyRole role, std::vector<UNIT_TYPEID> unit_types) : persistent_fire_control(mediator->agent)
 	{
-		this->agent = agent;
-		this->all_units = all_units;
+		this->mediator = mediator;
+		event_id = mediator->GetUniqueId();
 
-		for (const auto &unit : all_units)
+		this->attack_path = attack_path;
+		this->role = role;
+		for (const auto& type : unit_types)
 		{
-			if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
-				zealots.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
-			{
-				stalkers.push_back(unit);
-				last_time_blinked[unit] = 0;
-			}
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
-				adepts.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_SENTRY)
-				sentries.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_HIGHTEMPLAR)
-				high_templar.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DARKTEMPLAR)
-				dark_templar.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ARCHON)
-				archons.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_IMMORTAL)
-				immortals.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_COLOSSUS)
-				collossi.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DISRUPTOR)
-				disrupter.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_OBSERVER)
-				observers.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_WARPPRISM)
-				warp_prisms.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_PHOENIX)
-				phoenixes.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_VOIDRAY)
-				void_rays.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ORACLE)
-				oracles.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_CARRIER)
-				carriers.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_TEMPEST)
-				tempests.push_back(unit);
+			this->unit_types.push_back(type);
 		}
-		attack_path = path;
-		current_attack_index = 2;
-		high_ground_index = index;
-		event_id = agent->GetUniqueId();
-		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
-			this->OnUnitDestroyedListener(unit);
-		};
-		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 	}
 
-	ArmyGroup::ArmyGroup(TheBigBot* agent, Units all_units,PathManager path) : persistent_fire_control(agent)
+	ArmyGroup::ArmyGroup(Mediator* mediator, ArmyRole role, std::vector<UNIT_TYPEID> unit_types) : persistent_fire_control(mediator->agent)
 	{
-		this->agent = agent;
-		this->all_units = all_units;
+		this->mediator = mediator;
+		event_id = mediator->GetUniqueId();
 
-		for (const auto& unit : all_units)
+		this->role = role;
+		for (const auto& type : unit_types)
 		{
-			if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
-				zealots.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
-			{
-				stalkers.push_back(unit);
-				last_time_blinked[unit] = 0;
-			}
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
-				adepts.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_SENTRY)
-				sentries.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_HIGHTEMPLAR)
-				high_templar.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DARKTEMPLAR)
-				dark_templar.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ARCHON)
-				archons.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_IMMORTAL)
-				immortals.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_COLOSSUS)
-				collossi.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DISRUPTOR)
-				disrupter.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_OBSERVER)
-				observers.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_WARPPRISM)
-				warp_prisms.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_PHOENIX)
-				phoenixes.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_VOIDRAY)
-				void_rays.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ORACLE)
-				oracles.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_CARRIER)
-				carriers.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_TEMPEST)
-				tempests.push_back(unit);
+			this->unit_types.push_back(type);
 		}
-		attack_path_line = path;
-		event_id = agent->GetUniqueId();
-		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
-			this->OnUnitDestroyedListener(unit);
-		};
-		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 	}
 
 	void ArmyGroup::AddUnit(const Unit* unit)
@@ -222,14 +144,18 @@ namespace sc2 {
 	void ArmyGroup::RemoveUnit(const Unit* unit)
 	{
 		all_units.erase(std::remove(all_units.begin(), all_units.end(), unit), all_units.end());
+		new_units.erase(std::remove(new_units.begin(), new_units.end(), unit), new_units.end());
 		attack_status.erase(unit);
 
 		Units* units;
-		if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ZEALOT)
-			units = &zealots;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
+		switch (unit->unit_type.ToType())
 		{
-			units = &stalkers;
+		case ZEALOT:
+			units = &zealots;
+			break;
+		case STALKER:
+		{
+			units = &stalkers; // TODO why do i need this
 			auto index = std::find(stalkers.begin(), stalkers.end(), unit);
 			if (index == stalkers.end())
 			{
@@ -241,40 +167,55 @@ namespace sc2 {
 				if (last_time_blinked.count(unit))
 					last_time_blinked.erase(unit);
 			}
+			break;
 		}
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ADEPT)
+		case ADEPT:
 			units = &adepts;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_SENTRY)
+			break;
+		case SENTRY:
 			units = &sentries;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_HIGHTEMPLAR)
+			break;
+		case HIGH_TEMPLAR:
 			units = &high_templar;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DARKTEMPLAR)
+			break;
+		case DARK_TEMPLAR:
 			units = &dark_templar;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ARCHON)
+			break;
+		case ARCHON:
 			units = &archons;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_IMMORTAL)
+			break;
+		case IMMORTAL:
 			units = &immortals;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_COLOSSUS)
+			break;
+		case COLOSSUS:
 			units = &collossi;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_DISRUPTOR)
+			break;
+		case DISRUPTOR:
 			units = &disrupter;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_OBSERVER)
+			break;
+		case OBSERVER:
 			units = &observers;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_WARPPRISM)
+			break;
+		case PRISM:
 			units = &warp_prisms;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_PHOENIX)
+			break;
+		case PHOENIX:
 			units = &phoenixes;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_VOIDRAY)
+			break;
+		case VOID_RAY:
 			units = &void_rays;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ORACLE)
+			break;
+		case ORACLE:
 			units = &oracles;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_CARRIER)
+			break;
+		case CARRIER:
 			units = &carriers;
-		else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_TEMPEST)
+			break;
+		case TEMPEST:
 			units = &tempests;
-		else
-		{
-			//std::cout << "Error unknown unit type in ArmyGroup::AddUnit";
+			break;
+		default:
+			std::cerr << "Error unknown unit type in ArmyGroup::RemoveUnit" << std::endl;
 			return;
 		}
 
@@ -315,7 +256,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction + i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position))
+					if (mediator->IsPathable(unit_position))
 					{
 						concave_points.push_back(unit_position);
 					}
@@ -332,7 +273,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction - i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position))
+					if (mediator->IsPathable(unit_position))
 					{
 						concave_points.push_back(unit_position);
 					}
@@ -353,7 +294,7 @@ namespace sc2 {
 			float unit_direction = backwards_direction;
 			Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 				offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-			if (agent->Observation()->IsPathable(unit_position))
+			if (mediator->IsPathable(unit_position))
 			{
 				concave_points.push_back(unit_position);
 			}
@@ -368,7 +309,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction + i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position))
+					if (mediator->IsPathable(unit_position))
 					{
 						concave_points.push_back(unit_position);
 					}
@@ -385,7 +326,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction - i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position))
+					if (mediator->IsPathable(unit_position))
 					{
 						concave_points.push_back(unit_position);
 					}
@@ -404,9 +345,9 @@ namespace sc2 {
 
 	std::vector<Point2D> ArmyGroup::FindConcaveWithPrism(Point2D origin, Point2D fallback_point, int num_units, int num_prisms, float unit_size, float dispersion, float concave_degree, std::vector<Point2D>& prism_positions)
 	{
-		float min_height = agent->Observation()->TerrainHeight(origin) - .5;
-		float max_height = agent->Observation()->TerrainHeight(origin) + .5;
-		float height = agent->ToPoint3D(origin).z;
+		float min_height = mediator->ToPoint3D(origin).z - .5;
+		float max_height = min_height + 1;
+		float height = mediator->ToPoint3D(origin).z;
 		float range = 0; //r
 		float unit_radius = unit_size + dispersion; //u
 		//float concave_degree = 30; //p
@@ -441,14 +382,14 @@ namespace sc2 {
 					float unit_direction = backwards_direction + i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					float point_height = agent->Observation()->TerrainHeight(unit_position);
-					if (agent->Observation()->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
+					float point_height = mediator->ToPoint3D(unit_position).z;
+					if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
 						if (point_height + .5 > max_height)
 							max_height = point_height + .5;
 						if (point_height - .5 < min_height)
 							min_height = point_height - .5;
-						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
 							concave_points.push_back(unit_position);
 					}
 					else
@@ -464,14 +405,14 @@ namespace sc2 {
 					float unit_direction = backwards_direction - i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					float point_height = agent->Observation()->TerrainHeight(unit_position);
-					if (agent->Observation()->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
+					float point_height = mediator->ToPoint3D(unit_position).z;
+					if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
 						if (point_height + .5 > max_height)
 							max_height = point_height + .5;
 						if (point_height - .5 < min_height)
 							min_height = point_height - .5;
-						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
 							concave_points.push_back(unit_position);
 					}
 					else
@@ -495,7 +436,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position))
+					if (mediator->IsPathable(unit_position))
 					{
 						prism_positions.push_back(unit_position);
 					}
@@ -532,14 +473,14 @@ namespace sc2 {
 			float unit_direction = backwards_direction;
 			Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 				offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-			float point_height = agent->Observation()->TerrainHeight(unit_position);
-			if (agent->Observation()->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
+			float point_height = mediator->ToPoint3D(unit_position).z;
+			if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 			{
 				if (point_height + .5 > max_height)
 					max_height = point_height + .5;
 				if (point_height - .5 < min_height)
 					min_height = point_height - .5;
-				if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+				if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
 					concave_points.push_back(unit_position);
 			}
 
@@ -553,14 +494,14 @@ namespace sc2 {
 					float unit_direction = backwards_direction + i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					float point_height = agent->Observation()->TerrainHeight(unit_position);
-					if (agent->Observation()->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
+					float point_height = mediator->ToPoint3D(unit_position).z;
+					if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
 						if (point_height + .5 > max_height)
 							max_height = point_height + .5;
 						if (point_height - .5 < min_height)
 							min_height = point_height - .5;
-						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
 							concave_points.push_back(unit_position);
 					}
 					else
@@ -576,14 +517,14 @@ namespace sc2 {
 					float unit_direction = backwards_direction - i * arclength;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					float point_height = agent->Observation()->TerrainHeight(unit_position);
-					if (agent->Observation()->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
+					float point_height = mediator->ToPoint3D(unit_position).z;
+					if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
 						if (point_height + .5 > max_height)
 							max_height = point_height + .5;
 						if (point_height - .5 < min_height)
 							min_height = point_height - .5;
-						if (Utility::DistanceToClosest(agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
 							concave_points.push_back(unit_position);
 					}
 					else
@@ -607,7 +548,7 @@ namespace sc2 {
 					float unit_direction = backwards_direction;
 					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (agent->Observation()->IsPathable(unit_position))
+					if (mediator->IsPathable(unit_position))
 					{
 						prism_positions.push_back(unit_position);
 					}
@@ -751,9 +692,9 @@ namespace sc2 {
 
 				attack_status[unit] = false;
 				if (unit->orders.size() > 0 && unit->orders[0].ability_id == ABILITY_ID::ATTACK && unit->weapon_cooldown == 0)
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::SMART, prism.first, true);
+					mediator->SetUnitCommand(unit, ABILITY_ID::SMART, prism.first, true);
 				else
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::SMART, prism.first);
+					mediator->SetUnitCommand(unit, ABILITY_ID::SMART, prism.first);
 				prism.second -= cargo_size;
 				break;
 			}
@@ -762,13 +703,13 @@ namespace sc2 {
 
 	void ArmyGroup::DodgeShots()
 	{
-		for (const auto &Funit : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STALKER)))
+		for (const auto &Funit : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STALKER)))
 		{
-			int danger = agent->IncomingDamage(Funit);
+			int danger = mediator->agent->IncomingDamage(Funit);
 			if (danger)
 			{
 				bool blink_ready = false;
-				for (const auto &abiliy : agent->Query()->GetAbilitiesForUnit(Funit).abilities)
+				for (const auto &abiliy : mediator->agent->Query()->GetAbilitiesForUnit(Funit).abilities)
 				{
 					if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
 					{
@@ -778,8 +719,8 @@ namespace sc2 {
 				}
 				if (blink_ready && (danger > Funit->shield || danger > (Funit->shield_max / 2)))
 				{
-					agent->Actions()->UnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4));
-					agent->Actions()->UnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), true);
+					mediator->SetUnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4));
+					mediator->SetUnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), true);
 					//agent->Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
 				}
 				else
@@ -792,7 +733,7 @@ namespace sc2 {
 
 	void ArmyGroup::FindStalkerPositions(std::map<const Unit*, Point2D>& attacking_unit_positions, std::map<const Unit*, Point2D>& retreating_unit_positions, float unit_size, float unit_dispersion)
 	{
-		Units enemies = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
+		Units enemies = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
 		Point2D stalkers_center = Utility::MedianCenter(stalkers);
 		Point2D stalker_line_pos = attack_path_line.FindClosestPoint(stalkers_center);
 
@@ -843,371 +784,83 @@ namespace sc2 {
 		}*/
 	}
 
-	void ArmyGroup::MicroStalkerAttack()
+	void ArmyGroup::DefendFrontDoor(Point2D door_open_pos, Point2D door_closed_pos)
 	{
-		if (stalkers.size() == 0)
-			return;
-
-		/*for (const auto &pos : attack_path_line.GetPoints())
+		if (new_units.size() > 0)
 		{
-			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
-		}*/
-
-		std::map<const Unit*, Point2D> attacking_unit_positions;
-		std::map<const Unit*, Point2D> retreating_unit_positions;
-		float unit_size = .625;
-		float unit_dispersion = .16;
-
-		FindStalkerPositions(attacking_unit_positions, retreating_unit_positions, unit_size, unit_dispersion);
-
-		Point2D center = Utility::MedianCenter(stalkers);
-		std::map<const Unit*, int> units_requesting_pickup;
-
-		bool all_ready = true;
-		Units stalkers_ready;
-		Units stalkers_not_ready;
-		for (const auto &stalker : stalkers)
-		{
-			if (stalker->weapon_cooldown == 0 && attack_status[stalker] == false)
+			for (const auto& unit : new_units)
 			{
-				// ignore units inside prisms
-				if (warp_prisms.size() > 0)
-				{
-					bool in_prism = false;
-					for (const auto &prism : warp_prisms)
-					{
-						for (const auto &passanger : prism->passengers)
-						{
-							if (passanger.tag == stalker->tag)
-							{
-								in_prism = true;
-								break;
-							}
-						}
-						if (in_prism)
-							break;
-					}
-					if (in_prism)
-						stalkers_not_ready.push_back(stalker);
-				}
-				stalkers_ready.push_back(stalker);
+				AddUnit(unit);
+			}
+		}
+		if (all_units.size() == 0)
+			return;
+		const Unit* guard = all_units[0];
+
+		Units enemies = mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
+		if (enemies.size() == 0)
+		{
+			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, door_open_pos);
+			return;
+		}
+
+		const Unit* closest_to_door = Utility::ClosestTo(enemies, door_closed_pos);
+		double dist_to_closest = Distance2D(closest_to_door->pos, door_closed_pos);
+
+		Point2D guard_move_to = Utility::PointBetween(door_closed_pos, closest_to_door->pos, std::min(4.0, std::max(0.0, (dist_to_closest / 2) - 1)));
+
+
+		// TODO use fire control to find the best target
+		const Unit* closest_to_guard = Utility::ClosestTo(enemies, guard->pos);
+		if (Distance2D(closest_to_guard->pos, guard->pos) < Utility::RealGroundRange(guard, closest_to_guard))
+		{
+			// enemy in range
+			if (Distance2D(guard->pos, guard_move_to) > .5)
+			{
+				mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to);
 			}
 			else
 			{
-				stalkers_not_ready.push_back(stalker);
-			}
-		}
-		bool enough_stalkers_ready = true;
-		if (static_cast<float>(stalkers_ready.size()) / static_cast<float>(stalkers.size()) >= 1)
-		{
-			std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers_ready, {}, 0);
-			if (found_targets.size() == 0)
-			{
-				found_targets = agent->FindTargets(stalkers_ready, {}, 2);
-				//std::cout << "extra distance\n";
-			}
-
-			//agent->PrintAttacks(found_targets);
-
-			for (const auto &stalker : stalkers_ready)
-			{
-				if (found_targets.size() == 0)
-				{
-					agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attacking_unit_positions[stalker]);
-				}
-				if (found_targets.count(stalker) > 0)
-				{
-					agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, found_targets[stalker]);
-					attack_status[stalker] = true;
-				}
+				mediator->SetUnitCommand(guard, ABILITY_ID::ATTACK_ATTACK, closest_to_guard);
 			}
 		}
 		else
 		{
-			enough_stalkers_ready = false;
+			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to);
 		}
-
-		if (stalkers_not_ready.size() > 0)
-		{
-			for (const auto &stalker : stalkers)
-			{
-				if (enough_stalkers_ready == true && std::find(stalkers_not_ready.begin(), stalkers_not_ready.end(), stalker) == stalkers_not_ready.end())
-					continue;
-
-				int danger = agent->IncomingDamage(stalker);
-				if (danger > 0)
-				{
-					/*if (danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
-					{
-						float now = agent->Observation()->GetGameLoop() / 22.4;
-						bool blink_off_cooldown = now - last_time_blinked[stalker] > 7;
-
-						if (agent->has_blink && blink_off_cooldown)
-						{
-							if (stalker->orders.size() > 0 && stalker->orders[0].ability_id == ABILITY_ID::ATTACK && stalker->weapon_cooldown == 0)
-								agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7), true); // TODO adjustable blink distance
-							else
-								agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7)); // TODO adjustable blink distance
-							//agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point, true);
-							attack_status[stalker] = false;
-							last_time_blinked[stalker] = now;
-							continue;
-						}
-					}*/
-
-					units_requesting_pickup[stalker] = danger;
-				}
-
-				//agent->Debug()->DebugSphereOut(stalker->pos, .5, Color(0, 255, 255));
-				//agent->Debug()->DebugTextOut(std::to_string(danger), stalker->pos, Color(0, 255, 255), 15);
-
-				if (attack_status[stalker] == false)
-				{
-					// no order but no danger so just move back
-					agent->Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, retreating_unit_positions[stalker]);
-				}
-				else if (stalker->weapon_cooldown > 0)
-				{
-					// attack has gone off so reset order status
-					attack_status[stalker] = false;
-				}
-				else if (stalker->orders.size() == 0 || stalker->orders[0].ability_id == ABILITY_ID::MOVE_MOVE || stalker->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE)
-				{
-					// attack order is no longer valid
-					attack_status[stalker] = false;
-				}
-			}
-		}
-
-		for (const auto &prism : warp_prisms)
-		{
-			agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, center);
-			agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism->pos);
-		}
-
-		PickUpUnits(units_requesting_pickup);
 	}
 
-	void ArmyGroup::ApplyPressureGrouped(Point2D attack_point, Point2D retreat_point, std::map<const Unit*, Point2D> retreating_unit_positions, std::map<const Unit*, Point2D> attacking_unit_positions)
+	void ArmyGroup::DefendThirdBase(Point2D third_base_pylon_gap)
 	{
-#ifdef DEBUG_TIMING
-		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count();
-		
-		std::ofstream pressure_time;
-		pressure_time.open("pressure_time.txt", std::ios_base::app);
-
-		unsigned long long ready_check = 0;
-		unsigned long long find_targets = 0;
-		unsigned long long print_attacks = 0;
-		unsigned long long give_targets = 0;
-		unsigned long long not_ready = 0;
-		unsigned long long pick_up = 0;
-#endif
-
-		std::map<const Unit*, int> units_requesting_pickup;
-		if (stalkers.size() > 0)
+		if (new_units.size() > 0)
 		{
-			Point2D center = Utility::MedianCenter(stalkers);
-			for (const auto &carrier : carriers)
+			for (const auto& unit : new_units)
 			{
-				if (Distance2D(carrier->pos, center) > 2)
-					agent->Actions()->UnitCommand(carrier, ABILITY_ID::MOVE_MOVE, center);
-				else
-					agent->Actions()->UnitCommand(carrier, ABILITY_ID::ATTACK_ATTACK, attack_point);
+				AddUnit(unit);
 			}
-
-			bool all_ready = true;
-			Units stalkers_ready;
-			Units stalkers_not_ready;
-			for (const auto &stalker : stalkers)
+		}
+		for (const auto& unit : all_units)
+		{
+			if (Distance2D(unit->pos, third_base_pylon_gap) > 1)
 			{
-				if (stalker->weapon_cooldown == 0 && attack_status[stalker] == false)
-				{
-					// ignore units inside prisms
-					if (warp_prisms.size() > 0)
-					{
-						bool in_prism = false;
-						for (const auto &prism : warp_prisms)
-						{
-							for (const auto &passanger : prism->passengers)
-							{
-								if (passanger.tag == stalker->tag)
-								{
-									in_prism = true;
-									break;
-								}
-							}
-							if (in_prism)
-								break;
-						}
-						if (in_prism)
-							stalkers_not_ready.push_back(stalker);
-					}
-					stalkers_ready.push_back(stalker);
-				}
-				else
-				{
-					stalkers_not_ready.push_back(stalker);
-				}
-			}
-			bool enough_stalkers_ready = true;
-			if (static_cast<float>(stalkers_ready.size()) / static_cast<float>(stalkers.size()) >= .5)
-			{
-#ifdef DEBUG_TIMING
-				start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-					std::chrono::high_resolution_clock::now().time_since_epoch()
-					).count();
-#endif
-				std::map<const Unit*, const Unit*> found_targets = agent->FindTargets(stalkers_ready, {}, 2);
-
-#ifdef DEBUG_TIMING
-				find_targets = std::chrono::duration_cast<std::chrono::microseconds>(
-					std::chrono::high_resolution_clock::now().time_since_epoch()
-					).count() - start_time;
-
-				start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-					std::chrono::high_resolution_clock::now().time_since_epoch()
-					).count();
-#endif
-
-				//agent->PrintAttacks(found_targets);
-
-#ifdef DEBUG_TIMING
-				print_attacks = std::chrono::duration_cast<std::chrono::microseconds>(
-					std::chrono::high_resolution_clock::now().time_since_epoch()
-					).count() - start_time;
-#endif
-
-				for (const auto &stalker : stalkers_ready)
-				{
-					if (found_targets.size() == 0)
-					{
-						agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attacking_unit_positions[stalker]);
-					}
-					if (found_targets.count(stalker) > 0)
-					{
-						agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, found_targets[stalker]);
-						attack_status[stalker] = true;
-					}
-					/*else
-					{
-						Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, army->attack_point);
-					}*/
-				}
-			}
-			else
-			{
-				enough_stalkers_ready = false;
-			}
-			if (stalkers_not_ready.size() > 0)
-			{
-				for (const auto &stalker : stalkers)
-				{
-					if (enough_stalkers_ready == true && std::find(stalkers_not_ready.begin(), stalkers_not_ready.end(), stalker) == stalkers_not_ready.end())
-						continue;
-
-					int danger = agent->IncomingDamage(stalker);
-					if (danger > 0)
-					{
-						if (danger > stalker->shield || danger > (stalker->shield_max / 2) || stalker->shield == 0)
-						{
-							float now = agent->Observation()->GetGameLoop() / 22.4;
-							bool blink_off_cooldown = now - last_time_blinked[stalker] > 7;
-
-							if (agent->has_blink && blink_off_cooldown)
-							{
-								if (stalker->orders.size() > 0 && stalker->orders[0].ability_id == ABILITY_ID::ATTACK && stalker->weapon_cooldown == 0)
-									agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7), true); // TODO adjustable blink distance
-								else
-									agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(stalker->pos, retreat_point, 7)); // TODO adjustable blink distance
-								//agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, attack_point, true);
-								attack_status[stalker] = false;
-								last_time_blinked[stalker] = now;
-								continue;
-							}
-						}
-
-						units_requesting_pickup[stalker] = danger;
-					}
-					if (attack_status[stalker] == false)
-					{
-						// no order but no danger so just move back
-						agent->Actions()->UnitCommand(stalker, ABILITY_ID::MOVE_MOVE, retreating_unit_positions[stalker]);
-					}
-					else if (stalker->weapon_cooldown > 0)
-					{
-						// attack has gone off so reset order status
-						attack_status[stalker] = false;
-					}
-					else if (stalker->orders.size() == 0 || stalker->orders[0].ability_id == ABILITY_ID::MOVE_MOVE || stalker->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE)
-					{
-						// attack order is no longer valid
-						attack_status[stalker] = false;
-					}
-				}
+				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, third_base_pylon_gap);
+				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_HOLDPOSITION, true);
 			}
 		}
 
-		Point2D prism_pos = Utility::MedianCenter(stalkers);
-		prism_pos = Utility::PointBetween(prism_pos, retreat_point, 2);
-
-		for (const auto& prism : warp_prisms)
-		{
-			agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, prism_pos);
-			agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism);
-		}
-
-		/*for (const auto& unit : units_requesting_pickup)
-		{
-			agent->Debug()->DebugTextOut(std::to_string(unit.second), unit.first->pos, Color(255, 255, 255), 14);
-		}*/
-
-		PickUpUnits(units_requesting_pickup);
-
-
-#ifdef DEBUG_TIMING
-		pressure_time << ready_check << ", ";
-		pressure_time << find_targets << ", ";
-		pressure_time << print_attacks << ", ";
-		pressure_time << give_targets << ", ";
-		pressure_time << not_ready << ", ";
-		pressure_time << pick_up << "\n";
-		pressure_time.close();
-#endif
-	}
-
-	void ArmyGroup::DefendFrontDoor(Point2D door_open_pos, Point2D door_closed_pos)
-	{
-		DoorGuardStateMachine* door_guard_fsm = new DoorGuardStateMachine(agent, "Door Guard", adepts[0], door_open_pos, door_closed_pos);
-		agent->active_FSMs.push_back(door_guard_fsm);
-	}
-
-	void ArmyGroup::DefendExpansion(Point2D base_pos, Point2D door_guard_pos, Point2D pylon_gap_location)
-	{
-		for (const auto &adept : adepts)
-		{
-			if (Distance2D(adept->pos, pylon_gap_location) > 1)
-			{
-				agent->Actions()->UnitCommand(adept, ABILITY_ID::MOVE_MOVE, pylon_gap_location);
-				agent->Actions()->UnitCommand(adept, ABILITY_ID::GENERAL_HOLDPOSITION, true);
-			}
-		}
-		StateMachine* oracle_fsm = new OracleHarassStateMachine(agent, oracles, base_pos, door_guard_pos, "Oracles");
-		agent->active_FSMs.push_back(oracle_fsm);
+		// TODO use fire control to find the best target
 	}
 
 	void ArmyGroup::CannonRushPressure()
 	{
-		Point2D attack_pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
+		Point2D attack_pos = mediator->GetEnemyStartLocation();
 		Point2D retreat_pos;
-		if (agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_SHIELDBATTERY)).size() > 0)
-			retreat_pos = Utility::FurthestFrom(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_SHIELDBATTERY)), attack_pos)->pos;
-		else if (agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)).size() > 0)
-			retreat_pos = Utility::FurthestFrom(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)), attack_pos)->pos;
+		if (mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_SHIELDBATTERY)).size() > 0)
+			retreat_pos = Utility::FurthestFrom(mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_SHIELDBATTERY)), attack_pos)->pos;
+		else if (mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)).size() > 0)
+			retreat_pos = Utility::FurthestFrom(mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)), attack_pos)->pos;
 
-		Units enemies = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
+		Units enemies = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
 		if (enemies.size() > 0)
 		{
 			const Unit* closest_enemy = Utility::ClosestUnitTo(enemies, retreat_pos);
@@ -1216,7 +869,7 @@ namespace sc2 {
 		}
 		else
 		{
-			enemies = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
+			enemies = mediator->GetUnits(Unit::Alliance::Enemy);
 			const Unit* closest_enemy = Utility::ClosestUnitTo(enemies, retreat_pos);
 			if (Distance2D(retreat_pos, closest_enemy->pos) > 8)
 				retreat_pos = Utility::PointBetween(closest_enemy->pos, retreat_pos, 8);
@@ -1275,16 +928,16 @@ namespace sc2 {
 			{
 				if (attacks.size() == 0)
 				{
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, attack_pos);
+					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, attack_pos);
 				}
 				if (attacks.count(unit) > 0)
 				{
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK, attacks[unit]);
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, attacks[unit]);
 					attack_status[unit] = true;
 					//agent->Debug()->DebugLineOut(unit->pos, attacks[unit]->pos, Color(0, 255, 0));
 				}
 			}
-			agent->PrintAttacks(attacks);
+			mediator->agent->PrintAttacks(attacks);
 		}
 
 		/*for (const auto& unit : persistent_fire_control.enemy_unit_hp)
@@ -1294,18 +947,66 @@ namespace sc2 {
 
 		for (const auto& unit : units_on_cd)
 		{
-			agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, retreat_pos);
+			mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, retreat_pos);
 		}*/
 	}
 
-	void ArmyGroup::MicroUnits()
+	void ArmyGroup::ScourMap()
 	{
+		ImageData raw_map = mediator->GetPathingGrid();
+		for (const auto& unit : mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)))
+		{
+			if (unit->orders.size() == 0)
+			{
+				std::srand(unit->tag + mediator->GetGameLoop());
+				int x = std::rand() % raw_map.width;
+				int y = std::rand() % raw_map.height;
+				Point2D pos = Point2D(x, y);
+				while (!unit->is_flying && !mediator->IsPathable(pos))
+				{
+					x = std::rand() % raw_map.width;
+					y = std::rand() % raw_map.height;
+					pos = Point2D(x, y);
+				}
+				mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, pos);
+			}
+		}
+	}
 
+	void ArmyGroup::SimpleAttack()
+	{
+		for (const auto& unit : all_units)
+		{
+			if (unit->orders.size() == 0)
+			{
+				for (const auto& point : attack_path)
+				{
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
+				}
+			}
+		}
 	}
 
 	// returns: 0 - normal operation, 1 - all units dead or in standby, 2 - reached the end of the attack path
 	int ArmyGroup::AttackLine(float dispersion, float target_range, std::vector<std::vector<UNIT_TYPEID>> target_priority)
 	{
+		for (int i = 0; i < new_units.size(); i++)
+		{
+			const Unit* unit = new_units[i];
+			if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
+			{
+				for (const auto& point : attack_path)
+				{
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
+				}
+			}
+			if ((all_units.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(all_units)) < 5) || (all_units.size() == 0 && Distance2D(unit->pos, attack_path[0]) < 2))
+			{
+				AddUnit(unit);
+				i--;
+			}
+		}
+
 		// Find current units to micro
 		Units current_units;
 		if (using_standby)
@@ -1387,7 +1088,7 @@ namespace sc2 {
 					}
 				}
 				if (!in_cargo)
-					agent->Actions()->UnitCommand(standby_units[i], ABILITY_ID::MOVE_MOVE, standby_pos);
+					mediator->SetUnitCommand(standby_units[i], ABILITY_ID::GENERAL_MOVE, standby_pos);
 
 				if (standby_units[i]->shield == standby_units[i]->shield_max)
 				{
@@ -1412,7 +1113,7 @@ namespace sc2 {
 		}
 
 		// find target range
-		Units enemies_in_range = Utility::GetUnitsWithin(agent->Observation()->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, 15);
+		Units enemies_in_range = Utility::GetUnitsWithin(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, 15);
 		float enemy_dps = 0;
 		for (const auto& unit : enemies_in_range)
 		{
@@ -1435,7 +1136,7 @@ namespace sc2 {
 		target_range += unit_size;
 
 		// find concave target
-		Units close_enemies = Utility::NClosestUnits(agent->Observation()->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, 5);
+		Units close_enemies = Utility::NClosestUnits(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, 5);
 
 		float avg_distance = 0;
 		for (int i = 0; i < close_enemies.size(); i++)
@@ -1492,7 +1193,7 @@ namespace sc2 {
 				}
 			}
 			// need a new concave
-			float dist_to_move_origin = std::min(1.0f, target_range - Distance2D(concave_origin, concave_target));
+			float dist_to_move_origin = std::min(1.0f, abs(target_range - Distance2D(concave_origin, concave_target)));
 
 			if (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, concave_origin) < 2)
 				dist_to_move_origin = std::max(dist_to_move_origin, 2 + unit_size - Utility::DistanceToClosest(close_enemies, concave_origin));
@@ -1521,7 +1222,7 @@ namespace sc2 {
 				}
 			}
 			// need a new concave
-			float dist_to_move_origin = std::min(1.0f, Distance2D(concave_origin, concave_target) - target_range);
+			float dist_to_move_origin = std::min(1.0f, abs(Distance2D(concave_origin, concave_target) - target_range));
 			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, true);
 			// if new origin is further away then ignore it
 			if (Distance2D(concave_origin, concave_target) < Distance2D(new_origin, concave_target))
@@ -1601,7 +1302,7 @@ namespace sc2 {
 			{
 				if (found_targets.count(unit) > 0)
 				{
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, found_targets[unit]);
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, found_targets[unit]);
 					if (attack_status[unit])
 					{
 						//std::cout << unit->tag << " second attack order given" << std::endl;
@@ -1611,9 +1312,9 @@ namespace sc2 {
 				else // if a unit has no target, keep advancing
 				{
 					if (unit_position_asignments.find(unit) != unit_position_asignments.end())
-						agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit_position_asignments[unit]);
 					else
-						agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit->pos);
+						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit->pos);
 				}
 			}
 		}
@@ -1622,9 +1323,9 @@ namespace sc2 {
 			for (const auto& unit : units)
 			{
 				if (unit_position_asignments.find(unit) != unit_position_asignments.end())
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit_position_asignments[unit]);
 				else
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit->pos);
+					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit->pos);
 			}
 		}
 	}
@@ -1636,7 +1337,7 @@ namespace sc2 {
 		{
 			if (attack_status[unit] == false)
 			{
-				float damage = agent->IncomingDamage(unit);
+				float damage = mediator->agent->IncomingDamage(unit);
 				//agent->Debug()->DebugTextOut(std::to_string(damage), unit->pos, Color(255, 255, 255), 16);
 				if (damage > 0)
 				{
@@ -1660,9 +1361,9 @@ namespace sc2 {
 
 				// no order but no danger so just move forward
 				if (unit_position_asignments.find(unit) != unit_position_asignments.end())
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit_position_asignments[unit]);
+					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit_position_asignments[unit]);
 				else
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, unit->pos);
+					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit->pos);
 
 
 				if (using_standby)
@@ -1670,18 +1371,18 @@ namespace sc2 {
 					if ((unit->shield + unit->health) / (unit->shield_max + unit->health_max) < .3) // TODO this threshold should be passed in
 					{
 						standby_units.push_back(unit);
-						agent->Actions()->UnitCommand(unit, ABILITY_ID::EFFECT_BLINK, standby_pos);
-						agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, standby_pos, true);
+						mediator->SetUnitCommand(unit, ABILITY_ID::EFFECT_BLINK, standby_pos);
+						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, standby_pos, true);
 					}
 				}
 			}
 			else if (unit->weapon_cooldown > 0)
 			{
 				// attack has gone off so reset order status
-				persistent_fire_control.ConfirmAttack(unit, agent->Observation()->GetUnit(unit->engaged_target_tag));
+				persistent_fire_control.ConfirmAttack(unit, mediator->GetUnit(unit->engaged_target_tag));
 				attack_status[unit] = false;
 			} // TODO maybe reimplement this if necessary
-			else if (unit->orders.size() == 0/* || unit->orders[0].ability_id == ABILITY_ID::MOVE_MOVE || unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE*/)
+			else if (unit->orders.size() == 0/* || unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE || unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE*/)
 			{
 				// attack order is no longer valid
 				attack_status[unit] = false;
@@ -1696,10 +1397,10 @@ namespace sc2 {
 		{
 
 			if (unit_position_asignments.find(prism) != unit_position_asignments.end())
-				agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, unit_position_asignments[prism]);
+				mediator->SetUnitCommand(prism, ABILITY_ID::GENERAL_MOVE, unit_position_asignments[prism]);
 			else
-				agent->Actions()->UnitCommand(prism, ABILITY_ID::MOVE_MOVE, prism->pos);
-			agent->Actions()->UnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism);
+				mediator->SetUnitCommand(prism, ABILITY_ID::GENERAL_MOVE, prism->pos);
+			mediator->SetUnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism);
 		}
 
 		for (auto cargo = units_in_cargo.begin(); cargo != units_in_cargo.end();)
@@ -1764,7 +1465,7 @@ namespace sc2 {
 			if (units_in_cargo.find(request.first) != units_in_cargo.end())
 			{
 				// unit is already being picked up but just in case give the order again
-				agent->Actions()->UnitCommand(request.first, ABILITY_ID::SMART, units_in_cargo[request.first].prism);
+				mediator->SetUnitCommand(request.first, ABILITY_ID::SMART, units_in_cargo[request.first].prism);
 				continue;
 			}
 			for (const auto& prism : warp_prisms)
@@ -1774,7 +1475,7 @@ namespace sc2 {
 				if (8 - (prism_cargo[prism]) >= necessary_space)
 				{
 					unit_found_space = true;
-					agent->Actions()->UnitCommand(request.first, ABILITY_ID::SMART, prism);
+					mediator->SetUnitCommand(request.first, ABILITY_ID::SMART, prism);
 					units_in_cargo[request.first] = PrismCargo(prism);
 					prism_cargo[prism] += size;
 					break;
@@ -1784,13 +1485,13 @@ namespace sc2 {
 			{
 				if (request.first->unit_type == STALKER && request.second.unit_prio >= 2)
 				{
-					float now = agent->Observation()->GetGameLoop() / 22.4;
+					float now = mediator->GetGameLoop() / 22.4;
 					bool blink_off_cooldown = now - last_time_blinked[request.first] > 7;
 
-					if (agent->has_blink && blink_off_cooldown)
+					if (mediator->upgrade_manager.has_blink && blink_off_cooldown)
 					{
 
-						agent->Actions()->UnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(request.first->pos, Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), request.first->pos)->pos, -4)); // TODO adjustable blink distance
+						mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(request.first->pos, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), request.first->pos)->pos, -4)); // TODO adjustable blink distance
 
 						attack_status[request.first] = false;
 						last_time_blinked[request.first] = now;
@@ -1806,7 +1507,7 @@ namespace sc2 {
 		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
 			this->OnNewUnitCreatedListener(unit);
 		};
-		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
+		mediator->agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
 		this->unit_types = unit_types;
 	}
 
@@ -1821,7 +1522,7 @@ namespace sc2 {
 		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
 			this->OnUnitCreatedListener(unit);
 		};
-		agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
+		mediator->agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
 		this->unit_types = unit_types;
 	}
 

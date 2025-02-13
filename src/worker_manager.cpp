@@ -8,6 +8,9 @@
 
 #include "worker_manager.h"
 #include "utility.h"
+#include "mediator.h"
+
+// temp
 #include "theBigBot.h"
 
 namespace sc2
@@ -108,7 +111,7 @@ const Unit* WorkerManager::GetWorker()
 const Unit* WorkerManager::GetBuilder(Point2D position)
 {
 	// TODO check for buff CARRYMINERALFIELDMINERALS
-	Units mineral_fields = agent->Observation()->GetUnits(IsMineralPatch());
+	Units mineral_fields = mediator->GetUnits(IsMineralPatch());
 	Units mineral_patches_reversed_keys;
 	Units far_only_mineral_patches_reversed_keys;
 	for (const auto &patch : mineral_patches_reversed)
@@ -241,7 +244,7 @@ void WorkerManager::PlaceWorkerInGas(const Unit* worker, const Unit* gas, int in
 	}
 	assimilators[gas].workers[index] = worker;
 	Point2D assimilator_position = gas->pos;
-	Units townhalls = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
+	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
 	Point2D vector = assimilator_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -261,7 +264,7 @@ void WorkerManager::NewPlaceWorkerInGas(const Unit* worker, const Unit* gas)
 		assimilators[gas] = assimilator_data();
 	}
 	Point2D assimilator_position = gas->pos;
-	Units townhalls = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
+	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
 	Point2D vector = assimilator_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -282,7 +285,7 @@ void WorkerManager::PlaceWorkerOnMinerals(const Unit* worker, const Unit* minera
 	}
 	mineral_patches[mineral].workers[index] = worker;
 	Point2D mineral_position = mineral->pos;
-	Units townhalls = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
+	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
 	Point2D vector = mineral_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -302,7 +305,7 @@ void WorkerManager::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* min
 		mineral_patches[mineral] = mineral_patch_data(mineral->mineral_contents == 1800);
 	}
 	Point2D mineral_position = mineral->pos;
-	Units townhalls = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
+	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
 	Point2D vector = mineral_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -453,7 +456,7 @@ void WorkerManager::RemoveWorker(const Unit* worker)
 
 void WorkerManager::SplitWorkers()
 {
-	Units workers = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PROBE));
+	Units workers = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PROBE));
 	Units patches;
 	for (const auto &mineral_patch : mineral_patches)
 	{
@@ -530,7 +533,7 @@ void WorkerManager::SemiSaturateGas(const Unit* gas)
 
 void WorkerManager::AddNewBase()
 {
-	Units minerals = agent->Observation()->GetUnits(IsMineralPatch());
+	Units minerals = mediator->GetUnits(IsMineralPatch());
 	Units close_minerals = Utility::CloserThan(minerals, 10, new_base->pos);
 	for (const auto &mineral_field : close_minerals)
 	{
@@ -540,7 +543,7 @@ void WorkerManager::AddNewBase()
 		}
 	}
 	if (close_minerals.size() > 0)
-		agent->Actions()->UnitCommand(new_base, ABILITY_ID::SMART, close_minerals[0]);
+		mediator->SetUnitCommand(new_base, ABILITY_ID::SMART, close_minerals[0]);
 	for (const auto &mineral_field : close_minerals)
 	{
 		bool is_close = mineral_field->mineral_contents == 1800;
@@ -569,13 +572,13 @@ void WorkerManager::DistributeWorkers()
 		if (IsCarryingMinerals(*worker))
 		{
 			// close to nexus then return the mineral
-			std::vector<const Unit*> nexi = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
+			std::vector<const Unit*> nexi = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 			if (nexi.size() == 0)
 				return;
 			Point2D closest_nexus = Utility::ClosestTo(nexi, worker->pos)->pos;
 			if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
 			{
-				agent->Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_RETURN_PROBE);
+				mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_RETURN);
 				continue;
 			}
 			Point2D drop_off_point = mineral_patches_reversed[worker].drop_off_point;
@@ -591,7 +594,7 @@ void WorkerManager::DistributeWorkers()
 			const Unit *mineral_patch = mineral_patches_reversed[worker].mineral_tag;
 			if (mineral_patch != NULL)
 			{
-				agent->Actions()->UnitCommand(worker, ABILITY_ID::GENERAL_MOVE, drop_off_point);
+				mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, drop_off_point);
 			}
 			else
 			{
@@ -607,12 +610,12 @@ void WorkerManager::DistributeWorkers()
 				{
 					if (worker->orders.size() == 0 || worker->orders[0].target_unit_tag != mineral_patch->tag)
 					{
-						agent->Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_GATHER_PROBE, mineral_patch);
+						mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER, mineral_patch);
 					}
 				}
 				else if (worker->orders.size() == 0 || worker->orders[0].ability_id != ABILITY_ID::GENERAL_MOVE || DistanceSquared2D(mineral_patches_reversed[worker].pick_up_point, worker->orders[0].target_pos) > 1)
 				{
-					agent->Actions()->UnitCommand(worker, ABILITY_ID::GENERAL_MOVE, mineral_patches_reversed[worker].pick_up_point);
+					mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, mineral_patches_reversed[worker].pick_up_point);
 				}
 			}
 			else
@@ -635,14 +638,14 @@ void WorkerManager::DistributeWorkers()
 			// 2 or 3 workers assigned to gas
 			if (worker->orders.size() == 0)
 			{
-				agent->Actions()->UnitCommand(worker, ABILITY_ID::SMART, assimilator);
+				mediator->SetUnitCommand(worker, ABILITY_ID::SMART, assimilator);
 			}
 			else
 			{
 				UnitOrder current_order = worker->orders[0];
 				if (current_order.ability_id == ABILITY_ID::HARVEST_GATHER && current_order.target_unit_tag != assimilator->tag)
 				{
-					agent->Actions()->UnitCommand(worker, ABILITY_ID::SMART, assimilator);
+					mediator->SetUnitCommand(worker, ABILITY_ID::SMART, assimilator);
 				}
 				else
 				{
@@ -653,10 +656,10 @@ void WorkerManager::DistributeWorkers()
 		else if (IsCarryingVespene(*worker))
 		{
 			// close to nexus then return the vespene
-			Point2D closest_nexus = Utility::ClosestTo(agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
+			Point2D closest_nexus = Utility::ClosestTo(mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)), worker->pos)->pos;
 			if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
 			{
-				agent->Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_RETURN_PROBE);
+				mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_RETURN);
 				continue;
 			}
 			Point2D drop_off_point = assimilators_reversed[worker].drop_off_point;
@@ -669,7 +672,7 @@ void WorkerManager::DistributeWorkers()
 			const Unit *assimilator = assimilators_reversed[worker].assimilator_tag;
 			if (assimilator != NULL)
 			{
-				agent->Actions()->UnitCommand(worker, ABILITY_ID::GENERAL_MOVE, drop_off_point);
+				mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, drop_off_point);
 			}
 			else
 			{
@@ -685,12 +688,12 @@ void WorkerManager::DistributeWorkers()
 				{
 					if (worker->orders.size() == 0 || worker->orders[0].target_unit_tag != assimilator->tag)
 					{
-						agent->Actions()->UnitCommand(worker, ABILITY_ID::HARVEST_GATHER_PROBE, assimilator);
+						mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER, assimilator);
 					}
 				}
 				else if (worker->orders.size() == 0 || worker->orders[0].ability_id != ABILITY_ID::GENERAL_MOVE || DistanceSquared2D(assimilators_reversed[worker].pick_up_point, worker->orders[0].target_pos) > 1)
 				{
-					agent->Actions()->UnitCommand(worker, ABILITY_ID::GENERAL_MOVE, assimilators_reversed[worker].pick_up_point);
+					mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, assimilators_reversed[worker].pick_up_point);
 				}
 			}
 			else
@@ -759,7 +762,7 @@ void WorkerManager::BuildWorkers()
 {
 	if (should_build_workers)
 	{
-		for (const auto &nexus : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+		for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 		{
 			if (nexus->orders.size() > 0)
 			{
@@ -767,34 +770,34 @@ void WorkerManager::BuildWorkers()
 				{
 					if (nexus->orders.size() == 1)
 					{
-						agent->Actions()->UnitCommand(nexus, ABILITY_ID::TRAIN_PROBE);
+						mediator->agent->Actions()->UnitCommand(nexus, ABILITY_ID::TRAIN_PROBE);
 					}
 					else if (nexus->orders.size() > 2)
 					{
-						agent->Actions()->UnitCommand(nexus, ABILITY_ID::CANCEL_LAST);
+						mediator->agent->Actions()->UnitCommand(nexus, ABILITY_ID::CANCEL_LAST);
 					}
 				}
 				else
 				{
 					if (nexus->orders.size() > 1)
 					{
-						agent->Actions()->UnitCommand(nexus, ABILITY_ID::CANCEL_LAST);
+						mediator->agent->Actions()->UnitCommand(nexus, ABILITY_ID::CANCEL_LAST);
 					}
 				}
 			}
 			else if (nexus->orders.size() == 0)
 			{
-				agent->Actions()->UnitCommand(nexus, ABILITY_ID::TRAIN_PROBE);
+				mediator->agent->Actions()->UnitCommand(nexus, ABILITY_ID::TRAIN_PROBE);
 			}
 		}
 	}
 	else
 	{
-		for (const auto &nexus : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+		for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 		{
 			if (nexus->orders.size() > 0)
 			{
-				agent->Actions()->UnitCommand(nexus, ABILITY_ID::CANCEL_LAST);
+				mediator->agent->Actions()->UnitCommand(nexus, ABILITY_ID::CANCEL_LAST);
 			}
 		}
 	}

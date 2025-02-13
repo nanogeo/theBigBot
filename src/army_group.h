@@ -8,13 +8,14 @@
 #include "utility.h"
 #include "path_manager.h"
 #include "fire_control.h"
+#include "definitions.h"
 
 
 
 namespace sc2
 {
 
-class TheBigBot;
+class Mediator;
 
 struct UnitDanger
 {
@@ -57,7 +58,9 @@ struct PrismCargo
 class ArmyGroup
 {
 public:
-	TheBigBot* agent;
+	Mediator* mediator;
+	ArmyRole role;
+
 	Units all_units;
 	Units zealots;
 	Units stalkers;
@@ -102,17 +105,22 @@ public:
 
 	int event_id;
 	std::vector<UNIT_TYPEID> unit_types;
+	int desired_units = 0;
+	int max_units = 100;
 
 	PersistentFireControl persistent_fire_control;
 
 	ArmyGroup() : persistent_fire_control() {};
-	ArmyGroup(TheBigBot* agent);
-	ArmyGroup(TheBigBot*, Units, std::vector<Point2D>, int);
-	ArmyGroup(TheBigBot*, Units, PathManager);
+	ArmyGroup(Mediator*, PathManager, std::vector<Point2D> attack_path, ArmyRole, std::vector<UNIT_TYPEID>);
+	ArmyGroup(Mediator*, std::vector<Point2D>, ArmyRole, std::vector<UNIT_TYPEID>);
+	ArmyGroup(Mediator*, ArmyRole, std::vector<UNIT_TYPEID>);
+
 
 	void AddUnit(const Unit* unit);
 	void AddNewUnit(const Unit* unit);
 	void RemoveUnit(const Unit* unit);
+
+	
 
 	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float, float);
 	std::vector<Point2D> FindConcaveWithPrism(Point2D, Point2D, int, int, float, float, float, std::vector<Point2D>&);
@@ -124,16 +132,15 @@ public:
 
 	void FindStalkerPositions(std::map<const Unit*, Point2D>&, std::map<const Unit*, Point2D>&, float, float);
 	
-	void MicroStalkerAttack();
-	void ApplyPressureGrouped(Point2D, Point2D, std::map<const Unit*, Point2D>, std::map<const Unit*, Point2D>);
 	void DefendFrontDoor(Point2D, Point2D);
-	void DefendExpansion(Point2D, Point2D, Point2D);
+	void DefendThirdBase(Point2D);
 	void CannonRushPressure();
-
-
-	void MicroUnits();
+	void ScourMap();
+	void SimpleAttack();
 
 	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>);
+
+
 	bool FindUnitPositions(Units, Units, float, float);
 	void FindReadyUnits(Units, Units&, Units&);
 	void MicroReadyUnits(Units, std::vector<std::vector<UNIT_TYPEID>>, float, int);

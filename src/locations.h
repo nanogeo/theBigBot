@@ -1,7 +1,8 @@
 #pragma once
 #include "pathfinding.h"
-#include "theBigBot.h"
 #include "path_manager.h"
+#include "build_order_manager.h"
+
 
 #include <string>
 
@@ -175,6 +176,7 @@ public:
 	std::vector<Point2D> bad_warpin_spots;
 
     Locations() {}
+	// TODO take a Point2D not Point3D
     Locations(Point3D start_location, BuildOrder build_order, std::string map_name)
     {
         if (map_name == "Lightshade LE")

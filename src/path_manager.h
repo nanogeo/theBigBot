@@ -209,7 +209,7 @@ public:
 	Point2D GetPointFrom(Point2D, double, bool, double&) override;
 };
 
-
+// TODO change name cause this isnt a manager
 class PathManager
 {
 public:

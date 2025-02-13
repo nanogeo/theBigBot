@@ -6,24 +6,80 @@
 #include "sc2api/sc2_unit_filters.h"
 
 #include "path_manager.h"
+#include "definitions.h"
 
 
 namespace sc2
 {
 
-struct UnitCost
-{
-	int mineral_cost;
-	int vespene_cost;
-	int supply;
-	UnitCost() {};
-	UnitCost(int x, int y, int z)
-	{
-		mineral_cost = x;
-		vespene_cost = y;
-		supply = z;
-	}
+
+struct IsFinishedUnit {
+    explicit IsFinishedUnit(UNIT_TYPEID type_);
+
+    bool operator()(const Unit& unit_) const;
+
+private:
+    UNIT_TYPEID m_type;
 };
+
+struct IsFightingUnit {
+	explicit IsFightingUnit(Unit::Alliance alliance_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	Unit::Alliance m_type;
+};
+
+struct IsNonbuilding {
+	explicit IsNonbuilding(Unit::Alliance alliance_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	Unit::Alliance m_type;
+};
+
+struct IsNonPlaceholderUnit {
+	explicit IsNonPlaceholderUnit(UNIT_TYPEID type_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	UNIT_TYPEID m_type;
+};
+
+struct IsFriendlyUnit {
+	explicit IsFriendlyUnit(UNIT_TYPEID type_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	UNIT_TYPEID m_type;
+};
+
+struct IsEnemyUnit {
+	explicit IsEnemyUnit(UNIT_TYPEID type_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	UNIT_TYPEID m_type;
+};
+
+struct IsFlyingUnit {
+	explicit IsFlyingUnit();
+
+	bool operator()(const Unit& unit_) const;
+};
+
+struct IsNotFlyingUnit {
+	explicit IsNotFlyingUnit();
+
+	bool operator()(const Unit& unit_) const;
+};
+
+
 
 class Utility
 {
@@ -75,11 +131,14 @@ public:
 	static const Unit* GetLeastFullPrism(Units);
 	static ABILITY_ID GetBuildAbility(UNIT_TYPEID);
 	static ABILITY_ID GetTrainAbility(UNIT_TYPEID);
+	static ABILITY_ID GetWarpAbility(UNIT_TYPEID);
+	static int GetWarpCooldown(UNIT_TYPEID);
 	static int BuildingsReady(UNIT_TYPEID, const ObservationInterface*);
 	static UnitCost GetCost(UNIT_TYPEID);
 	static bool CanAfford(UNIT_TYPEID, int, const ObservationInterface*);
+	static bool CanAffordAfter(UNIT_TYPEID, UnitCost, const ObservationInterface*);
 	static bool CanAffordUpgrade(UPGRADE_ID, const ObservationInterface*);
-	static int MaxCanAfford(UNIT_TYPEID, int, const ObservationInterface*);
+	static int MaxCanAfford(UNIT_TYPEID, const ObservationInterface*);
 	static std::vector<UNIT_TYPEID> GetBurrowedUnitTypes();
 	static std::vector<double> GetRealQuarticRoots(double, double, double, double, double);
 

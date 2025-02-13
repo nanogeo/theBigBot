@@ -1,11 +1,11 @@
 #include "build_order_manager.h"
-#include "theBigBot.h"
 #include "utility.h"
 #include "locations.h"
 #include "finite_state_machine.h"
 #include "action_manager.h"
 #include "army_group.h"
 #include "definitions.h"
+#include "mediator.h"
 
 #include <algorithm>
 #include <vector>
@@ -39,17 +39,17 @@ void BuildOrderManager::CheckBuildOrder()
 
 bool BuildOrderManager::TimePassed(Condition data)
 {
-	return agent->Observation()->GetGameLoop() / 22.4 >= data.time;
+	return mediator->GetGameLoop() / 22.4 >= data.time;
 }
 
 bool BuildOrderManager::NumWorkers(Condition data)
 {
-	return agent->Observation()->GetFoodWorkers() >= data.amount;
+	return mediator->GetNumWorkers() >= data.amount;
 }
 
 bool BuildOrderManager::HasBuilding(Condition data)
 {
-	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(data.unitId)))
+	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		if (building->build_progress == 1)
 		{
@@ -61,7 +61,7 @@ bool BuildOrderManager::HasBuilding(Condition data)
 
 bool BuildOrderManager::HasBuildingStarted(Condition data)
 {
-	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(data.unitId)))
+	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		return true;
 	}
@@ -70,7 +70,7 @@ bool BuildOrderManager::HasBuildingStarted(Condition data)
 
 bool BuildOrderManager::IsResearching(Condition data)
 {
-	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(data.unitId)))
+	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		if (!building->orders.empty())
 			return true;
@@ -80,12 +80,12 @@ bool BuildOrderManager::IsResearching(Condition data)
 
 bool BuildOrderManager::HasGas(Condition data)
 {
-	return agent->Observation()->GetVespene() >= data.amount;
+	return mediator->HasResources(0, 100, 0);
 }
 
 bool BuildOrderManager::HasUnits(Condition data)
 {
-	if (agent->Observation()->GetUnits(IsFriendlyUnit(data.unitId)).size() >= data.amount)
+	if (mediator->GetUnits(IsFriendlyUnit(data.unitId)).size() >= data.amount)
 	{
 		return true;
 	}
@@ -94,8 +94,8 @@ bool BuildOrderManager::HasUnits(Condition data)
 
 bool BuildOrderManager::ReadyToScour(Condition data)
 {
-	if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsUnits({ NEXUS, COMMAND_CENTER, ORBITAL, UNIT_TYPEID::ZERG_HATCHERY, UNIT_TYPEID::ZERG_LAIR })), agent->Observation()->GetGameInfo().enemy_start_locations[0]) > 15
-		|| agent->Observation()->GetGameLoop() / 22.4 >= data.time)
+	if (Utility::DistanceToClosest(mediator->GetUnits(IsUnits({ NEXUS, COMMAND_CENTER, ORBITAL, UNIT_TYPEID::ZERG_HATCHERY, UNIT_TYPEID::ZERG_LAIR })), mediator->GetEnemyStartLocation()) > 15
+		|| mediator->GetGameLoop() / 22.4 >= data.time)
 	{
 		return true;
 	}
@@ -106,178 +106,111 @@ bool BuildOrderManager::ReadyToScour(Condition data)
 
 bool BuildOrderManager::BuildBuilding(BuildOrderResultArgData data)
 {
-	Point2D pos = agent->GetLocation(data.unitId);
-	const Unit* builder = agent->worker_manager.GetBuilder(pos);
+	Point2D pos = mediator->GetLocation(data.unitId);
+	const Unit* builder = mediator->GetBuilder(pos);
 	if (builder == NULL)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
 	}
-	agent->worker_manager.RemoveWorker(builder);
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
+	mediator->BuildBuilding(data.unitId, pos, builder);
 	return true;
 }
 
 bool BuildOrderManager::BuildFirstPylon(BuildOrderResultArgData data)
 {
-	Point2D pos;
-	if (current_build_order == BuildOrder::recessed_cannon_rush)
-	{
-		pos = agent->locations->first_pylon_cannon_rush;
-	}
-	else
-	{
-		switch (agent->enemy_race)
-		{
-		case Race::Zerg:
-			std::cerr << "enemy race: zerg\n";
-			pos = agent->locations->first_pylon_location_zerg;
-			break;
-		case Race::Protoss:
-			std::cerr << "enemy race: protoss\n";
-			pos = agent->locations->first_pylon_location_protoss;
-			break;
-		case Race::Terran:
-			std::cerr << "enemy race: terran\n";
-			pos = agent->locations->first_pylon_location_terran;
-			break;
-		case Race::Random:
-			std::cerr << "enemy race: random\n";
-			pos = agent->locations->first_pylon_location_protoss;
-			break;
-		default:
-			std::cerr << "enemy race: unknown\n";
-			break;
-		}
-	}
+	Point2D pos = mediator->GetFirstPylonLocation();
 
-	const Unit* builder = agent->worker_manager.GetBuilder(pos);
+	const Unit* builder = mediator->GetBuilder(pos);
 	if (builder == NULL)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
 	}
-	agent->worker_manager.RemoveWorker(builder);
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
+	mediator->BuildBuilding(PYLON, pos, builder);
 	return true;
 }
 
 bool BuildOrderManager::BuildBuildingMulti(BuildOrderResultArgData data)
 {
-	Point2D pos = agent->GetLocation(data.unitIds[0]);
-	const Unit* builder = agent->worker_manager.GetBuilder(pos);
+	Point2D pos = mediator->GetLocation(data.unitIds[0]);
+	const Unit* builder = mediator->GetBuilder(pos);
 	if (builder == NULL)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
 	}
-	agent->worker_manager.RemoveWorker(builder);
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuildingMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
+	mediator->RemoveWorker(builder);
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuildingMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
 	return true;
 }
 
 bool BuildOrderManager::BuildProxyMulti(BuildOrderResultArgData data)
 {
-	Point2D pos = agent->GetProxyLocation(data.unitIds[0]);
-	const Unit* builder = agent->worker_manager.GetBuilder(pos);
+	Point2D pos = mediator->GetProxyLocation(data.unitIds[0]);
+	const Unit* builder = mediator->GetBuilder(pos);
 	if (builder == NULL)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
 	}
-	agent->worker_manager.RemoveWorker(builder);
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildProxyMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
+	mediator->RemoveWorker(builder);
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildProxyMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
 	return true;
 }
 
 bool BuildOrderManager::Scout(BuildOrderResultArgData data)
 {
-	Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
-	const Unit* scouter = agent->worker_manager.GetBuilder(pos);
-	if (scouter == NULL)
-	{
-		//std::cout << "Error could not find builder in Scout" << std::endl;
-		return false;
-	}
-	agent->worker_manager.RemoveWorker(scouter);
-	if (agent->enemy_race == Race::Zerg)
-	{
-		ScoutZergStateMachine* scout_fsm = new ScoutZergStateMachine(agent, "Scout Zerg", scouter, agent->locations->initial_scout_pos, agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural, agent->locations->possible_3rds);
-		agent->active_FSMs.push_back(scout_fsm);
-	}
-	else
-	{
-		ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(agent, "Scout Terran", scouter, agent->locations->initial_scout_pos, agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural);
-		agent->active_FSMs.push_back(scout_fsm);
-	}
-	return true;
+	return mediator->SendScout();
 }
 
 bool BuildOrderManager::CannonRushProbe1(BuildOrderResultArgData data)
 {
-	Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
-	const Unit* scouter = agent->worker_manager.GetBuilder(pos);
-	if (scouter == NULL)
-	{
-		//std::cout << "Error could not find builder in Scout" << std::endl;
-		return false;
-	}
-	agent->worker_manager.RemoveWorker(scouter);
-	if (agent->enemy_race == Race::Zerg)
-	{
-		ScoutZergStateMachine* scout_fsm = new ScoutZergStateMachine(agent, "Scout Zerg", scouter, agent->locations->initial_scout_pos, agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural, agent->locations->possible_3rds);
-		agent->active_FSMs.push_back(scout_fsm);
-	}
-	else
-	{
-		ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(agent, "Scout Terran", scouter, agent->locations->initial_scout_pos, agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural);
-		agent->active_FSMs.push_back(scout_fsm);
-	}
-	return true;
+	return mediator->SendCannonRushProbe1();
 }
 
 bool BuildOrderManager::CutWorkers(BuildOrderResultArgData data)
 {
-	agent->worker_manager.should_build_workers = false;
+	mediator->SetBuildWorkers(false);
 	return true;
 }
 
 bool BuildOrderManager::UncutWorkers(BuildOrderResultArgData data)
 {
-	agent->worker_manager.should_build_workers = true;
+	mediator->SetBuildWorkers(true);
 	return true;
 }
 
 bool BuildOrderManager::ImmediatelySaturateGasses(BuildOrderResultArgData data)
 {
-	agent->immediatelySaturateGasses = true;
+	mediator->SetImmediatlySaturateGasses(true);
 	return true;
 }
 
 bool BuildOrderManager::CancelImmediatelySaturateGasses(BuildOrderResultArgData data)
 {
-	agent->immediatelySaturateGasses = false;
+	mediator->SetImmediatlySaturateGasses(false);
 	return true;
 }
 
 bool BuildOrderManager::ImmediatelySemiSaturateGasses(BuildOrderResultArgData data)
 {
-	agent->immediatelySemiSaturateGasses = true;
+	mediator->SetImmediatlySemiSaturateGasses(true);
 	return true;
 }
 
 bool BuildOrderManager::CancelImmediatelySemiSaturateGasses(BuildOrderResultArgData data)
 {
-	agent->immediatelySemiSaturateGasses = false;
+	mediator->SetImmediatlySemiSaturateGasses(false);
 	return true;
 }
 
 bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 {
-	if (Utility::CanAfford(STALKER, data.amount, agent->Observation()) && agent->Observation()->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0)
+	if (mediator->CanAfford(STALKER, data.amount) && mediator->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0)
 	{
 		Units gates_ready;
-		for (const auto& gateway : agent->Observation()->GetUnits(IsFriendlyUnit(GATEWAY)))
+		for (const auto& gateway : mediator->GetUnits(IsFriendlyUnit(GATEWAY)))
 		{
 			if (gateway->build_progress == 1 && gateway->orders.size() == 0)
 			{
@@ -288,9 +221,9 @@ bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 		{
 			for (int i = 0; i < data.amount; i++)
 			{
-				agent->Actions()->UnitCommand(gates_ready[i], ABILITY_ID::TRAIN_STALKER);
+				mediator->SetUnitCommand(gates_ready[i], ABILITY_ID::TRAIN_STALKER);
 			}
-			std::cerr << "Stalkers trained at " << agent->Observation()->GetGameLoop() / 22.4 << std::endl;
+			std::cerr << "Stalkers trained at " << mediator->GetGameLoop() / 22.4 << std::endl;
 			return true;
 		}
 	}
@@ -299,10 +232,10 @@ bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 
 bool BuildOrderManager::TrainAdept(BuildOrderResultArgData data)
 {
-	if (Utility::CanAfford(ADEPT, data.amount, agent->Observation()) && agent->Observation()->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0)
+	if (mediator->CanAfford(ADEPT, data.amount) && mediator->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0)
 	{
 		Units gates_ready;
-		for (const auto &gateway : agent->Observation()->GetUnits(IsFriendlyUnit(GATEWAY)))
+		for (const auto &gateway : mediator->GetUnits(IsFriendlyUnit(GATEWAY)))
 		{
 			if (gateway->build_progress == 1 && gateway->orders.size() == 0)
 			{
@@ -313,7 +246,7 @@ bool BuildOrderManager::TrainAdept(BuildOrderResultArgData data)
 		{
 			for (int i = 0; i < data.amount; i++)
 			{
-				agent->Actions()->UnitCommand(gates_ready[i], ABILITY_ID::TRAIN_ADEPT);
+				mediator->SetUnitCommand(gates_ready[i], ABILITY_ID::TRAIN_ADEPT);
 			}
 			return true;
 		}
@@ -323,13 +256,13 @@ bool BuildOrderManager::TrainAdept(BuildOrderResultArgData data)
 
 bool BuildOrderManager::TrainZealot(BuildOrderResultArgData data)
 {
-	if (Utility::CanAfford(ZEALOT, 1, agent->Observation()))
+	if (mediator->CanAfford(ZEALOT, 1))
 	{
-		for (const auto &gateway : agent->Observation()->GetUnits(IsFriendlyUnit(GATEWAY)))
+		for (const auto &gateway : mediator->GetUnits(IsFriendlyUnit(GATEWAY)))
 		{
 			if (gateway->build_progress == 1 && gateway->orders.size() == 0)
 			{
-				agent->Actions()->UnitCommand(gateway, ABILITY_ID::TRAIN_ZEALOT);
+				mediator->SetUnitCommand(gateway, ABILITY_ID::TRAIN_ZEALOT);
 				return true;
 			}
 		}
@@ -339,20 +272,14 @@ bool BuildOrderManager::TrainZealot(BuildOrderResultArgData data)
 
 bool BuildOrderManager::TrainOracle(BuildOrderResultArgData data)
 {
-	if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_ORACLE, 1, agent->Observation()))
+	if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_ORACLE, 1))
 	{
-		for (const auto &stargate : agent->Observation()->GetUnits(IsFriendlyUnit(STARGATE)))
+		for (const auto &stargate : mediator->GetUnits(IsFriendlyUnit(STARGATE)))
 		{
 			if (stargate->build_progress == 1 && stargate->orders.size() == 0)
 			{
-				for (const auto & ability : agent->Query()->GetAbilitiesForUnit(stargate).abilities)
-				{
-					if (ability.ability_id.ToType() == ABILITY_ID::TRAIN_ORACLE)
-					{
-						agent->Actions()->UnitCommand(stargate, ABILITY_ID::TRAIN_ORACLE);
-						return true;
-					}
-				}
+				mediator->SetUnitCommand(stargate, ABILITY_ID::TRAIN_ORACLE);
+				return true;
 			}
 		}
 	}
@@ -361,27 +288,19 @@ bool BuildOrderManager::TrainOracle(BuildOrderResultArgData data)
 
 bool BuildOrderManager::TrainPrism(BuildOrderResultArgData data)
 {
-	std::cerr << "Trying to train prism at " << agent->Observation()->GetGameLoop() / 22.4 << std::endl;
-	if (Utility::CanAfford(PRISM, 1, agent->Observation()))
+	std::cerr << "Trying to train prism at " << mediator->GetGameLoop() / 22.4 << std::endl;
+	if (mediator->CanAfford(PRISM, 1))
 	{
 		std::cerr << "Can afford prism" << std::endl;
-		for (const auto &robo : agent->Observation()->GetUnits(IsFriendlyUnit(ROBO)))
+		for (const auto &robo : mediator->GetUnits(IsFriendlyUnit(ROBO)))
 		{
 			std::cerr << "Robo build progress: " << robo->build_progress << std::endl;
 			std::cerr << "Robo orders: " << robo->orders.size() << std::endl;
 			if (robo->build_progress == 1 && robo->orders.size() == 0)
 			{
-				agent->Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
-				std::cerr << "Prism trained at " << agent->Observation()->GetGameLoop() / 22.4 << std::endl;
+				mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
+				std::cerr << "Prism trained at " << mediator->GetGameLoop() / 22.4 << std::endl;
 				return true;
-				/*for (const auto & ability : agent->Query()->GetAbilitiesForUnit(robo).abilities)
-				{
-					if (ability.ability_id.ToType() == ABILITY_ID::TRAIN_WARPPRISM)
-					{
-						agent->Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
-						return true;
-					}
-				}*/
 			}
 		}
 	}
@@ -390,13 +309,13 @@ bool BuildOrderManager::TrainPrism(BuildOrderResultArgData data)
 
 bool BuildOrderManager::TrainObserver(BuildOrderResultArgData data)
 {
-	if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_OBSERVER, 1, agent->Observation()))
+	if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_OBSERVER, 1))
 	{
-		for (const auto &robo : agent->Observation()->GetUnits(IsFriendlyUnit(ROBO)))
+		for (const auto &robo : mediator->GetUnits(IsFriendlyUnit(ROBO)))
 		{
 			if (robo->build_progress == 1 && robo->orders.size() == 0)
 			{
-				agent->Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_OBSERVER);
+				mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_OBSERVER);
 				return true;
 			}
 		}
@@ -406,25 +325,17 @@ bool BuildOrderManager::TrainObserver(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ChronoBuilding(BuildOrderResultArgData data)
 {
-	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(data.unitId)))
+	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
 		{
-			for (const auto &nexus : agent->Observation()->GetUnits(IsFriendlyUnit(NEXUS)))
+			for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(NEXUS)))
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
 				{
-					agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
+					mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
 					return true;
 				}
-				/*for (const auto &ability : agent->Query()->GetAbilitiesForUnit(nexus).abilities)
-				{
-					if (ability.ability_id == ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST)
-					{
-						agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
-						return true;
-					}
-				}*/
 			}
 		}
 	}
@@ -433,13 +344,13 @@ bool BuildOrderManager::ChronoBuilding(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ResearchWarpgate(BuildOrderResultArgData data)
 {
-	for (const auto &cyber : agent->Observation()->GetUnits(IsFinishedUnit(CYBERCORE)))
+	for (const auto &cyber : mediator->GetUnits(IsFinishedUnit(CYBERCORE)))
 	{
 		if (cyber->orders.size() > 0 && cyber->orders[0].ability_id == ABILITY_ID::RESEARCH_WARPGATE)
 			return true;
-		if (Utility::CanAffordUpgrade(UPGRADE_ID::WARPGATERESEARCH, agent->Observation()))
+		if (mediator->CanAffordUpgrade(UPGRADE_ID::WARPGATERESEARCH))
 		{
-			agent->Actions()->UnitCommand(cyber, ABILITY_ID::RESEARCH_WARPGATE);
+			mediator->SetUnitCommand(cyber, ABILITY_ID::RESEARCH_WARPGATE);
 		}
 	}
 	return false;
@@ -447,11 +358,11 @@ bool BuildOrderManager::ResearchWarpgate(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ResearchBlink(BuildOrderResultArgData data)
 {
-	for (const auto &twilight : agent->Observation()->GetUnits(IsFinishedUnit(TWILIGHT)))
+	for (const auto &twilight : mediator->GetUnits(IsFinishedUnit(TWILIGHT)))
 	{
-		if (Utility::CanAffordUpgrade(UPGRADE_ID::BLINKTECH, agent->Observation()) && twilight->orders.size() == 0)
+		if (mediator->CanAffordUpgrade(UPGRADE_ID::BLINKTECH) && twilight->orders.size() == 0)
 		{
-			agent->Actions()->UnitCommand(twilight, ABILITY_ID::RESEARCH_BLINK);
+			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_BLINK);
 			return true;
 		}
 	}
@@ -460,11 +371,11 @@ bool BuildOrderManager::ResearchBlink(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ResearchCharge(BuildOrderResultArgData data)
 {
-	for (const auto &twilight : agent->Observation()->GetUnits(IsFinishedUnit(TWILIGHT)))
+	for (const auto &twilight : mediator->GetUnits(IsFinishedUnit(TWILIGHT)))
 	{
-		if (Utility::CanAffordUpgrade(UPGRADE_ID::CHARGE, agent->Observation()) && twilight->orders.size() == 0)
+		if (mediator->CanAffordUpgrade(UPGRADE_ID::CHARGE) && twilight->orders.size() == 0)
 		{
-			agent->Actions()->UnitCommand(twilight, ABILITY_ID::RESEARCH_CHARGE);
+			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_CHARGE);
 			return true;
 		}
 	}
@@ -473,11 +384,11 @@ bool BuildOrderManager::ResearchCharge(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ResearchGlaives(BuildOrderResultArgData data)
 {
-	for (const auto &twilight : agent->Observation()->GetUnits(IsFinishedUnit(TWILIGHT)))
+	for (const auto &twilight : mediator->GetUnits(IsFinishedUnit(TWILIGHT)))
 	{
-		if (Utility::CanAffordUpgrade(UPGRADE_ID::ADEPTPIERCINGATTACK, agent->Observation()) && twilight->orders.size() == 0)
+		if (mediator->CanAffordUpgrade(UPGRADE_ID::ADEPTPIERCINGATTACK) && twilight->orders.size() == 0)
 		{
-			agent->Actions()->UnitCommand(twilight, ABILITY_ID::RESEARCH_ADEPTRESONATINGGLAIVES);
+			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_ADEPTRESONATINGGLAIVES);
 			return true;
 		}
 	}
@@ -486,11 +397,11 @@ bool BuildOrderManager::ResearchGlaives(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ResearchDTBlink(BuildOrderResultArgData data)
 {
-	for (const auto &dark_shrine : agent->Observation()->GetUnits(IsFinishedUnit(DARK_SHRINE)))
+	for (const auto &dark_shrine : mediator->GetUnits(IsFinishedUnit(DARK_SHRINE)))
 	{
-		if (Utility::CanAffordUpgrade(UPGRADE_ID::DARKTEMPLARBLINKUPGRADE, agent->Observation()) && dark_shrine->orders.size() == 0)
+		if (mediator->CanAffordUpgrade(UPGRADE_ID::DARKTEMPLARBLINKUPGRADE) && dark_shrine->orders.size() == 0)
 		{
-			agent->Actions()->UnitCommand(dark_shrine, ABILITY_ID::RESEARCH_SHADOWSTRIKE);
+			mediator->SetUnitCommand(dark_shrine, ABILITY_ID::RESEARCH_SHADOWSTRIKE);
 			return true;
 		}
 	}
@@ -499,11 +410,11 @@ bool BuildOrderManager::ResearchDTBlink(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ResearchAttackOne(BuildOrderResultArgData data)
 {
-	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(FORGE)))
+	for (const auto &forge : mediator->GetUnits(IsFinishedUnit(FORGE)))
 	{
-		if (Utility::CanAffordUpgrade(UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1, agent->Observation()))
+		if (mediator->CanAffordUpgrade(UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1))
 		{
-			agent->Actions()->UnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1);
+			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1);
 			return true;
 		}
 	}
@@ -512,11 +423,11 @@ bool BuildOrderManager::ResearchAttackOne(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ResearchAttackTwo(BuildOrderResultArgData data)
 {
-	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(FORGE)))
+	for (const auto &forge : mediator->GetUnits(IsFinishedUnit(FORGE)))
 	{
-		if (forge->orders.size() == 0 && Utility::CanAffordUpgrade(UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2, agent->Observation()))
+		if (forge->orders.size() == 0 && mediator->CanAffordUpgrade(UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2))
 		{
-			agent->Actions()->UnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL2);
+			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL2);
 			return true;
 		}
 	}
@@ -525,11 +436,11 @@ bool BuildOrderManager::ResearchAttackTwo(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ResearchShieldsOne(BuildOrderResultArgData data)
 {
-	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(FORGE)))
+	for (const auto &forge : mediator->GetUnits(IsFinishedUnit(FORGE)))
 	{
-		if (forge->orders.size() == 0 && Utility::CanAffordUpgrade(UPGRADE_ID::PROTOSSSHIELDSLEVEL1, agent->Observation()))
+		if (forge->orders.size() == 0 && mediator->CanAffordUpgrade(UPGRADE_ID::PROTOSSSHIELDSLEVEL1))
 		{
-			agent->Actions()->UnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSSHIELDSLEVEL1);
+			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSSHIELDSLEVEL1);
 			return true;
 		}
 	}
@@ -538,11 +449,11 @@ bool BuildOrderManager::ResearchShieldsOne(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ResearchAirAttackOne(BuildOrderResultArgData data)
 {
-	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(CYBERCORE)))
+	for (const auto &forge : mediator->GetUnits(IsFinishedUnit(CYBERCORE)))
 	{
-		if (forge->orders.size() == 0 && Utility::CanAffordUpgrade(UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1, agent->Observation()))
+		if (forge->orders.size() == 0 && mediator->CanAffordUpgrade(UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1))
 		{
-			agent->Actions()->UnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONSLEVEL1);
+			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONSLEVEL1);
 			return true;
 		}
 	}
@@ -551,305 +462,142 @@ bool BuildOrderManager::ResearchAirAttackOne(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ChronoTillFinished(BuildOrderResultArgData data)
 {
-	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(data.unitId)))
+	for (const auto &building : mediator->GetUnits(IsFinishedUnit(data.unitId)))
 	{
 		if (building->orders.size() > 0)
 		{
-			agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionChronoTillFinished, new ActionArgData(building, data.unitId)));
+			mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionChronoTillFinished, new ActionArgData(building, data.unitId)));
 			return true;
 		}
 	}
 	return false;
 }
 
-bool BuildOrderManager::WarpInAtProxy(BuildOrderResultArgData data)
-{
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionWarpInAtProxy, new ActionArgData()));
-	return true;
-}
-
 bool BuildOrderManager::BuildProxy(BuildOrderResultArgData data)
 {
-	std::vector<Point2D> building_locations = agent->GetProxyLocations(data.unitId);
+	Point2D pos = mediator->GetProxyLocation(data.unitId);
 
-	Point2D pos = building_locations[0];
-	const Unit* builder = agent->worker_manager.GetBuilder(pos);
+	const Unit* builder = mediator->GetBuilder(pos);
 	if (builder == NULL)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
 	}
-	agent->worker_manager.RemoveWorker(builder);
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
+	mediator->BuildBuilding(data.unitId, pos, builder);
 	return true;
 }
 
 bool BuildOrderManager::ContinueBuildingPylons(BuildOrderResultArgData data)
 {
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
 	return true;
 }
 
 bool BuildOrderManager::ContinueMakingWorkers(BuildOrderResultArgData data)
 {
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData(data.amount)));
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData(data.amount)));
 	return true;
 }
 
 bool BuildOrderManager::ContinueUpgrades(BuildOrderResultArgData data)
 {
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueUpgrades, new ActionArgData()));
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueUpgrades, new ActionArgData()));
 	return true;
 }
 
 bool BuildOrderManager::ContinueChronos(BuildOrderResultArgData data)
 {
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueChronos, new ActionArgData()));
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueChronos, new ActionArgData()));
 	return true;
 }
 
 bool BuildOrderManager::ContinueExpanding(BuildOrderResultArgData data)
 {
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueExpanding, new ActionArgData()));
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueExpanding, new ActionArgData()));
 	return true;
 }
 
 bool BuildOrderManager::TrainFromProxy(BuildOrderResultArgData data)
 {
-	if (data.unitId == ROBO)
-	{
-		std::vector<const Unit*> proxy_robos;
-		for (const auto &robo : agent->Observation()->GetUnits(IsFriendlyUnit(ROBO)))
-		{
-			if (Utility::DistanceToClosest(agent->GetProxyLocations(ROBO), robo->pos) < 2)
-			{
-				agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionTrainFromProxyRobo, new ActionArgData(robo)));
-				return true;
-			}
-		}
-	}
-	return false;
+	return mediator->TrainFromProxyRobo();
 }
 
 bool BuildOrderManager::ContinueChronoProxyRobo(BuildOrderResultArgData data)
 {
-	if (data.unitId == ROBO)
+	/*if (data.unitId == ROBO)
 	{
 		std::vector<const Unit*> proxy_robos;
-		for (const auto &robo : agent->Observation()->GetUnits(IsFriendlyUnit(ROBO)))
+		for (const auto &robo : mediator->GetUnits(IsFriendlyUnit(ROBO)))
 		{
-			if (Utility::DistanceToClosest(agent->GetProxyLocations(ROBO), robo->pos) < 2)
+			if (Utility::DistanceToClosest(mediator->GetProxyLocations(ROBO), robo->pos) < 2)
 			{
-				agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionConstantChrono, new ActionArgData(robo)));
+				mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionConstantChrono, new ActionArgData(robo)));
 				return true;
 			}
 		}
-	}
+	}*/
 	return false;
 }
 
 bool BuildOrderManager::Contain(BuildOrderResultArgData data)
 {
-	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path, agent->locations->high_ground_index);
-	agent->army_groups.push_back(army);
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContain, new ActionArgData(army)));
+	/*ArmyGroup* army = new ArmyGroup(mediator, {}, mediator->locations->attack_path, mediator->locations->high_ground_index);
+	mediator->army_groups.push_back(army);
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContain, new ActionArgData(army)));*/
 	return true;
 }
 
 bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 {
-	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path_short, agent->locations->high_ground_index);
-	army->attack_path_line = agent->locations->attack_path_short_line;
-	Units oracles = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ORACLE));
-	for (const auto &fsm : agent->active_FSMs)
-	{
-		if (dynamic_cast<OracleHarassStateMachine*>(fsm))
-		{
-			OracleHarassStateMachine* state_machine = dynamic_cast<OracleHarassStateMachine*>(fsm);
-			for (const auto &oracle : oracles)
-			{
-				if (std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle) == state_machine->oracles.end())
-				{
-					state_machine->AddOracle(oracle);
-				}
-			}
-			state_machine->attached_army_group = army;
-		}
-	}
-	for (const auto &unit : agent->Observation()->GetUnits(IsFriendlyUnit(STALKER)))
-	{
-		if (agent->UnitIsOccupied(unit))
-			continue;
-		army->AddNewUnit(unit);
-	}
-	army->AutoAddNewUnits({ STALKER, IMMORTAL, PRISM, COLOSSUS, CARRIER });
-	agent->army_groups.push_back(army);
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionStalkerOraclePressure, new ActionArgData(army)));
+	mediator->CreateArmyGroup(ArmyRole::pressure, { STALKER, IMMORTAL, PRISM, COLOSSUS, ORACLE, CARRIER }, 10, 25);
 	return true;
 }
 
 bool BuildOrderManager::ZealotDoubleprong(BuildOrderResultArgData data)
 {
-	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path_alt, agent->locations->high_ground_index_alt);
-	for (const auto &unit : agent->Observation()->GetUnits(IsFriendlyUnit(ZEALOT)))
-	{
-		if (agent->UnitIsOccupied(unit))
-			continue;
-		army->AddNewUnit(unit);
-	}
-	army->AutoAddUnits({ ZEALOT });
-	agent->army_groups.push_back(army);
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionZealotDoubleprong, new ActionArgData(army)));
+	mediator->CreateArmyGroup(ArmyRole::simple_attack, { ZEALOT }, 10, 20);
 	return true;
 }
 
 bool BuildOrderManager::MicroOracles(BuildOrderResultArgData data)
 {
-	//StateMachine* oracle_fsm = new StateMachine(agent, new OracleDefend(agent, agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ORACLE)), agent->GetLocations(NEXUS)[2]), "Oracles");
-	//agent->active_FSMs.push_back(oracle_fsm);
+	//StateMachine* oracle_fsm = new StateMachine(mediator, new OracleDefend(mediator, mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ORACLE)), mediator->GetLocations(NEXUS)[2]), "Oracles");
+	//mediator->active_FSMs.push_back(oracle_fsm);
 	return true;
 }
 
 bool BuildOrderManager::OracleHarass(BuildOrderResultArgData data)
 {
-	Units oracles = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ORACLE));
-	for (const auto &fsm : agent->active_FSMs)
-	{
-		if (dynamic_cast<OracleHarassStateMachine*>(fsm))
-		{
-			OracleHarassStateMachine* state_machine = dynamic_cast<OracleHarassStateMachine*>(fsm);
-			for (const auto &oracle : oracles)
-			{
-				if (std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle) == state_machine->oracles.end())
-				{
-					state_machine->AddOracle(oracle);
-				}
-			}
-		}
-	}
+	mediator->AddOraclesToOracleHarassFSM();
 	return true;
 }
 
 bool BuildOrderManager::SpawnUnits(BuildOrderResultArgData data)
 {
-	//agent->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, agent->GetLocations(NEXUS)[2], 2, 15);
-	return true;
-}
-
-bool BuildOrderManager::ConntinueWarpingInStalkers(BuildOrderResultArgData data)
-{
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueWarpingInStalkers, new ActionArgData()));
-	return true;
-}
-
-bool BuildOrderManager::StopWarpingInStalkers(BuildOrderResultArgData data)
-{
-	for (const auto &action : agent->action_manager.active_actions)
-	{
-		if (action->action == &ActionManager::ActionContinueWarpingInStalkers)
-		{
-			agent->action_manager.active_actions.erase(std::remove(agent->action_manager.active_actions.begin(), agent->action_manager.active_actions.end(), action), agent->action_manager.active_actions.end());
-			return true;
-		}
-	}
-}
-
-bool BuildOrderManager::ConntinueVolleyWarpingInStalkers(BuildOrderResultArgData data)
-{
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueVolleyWarpingInStalkers, new ActionArgData()));
-	return true;
-}
-
-bool BuildOrderManager::StopVolleyWarpingInStalkers(BuildOrderResultArgData data)
-{
-	for (const auto &action : agent->action_manager.active_actions)
-	{
-		if (action->action == &ActionManager::ActionContinueVolleyWarpingInStalkers)
-		{
-			agent->action_manager.active_actions.erase(std::remove(agent->action_manager.active_actions.begin(), agent->action_manager.active_actions.end(), action), agent->action_manager.active_actions.end());
-			return true;
-		}
-	}
-}
-
-bool BuildOrderManager::ContinueVolleyWarpingInZealots(BuildOrderResultArgData data)
-{
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueVolleyWarpingInZealots, new ActionArgData()));
-	return true;
-}
-
-bool BuildOrderManager::StopVolleyWarpingInZealots(BuildOrderResultArgData data)
-{
-	for (const auto &action : agent->action_manager.active_actions)
-	{
-		if (action->action == &ActionManager::ActionContinueVolleyWarpingInZealots)
-		{
-			agent->action_manager.active_actions.erase(std::remove(agent->action_manager.active_actions.begin(), agent->action_manager.active_actions.end(), action), agent->action_manager.active_actions.end());
-			return true;
-		}
-	}
-}
-
-bool BuildOrderManager::ContinueBuildingCarriers(BuildOrderResultArgData data)
-{
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingCarriers, new ActionArgData()));
+	//mediator->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, mediator->GetLocations(NEXUS)[2], 2, 15);
 	return true;
 }
 
 bool BuildOrderManager::WarpInUnits(BuildOrderResultArgData data)
 {
-	int warp_ins = data.amount;
-	UnitTypeID type = data.unitId;
-	AbilityID warp_ability = Utility::UnitToWarpInAbility(type);
-	int gates_ready = 0;
-	Units gates;
-	for (const auto &warpgate : agent->warpgate_status)
-	{
-		if (warpgate.second.frame_ready == 0)
-			gates.push_back(warpgate.first);
-		/*for (const auto &ability : agent->Query()->GetAbilitiesForUnit(warpgate).abilities)
-		{
-			if (ability.ability_id == warp_ability)
-			{
-				gates_ready++;
-				break;
-			}
-		}
-		if (gates_ready >= warp_ins)
-		{
-			break;
-		}*/
-	}
-	if (gates.size() > 0 && gates_ready >= warp_ins && Utility::CanAfford(type, warp_ins, agent->Observation()))
-	{
-		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
-		if (spots.size() >= warp_ins)
-		{
-			for (int i = 0; i < warp_ins; i++)
-			{
-				agent->Actions()->UnitCommand(gates[i], warp_ability, spots[i]);
-			}
-			return true;
-		}
-	}
 	return false;
 }
 
 bool BuildOrderManager::PullOutOfGas(BuildOrderResultArgData data)
 {
-	agent->worker_manager.removed_gas_miners += data.amount;
+	/*mediator->removed_gas_miners += data.amount;
 	Units workers;
-	for (const auto &data : agent->worker_manager.assimilators)
+	for (const auto &data : mediator->assimilators)
 	{
 		if (data.second.workers[2] != NULL)
 			workers.push_back(data.second.workers[2]);
 	}
-	for (const auto &data : agent->worker_manager.assimilators)
+	for (const auto &data : mediator->assimilators)
 	{
 		if (data.second.workers[1] != NULL)
 			workers.push_back(data.second.workers[1]);
 	}
-	for (const auto &data : agent->worker_manager.assimilators)
+	for (const auto &data : mediator->assimilators)
 	{
 		if (data.second.workers[0] != NULL)
 			workers.push_back(data.second.workers[0]);
@@ -859,103 +607,81 @@ bool BuildOrderManager::PullOutOfGas(BuildOrderResultArgData data)
 	{
 		if (num_removed >= data.amount)
 			break;
-		agent->worker_manager.RemoveWorker(worker);
-		agent->worker_manager.PlaceWorker(worker);
+		mediator->RemoveWorker(worker);
+		mediator->PlaceWorker(worker);
 		num_removed++;
-	}
+	}*/
 	return true;
 }
 
 bool BuildOrderManager::IncreaseExtraPylons(BuildOrderResultArgData data)
 {
-	agent->extra_pylons += data.amount;
+	//mediator->extra_pylons += data.amount;
 	return true;
 }
 
 bool BuildOrderManager::MicroChargelotAllin(BuildOrderResultArgData data)
 {
-	if (agent->Observation()->GetUnits(IsFriendlyUnit(PRISM)).size() > 0)
+	/*if (mediator->GetUnits(IsFriendlyUnit(PRISM)).size() > 0)
 	{
-		const Unit* prism = agent->Observation()->GetUnits(IsFriendlyUnit(PRISM))[0];
-		ChargelotAllInStateMachine* chargelotFSM = new ChargelotAllInStateMachine(agent, "Chargelot allin", agent->locations->warp_prism_locations, agent->Observation()->GetUnits(IsFriendlyUnit(ZEALOT)), prism, agent->Observation()->GetGameLoop() / 22.4);
-		agent->active_FSMs.push_back(chargelotFSM);
+		const Unit* prism = mediator->GetUnits(IsFriendlyUnit(PRISM))[0];
+		ChargelotAllInStateMachine* chargelotFSM = new ChargelotAllInStateMachine(mediator, "Chargelot allin", mediator->locations->warp_prism_locations, mediator->GetUnits(IsFriendlyUnit(ZEALOT)), prism, mediator->Observation()->GetGameLoop() / 22.4);
+		mediator->active_FSMs.push_back(chargelotFSM);
 		return true;
-	}
+	}*/
 	return false;
 }
 
 bool BuildOrderManager::RemoveScoutToProxy(BuildOrderResultArgData data)
 {
-	for (const auto &fsm : agent->active_FSMs)
-	{
-		const Unit* scout = NULL;
-		if (fsm->name == "Scout Zerg")
-		{
-			scout = ((ScoutZergStateMachine*)fsm)->scout;
-		}
-		else if (fsm->name == "Scout Terran")
-		{
-			scout = ((ScoutTerranStateMachine*)fsm)->scout;
-		}
-		if (scout != NULL && scout->is_alive)
-		{
-			agent->active_FSMs.erase(std::remove(agent->active_FSMs.begin(), agent->active_FSMs.end(), fsm), agent->active_FSMs.end());
-			Point2D pos = agent->locations->proxy_pylon_locations[0];
-			agent->Actions()->UnitCommand(scout, ABILITY_ID::MOVE_MOVE, pos);
-			agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionRemoveScoutToProxy, new ActionArgData(scout, data.unitId, pos, data.amount)));
-			return true;
-		}
-		else
-		{
-			return BuildProxyMulti(BuildOrderResultArgData({ PYLON, GATEWAY }));
-		}
-	}
-	return false;
+	if (mediator->RemoveScoutToProxy(data.unitId, data.amount))
+		return true;
+	return BuildProxyMulti(BuildOrderResultArgData({ PYLON, GATEWAY }));
 }
 
 bool BuildOrderManager::SafeRallyPoint(BuildOrderResultArgData data)
 {
-	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(data.unitId)))
+	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
-		Point2D pos = Utility::PointBetween(building->pos, agent->Observation()->GetStartLocation(), 2);
-		agent->Actions()->UnitCommand(building, ABILITY_ID::SMART, pos);
+		Point2D pos = Utility::PointBetween(building->pos, mediator->GetStartLocation(), 2);
+		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos);
 	}
 	return true;
 }
 
 bool BuildOrderManager::DTHarass(BuildOrderResultArgData data)
 {
-	if (agent->enemy_race == Race::Terran)
-		agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionDTHarassTerran, new ActionArgData()));
+	/*if (mediator->enemy_race == Race::Terran)
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionDTHarassTerran, new ActionArgData()));*/
 	return true;
 }
 
 bool BuildOrderManager::UseProxyDoubleRobo(BuildOrderResultArgData data)
 {
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionUseProxyDoubleRobo, new ActionArgData({ IMMORTAL, PRISM, IMMORTAL, UNIT_TYPEID::PROTOSS_OBSERVER })));
+	//mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionUseProxyDoubleRobo, new ActionArgData({ IMMORTAL, PRISM, IMMORTAL, UNIT_TYPEID::PROTOSS_OBSERVER })));
 	return true;
 }
 
 bool BuildOrderManager::MicroImmortalDrop(BuildOrderResultArgData data)
 {
-	const Unit* immortal1 = NULL;
+	/*const Unit* immortal1 = NULL;
 	const Unit* immortal2 = NULL;
-	for (const auto &immortal : agent->Observation()->GetUnits(IsFriendlyUnit(IMMORTAL)))
+	for (const auto &immortal : mediator->GetUnits(IsFriendlyUnit(IMMORTAL)))
 	{
 		if (immortal1 == NULL)
 			immortal1 = immortal;
 		else if (immortal2 == NULL)
 			immortal2 = immortal;
 	}
-	ImmortalDropStateMachine* immortal_drop_fsm = new ImmortalDropStateMachine(agent, "Immortal Drop", immortal1, immortal2, agent->Observation()->GetUnits(IsFriendlyUnit(PRISM))[0], agent->Observation()->GetGameInfo().enemy_start_locations[0], agent->locations->immortal_drop_prism_locations);
-	agent->active_FSMs.push_back(immortal_drop_fsm);
+	ImmortalDropStateMachine* immortal_drop_fsm = new ImmortalDropStateMachine(mediator, "Immortal Drop", immortal1, immortal2, mediator->GetUnits(IsFriendlyUnit(PRISM))[0], mediator->GetEnemyStartLocation(), mediator->locations->immortal_drop_prism_locations);
+	mediator->active_FSMs.push_back(immortal_drop_fsm);*/
 	return true;
 }
 
 bool BuildOrderManager::ProxyDoubleRoboAllIn(BuildOrderResultArgData data)
 {
-	Units already_occupied;
-	for (const auto &fsm : agent->active_FSMs)
+	/*Units already_occupied;
+	for (const auto &fsm : mediator->active_FSMs)
 	{
 		if (dynamic_cast<ImmortalDropStateMachine*>(fsm))
 		{
@@ -965,58 +691,34 @@ bool BuildOrderManager::ProxyDoubleRoboAllIn(BuildOrderResultArgData data)
 		}
 	}
 	Units available_units;
-	for (const auto &unit : agent->Observation()->GetUnits(IsUnits({ STALKER, UNIT_TYPEID::PROTOSS_OBSERVER, IMMORTAL })))
+	for (const auto &unit : mediator->GetUnits(IsUnits({ STALKER, UNIT_TYPEID::PROTOSS_OBSERVER, IMMORTAL })))
 	{
 		if (std::find(already_occupied.begin(), already_occupied.end(), unit) == already_occupied.end())
 			available_units.push_back(unit);
 	}
-	ArmyGroup* army = new ArmyGroup(agent, available_units, agent->locations->attack_path_alt, agent->locations->high_ground_index_alt);
-	agent->army_groups.push_back(army);
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionAllIn, new ActionArgData(army)));
+	ArmyGroup* army = new ArmyGroup(mediator, available_units, mediator->locations->attack_path_alt, mediator->locations->high_ground_index_alt);
+	mediator->army_groups.push_back(army);
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionAllIn, new ActionArgData(army)));*/
 	return true;
 }
 
 bool BuildOrderManager::DefendThirdBase(BuildOrderResultArgData data)
 {
-	ArmyGroup* defenders = new ArmyGroup(agent);
-	for (const auto &unit : agent->Observation()->GetUnits(IsFriendlyUnit(ADEPT)))
-	{
-		if (agent->UnitIsOccupied(unit))
-			continue;
-		defenders->AddUnit(unit);
-		break;
-	}
-	for (const auto &unit : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ORACLE)))
-	{
-		defenders->AddUnit(unit);
-	}
-	agent->army_groups.push_back(defenders);
-	defenders->DefendExpansion(agent->GetLocations(NEXUS)[2], agent->locations->natural_door_closed, agent->locations->third_base_pylon_gap);
+	mediator->DefendThirdBaseZerg();
 	return true;
 }
 
 bool BuildOrderManager::SetDoorGuard(BuildOrderResultArgData data)
 {
-	ArmyGroup* defenders = new ArmyGroup(agent);
-	for (const auto &unit : agent->Observation()->GetUnits(IsFriendlyUnit(ADEPT)))
-	{
-		if (agent->UnitIsOccupied(unit))
-			continue;
-		defenders->AddUnit(unit);
-		break;
-	}
-	agent->army_groups.push_back(defenders);
-	defenders->DefendFrontDoor(agent->locations->natural_door_open, agent->locations->natural_door_closed);
+	mediator->CreateArmyGroup(ArmyRole::defend_door, { ADEPT, STALKER, ZEALOT }, 1, 1);
 	return true;
 }
 
 bool BuildOrderManager::AdeptDefendBaseTerran(BuildOrderResultArgData data)
 {
-	if (agent->Observation()->GetUnits(IsFriendlyUnit(ADEPT)).size() > 0)
+	if (mediator->GetUnits(IsFriendlyUnit(ADEPT)).size() > 0)
 	{
-		const Unit* adept = agent->Observation()->GetUnits(IsFriendlyUnit(ADEPT))[0];
-		AdeptBaseDefenseTerran* adept_defense_fsm = new AdeptBaseDefenseTerran(agent, "Adept base defense", adept, agent->locations->main_early_dead_space, agent->locations->natural_front);
-		agent->active_FSMs.push_back(adept_defense_fsm);
+		mediator->CreateAdeptBaseDefenseTerranFSM();
 		return true;
 	}
 	return false;
@@ -1024,11 +726,9 @@ bool BuildOrderManager::AdeptDefendBaseTerran(BuildOrderResultArgData data)
 
 bool BuildOrderManager::StalkerDefendBaseTerran(BuildOrderResultArgData data)
 {
-	if (agent->Observation()->GetUnits(IsFriendlyUnit(STALKER)).size() > 0)
+	if (mediator->GetUnits(IsFriendlyUnit(STALKER)).size() > 0)
 	{
-		const Unit* stalker = agent->Observation()->GetUnits(IsFriendlyUnit(STALKER))[0];
-		StalkerBaseDefenseTerran* stalker_defense_fsm = new StalkerBaseDefenseTerran(agent, "Stalker base defense", stalker, agent->locations->natural_front);
-		agent->active_FSMs.push_back(stalker_defense_fsm);
+		mediator->CreateAdeptBaseDefenseTerranFSM();
 		return true;
 	}
 	return false;
@@ -1036,98 +736,67 @@ bool BuildOrderManager::StalkerDefendBaseTerran(BuildOrderResultArgData data)
 
 bool BuildOrderManager::StartFourGateBlinkPressure(BuildOrderResultArgData data)
 {
-	ArmyGroup* army = new ArmyGroup(agent);
-	army->using_standby = true;
-	army->standby_pos = agent->locations->blink_presure_consolidation;
-	for (const auto& fsm : agent->active_FSMs)
-	{
-		if (fsm->name == "Stalker base defense")
-		{
-			agent->active_FSMs.erase(std::remove(agent->active_FSMs.begin(), agent->active_FSMs.end(), fsm), agent->active_FSMs.end());
-			break;
-		}
-	}
-	for (const auto &unit : agent->Observation()->GetUnits(IsUnits({ PRISM, STALKER })))
-	{
-		if (agent->UnitIsOccupied(unit))
-			continue;
-		army->AddUnit(unit);
-	}
-	BlinkStalkerAttackTerran* blink_fsm = new BlinkStalkerAttackTerran(agent, "4 gate blink pressure", army, agent->locations->blink_presure_consolidation, 
-		agent->locations->blink_pressure_prism_consolidation, agent->locations->blink_pressure_blink_up, agent->locations->blink_pressure_blink_down);
-	agent->active_FSMs.push_back(blink_fsm);
+	mediator->CreateFourGateBlinkFSM();
 	return true;
 }
 
 bool BuildOrderManager::SendCannonRushTerranProbe1(BuildOrderResultArgData data)
 {
-	Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
-	const Unit* cannoneer = agent->worker_manager.GetBuilder(pos);
+	/*Point2D pos = mediator->GetEnemyStartLocation();
+	const Unit* cannoneer = mediator->GetBuilder(pos);
 	if (cannoneer == NULL)
 	{
 		//std::cout << "Error could not find builder in SendCannonRushTerranProbe1" << std::endl;
 		return false;
 	}
-	agent->worker_manager.RemoveWorker(cannoneer);
-	CannonRushTerran* cannon_fsm = new CannonRushTerran(agent, "cannon rush terran 1", cannoneer, 1);
-	agent->active_FSMs.push_back(cannon_fsm);
+	mediator->RemoveWorker(cannoneer);
+	CannonRushTerran* cannon_fsm = new CannonRushTerran(mediator, "cannon rush terran 1", cannoneer, 1);
+	mediator->finite_state_machine_manager.active_state_machines.push_back(cannon_fsm);*/
 	return true;
 }
 
 bool BuildOrderManager::SendCannonRushTerranProbe2(BuildOrderResultArgData data)
 {
-	Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
-	const Unit* cannoneer = agent->worker_manager.GetBuilder(pos);
+	/*Point2D pos = mediator->GetEnemyStartLocation();
+	const Unit* cannoneer = mediator->GetBuilder(pos);
 	if (cannoneer == NULL)
 	{
 		//std::cout << "Error could not find builder in SendCannonRushTerranProbe1" << std::endl;
 		return false;
 	}
-	agent->worker_manager.RemoveWorker(cannoneer);
-	CannonRushTerran* cannon_fsm = new CannonRushTerran(agent, "cannon rush terran 2", cannoneer, 2);
-	agent->active_FSMs.push_back(cannon_fsm);
+	mediator->RemoveWorker(cannoneer);
+	CannonRushTerran* cannon_fsm = new CannonRushTerran(mediator, "cannon rush terran 2", cannoneer, 2);
+	mediator->finite_state_machine_manager.active_state_machines.push_back(cannon_fsm);*/
 	return true;
 }
 
 bool BuildOrderManager::CannonRushAttack(BuildOrderResultArgData data)
 {
-	if (agent->Observation()->GetUnits(IsFriendlyUnit(ZEALOT)).size() == 0)
+	/*if (mediator->GetUnits(IsFriendlyUnit(ZEALOT)).size() == 0)
 		return false;
-	const Unit* zealot = agent->Observation()->GetUnits(IsFriendlyUnit(ZEALOT))[0];
+	const Unit* zealot = mediator->GetUnits(IsFriendlyUnit(ZEALOT))[0];
 	
-	CannonRushTerran* cannon_fsm = new CannonRushTerran(agent, "cannon rush terran 3", zealot, 3);
-	agent->active_FSMs.push_back(cannon_fsm);
+	CannonRushTerran* cannon_fsm = new CannonRushTerran(mediator, "cannon rush terran 3", zealot, 3);
+	mediator->finite_state_machine_manager.active_state_machines.push_back(cannon_fsm);*/
 	return true;
 }
 
 bool BuildOrderManager::SendAllInAttack(BuildOrderResultArgData data)
 {
-	ArmyGroup* army = new ArmyGroup(agent, {}, agent->locations->attack_path_short, agent->locations->high_ground_index);
-	army->attack_path_line = agent->locations->attack_path_short_line;
-
-	for (const auto& unit : agent->Observation()->GetUnits(IsFriendlyUnit(STALKER)))
-	{
-		if (agent->UnitIsOccupied(unit))
-			continue;
-		army->AddNewUnit(unit);
-	}
-	army->AutoAddNewUnits({ ZEALOT, ADEPT, SENTRY, STALKER, HIGH_TEMPLAR, ARCHON, IMMORTAL, PRISM, COLOSSUS, DISRUPTOR, VOID_RAY, TEMPEST, CARRIER });
-	agent->army_groups.push_back(army);
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionAllInAttack, new ActionArgData(army)));
+	mediator->CreateArmyGroup(ArmyRole::attack, { ZEALOT, ADEPT, SENTRY, STALKER, HIGH_TEMPLAR, ARCHON, IMMORTAL, PRISM, COLOSSUS, DISRUPTOR, VOID_RAY, TEMPEST, CARRIER }, 10, 20);
 	return true;
 }
 
 bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
 {
-	AdeptHarassProtoss* adept_fsm = new AdeptHarassProtoss(agent, "adept harass protoss", agent->Observation()->GetUnits(IsFriendlyUnit(ADEPT)), agent->locations->adept_harrass_protoss_consolidation);
-	agent->active_FSMs.push_back(adept_fsm);
+	mediator->CreateAdeptHarassProtossFSM();
 	return true;
 }
 
 bool BuildOrderManager::ScourMap(BuildOrderResultArgData data)
 {
-	agent->active_FSMs = {};
-	std::vector<ActionData*>* actions = &(agent->action_manager.active_actions);
+	mediator->finite_state_machine_manager.active_state_machines = {};
+	std::vector<ActionData*>* actions = &(mediator->action_manager.active_actions);
 	for (int i = 0; i < actions->size(); i++)
 	{
 		if ((*actions)[i]->toString() == "Stalker Oracle pressure" || (*actions)[i]->toString() == "Zealot double prong" || (*actions)[i]->toString() == "All in attack")
@@ -1137,20 +806,20 @@ bool BuildOrderManager::ScourMap(BuildOrderResultArgData data)
 		}
 
 	}
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionScourMap, new ActionArgData()));
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionScourMap, new ActionArgData()));
 	return true;
 }
 
 bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 {
-	ScoutInfoZerg info = agent->scout_info_zerg;
+	ScoutInfoZerg info = mediator->GetScoutInfoZerg();
 	
 	if (info.third_timing != 0 && info.third_timing < 90)
 	{
 		// 3 hatch before pool
 		return true;
 	}
-	else if (agent->Observation()->GetGameLoop() / 22.4 >= 90)
+	else if (mediator->GetGameLoop() / 22.4 >= 90)
 	{
 		// late pool
 		return true;
@@ -1181,15 +850,15 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 
 bool BuildOrderManager::BuildNaturalDefensiveBuilding(BuildOrderResultArgData data)
 {
-	Point2D pos = agent->GetNaturalDefensiveLocation(data.unitId);
-	const Unit* builder = agent->worker_manager.GetBuilder(pos);
+	Point2D pos = mediator->GetNaturalDefensiveLocation(data.unitId);
+	const Unit* builder = mediator->GetBuilder(pos);
 	if (builder == NULL)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
 	}
-	agent->worker_manager.RemoveWorker(builder);
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
+	mediator->RemoveWorker(builder);
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
 	return true;
 }
 
@@ -1200,25 +869,37 @@ bool BuildOrderManager::ReturnToMainBuild(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::SetUnitProduction(BuildOrderResultArgData data)
+{
+	mediator->SetUnitProduction(data.unitId);
+	return true;
+}
+
+bool BuildOrderManager::SetWarpInAtProxy(BuildOrderResultArgData data)
+{
+	mediator->SetWarpInAtProxy(true);
+	return true;
+}
+
 
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
-	//agent->Debug()->DebugCreateUnit(STALKER, agent->locations->attack_path[0], 2, 10);
-	////agent->Debug()->DebugCreateUnit(PRISM, agent->locations->attack_path[0], 2, 1);
-	////agent->Debug()->DebugCreateUnit(MARINE, agent->locations->attack_path[2], 2, 18);
-	////agent->Debug()->DebugCreateUnit(MARAUDER, agent->locations->attack_path[2], 2, 6);
-	////agent->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, agent->locations->attack_path[2], 2, 1);
-	//agent->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, agent->locations->attack_path[2], 1, 6);
-	//agent->Debug()->DebugGiveAllUpgrades();
+	//mediator->Debug()->DebugCreateUnit(STALKER, mediator->locations->attack_path[0], 2, 10);
+	////mediator->Debug()->DebugCreateUnit(PRISM, mediator->locations->attack_path[0], 2, 1);
+	////mediator->Debug()->DebugCreateUnit(MARINE, mediator->locations->attack_path[2], 2, 18);
+	////mediator->Debug()->DebugCreateUnit(MARAUDER, mediator->locations->attack_path[2], 2, 6);
+	////mediator->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, mediator->locations->attack_path[2], 2, 1);
+	//mediator->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, mediator->locations->attack_path[2], 1, 6);
+	//mediator->Debug()->DebugGiveAllUpgrades();
 	return true;
 }
 
 bool BuildOrderManager::AttackLine(BuildOrderResultArgData data)
 {
-	ArmyGroup* army = new ArmyGroup(agent, agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Self)), agent->locations->attack_path_line);
-	army->standby_pos = agent->locations->attack_path[0];
+	/*ArmyGroup* army = new ArmyGroup(mediator, mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)), mediator->locations->attack_path_line);
+	army->standby_pos = mediator->locations->attack_path[0];
 	army->using_standby = true;
-	agent->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionAttackLine, new ActionArgData(army)));
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionAttackLine, new ActionArgData(army)));*/
 	return true;
 }
 
@@ -1226,20 +907,19 @@ bool BuildOrderManager::AttackLine(BuildOrderResultArgData data)
 
 bool BuildOrderManager::RemoveProbe(BuildOrderResultArgData data)
 {
-	const Unit* builder = agent->worker_manager.GetBuilder(Point2D(0, 0));
+	const Unit* builder = mediator->GetBuilder(Point2D(0, 0));
 	if (builder == NULL)
 	{
 		//std::cout << "Error could not find builder in RemoveProbe" << std::endl;
 		return false;
 	}
-	agent->worker_manager.RemoveWorker(builder);
+	mediator->RemoveWorker(builder);
 	return true;
 }
 
 
 void BuildOrderManager::SetBuildOrder(BuildOrder build)
 {
-	agent->locations = new Locations(agent->Observation()->GetStartLocation(), build, agent->Observation()->GetGameInfo().map_name);
 	current_build_order = build;
 	switch (build)
 	{
@@ -1249,14 +929,17 @@ void BuildOrderManager::SetBuildOrder(BuildOrder build)
 	case BuildOrder::testing:
 		SetTesting();
 		break;
-	case BuildOrder::blink_proxy_robo_pressure:
-		SetBlinkProxyRoboPressureBuild();
-		break;
 	case BuildOrder::oracle_gatewayman_pvz:
 		SetOracleGatewaymanPvZ();
 		break;
 	case BuildOrder::four_gate_blink:
 		Set4GateBlink();
+		break;
+	case BuildOrder::three_gate_robo:
+		SetThreeGateRobo();
+		break;
+	case BuildOrder::blink_proxy_robo_pressure:
+		SetBlinkProxyRoboPressureBuild();
 		break;
 	case BuildOrder::chargelot_allin:
 		SetChargelotAllin();
@@ -1275,9 +958,6 @@ void BuildOrderManager::SetBuildOrder(BuildOrder build)
 		break;
 	case BuildOrder::cannon_rush_terran:
 		SetCannonRushTerran();
-		break;
-	case BuildOrder::three_gate_robo:
-		SetThreeGateRobo();
 		break;
 	default:
 		//std::cout << "Error invalid build order in SetBuildOrder" << std::endl;
@@ -1343,7 +1023,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(149.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),			&BuildOrderManager::TrainAdept,							Result(ADEPT, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),			&BuildOrderManager::SetDoorGuard,						Result()),
+					//Data(&BuildOrderManager::TimePassed,			Condition(156.0f),			&BuildOrderManager::SetDoorGuard,						Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::TrainOracle,						Result(STARGATE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(173.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(186.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
@@ -1365,7 +1045,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::HasBuilding,			Condition(FORGE),			&BuildOrderManager::ChronoBuilding,						Result(FORGE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result(0)),
-					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::ConntinueWarpingInStalkers,			Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(305.0f),			&BuildOrderManager::ChronoBuilding,						Result(FORGE)),
 					Data(&BuildOrderManager::HasUnits,				Condition(STALKER, 7),		&BuildOrderManager::StalkerOraclePressure,				Result()),
@@ -1377,8 +1057,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::StopWarpingInStalkers,				Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::ContinueVolleyWarpingInZealots,		Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
 					Data(&BuildOrderManager::HasBuilding,			Condition(FORGE),			&BuildOrderManager::ResearchShieldsOne,					Result()),
@@ -1386,10 +1065,9 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueChronos,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(410.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({FLEET_BEACON, STARGATE, STARGATE})),
-					Data(&BuildOrderManager::HasBuilding,			Condition(FLEET_BEACON),	&BuildOrderManager::ContinueBuildingCarriers,			Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(FLEET_BEACON),	&BuildOrderManager::SetUnitProduction,					Result(CARRIER)),
 					Data(&BuildOrderManager::HasUnits,				Condition(ZEALOT, 12),		&BuildOrderManager::ZealotDoubleprong,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::StopVolleyWarpingInZealots,			Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::ConntinueVolleyWarpingInStalkers,	Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::ReadyToScour,			Condition(600.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
@@ -1421,7 +1099,8 @@ void BuildOrderManager::SetThreeGateRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 2)),
 					Data(&BuildOrderManager::TimePassed,			Condition(186.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::WarpInAtProxy,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::ReadyToScour,			Condition(480.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
@@ -1451,7 +1130,7 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(203.0f),			&BuildOrderManager::ChronoBuilding,						Result(TWILIGHT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(205.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,			Condition(217.0f),			&BuildOrderManager::ConntinueWarpingInStalkers,			Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(217.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::TrainObserver,						Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(223.0f),			&BuildOrderManager::ChronoBuilding,						Result(TWILIGHT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(225.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
@@ -1465,8 +1144,8 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::StartFourGateBlinkPressure,			Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::BuildProxy,							Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::BuildBuilding,						Result(NEXUS)),
-					Data(&BuildOrderManager::HasUnits,				Condition(STALKER, 8),		&BuildOrderManager::StopWarpingInStalkers,				Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::WarpInAtProxy,						Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result()),
+					//Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({FORGE, FORGE})),
 					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
@@ -1501,37 +1180,38 @@ void BuildOrderManager::SetCannonRushTerran()
 
 void BuildOrderManager::SetBlinkProxyRoboPressureBuild()
 {
-	build_order = { Data(&BuildOrderManager::TimePassed,		Condition(6.5f),				&BuildOrderManager::BuildBuilding,			Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,		Condition(17.0f),				&BuildOrderManager::BuildBuilding,			Result(GATEWAY)),
-					Data(&BuildOrderManager::TimePassed,		Condition(40.5f),				&BuildOrderManager::BuildBuilding,			Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,		Condition(60.5f),				&BuildOrderManager::BuildBuilding,			Result(GATEWAY)),
-					Data(&BuildOrderManager::TimePassed,		Condition(70.0f),				&BuildOrderManager::BuildBuilding,			Result(CYBERCORE)),
-					Data(&BuildOrderManager::TimePassed,		Condition(82.0f),				&BuildOrderManager::BuildBuilding,			Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,		Condition(85.0f),				&BuildOrderManager::BuildBuilding,			Result(PYLON)),
-					Data(&BuildOrderManager::NumWorkers,		Condition(21),					&BuildOrderManager::CutWorkers,				Result()),
+	build_order = { Data(&BuildOrderManager::TimePassed,		Condition(6.5f),				&BuildOrderManager::BuildBuilding,				Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,		Condition(17.0f),				&BuildOrderManager::BuildBuilding,				Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,		Condition(40.5f),				&BuildOrderManager::BuildBuilding,				Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::TimePassed,		Condition(60.5f),				&BuildOrderManager::BuildBuilding,				Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,		Condition(70.0f),				&BuildOrderManager::BuildBuilding,				Result(CYBERCORE)),
+					Data(&BuildOrderManager::TimePassed,		Condition(82.0f),				&BuildOrderManager::BuildBuilding,				Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::TimePassed,		Condition(85.0f),				&BuildOrderManager::BuildBuilding,				Result(PYLON)),
+					Data(&BuildOrderManager::NumWorkers,		Condition(21),					&BuildOrderManager::CutWorkers,					Result()),
 					Data(&BuildOrderManager::HasBuilding,		Condition(CYBERCORE),			&BuildOrderManager::TrainStalker,				Result(STALKER)),
 					Data(&BuildOrderManager::HasBuilding,		Condition(CYBERCORE),			&BuildOrderManager::TrainStalker,				Result(STALKER)),
-					Data(&BuildOrderManager::HasBuilding,		Condition(CYBERCORE),			&BuildOrderManager::ChronoBuilding,			Result(GATEWAY)),
-					Data(&BuildOrderManager::HasBuilding,		Condition(CYBERCORE),			&BuildOrderManager::ChronoBuilding,			Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuilding,		Condition(CYBERCORE),			&BuildOrderManager::ChronoBuilding,				Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuilding,		Condition(CYBERCORE),			&BuildOrderManager::ChronoBuilding,				Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,		Condition(117.0f),				&BuildOrderManager::ResearchWarpgate,			Result()),
 					Data(&BuildOrderManager::TimePassed,		Condition(117.0f),				&BuildOrderManager::Contain,					Result()),
 					Data(&BuildOrderManager::TimePassed,		Condition(136.0f),				&BuildOrderManager::TrainStalker,				Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,		Condition(136.0f),				&BuildOrderManager::TrainStalker,				Result(STALKER)),
-					Data(&BuildOrderManager::TimePassed,		Condition(137.0f),				&BuildOrderManager::BuildBuilding,			Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,		Condition(152.0f),				&BuildOrderManager::BuildBuilding,			Result(TWILIGHT)),
-					Data(&BuildOrderManager::TimePassed,		Condition(159.0f),				&BuildOrderManager::BuildProxy,				Result(PYLON)) ,
+					Data(&BuildOrderManager::TimePassed,		Condition(137.0f),				&BuildOrderManager::BuildBuilding,				Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,		Condition(152.0f),				&BuildOrderManager::BuildBuilding,				Result(TWILIGHT)),
+					Data(&BuildOrderManager::TimePassed,		Condition(159.0f),				&BuildOrderManager::BuildProxy,					Result(PYLON)) ,
 					Data(&BuildOrderManager::TimePassed,		Condition(166.0f),				&BuildOrderManager::TrainStalker,				Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,		Condition(171.0f),				&BuildOrderManager::TrainStalker,				Result(STALKER)),
-					Data(&BuildOrderManager::TimePassed,		Condition(176.5f),				&BuildOrderManager::BuildBuilding,			Result(NEXUS)),
-					Data(&BuildOrderManager::HasBuilding,		Condition(TWILIGHT),			&BuildOrderManager::ResearchBlink,			Result(UPGRADE_ID::BLINKTECH)),
-					Data(&BuildOrderManager::IsResearching,	Condition(TWILIGHT),			&BuildOrderManager::ChronoTillFinished,		Result(TWILIGHT)),
+					Data(&BuildOrderManager::TimePassed,		Condition(176.5f),				&BuildOrderManager::BuildBuilding,				Result(NEXUS)),
+					Data(&BuildOrderManager::HasBuilding,		Condition(TWILIGHT),			&BuildOrderManager::ResearchBlink,				Result(UPGRADE_ID::BLINKTECH)),
+					Data(&BuildOrderManager::IsResearching,	Condition(TWILIGHT),			&BuildOrderManager::ChronoTillFinished,				Result(TWILIGHT)),
 					Data(&BuildOrderManager::TimePassed,		Condition(185.0f),				&BuildOrderManager::UncutWorkers,				Result()),
-					Data(&BuildOrderManager::TimePassed,		Condition(185.0f),				&BuildOrderManager::WarpInAtProxy,			Result(STALKER)),
-					Data(&BuildOrderManager::TimePassed,		Condition(205.0f),				&BuildOrderManager::BuildProxy,				Result(ROBO)),
-					Data(&BuildOrderManager::TimePassed,		Condition(205.0f),				&BuildOrderManager::ContinueBuildingPylons,   Result()),
-					Data(&BuildOrderManager::TimePassed,		Condition(205.0f),				&BuildOrderManager::ContinueMakingWorkers,	Result(0)),
-					Data(&BuildOrderManager::HasBuilding,		Condition(ROBO),				&BuildOrderManager::TrainFromProxy,			Result(ROBO)),
-					Data(&BuildOrderManager::HasBuilding,		Condition(ROBO),				&BuildOrderManager::ContinueChronoProxyRobo,  Result(ROBO))
+					Data(&BuildOrderManager::TimePassed,		Condition(185.0f),				&BuildOrderManager::SetWarpInAtProxy,			Result()),
+					Data(&BuildOrderManager::TimePassed,		Condition(185.0f),				&BuildOrderManager::SetUnitProduction,			Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,		Condition(205.0f),				&BuildOrderManager::BuildProxy,					Result(ROBO)),
+					Data(&BuildOrderManager::TimePassed,		Condition(205.0f),				&BuildOrderManager::ContinueBuildingPylons,		Result()),
+					Data(&BuildOrderManager::TimePassed,		Condition(205.0f),				&BuildOrderManager::ContinueMakingWorkers,		Result(0)),
+					Data(&BuildOrderManager::HasBuilding,		Condition(ROBO),				&BuildOrderManager::TrainFromProxy,				Result(ROBO)),
+					Data(&BuildOrderManager::HasBuilding,		Condition(ROBO),				&BuildOrderManager::ContinueChronoProxyRobo,	Result(ROBO))
 	};
 }
 
@@ -1631,7 +1311,7 @@ void BuildOrderManager::Set4GateAdept()
 					Data(&BuildOrderManager::TimePassed,			Condition(230.0f),				&BuildOrderManager::BuildBuilding,					Result(PYLON)),
 					//(&BuildOrderManager::TimePassed, 230, self.continue_warping_in_adepts, None),
 					Data(&BuildOrderManager::NumWorkers,			Condition(30),					&BuildOrderManager::CutWorkers,						Result()),
-					//(self.has_unit, UnitTypeId.WARPPRISM, self.adept_pressure, None),
+					//(self.has_unit, UNIT_TYPEID.WARPPRISM, self.adept_pressure, None),
 					Data(&BuildOrderManager::TimePassed,			Condition(250.0f),				&BuildOrderManager::BuildBuilding,					Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(250.0f),				&BuildOrderManager::ContinueBuildingPylons,			Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(250.0f),				&BuildOrderManager::ContinueMakingWorkers,			Result(0)),
@@ -1697,7 +1377,8 @@ void BuildOrderManager::SetProxyDoubleRobo()
 					//Data(&BuildOrderManager::TimePassed,			Condition(205.0f),				&BuildOrderManager::BuildBuildingMulti,				Result({GATEWAY, GATEWAY})),
 					Data(&BuildOrderManager::TimePassed,			Condition(228.0f),				&BuildOrderManager::ContinueBuildingPylons,			Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(228.0f),				&BuildOrderManager::MicroImmortalDrop,				Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(230.0f),				&BuildOrderManager::WarpInAtProxy,					Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(230.0f),				&BuildOrderManager::SetWarpInAtProxy,				Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(230.0f),				&BuildOrderManager::SetUnitProduction,				Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(240.0f),				&BuildOrderManager::ContinueMakingWorkers,			Result(0)),
 					Data(&BuildOrderManager::TimePassed,			Condition(250.0f),				&BuildOrderManager::BuildBuilding,					Result({ASSIMILATOR})),
 					Data(&BuildOrderManager::TimePassed,			Condition(280.0f),				&BuildOrderManager::BuildBuilding,					Result({ASSIMILATOR})),

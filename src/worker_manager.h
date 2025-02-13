@@ -9,7 +9,7 @@
 namespace sc2
 {
 
-class TheBigBot;
+class Mediator;
 
 struct mineral_patch_data
 {
@@ -71,7 +71,7 @@ struct mineral_patch_space
 class WorkerManager
 {
 public:
-	TheBigBot* agent;
+	Mediator* mediator;
 	std::map<const Unit*, mineral_patch_data> mineral_patches;
 	std::map<const Unit*, mineral_patch_reversed_data> mineral_patches_reversed;
 	std::map<const Unit*, assimilator_data> assimilators;
@@ -83,13 +83,16 @@ public:
 	std::vector<mineral_patch_space*> far_3_mineral_patch_extras;
 	std::vector<mineral_patch_space*> close_3_mineral_patch_extras;
 
+	bool immediatelySaturateGasses = false;
+	bool immediatelySemiSaturateGasses = false;
+
 	const Unit *new_base = NULL;
 	bool should_build_workers = true;
 	int removed_gas_miners = 0;
 
-	WorkerManager(TheBigBot* agent)
+	WorkerManager(Mediator* mediator)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 	}
 
 	const Unit* GetWorker();

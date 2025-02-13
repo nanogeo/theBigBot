@@ -2,35 +2,10 @@
 #
 # Copyright (c) 2021-2022 Alexander Kurbatov
 
-set(bot_sources
-    action_manager.cpp
-    army_group.cpp
-    build_order_manager.cpp
-    finite_state_machine.cpp
-    fire_control
-    locations.cpp
-    locations_abyssal_reef.cpp
-    locations_acropolis.cpp
-    locations_automaton.cpp
-    locations_ephemeron.cpp
-    locations_equilibrium.cpp
-    locations_goldenaura.cpp
-    locations_gresvan.cpp
-    locations_hard_lead.cpp
-    locations_interloper.cpp
-    locations_oceanborn.cpp
-    locations_site_delta.cpp
-    locations_thunderbird.cpp
-    main.cpp
-    nav_mesh_pathfinding.cpp
-    path_manager.cpp
-    pathfinding.cpp
-    quartic.cpp
-    theBigBot.cpp
-    utility.cpp
-    worker_manager.cpp)
+file(GLOB bot_sources *.cpp)
+file(GLOB bot_headers *.h)
 
-add_executable(theBigBot ${bot_sources})
+add_executable(theBigBot ${bot_sources} ${bot_headers})
 
 if (BUILD_FOR_LADDER)
     target_compile_definitions(theBigBot PRIVATE BUILD_FOR_LADDER)

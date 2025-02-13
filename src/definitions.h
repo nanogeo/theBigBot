@@ -216,8 +216,8 @@ const std::vector<std::vector<UNIT_TYPEID>> PROTOSS_PRIO = { {BATTERY},
 															{PRISM, PRISM_SIEGED},
 															{DISRUPTOR},
 															{HIGH_TEMPLAR, SENTRY},
-															{PHOENIX, VOID_RAY},
-															{ZEALOT, STALKER, ADEPT, DARK_TEMPLAR, IMMORTAL, COLOSSUS, ARCHON, ORACLE, CARRIER, TEMPEST, MOTHERSHIP},
+															{PHOENIX, VOID_RAY, IMMORTAL},
+															{ZEALOT, STALKER, ADEPT, DARK_TEMPLAR, COLOSSUS, ARCHON, ORACLE, CARRIER, TEMPEST, MOTHERSHIP},
 															{PROBE},
 															{OBSERVER, OBSERVER_SIEGED},
 															{PYLON},
@@ -225,4 +225,123 @@ const std::vector<std::vector<UNIT_TYPEID>> PROTOSS_PRIO = { {BATTERY},
 															{NEXUS},
 															{GATEWAY, WARP_GATE, FORGE, CYBERCORE, TWILIGHT, TEMPLAR_ARCHIVES, STARGATE, FLEET_BEACON, DARK_SHRINE, ROBO, ROBO_BAY},
 															{ASSIMILATOR} };
+
+const std::vector<UNIT_TYPEID> ALL_ARMY_UNITS = { ZEALOT, ADEPT, STALKER, SENTRY, DARK_TEMPLAR, HIGH_TEMPLAR, ARCHON, 
+												IMMORTAL, PRISM, PRISM_SIEGED, OBSERVER, OBSERVER_SIEGED, COLOSSUS, DISRUPTOR, 
+												PHOENIX, VOID_RAY, ORACLE, CARRIER, TEMPEST, MOTHERSHIP };
+
+enum UpgradeType
+{
+	ground_weapons,
+	ground_armor,
+	shields,
+	air_weapons,
+	air_armor
+};
+
+enum AttackPath
+{
+	direct,
+	indirect,
+	alt
+};
+
+enum ArmyRole
+{
+	none,
+	outside_control,
+	pressure,
+	attack,
+	scour,
+	simple_attack,
+	defend_door,
+	defend_third,
+	defend_main
+};
+
+const std::map<ArmyRole, std::string> ARMY_ROLE_TO_STRING = { {ArmyRole::none, "None"},
+																{ArmyRole::outside_control, "Outside control"},
+																{ArmyRole::pressure, "Pressure"},
+																{ArmyRole::attack, "Attack"},
+																{ArmyRole::scour, "Scour"},
+																{ArmyRole::simple_attack, "Simple attack"},
+																{ArmyRole::defend_door, "Defend door"},
+																{ArmyRole::defend_third, "Defend Third"},
+																{ArmyRole::defend_main, "Defend main"} };
+
+struct ScoutInfoZerg
+{
+	float natural_timing = 0;
+	float third_timing = 0;
+	float gas_timing = 0;
+	int gas_mined = 0;
+	float pool_timing = 0;
+	bool pool_active = 0;
+	int drone_count = 0;
+	float roach_warren_timing = 0;
+};
+
+enum FirstRaxProduction {
+	idle,
+	marine,
+	reaper,
+	reactor,
+	techlab
+};
+
+struct ScoutInfoTerran
+{
+	float natural_timing = 0;
+	float third_timing = 0;
+	float gas_timing = 0;
+	Point3D gas_pos;
+	float second_gas_timing = 0;
+	int gas_mined = 0;
+	float barrackes_timing = 0;
+	bool factory_timing = 0;
+	int scv_count = 0;
+	int num_barracks = 0;
+	FirstRaxProduction first_rax_production = FirstRaxProduction::idle;
+};
+
+struct WarpgateStatus
+{
+	bool used;
+	int frame_ready;
+	WarpgateStatus() 
+	{
+		used= false;
+		frame_ready = 0;
+	}
+	WarpgateStatus(int curr_frame)
+	{
+		used = false;
+		frame_ready = curr_frame + 1;
+	}
+};
+
+struct UnitCost
+{
+	int mineral_cost;
+	int vespene_cost;
+	int supply;
+	UnitCost() {};
+	UnitCost(int x, int y, int z)
+	{
+		mineral_cost = x;
+		vespene_cost = y;
+		supply = z;
+	}
+	UnitCost operator+(const UnitCost& other) const
+	{
+		return UnitCost(mineral_cost + other.mineral_cost, vespene_cost + other.vespene_cost, supply + other.supply);
+	}
+	void operator+=(const UnitCost& other) 
+	{
+		mineral_cost += other.mineral_cost;
+		vespene_cost += other.vespene_cost;
+		supply += other.supply;
+	}
+};
+
 }

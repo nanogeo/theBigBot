@@ -11,7 +11,7 @@
 namespace sc2
 {
 
-class TheBigBot;
+class Mediator;
 
 
 struct BuildOrderConditionArgData
@@ -92,14 +92,14 @@ enum BuildOrder {
 class BuildOrderManager
 {
 public:
-	TheBigBot* agent;
+	Mediator* mediator;
 	BuildOrder current_build_order;
 	std::vector<BuildOrderData> build_order;
 	int build_order_step = 0;
 
-	BuildOrderManager(TheBigBot* agent)
+	BuildOrderManager(Mediator* mediator)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 	}
 
 	void CheckBuildOrder();
@@ -140,7 +140,6 @@ public:
 	bool ResearchGlaives(BuildOrderResultArgData);
 	bool ResearchDTBlink(BuildOrderResultArgData);
 	bool ChronoTillFinished(BuildOrderResultArgData);
-	bool WarpInAtProxy(BuildOrderResultArgData);
 	bool ContinueBuildingPylons(BuildOrderResultArgData);
 	bool ContinueMakingWorkers(BuildOrderResultArgData);
 	bool ContinueUpgrades(BuildOrderResultArgData);
@@ -158,13 +157,6 @@ public:
 	bool ResearchAttackTwo(BuildOrderResultArgData);
 	bool ResearchShieldsOne(BuildOrderResultArgData);
 	bool ResearchAirAttackOne(BuildOrderResultArgData);
-	bool ConntinueWarpingInStalkers(BuildOrderResultArgData);
-	bool StopWarpingInStalkers(BuildOrderResultArgData);
-	bool ConntinueVolleyWarpingInStalkers(BuildOrderResultArgData);
-	bool StopVolleyWarpingInStalkers(BuildOrderResultArgData);
-	bool ContinueVolleyWarpingInZealots(BuildOrderResultArgData);
-	bool StopVolleyWarpingInZealots(BuildOrderResultArgData);
-	bool ContinueBuildingCarriers(BuildOrderResultArgData);
 	bool WarpInUnits(BuildOrderResultArgData);
 	bool PullOutOfGas(BuildOrderResultArgData);
 	bool IncreaseExtraPylons(BuildOrderResultArgData);
@@ -189,6 +181,8 @@ public:
 	bool CheckForEarlyPool(BuildOrderResultArgData); // to string
 	bool BuildNaturalDefensiveBuilding(BuildOrderResultArgData); // to string
 	bool ReturnToMainBuild(BuildOrderResultArgData); // to string
+	bool SetUnitProduction(BuildOrderResultArgData); // to string
+	bool SetWarpInAtProxy(BuildOrderResultArgData); // to string
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string
@@ -409,10 +403,6 @@ struct BuildOrderData
 			str += Utility::UnitTypeIdToString(result_arg.unitId);
 			str += " till it's finished";
 		}
-		else if (result == &BuildOrderManager::WarpInAtProxy)
-		{
-			str += "warp in stalkers at proxy";
-		}
 		else if (result == &BuildOrderManager::ContinueBuildingPylons)
 		{
 			str += "macro pylons";
@@ -482,34 +472,6 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::ResearchAirAttackOne)
 		{
 		str += "research +1 air weapons";
-		}
-		else if (result == &BuildOrderManager::ConntinueWarpingInStalkers)
-		{
-			str += "continue warping in stalkers";
-			}
-		else if (result == &BuildOrderManager::StopWarpingInStalkers)
-		{
-			str += "stop warping in stalkers";
-			}
-		else if (result == &BuildOrderManager::ConntinueVolleyWarpingInStalkers)
-		{
-			str += "continue volley warping in stalkers";
-		}
-		else if (result == &BuildOrderManager::StopVolleyWarpingInStalkers)
-		{
-		str += "stop volley warping in stalkers";
-		}
-		else if (result == &BuildOrderManager::ContinueVolleyWarpingInZealots)
-		{
-			str += "continue warping in zealots";
-		}
-		else if (result == &BuildOrderManager::StopVolleyWarpingInZealots)
-		{
-		str += "stop warping in zealots";
-		}
-		else if (result == &BuildOrderManager::ContinueBuildingCarriers)
-		{
-		str += "continue building carriers";
 		}
 		else if (result == &BuildOrderManager::WarpInUnits)
 		{

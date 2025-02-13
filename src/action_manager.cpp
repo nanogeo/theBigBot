@@ -1,6 +1,5 @@
 
-#include "theBigBot.h"
-#include "action_manager.h"
+#include "mediator.h"
 #include "locations.h"
 
 #include <fstream>
@@ -25,6 +24,11 @@ void ActionManager::ProcessActions()
 	}
 }
 
+void ActionManager::AddAction(ActionData* action)
+{
+	active_actions.push_back(action);
+}
+
 bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 {
 	UNIT_TYPEID buildingId = data->unitId;
@@ -33,39 +37,39 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	if (builder->is_alive == false)
 	{
 		// builder died
-		const Unit* builder = agent->worker_manager.GetBuilder(pos);
+		const Unit* builder = mediator->GetBuilder(pos);
 		if (builder == NULL)
 		{
 			return false;
 		}
-		agent->worker_manager.RemoveWorker(builder);
+		mediator->RemoveWorker(builder);
 		data->unit = builder;
 	}
-	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
+	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(buildingId)))
 	{
 		if (Distance2D(building->pos, pos) < 1 && building->display_type != Unit::DisplayType::Placeholder)
 		{
-			agent->worker_manager.PlaceWorker(builder);
+			mediator->PlaceWorker(builder);
 			// finished buildings.remove building.tag
 			return true;
 		}
 	}
-	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && Utility::CanBuildBuilding(buildingId, agent->Observation()))
+	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && mediator->CanBuildBuilding(buildingId))
 	{
 		if (buildingId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
 		{
 			std::vector<UNIT_TYPEID> gas_types = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
-			const Unit *gas = Utility::ClosestTo(agent->Observation()->GetUnits(IsUnits(gas_types)), pos);
-			agent->Actions()->UnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas);
+			const Unit *gas = Utility::ClosestTo(mediator->GetUnits(IsUnits(gas_types)), pos);
+			mediator->SetUnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas);
 		}
 		else
 		{
-			agent->Actions()->UnitCommand(builder, Utility::GetBuildAbility(buildingId), pos);
+			mediator->SetUnitCommand(builder, Utility::GetBuildAbility(buildingId), pos);
 		}
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		agent->Actions()->UnitCommand(builder, ABILITY_ID::MOVE_MOVE, pos);
+		mediator->SetUnitCommand(builder, ABILITY_ID::GENERAL_MOVE, pos);
 	}
 	return false;
 }
@@ -78,15 +82,15 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	if (builder->is_alive == false)
 	{
 		// builder died
-		const Unit* builder = agent->worker_manager.GetBuilder(pos);
+		const Unit* builder = mediator->GetBuilder(pos);
 		if (builder == NULL)
 		{
 			return false;
 		}
-		agent->worker_manager.RemoveWorker(builder);
+		mediator->RemoveWorker(builder);
 		data->unit = builder;
 	}
-	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
+	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(buildingId)))
 	{
 		if (Distance2D(building->pos, pos) < 1 && building->display_type != Unit::DisplayType::Placeholder)
 		{
@@ -94,32 +98,32 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 			data->index++;
 			if (data->index < data->unitIds.size())
 			{
-				data->position = agent->GetLocation(data->unitIds[data->index]);
+				data->position = mediator->GetLocation(data->unitIds[data->index]);
 				active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuildingMulti, data));
 			}
 			else
 			{
-				agent->worker_manager.PlaceWorker(builder);
+				mediator->PlaceWorker(builder);
 			}
 			return true;
 		}
 	}
-	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && Utility::CanBuildBuilding(buildingId, agent->Observation()))
+	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && mediator->CanBuildBuilding(buildingId))
 	{
 		if (buildingId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
 		{
 			std::vector<UNIT_TYPEID> gas_types = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
-			const Unit *gas = Utility::ClosestTo(agent->Observation()->GetUnits(IsUnits(gas_types)), pos);
-			agent->Actions()->UnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas);
+			const Unit *gas = Utility::ClosestTo(mediator->GetUnits(IsUnits(gas_types)), pos);
+			mediator->SetUnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas);
 		}
 		else
 		{
-			agent->Actions()->UnitCommand(builder, Utility::GetBuildAbility(buildingId), pos);
+			mediator->SetUnitCommand(builder, Utility::GetBuildAbility(buildingId), pos);
 		}
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		agent->Actions()->UnitCommand(builder, ABILITY_ID::GENERAL_MOVE, pos);
+		mediator->SetUnitCommand(builder, ABILITY_ID::GENERAL_MOVE, pos);
 	}
 	return false;
 }
@@ -132,15 +136,15 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data)
 	if (builder->is_alive == false)
 	{
 		// builder died
-		const Unit* builder = agent->worker_manager.GetBuilder(pos);
+		const Unit* builder = mediator->GetBuilder(pos);
 		if (builder == NULL)
 		{
 			return false;
 		}
-		agent->worker_manager.RemoveWorker(builder);
+		mediator->RemoveWorker(builder);
 		data->unit = builder;
 	}
-	for (const auto &building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
+	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(buildingId)))
 	{
 		if (Point2D(building->pos) == pos && building->display_type != Unit::DisplayType::Placeholder)
 		{
@@ -148,32 +152,32 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data)
 			data->index++;
 			if (data->index < data->unitIds.size())
 			{
-				data->position = agent->GetProxyLocation(data->unitIds[data->index]);
+				data->position = mediator->GetProxyLocation(data->unitIds[data->index]);
 				active_actions.push_back(new ActionData(&ActionManager::ActionBuildProxyMulti, data));
 			}
 			else
 			{
-				agent->worker_manager.PlaceWorker(builder);
+				mediator->PlaceWorker(builder);
 			}
 			return true;
 		}
 	}
-	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && Utility::CanBuildBuilding(buildingId, agent->Observation()))
+	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && mediator->CanBuildBuilding(buildingId))
 	{
 		if (buildingId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
 		{
 			std::vector<UNIT_TYPEID> gas_types = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
-			const Unit *gas = Utility::ClosestTo(agent->Observation()->GetUnits(IsUnits(gas_types)), pos);
-			agent->Actions()->UnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas);
+			const Unit *gas = Utility::ClosestTo(mediator->GetUnits(IsUnits(gas_types)), pos);
+			mediator->SetUnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas);
 		}
 		else
 		{
-			agent->Actions()->UnitCommand(builder, Utility::GetBuildAbility(buildingId), pos);
+			mediator->SetUnitCommand(builder, Utility::GetBuildAbility(buildingId), pos);
 		}
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		agent->Actions()->UnitCommand(builder, ABILITY_ID::GENERAL_MOVE, pos);
+		mediator->SetUnitCommand(builder, ABILITY_ID::GENERAL_MOVE, pos);
 	}
 	return false;
 }
@@ -191,17 +195,17 @@ bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 		).count();
 #endif
 
-	int extra_workers = data->index;
-	int num_workers = agent->Observation()->GetFoodWorkers();
-	int num_nexi = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
-	int num_assimilators = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
+	int extra_workers = 0;// data->index; TODO add extra workers to worker manager
+	int num_workers = mediator->GetNumWorkers();
+	int num_nexi = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
+	int num_assimilators = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
 	if (num_workers >= std::min(num_nexi * 16 + num_assimilators * 3, 70) + extra_workers)
 	{
-		agent->worker_manager.should_build_workers = false;
+		mediator->SetBuildWorkers(false);
 	}
 	else
 	{
-		agent->worker_manager.should_build_workers = true;
+		mediator->SetBuildWorkers(true);
 	}
 #ifdef DEBUG_TIMING
 	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -235,10 +239,10 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 		}
 	}
 
-	int supply_used = agent->Observation()->GetFoodUsed();
-	int supply_cap = agent->Observation()->GetFoodCap() + 8 * (build_pylon_actions - agent->extra_pylons);
+	int supply_used = mediator->GetSupplyUsed();
+	int supply_cap = mediator->GetSupplyCap() + 8 * (build_pylon_actions/* - mediator->extra_pylons*/); // TODO readd extra pylons functionality
 
-	for (const auto &building : agent->Observation()->GetUnits(Unit::Alliance::Self))
+	for (const auto &building : mediator->GetUnits(Unit::Alliance::Self))
 	{
 		if (supply_cap >= 200)
 			return false;
@@ -269,24 +273,24 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 		}
 	}
 	/*
-	for (const auto &pylon : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+	for (const auto &pylon : mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
 	{
 		if (pylon->build_progress < 1)
 			pending_pylons++;
 	}
-	int supply_used = agent->Observation()->GetFoodUsed();
-	int supply_cap = agent->Observation()->GetFoodCap() - 8 * agent->extra_pylons;
+	int supply_used = mediator->Observation()->GetFoodUsed();
+	int supply_cap = mediator->Observation()->GetFoodCap() - 8 * mediator->extra_pylons;
 	if (supply_cap >= 200)
 		return false;
 	supply_cap += 8 * (build_pylon_actions + pending_pylons);
-	supply_used += agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
-	supply_used += 2 * agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPGATE)).size();
-	supply_used += 2 * agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size();
-	supply_used += 3 * agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)).size();
-	supply_used += 3 * agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size();
+	supply_used += mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
+	supply_used += 2 * mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPGATE)).size();
+	supply_used += 2 * mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size();
+	supply_used += 3 * mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)).size();
+	supply_used += 3 * mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size();
 	*/
 	if (supply_used >= supply_cap)
-		agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_PYLON);
+		mediator->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_PYLON);
 
 #ifdef DEBUG_TIMING
 	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -313,15 +317,15 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 
 	// TODO make global upgrade tracker
 	std::vector<ABILITY_ID> upgrades = {};
-	if (agent->upgrade_shields < 3)
+	if (mediator->GetUpgradeLevel(UpgradeType::shields) < 3)
 		upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSSHIELDS);
-	if (agent->upgrade_ground_weapon < 3)
+	if (mediator->GetUpgradeLevel(UpgradeType::ground_weapons) < 3)
 		upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS);
-	if (agent->upgrade_ground_armor < 3)
+	if (mediator->GetUpgradeLevel(UpgradeType::ground_armor) < 3)
 		upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR);
 
 	Units idle_forges;
-	for (const auto &forge : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
+	for (const auto &forge : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
 	{
 		if (forge->orders.size() > 0)
 			upgrades.erase(std::remove(upgrades.begin(), upgrades.end(), forge->orders[0].ability_id), upgrades.end());
@@ -332,19 +336,19 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 	{
 		for (const auto &forge : idle_forges)
 		{
-			agent->Actions()->UnitCommand(forge, upgrades[0]);
+			mediator->SetUnitCommand(forge, upgrades[0]);
 			upgrades.erase(upgrades.begin());
 		}
 	}
 
 	std::vector<ABILITY_ID> air_upgrades = {};
-	if (agent->upgrade_air_weapon < 3)
+	if (mediator->GetUpgradeLevel(UpgradeType::air_weapons) < 3)
 		air_upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONS);
-	if (agent->upgrade_air_armor < 3)
+	if (mediator->GetUpgradeLevel(UpgradeType::air_armor) < 3)
 		air_upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSAIRARMOR);
 
 	Units idle_cybers;
-	for (const auto &cyber : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)))
+	for (const auto &cyber : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)))
 	{
 		if (cyber->orders.size() > 0)
 			air_upgrades.erase(std::remove(air_upgrades.begin(), air_upgrades.end(), cyber->orders[0].ability_id), air_upgrades.end());
@@ -355,7 +359,7 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 	{
 		for (const auto &cyber : idle_cybers)
 		{
-			agent->Actions()->UnitCommand(cyber, air_upgrades[0]);
+			mediator->SetUnitCommand(cyber, air_upgrades[0]);
 			air_upgrades.erase(air_upgrades.begin());
 		}
 	}
@@ -384,34 +388,34 @@ bool ActionManager::ActionContinueChronos(ActionArgData* data)
 #endif
 
 	Units need_chrono;
-	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSBAY)))
+	for (const auto &building : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSBAY)))
 	{
 		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
 			need_chrono.push_back(building);
 	}
-	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
+	for (const auto &building : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
 	{
 		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
 			need_chrono.push_back(building);
 	}
-	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
+	for (const auto &building : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
 	{
 		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
 			need_chrono.push_back(building);
 	}
-	for (const auto &building : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
+	for (const auto &building : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
 	{
 		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
 			need_chrono.push_back(building);
 	}
 
-	for (const auto &nexus : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+	for (const auto &nexus : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 	{
 		if (need_chrono.size() == 0)
 			break;
 		if (nexus->energy >= 50 && nexus->build_progress == 1)
 		{
-			agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, need_chrono[0]);
+			mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, need_chrono[0]);
 			need_chrono.erase(need_chrono.begin());
 		}
 	}
@@ -439,9 +443,9 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 		).count();
 #endif
 
-	if (agent->worker_manager.far_3_mineral_patch_extras.size() > 0)
+	if (mediator->NumFar3rdWorkers() > 0)
 	{
-		for (const auto &nexus : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+		for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 		{
 			if (nexus->build_progress < 1)
 				return false;
@@ -453,7 +457,7 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 				return false;
 			}
 		}
-		if (agent->Observation()->GetUnits(IsFriendlyUnit(ASSIMILATOR)).size() < 2 * agent->Observation()->GetUnits(IsFriendlyUnit(NEXUS)).size())
+		if (mediator->GetUnits(IsFriendlyUnit(ASSIMILATOR)).size() < 2 * mediator->GetUnits(IsFriendlyUnit(NEXUS)).size())
 		{
 			for (const auto& action : active_actions)
 			{
@@ -462,11 +466,11 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 					return false;
 				}
 			}
-			agent->build_order_manager.BuildBuilding(ASSIMILATOR);
+			mediator->build_order_manager.BuildBuilding(ASSIMILATOR);
 		}
 		else
 		{
-			agent->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_NEXUS);
+			mediator->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_NEXUS);
 		}
 		return false;
 	}
@@ -496,18 +500,18 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 		if (buff == BUFF_ID::CHRONOBOOSTENERGYCOST)
 			return false;
 	}
-	for (const auto &nexus : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+	for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 	{
 		if (nexus->energy >= 50 && nexus->build_progress == 1)
 		{
-			agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
+			mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
 			return false;
 		}
-		/*for (const auto &ability : agent->Query()->GetAbilitiesForUnit(nexus).abilities)
+		/*for (const auto &ability : mediator->Query()->GetAbilitiesForUnit(nexus).abilities)
 		{
 			if (ability.ability_id == ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST)
 			{
-				agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
+				mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
 				return false;
 			}
 		}*/
@@ -557,51 +561,27 @@ bool ActionManager::ActionConstantChrono(ActionArgData* data)
 #endif
 }
 
-bool ActionManager::ActionWarpInAtProxy(ActionArgData* data)
-{
-	std::vector<Point2D> possible_spots = agent->FindProxyWarpInSpots();
-	if (possible_spots.size() == 0)
-		return false;
-	int num_stalkers = 0;
-	for (const auto &warpgate : agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE)))
-	{
-		num_stalkers++;
-		if (Utility::CanAfford(STALKER, num_stalkers, agent->Observation()) == false)
-			break;
-		if (agent->warpgate_status[warpgate].frame_ready == 0)
-		{
-			agent->Actions()->UnitCommand(warpgate, ABILITY_ID::TRAINWARP_STALKER, possible_spots.back());
-			agent->warpgate_status[warpgate].used = true;
-			agent->warpgate_status[warpgate].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
-			possible_spots.pop_back();
-		}
-		if (possible_spots.size() == 0)
-			break;
-	}
-	return false;
-}
-
 bool ActionManager::ActionTrainFromProxyRobo(ActionArgData* data)
 {
 	const Unit * robo = data->unit;
-	int num_prisms = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)).size();
-	int num_obs = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_OBSERVER)).size();
+	int num_prisms = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)).size();
+	int num_obs = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_OBSERVER)).size();
 
 	if (robo->build_progress == 1 && robo->orders.size() == 0)
 	{
-		if (num_prisms == 0 && Utility::CanAfford(UNIT_TYPEID::PROTOSS_WARPPRISM, 1, agent->Observation()))
-			agent->Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
-		else if (num_obs == 0 && Utility::CanAfford(UNIT_TYPEID::PROTOSS_OBSERVER, 1, agent->Observation()))
-			agent->Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_OBSERVER);
-		else if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1, agent->Observation()))
-			agent->Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL);
+		if (num_prisms == 0 && mediator->CanAfford(UNIT_TYPEID::PROTOSS_WARPPRISM, 1))
+			mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
+		else if (num_obs == 0 && mediator->CanAfford(UNIT_TYPEID::PROTOSS_OBSERVER, 1))
+			mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_OBSERVER);
+		else if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1))
+			mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL);
 	}
 	return false;
 }
 
 bool ActionManager::ActionContain(ActionArgData* data)
 {
-	ArmyGroup* army = data->army_group;
+	/*ArmyGroup* army = data->army_group;
 	Point2D retreat_point = army->attack_path[army->current_attack_index - 2];
 
 	Point2D attack_point = army->attack_path[army->current_attack_index];
@@ -619,19 +599,19 @@ bool ActionManager::ActionContain(ActionArgData* data)
 		{
 			if (Utility::DistanceToClosest(observers, attack_point) < 10)
 				obs_in_position = true;
-			agent->ObserveAttackPath(observers, retreat_point, attack_point);
+			mediator->ObserveAttackPath(observers, retreat_point, attack_point);
 		}
 		if (prisms.size() > 0)
 		{
-			agent->StalkerAttackTowardsWithPrism(stalkers, prisms, retreat_point, attack_point, obs_in_position);
+			mediator->StalkerAttackTowardsWithPrism(stalkers, prisms, retreat_point, attack_point, obs_in_position);
 			if (immortals.size() > 0)
-				agent->ImmortalAttackTowardsWithPrism(immortals, prisms, retreat_point, attack_point, obs_in_position);
+				mediator->ImmortalAttackTowardsWithPrism(immortals, prisms, retreat_point, attack_point, obs_in_position);
 		}
 		else
 		{
-			agent->StalkerAttackTowards(stalkers, retreat_point, attack_point, obs_in_position);
+			mediator->StalkerAttackTowards(stalkers, retreat_point, attack_point, obs_in_position);
 			if (immortals.size() > 0)
-				agent->ImmortalAttackTowards(immortals, retreat_point, attack_point, obs_in_position);
+				mediator->ImmortalAttackTowards(immortals, retreat_point, attack_point, obs_in_position);
 		}
 	}
 
@@ -644,7 +624,7 @@ bool ActionManager::ActionContain(ActionArgData* data)
 		else
 			army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);
 	}
-
+	*/
 	return false;
 }
 
@@ -677,7 +657,7 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		{
 			for (const auto &point : army->attack_path)
 			{
-				agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
+				mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
 			}
 		}
 		if ((army->stalkers.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(army->stalkers)) < 5) || (army->stalkers.size() == 0 && Distance2D(unit->pos, army->attack_path[0]) < 2))
@@ -693,12 +673,12 @@ bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
 		).count();
 #endif
 
-	//agent->Debug()->DebugSphereOut(Point3D(fallback_point.x, fallback_point.y, agent->Observation()->TerrainHeight(fallback_point)), 3, Color(255, 0, 0));
-	//agent->Debug()->DebugSphereOut(Point3D(attack_point.x, attack_point.y, agent->Observation()->TerrainHeight(attack_point)), 3, Color(0, 255, 0));
+	//mediator->Debug()->DebugSphereOut(Point3D(fallback_point.x, fallback_point.y, mediator->Observation()->TerrainHeight(fallback_point)), 3, Color(255, 0, 0));
+	//mediator->Debug()->DebugSphereOut(Point3D(attack_point.x, attack_point.y, mediator->Observation()->TerrainHeight(attack_point)), 3, Color(0, 255, 0));
 
-	/*for (const auto &pos : agent->locations->attack_path_line.GetPoints())
+	/*for (const auto &pos : mediator->locations->attack_path_line.GetPoints())
 	{
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
+		mediator->Debug()->DebugSphereOut(mediator->ToPoint3D(pos), .5, Color(255, 255, 255));
 	}*/
 
 	army->AttackLine(0, 6, ZERG_PRIO);
@@ -710,11 +690,11 @@ bool ActionManager::ActionZealotDoubleprong(ActionArgData* data)
 {
 	ArmyGroup* army = data->army_group;
 
-	for (const auto &unit : army->new_units)
+	for (const auto& unit : army->new_units)
 	{
 		if (unit->orders.size() == 0)
 		{
-			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0]);
+			mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0]);
 		}
 		if (Distance2D(unit->pos, army->attack_path[0]) < 2)
 		{
@@ -723,13 +703,13 @@ bool ActionManager::ActionZealotDoubleprong(ActionArgData* data)
 	}
 	if (army->zealots.size() > 10)
 	{
-		for (const auto &unit : army->zealots)
+		for (const auto& unit : army->zealots)
 		{
 			if (unit->orders.size() == 0)
 			{
-				for (const auto &point : army->attack_path)
+				for (const auto& point : army->attack_path)
 				{
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
 				}
 			}
 		}
@@ -737,162 +717,25 @@ bool ActionManager::ActionZealotDoubleprong(ActionArgData* data)
 	return false;
 }
 
-bool ActionManager::ActionContinueWarpingInStalkers(ActionArgData* data)
-{
-	if (agent->Observation()->GetGameLoop() % 2 == 0)
-		return false;
-	Units gates_ready;
-	Units gates = agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
-	for (const auto &warpgate : gates)
-	{
-		if (agent->warpgate_status[warpgate].frame_ready == 0)
-		{
-			gates_ready.push_back(warpgate);
-		}
-	}
-
-	if (gates_ready.size() > 0)
-	{
-		int max_warpins = std::min(int(gates_ready.size()), Utility::MaxCanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates_ready.size(), agent->Observation()));
-		if (max_warpins == 0)
-			return false;
-		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], max_warpins);
-		//std::cout << "spots " << spots.size() << "\n";
-		for (int i = 0; i < spots.size(); i++)
-		{
-			//std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
-			agent->Actions()->UnitCommand(gates_ready[i], ABILITY_ID::TRAINWARP_STALKER, spots[i]);
-			agent->warpgate_status[gates_ready[i]].used = true;
-			agent->warpgate_status[gates_ready[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
-		}
-	}
-	return false;
-}
-
-bool ActionManager::ActionContinueVolleyWarpingInStalkers(ActionArgData* data)
-{
-	bool all_gates_ready = true;
-	Units gates = agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
-	for (const auto &warpgate : gates)
-	{
-		if (agent->warpgate_status[warpgate].frame_ready > 0)
-		{
-			all_gates_ready = false;
-			break;
-		}
-	}
-	if (all_gates_ready && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates.size(), agent->Observation()))
-	{
-		//std::cout << "warp in stalkers/n";
-		//std::cout << "all gates ready " << all_gates_ready << "\n";
-
-		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
-		//std::cout << "spots " << spots.size() << "\n";
-		if (spots.size() >= gates.size())
-		{
-			for (int i = 0; i < gates.size(); i++)
-			{
-				//std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
-				agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_STALKER, spots[i]);
-				agent->warpgate_status[gates[i]].used = true;
-				agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
-			}
-		}
-	}
-	return false;
-}
-
-bool ActionManager::ActionContinueVolleyWarpingInZealots(ActionArgData* data)
-{
-#ifdef DEBUG_TIMING
-	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	bool all_gates_ready = true;
-	//if (Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() > 0)
-	//    return false;
-	Units gates = agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
-	for (const auto &warpgate : gates)
-	{
-		if (agent->warpgate_status[warpgate].frame_ready > 0)
-		{
-			all_gates_ready = false;
-			break;
-		}
-	}
-#ifdef DEBUG_TIMING
-	unsigned long long get_abilities = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	if (gates.size() > 0 && all_gates_ready && Utility::CanAfford(UNIT_TYPEID::PROTOSS_ZEALOT, gates.size(), agent->Observation()))
-	{
-		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
-		if (spots.size() >= gates.size())
-		{
-			for (int i = 0; i < gates.size(); i++)
-			{
-				Point3D pos = Point3D(gates[i]->pos.x, gates[i]->pos.y, agent->Observation()->TerrainHeight(gates[i]->pos));
-				//agent->Debug()->DebugSphereOut(pos, 1, Color(255, 0, 255));
-				agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_ZEALOT, spots[i]);
-				agent->warpgate_status[gates[i]].used = true;
-				agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(20 * 22.4);
-
-			}
-		}
-	}
-#ifdef DEBUG_TIMING
-	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-
-	std::ofstream zealot_warp;
-	zealot_warp.open("zealot_warp.txt", std::ios_base::app);
-
-	zealot_warp << get_abilities - start_time << ", ";
-	zealot_warp << end_time - get_abilities << "\n";
-	zealot_warp.close();
-#endif
-	return false;
-}
-
-bool ActionManager::ActionContinueBuildingCarriers(ActionArgData* data)
-{
-	for (const auto &stargate : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
-	{
-		if (stargate->orders.size() == 0 && Utility::CanAfford(UNIT_TYPEID::PROTOSS_CARRIER, 1, agent->Observation()))
-		{
-			agent->Actions()->UnitCommand(stargate, ABILITY_ID::TRAIN_CARRIER);
-		}
-	}
-	return false;
-}
-
 bool ActionManager::ActionPullOutOfGas(ActionArgData* data)
 {
-	Units workers;
-	for (const auto &data : agent->worker_manager.assimilators_reversed)
-	{
-		workers.push_back(data.first);
-	}
+	Units workers = mediator->GetAllWorkersOnGas();
 
 	for (const auto &worker : workers)
 	{
-		agent->worker_manager.RemoveWorker(worker);
-		agent->worker_manager.PlaceWorker(worker);
+		mediator->RemoveWorker(worker);
+		mediator->PlaceWorker(worker);
 	}
-	if (agent->worker_manager.assimilators_reversed.size() == 0)
+	if (mediator->GetAllWorkersOnGas().size() == 0)
 		return true;
+	return false;
 }
 
 bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 {
 	bool pylon_placed = false;
 	bool pylon_finished = false;
-	for (const auto &pylon : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+	for (const auto &pylon : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
 	{
 		if (Distance2D(pylon->pos, data->position) < 1)
 		{
@@ -907,22 +750,22 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 
 	if (Distance2D(scout->pos, data->position) > 1 && !pylon_placed)
 	{
-		agent->Actions()->UnitCommand(scout, ABILITY_ID::MOVE_MOVE, data->position);
+		mediator->SetUnitCommand(scout, ABILITY_ID::GENERAL_MOVE, data->position);
 	}
-	else if (Distance2D(scout->pos, data->position) < 1 && !pylon_placed && agent->Observation()->GetGameLoop() / 22.4 >= data->index)
+	else if (Distance2D(scout->pos, data->position) < 1 && !pylon_placed && mediator->GetGameLoop() / 22.4 >= data->index)
 	{
-		agent->Actions()->UnitCommand(scout, ABILITY_ID::BUILD_PYLON, data->position);
+		mediator->SetUnitCommand(scout, ABILITY_ID::BUILD_PYLON, data->position);
 	}
 	else if (pylon_placed)
 	{
 		if (data->unitId == UNIT_TYPEID::PROTOSS_PYLON)
 		{
-			agent->worker_manager.PlaceWorker(data->unit);
+			mediator->PlaceWorker(data->unit);
 			return true;
 		}
 		if (pylon_finished)
 		{
-			std::vector<Point2D> building_locations = agent->GetProxyLocations(data->unitId);
+			std::vector<Point2D> building_locations = mediator->GetProxyLocations(data->unitId);
 			Point2D pos = building_locations[0];
 			active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(scout, data->unitId, pos)));
 			return true;
@@ -933,13 +776,13 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 
 bool ActionManager::ActionDTHarassTerran(ActionArgData* data)
 {
-	for (const auto &unit : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_DARKTEMPLAR)))
+	/*for (const auto &unit : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_DARKTEMPLAR)))
 	{
 		// if outside -> move into enemy main
-		if ((unit->pos.z + .1 < agent->Observation()->GetStartLocation().z || unit->pos.z - .1 > agent->Observation()->GetStartLocation().z) && unit->orders.size() == 0)
+		if ((unit->pos.z + .1 < mediator->ToPoint3D(mediator->GetStartLocation()).z || unit->pos.z - .1 > mediator->ToPoint3D(mediator->GetStartLocation()).z) && unit->orders.size() == 0)
 		{
-			agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, agent->locations->initial_scout_pos);
-			agent->Actions()->UnitCommand(unit, ABILITY_ID::EFFECT_SHADOWSTRIDE, Utility::PointBetween(agent->locations->initial_scout_pos, agent->Observation()->GetGameInfo().enemy_start_locations[0], 7), true);
+			mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, mediator->locations->initial_scout_pos);
+			mediator->SetUnitCommand(unit, ABILITY_ID::EFFECT_SHADOWSTRIDE, Utility::PointBetween(mediator->locations->initial_scout_pos, mediator->GetEnemyStartLocation(), 7), true);
 			continue;
 		}
 		// avoid scans
@@ -955,13 +798,13 @@ bool ActionManager::ActionDTHarassTerran(ActionArgData* data)
 		// mules
 		// scvs
 		// army units
-	}
+	}*/
 	return false;
 }
 
 bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 {
-	for (const auto &robo : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
+	for (const auto &robo : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
 	{
 		if (robo->build_progress < 1)
 			continue;
@@ -969,12 +812,12 @@ bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 		{
 			if (data->unitIds.size() == 0)
 			{
-				if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1, agent->Observation()))
-					agent->Actions()->UnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL);
+				if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1))
+					mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL);
 			}
-			else if (Utility::CanAfford(data->unitIds[0], 1, agent->Observation()))
+			else if (mediator->CanAfford(data->unitIds[0], 1))
 			{
-				agent->Actions()->UnitCommand(robo, Utility::GetTrainAbility(data->unitIds[0]));
+				mediator->SetUnitCommand(robo, Utility::GetTrainAbility(data->unitIds[0]));
 				data->unitIds.erase(data->unitIds.begin());
 			}
 		}
@@ -983,15 +826,15 @@ bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 			if (Utility::HasBuff(robo, BUFF_ID::CHRONOBOOSTENERGYCOST))
 				continue;
 
-			for (const auto &nexus : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+			for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
-					agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, robo);
-				/*for (const auto &ability : agent->Query()->GetAbilitiesForUnit(nexus).abilities)
+					mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, robo);
+				/*for (const auto &ability : mediator->Query()->GetAbilitiesForUnit(nexus).abilities)
 				{
 					if (ability.ability_id == ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST)
 					{
-						agent->Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, robo);
+						mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, robo);
 					}
 				}*/
 			}
@@ -1002,7 +845,7 @@ bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 
 bool ActionManager::ActionAllIn(ActionArgData* data)
 {
-	ArmyGroup* army = data->army_group;
+	/*ArmyGroup* army = data->army_group;
 	Point2D retreat_point = army->attack_path[army->current_attack_index - 2];
 
 	Point2D attack_point = army->attack_path[army->current_attack_index];
@@ -1020,19 +863,19 @@ bool ActionManager::ActionAllIn(ActionArgData* data)
 		{
 			if (Utility::DistanceToClosest(observers, attack_point) < 10)
 				obs_in_position = true;
-			agent->ObserveAttackPath(observers, retreat_point, attack_point);
+			mediator->ObserveAttackPath(observers, retreat_point, attack_point);
 		}
 		if (prisms.size() > 0)
 		{
-			agent->StalkerAttackTowardsWithPrism(stalkers, prisms, retreat_point, attack_point, obs_in_position);
+			mediator->StalkerAttackTowardsWithPrism(stalkers, prisms, retreat_point, attack_point, obs_in_position);
 			if (immortals.size() > 0)
-				agent->ImmortalAttackTowardsWithPrism(immortals, prisms, retreat_point, attack_point, obs_in_position);
+				mediator->ImmortalAttackTowardsWithPrism(immortals, prisms, retreat_point, attack_point, obs_in_position);
 		}
 		else
 		{
-			agent->StalkerAttackTowards(stalkers, retreat_point, attack_point, obs_in_position);
+			mediator->StalkerAttackTowards(stalkers, retreat_point, attack_point, obs_in_position);
 			if (immortals.size() > 0)
-				agent->ImmortalAttackTowards(immortals, retreat_point, attack_point, obs_in_position);
+				mediator->ImmortalAttackTowards(immortals, retreat_point, attack_point, obs_in_position);
 		}
 	}
 
@@ -1045,7 +888,7 @@ bool ActionManager::ActionAllIn(ActionArgData* data)
 		else
 			army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);
 	}
-
+	*/
 	return false;
 }
 
@@ -1062,16 +905,16 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 			if (army->stalkers.size() > 0)
 			{
 				if (unit->unit_type == PRISM)
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, Utility::MedianCenter(army->stalkers), true);
+					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(army->stalkers), true);
 				else
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, Utility::MedianCenter(army->stalkers), true);
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, Utility::MedianCenter(army->stalkers), true);
 			}
 			else
 			{
 				if (unit->unit_type == PRISM)
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, army->attack_path[0], true);
+					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, army->attack_path[0], true);
 				else
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0], true);
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0], true);
 			}
 		}
 		if ((army->stalkers.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(army->stalkers)) < 5) || (army->stalkers.size() == 0 && Distance2D(unit->pos, army->attack_path[0]) < 2))
@@ -1096,7 +939,7 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 
 			for (int i = find(army->attack_path.begin(), army->attack_path.end(), closest) - army->attack_path.begin(); i < army->attack_path.size(); i++)
 			{
-				agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[i], true);
+				mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[i], true);
 			}
 		}
 		if ((army->stalkers.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(army->stalkers)) < 5) || (army->stalkers.size() == 0)
@@ -1106,9 +949,9 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 		}
 	}*/
 
-	/*for (const auto& pos : agent->locations->attack_path_line.GetPoints())
+	/*for (const auto& pos : mediator->locations->attack_path_line.GetPoints())
 	{
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
+		mediator->Debug()->DebugSphereOut(mediator->ToPoint3D(pos), .5, Color(255, 255, 255));
 	}*/
 
 	army->AttackLine(0, 6, PROTOSS_PRIO);
@@ -1116,9 +959,9 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 	/*if (army->stalkers.size() == 0)
 		return false;
 
-	Units enemies = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
+	Units enemies = mediator->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
 	Point2D stalkers_center = Utility::MedianCenter(army->stalkers);
-	Point2D stalker_line_pos = agent->locations->attack_path_line.FindClosestPoint(stalkers_center);
+	Point2D stalker_line_pos = mediator->locations->attack_path_line.FindClosestPoint(stalkers_center);
 
 	Units close_enemies = Utility::NClosestUnits(enemies, stalkers_center, 5);
 	// remove far enemies
@@ -1131,7 +974,7 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 		}
 	}
 
-	Point2D concave_target = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 8, true);
+	Point2D concave_target = mediator->locations->attack_path_line.GetPointFrom(stalker_line_pos, 8, true);
 	float max_range = 7;
 	if (close_enemies.size() > 0)
 	{
@@ -1139,14 +982,14 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 		max_range = std::max(Utility::GetMaxRange(close_enemies) + 2, 6.0f);
 	}
 
-	agent->Debug()->DebugSphereOut(agent->ToPoint3D(concave_target), 1, Color(255, 255, 0));
+	mediator->Debug()->DebugSphereOut(mediator->ToPoint3D(concave_target), 1, Color(255, 255, 0));
 
 
-	Point2D retreat_concave_origin = agent->locations->attack_path_line.GetPointFrom(concave_target, max_range, false);
+	Point2D retreat_concave_origin = mediator->locations->attack_path_line.GetPointFrom(concave_target, max_range, false);
 	if (retreat_concave_origin == Point2D(0, 0))
-		retreat_concave_origin = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * .625, false);
+		retreat_concave_origin = mediator->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * .625, false);
 
-	Point2D attack_concave_origin = agent->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * .625, true);
+	Point2D attack_concave_origin = mediator->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * .625, true);
 
 
 	std::vector<Point2D> attack_concave_positions = army->FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, army->stalkers.size(), .625, 0);
@@ -1157,11 +1000,11 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 
 	for (const auto& pos : attack_concave_positions)
 	{
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(255, 0, 0));
+		mediator->Debug()->DebugSphereOut(mediator->ToPoint3D(pos), .625, Color(255, 0, 0));
 	}
 	for (const auto& pos : retreat_concave_positions)
 	{
-		agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .625, Color(0, 255, 0));
+		mediator->Debug()->DebugSphereOut(mediator->ToPoint3D(pos), .625, Color(0, 255, 0));
 	}
 
 	army->ApplyPressureGrouped(concave_target, (2 * retreat_concave_origin) - concave_target, retreat_unit_positions, attack_unit_positions);
@@ -1183,22 +1026,22 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 
 bool ActionManager::ActionScourMap(ActionArgData* data)
 {
-	ImageData raw_map = agent->Observation()->GetGameInfo().pathing_grid;
-	for (const auto& unit : agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Self)))
+	ImageData raw_map = mediator->GetPathingGrid();
+	for (const auto& unit : mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)))
 	{
 		if (unit->orders.size() == 0)
 		{
-			std::srand(unit->tag + agent->Observation()->GetGameLoop());
+			std::srand(unit->tag + mediator->GetGameLoop());
 			int x = std::rand() % raw_map.width;
 			int y = std::rand() % raw_map.height;
 			Point2D pos = Point2D(x, y);
-			while (!unit->is_flying && !agent->Observation()->IsPathable(pos))
+			while (!unit->is_flying && !mediator->IsPathable(pos))
 			{
 				x = std::rand() % raw_map.width;
 				y = std::rand() % raw_map.height;
 				pos = Point2D(x, y);
 			}
-			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK, pos);
+			mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, pos);
 		}
 	}
 	return false;

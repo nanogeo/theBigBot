@@ -498,6 +498,11 @@ std::vector<Point2D> PathManager::FindCircleIntersection(Point2D center, double 
 
 Point2D PathManager::GetPointFrom(Point2D point, double dist, bool forward)
 {
+	if (dist < 0)
+	{
+		dist *= -1;
+		forward = !forward;
+	}
 	int index = FindClosestSegmentIndex(point);
 	double dist_left = 0;
 	Point2D new_point = segments[index]->GetPointFrom(point, dist, forward, dist_left);

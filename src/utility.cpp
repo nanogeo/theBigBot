@@ -22,6 +22,98 @@
 namespace sc2
 {
 
+
+IsFinishedUnit::IsFinishedUnit(UNIT_TYPEID type_) : m_type(type_) {
+}
+
+bool IsFinishedUnit::operator()(const Unit& unit_) const {
+	return unit_.unit_type == m_type && unit_.build_progress == 1;
+}
+
+IsFightingUnit::IsFightingUnit(Unit::Alliance alliance_) : m_type(alliance_) {
+}
+
+bool IsFightingUnit::operator()(const Unit& unit_) const {
+	if (unit_.alliance != m_type)
+		return false;
+	for (const auto& type : { UNIT_TYPEID::PROTOSS_PHOTONCANNON, /*UNIT_TYPEID::PROTOSS_PROBE,*/ UNIT_TYPEID::PROTOSS_ZEALOT, UNIT_TYPEID::PROTOSS_SENTRY,
+		UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_HIGHTEMPLAR, UNIT_TYPEID::PROTOSS_DARKTEMPLAR, UNIT_TYPEID::PROTOSS_ARCHON, PRISM, PRISM_SIEGED,
+		UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_COLOSSUS, UNIT_TYPEID::PROTOSS_PHOENIX, UNIT_TYPEID::PROTOSS_VOIDRAY, UNIT_TYPEID::PROTOSS_ORACLE,
+		UNIT_TYPEID::PROTOSS_CARRIER, UNIT_TYPEID::PROTOSS_TEMPEST, UNIT_TYPEID::PROTOSS_MOTHERSHIP, UNIT_TYPEID::TERRAN_PLANETARYFORTRESS, UNIT_TYPEID::TERRAN_MISSILETURRET,
+		/*UNIT_TYPEID::TERRAN_SCV,*/ UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_REAPER, UNIT_TYPEID::TERRAN_GHOST,
+		UNIT_TYPEID::TERRAN_HELLION, UNIT_TYPEID::TERRAN_HELLIONTANK, UNIT_TYPEID::TERRAN_SIEGETANK, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_CYCLONE,
+		UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_THORAP, UNIT_TYPEID::TERRAN_AUTOTURRET, UNIT_TYPEID::TERRAN_VIKINGASSAULT, UNIT_TYPEID::TERRAN_VIKINGFIGHTER,
+		UNIT_TYPEID::TERRAN_LIBERATOR, UNIT_TYPEID::TERRAN_LIBERATORAG, UNIT_TYPEID::TERRAN_BANSHEE, UNIT_TYPEID::TERRAN_BATTLECRUISER, UNIT_TYPEID::ZERG_SPINECRAWLER,
+		UNIT_TYPEID::ZERG_SPORECRAWLER, /*UNIT_TYPEID::ZERG_DRONE,*/ UNIT_TYPEID::ZERG_QUEEN, UNIT_TYPEID::ZERG_ZERGLING, UNIT_TYPEID::ZERG_BANELING, UNIT_TYPEID::ZERG_ROACH,
+		UNIT_TYPEID::ZERG_RAVAGER, UNIT_TYPEID::ZERG_HYDRALISK, UNIT_TYPEID::ZERG_LURKERMP, UNIT_TYPEID::ZERG_ULTRALISK, UNIT_TYPEID::ZERG_MUTALISK, UNIT_TYPEID::ZERG_CORRUPTOR,
+		UNIT_TYPEID::ZERG_BROODLORD, UNIT_TYPEID::ZERG_LOCUSTMP, UNIT_TYPEID::ZERG_BROODLING })
+	{
+		if (unit_.unit_type.ToType() == type)
+			return true;
+	}
+	return false;
+}
+
+IsNonbuilding::IsNonbuilding(Unit::Alliance alliance_) : m_type(alliance_) {
+}
+
+bool IsNonbuilding::operator()(const Unit& unit_) const {
+	if (unit_.alliance != m_type)
+		return false;
+	for (const auto& type : { UNIT_TYPEID::PROTOSS_PHOTONCANNON, UNIT_TYPEID::PROTOSS_PROBE, UNIT_TYPEID::PROTOSS_ZEALOT, UNIT_TYPEID::PROTOSS_SENTRY,
+		UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_HIGHTEMPLAR, UNIT_TYPEID::PROTOSS_DARKTEMPLAR, UNIT_TYPEID::PROTOSS_ARCHON, PRISM, PRISM_SIEGED,
+		UNIT_TYPEID::PROTOSS_IMMORTAL, UNIT_TYPEID::PROTOSS_COLOSSUS, UNIT_TYPEID::PROTOSS_PHOENIX, UNIT_TYPEID::PROTOSS_VOIDRAY, UNIT_TYPEID::PROTOSS_ORACLE,
+		UNIT_TYPEID::PROTOSS_CARRIER, UNIT_TYPEID::PROTOSS_TEMPEST, UNIT_TYPEID::PROTOSS_MOTHERSHIP, UNIT_TYPEID::TERRAN_PLANETARYFORTRESS, UNIT_TYPEID::TERRAN_MISSILETURRET,
+		UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_REAPER, UNIT_TYPEID::TERRAN_GHOST,
+		UNIT_TYPEID::TERRAN_HELLION, UNIT_TYPEID::TERRAN_HELLIONTANK, UNIT_TYPEID::TERRAN_SIEGETANK, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_CYCLONE,
+		UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_THORAP, UNIT_TYPEID::TERRAN_AUTOTURRET, UNIT_TYPEID::TERRAN_VIKINGASSAULT, UNIT_TYPEID::TERRAN_VIKINGFIGHTER, MEDIVAC,
+		UNIT_TYPEID::TERRAN_LIBERATOR, UNIT_TYPEID::TERRAN_LIBERATORAG, UNIT_TYPEID::TERRAN_BANSHEE, UNIT_TYPEID::TERRAN_BATTLECRUISER, UNIT_TYPEID::ZERG_SPINECRAWLER,
+		UNIT_TYPEID::ZERG_SPORECRAWLER, UNIT_TYPEID::ZERG_DRONE, UNIT_TYPEID::ZERG_QUEEN, UNIT_TYPEID::ZERG_ZERGLING, UNIT_TYPEID::ZERG_BANELING, UNIT_TYPEID::ZERG_ROACH,
+		UNIT_TYPEID::ZERG_RAVAGER, UNIT_TYPEID::ZERG_HYDRALISK, UNIT_TYPEID::ZERG_LURKERMP, UNIT_TYPEID::ZERG_ULTRALISK, UNIT_TYPEID::ZERG_MUTALISK, UNIT_TYPEID::ZERG_CORRUPTOR, // TODO overlord
+		UNIT_TYPEID::ZERG_BROODLORD, UNIT_TYPEID::ZERG_LOCUSTMP, UNIT_TYPEID::ZERG_BROODLING })
+	{
+		if (unit_.unit_type.ToType() == type)
+			return true;
+	}
+	return false;
+}
+
+IsNonPlaceholderUnit::IsNonPlaceholderUnit(UNIT_TYPEID type_) : m_type(type_) {
+}
+
+bool IsNonPlaceholderUnit::operator()(const Unit& unit_) const {
+	return unit_.unit_type == m_type && unit_.display_type != Unit::DisplayType::Placeholder;
+}
+
+IsFriendlyUnit::IsFriendlyUnit(UNIT_TYPEID type_) : m_type(type_) {
+}
+
+bool IsFriendlyUnit::operator()(const Unit& unit_) const {
+	return unit_.unit_type == m_type && unit_.alliance == Unit::Alliance::Self;
+}
+
+IsEnemyUnit::IsEnemyUnit(UNIT_TYPEID type_) : m_type(type_) {
+}
+
+bool IsEnemyUnit::operator()(const Unit& unit_) const {
+	return unit_.unit_type == m_type && unit_.alliance == Unit::Alliance::Enemy;
+}
+
+IsFlyingUnit::IsFlyingUnit() {
+}
+
+bool IsFlyingUnit::operator()(const Unit& unit_) const {
+	return unit_.is_flying;
+}
+
+IsNotFlyingUnit::IsNotFlyingUnit() {
+}
+
+bool IsNotFlyingUnit::operator()(const Unit& unit_) const {
+	return !unit_.is_flying;
+}
+
+
 const Unit* Utility::ClosestTo(Units units, Point2D position)
 {
 	const Unit* current_closest;
@@ -1850,7 +1942,7 @@ bool Utility::CanBuildBuilding(UNIT_TYPEID buildingId, const ObservationInterfac
 	if (CanAfford(buildingId, 1, observation))
 	{
 		if (buildingId == UNIT_TYPEID::PROTOSS_GATEWAY)
-			return BuildingsReady(UNIT_TYPEID::PROTOSS_PYLON, observation) > 0;
+			return BuildingsReady(UNIT_TYPEID::PROTOSS_PYLON, observation) > 0; // TODO add other requirements
 		return true;
 	}
 	return false;
@@ -1961,6 +2053,50 @@ ABILITY_ID Utility::GetTrainAbility(UNIT_TYPEID unitId)
 	default:
 		std::cout << "Error invalid unit id in GetTrainAbility " << UnitTypeToName(unitId) << std::endl;
 		return ABILITY_ID::BUILD_CANCEL;
+	}
+}
+
+ABILITY_ID Utility::GetWarpAbility(UNIT_TYPEID unitId)
+{
+	switch (unitId)
+	{
+	case UNIT_TYPEID::PROTOSS_ZEALOT:
+		return ABILITY_ID::TRAINWARP_ZEALOT;
+	case UNIT_TYPEID::PROTOSS_ADEPT:
+		return ABILITY_ID::TRAINWARP_ADEPT;
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		return ABILITY_ID::TRAINWARP_STALKER;
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		return ABILITY_ID::TRAINWARP_SENTRY;
+	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		return ABILITY_ID::TRAINWARP_HIGHTEMPLAR;
+	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		return ABILITY_ID::TRAINWARP_DARKTEMPLAR;
+	default:
+		std::cout << "Error invalid unit id in GetTrainAbility " << UnitTypeToName(unitId) << std::endl;
+		return ABILITY_ID::BUILD_CANCEL;
+	}
+}
+
+int Utility::GetWarpCooldown(UNIT_TYPEID unitId)
+{
+	switch (unitId)
+	{
+	case UNIT_TYPEID::PROTOSS_ZEALOT:
+		return 20;
+	case UNIT_TYPEID::PROTOSS_ADEPT:
+		return 20;
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		return 23;
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		return 23;
+	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		return 32;
+	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		return 32;
+	default:
+		std::cout << "Error invalid unit id in GetTrainAbility " << UnitTypeToName(unitId) << std::endl;
+		return 0;
 	}
 }
 
@@ -2156,6 +2292,15 @@ bool Utility::CanAfford(UNIT_TYPEID unit, int amount, const ObservationInterface
 	return enough_minerals && enough_vespene && enough_supply;
 }
 
+bool Utility::CanAffordAfter(UNIT_TYPEID unit, UnitCost already_spent, const ObservationInterface* observation)
+{
+	UnitCost total_cost = GetCost(unit) + already_spent;
+	bool enough_minerals = observation->GetMinerals() >= total_cost.mineral_cost;
+	bool enough_vespene = observation->GetVespene() >= total_cost.vespene_cost;
+	bool enough_supply = observation->GetFoodCap() - observation->GetFoodUsed() >= total_cost.supply;
+	return enough_minerals && enough_vespene && enough_supply;
+}
+
 bool Utility::CanAffordUpgrade(UPGRADE_ID upgrade, const ObservationInterface* observation)
 {
 	UnitCost cost;
@@ -2230,14 +2375,15 @@ bool Utility::CanAffordUpgrade(UPGRADE_ID upgrade, const ObservationInterface* o
 	return enough_minerals && enough_vespene;
 }
 
-int Utility::MaxCanAfford(UNIT_TYPEID unit, int max, const ObservationInterface* observation)
+int Utility::MaxCanAfford(UNIT_TYPEID unit, const ObservationInterface* observation)
 {
-	for (int i = 1; i < max + 1; i++)
+	int i = 1;
+	while (true)
 	{
 		if (CanAfford(unit, i, observation) == false)
 			return i - 1;
+		i++;
 	}
-	return max;
 }
 
 std::vector<UNIT_TYPEID> Utility::GetBurrowedUnitTypes()
@@ -2559,6 +2705,18 @@ std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
 		return "research air armor";
 	case ABILITY_ID::MORPH_WARPGATE:
 		return "morph into warpgate";
+	case ABILITY_ID::GENERAL_MOVE:
+		return "general move";
+	case ABILITY_ID::HARVEST_RETURN:
+		return "harvest return";
+	case ABILITY_ID::HARVEST_RETURN_PROBE:
+		return "harvest return probe";
+	case ABILITY_ID::HARVEST_GATHER:
+		return "harvest gather";
+	case ABILITY_ID::HARVEST_GATHER_PROBE:
+		return "harvest gather probe";
+	case ABILITY_ID::SMART:
+		return "smart";
 	default:
 		//std::cout << "Error invalid abilityId in AbilityIdToString\n";
 		return "Error invalid abilityId in AbilityIdToString";

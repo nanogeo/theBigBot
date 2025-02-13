@@ -13,7 +13,7 @@
 namespace sc2
 {
 
-class TheBigBot;
+class Mediator;
 
 struct ActionArgData
 {
@@ -74,15 +74,16 @@ struct ActionData;
 class ActionManager
 {
 public:
-	TheBigBot* agent;
+	Mediator* mediator;
 	std::vector<ActionData*> active_actions;
 
-	ActionManager(TheBigBot* agent)
+	ActionManager(Mediator* mediator)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 	}
 
 	void ProcessActions();
+	void AddAction(ActionData*);
 
 	bool ActionBuildBuilding(ActionArgData*);
 	bool ActionBuildBuildingMulti(ActionArgData*);
@@ -95,15 +96,10 @@ public:
 	bool ActionContinueExpanding(ActionArgData*);
 	bool ActionChronoTillFinished(ActionArgData*);
 	bool ActionConstantChrono(ActionArgData*);
-	bool ActionWarpInAtProxy(ActionArgData*);
 	bool ActionTrainFromProxyRobo(ActionArgData*);
 	bool ActionContain(ActionArgData*);
 	bool ActionStalkerOraclePressure(ActionArgData*);
 	bool ActionZealotDoubleprong(ActionArgData*);
-	bool ActionContinueWarpingInStalkers(ActionArgData*);
-	bool ActionContinueVolleyWarpingInStalkers(ActionArgData*);
-	bool ActionContinueVolleyWarpingInZealots(ActionArgData*);
-	bool ActionContinueBuildingCarriers(ActionArgData*);
 	bool ActionPullOutOfGas(ActionArgData*);
 	bool ActionRemoveScoutToProxy(ActionArgData*); // tostring
 	bool ActionDTHarassTerran(ActionArgData*); // tostring
@@ -189,10 +185,6 @@ struct ActionData
 			str += "Constant chrono on ";
 			str += Utility::UnitTypeIdToString(action_arg->unitId);
 		}
-		else if (action == &ActionManager::ActionWarpInAtProxy)
-		{
-			str += "Warp in at proxy";
-		}
 		else if (action == &ActionManager::ActionTrainFromProxyRobo)
 		{
 			str += "Train units from proxy robo";
@@ -208,18 +200,6 @@ struct ActionData
 		else if (action == &ActionManager::ActionZealotDoubleprong)
 		{
 			str += "Zealot double prong";
-		}
-		else if (action == &ActionManager::ActionContinueVolleyWarpingInStalkers)
-		{
-			str += "Continue warping in stalkers";
-		}
-		else if (action == &ActionManager::ActionContinueVolleyWarpingInZealots)
-		{
-			str += "Continue warping in zealots";
-		}
-		else if (action == &ActionManager::ActionContinueBuildingCarriers)
-		{
-			str += "Continue building carriers";
 		}
 		else if (action == &ActionManager::ActionPullOutOfGas)
 		{
