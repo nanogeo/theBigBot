@@ -549,13 +549,13 @@ bool BuildOrderManager::Contain(BuildOrderResultArgData data)
 
 bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 {
-	mediator->CreateArmyGroup(ArmyRole::pressure, { STALKER, IMMORTAL, PRISM, COLOSSUS, ORACLE, CARRIER }, 10, 25);
+	mediator->CreateArmyGroup(ArmyRole::pressure, { STALKER, IMMORTAL, PRISM, COLOSSUS, ORACLE, CARRIER }, 15, 25);
 	return true;
 }
 
 bool BuildOrderManager::ZealotDoubleprong(BuildOrderResultArgData data)
 {
-	mediator->CreateArmyGroup(ArmyRole::simple_attack, { ZEALOT }, 10, 20);
+	mediator->CreateArmyGroup(ArmyRole::simple_attack, { ZEALOT }, 12, 20);
 	return true;
 }
 
@@ -795,18 +795,7 @@ bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ScourMap(BuildOrderResultArgData data)
 {
-	mediator->finite_state_machine_manager.active_state_machines = {};
-	std::vector<ActionData*>* actions = &(mediator->action_manager.active_actions);
-	for (int i = 0; i < actions->size(); i++)
-	{
-		if ((*actions)[i]->toString() == "Stalker Oracle pressure" || (*actions)[i]->toString() == "Zealot double prong" || (*actions)[i]->toString() == "All in attack")
-		{
-			actions->erase(std::remove(actions->begin(), actions->end(), (*actions)[i]), actions->end());
-			i--;
-		}
-
-	}
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionScourMap, new ActionArgData()));
+	mediator->ScourMap();
 	return true;
 }
 
@@ -990,7 +979,7 @@ void BuildOrderManager::SetEarlyPoolInterrupt()
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(138.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(139.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)),
-					Data(&BuildOrderManager::HasUnits,				Condition(ADEPT, 1),		&BuildOrderManager::SetDoorGuard,						Result()),
+					//Data(&BuildOrderManager::HasUnits,				Condition(ADEPT, 1),		&BuildOrderManager::SetDoorGuard,						Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(154.0f),			&BuildOrderManager::ResearchWarpgate,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),			&BuildOrderManager::TrainAdept,							Result(ADEPT, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
@@ -1049,14 +1038,15 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(305.0f),			&BuildOrderManager::ChronoBuilding,						Result(FORGE)),
 					Data(&BuildOrderManager::HasUnits,				Condition(STALKER, 7),		&BuildOrderManager::StalkerOraclePressure,				Result()),
+
 					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, PYLON })),
 
 					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),		&BuildOrderManager::ResearchCharge,						Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),		&BuildOrderManager::ChronoTillFinished,					Result(TWILIGHT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					//Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					//Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
@@ -1065,8 +1055,8 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueChronos,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(410.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({FLEET_BEACON, STARGATE, STARGATE})),
-					Data(&BuildOrderManager::HasBuilding,			Condition(FLEET_BEACON),	&BuildOrderManager::SetUnitProduction,					Result(CARRIER)),
 					Data(&BuildOrderManager::HasUnits,				Condition(ZEALOT, 12),		&BuildOrderManager::ZealotDoubleprong,					Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(FLEET_BEACON),	&BuildOrderManager::SetUnitProduction,					Result(CARRIER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::ReadyToScour,			Condition(600.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};

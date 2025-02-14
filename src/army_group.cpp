@@ -60,6 +60,19 @@ namespace sc2 {
 		}
 	}
 
+	ArmyGroup::ArmyGroup(Mediator* mediator, Point2D defense_point, ArmyRole role, std::vector<UNIT_TYPEID> unit_types) : persistent_fire_control(mediator->agent)
+	{
+		this->mediator = mediator;
+		event_id = mediator->GetUniqueId();
+
+		this->defense_point = defense_point;
+		this->role = role;
+		for (const auto& type : unit_types)
+		{
+			this->unit_types.push_back(type);
+		}
+	}
+
 	void ArmyGroup::AddUnit(const Unit* unit)
 	{
 		if (std::find(all_units.begin(), all_units.end(), unit) != all_units.end())
@@ -220,6 +233,28 @@ namespace sc2 {
 		}
 
 		units->erase(std::remove(units->begin(), units->end(), unit), units->end());
+	}
+
+	Units ArmyGroup::GetExtraUnits()
+	{
+		Units extra_units;
+		int extra_num = all_units.size() + new_units.size() - desired_units;
+		if (extra_num <= 0)
+			return extra_units;
+
+		for (int i = new_units.size() - 1; i >= 0; i --)
+		{
+			extra_units.push_back(new_units[i]);
+			if (extra_units.size() == extra_num)
+				return extra_units;
+		}
+		for (int i = all_units.size() - 1; i >= 0; i--)
+		{
+			extra_units.push_back(all_units[i]);
+			if (extra_units.size() == extra_num)
+				break;
+		}
+		return extra_units;
 	}
 
 	std::vector<Point2D> ArmyGroup::FindConcave(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion, float concave_degree)
@@ -975,6 +1010,11 @@ namespace sc2 {
 
 	void ArmyGroup::SimpleAttack()
 	{
+		for (int i = 0; i < new_units.size(); i++)
+		{
+			AddUnit(new_units[i]);
+			i--;
+		}
 		for (const auto& unit : all_units)
 		{
 			if (unit->orders.size() == 0)
@@ -983,6 +1023,44 @@ namespace sc2 {
 				{
 					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
 				}
+			}
+		}
+	}
+
+	void ArmyGroup::DefendLocation()
+	{
+		for (int i = 0; i < new_units.size(); i++)
+		{
+			mediator->SetUnitCommand(new_units[i], ABILITY_ID::ATTACK_ATTACK, defense_point);
+			if (Distance2D(new_units[i]->pos, defense_point) <= 10)
+			{
+				AddUnit(new_units[i]);
+				i--;
+			}
+		}
+		for (const auto &unit : all_units)
+		{
+			// find closest enemy to unit and defense point
+			// if within 10 of defense point and weapon off cooldown then attack unit
+			// else move back to defense point
+			if (unit->weapon_cooldown > 0 || Distance2D(unit->pos, defense_point) > 10)
+			{
+				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, defense_point);
+			}
+			else
+			{
+				Units enemy_units = Utility::CloserThan(mediator->GetUnits(Unit::Alliance::Enemy), 20, defense_point);
+				if (enemy_units.size() == 0)
+					continue;
+				Point2D defense_pos = defense_point;
+				std::sort(enemy_units.begin(), enemy_units.end(),
+					[&unit, &defense_pos](const Unit* a, const Unit* b) -> bool
+				{
+					return Distance2D(unit->pos, a->pos) + Distance2D(defense_pos, a->pos) <
+						Distance2D(unit->pos, b->pos) + Distance2D(defense_pos, b->pos);
+				});
+
+				mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, enemy_units[0]);
 			}
 		}
 	}
@@ -1453,6 +1531,7 @@ namespace sc2 {
 		}
 
 		// order units by priority
+		// TODO check if this should be swapped
 		std::sort(units_requesting_pickup.begin(), units_requesting_pickup.end(),
 			[](const std::pair<const Unit*, UnitDanger> a, const std::pair<const Unit*, UnitDanger> b) -> bool
 		{

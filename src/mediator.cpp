@@ -47,6 +47,8 @@ namespace sc2
 		if (agent->Observation()->GetGameLoop() % 5 == 0)
 			worker_manager.BuildWorkers();
 
+		unit_production_manager.RunUnitProduction();
+
 		build_order_manager.CheckBuildOrder();
 
 		action_manager.ProcessActions();
@@ -180,6 +182,31 @@ namespace sc2
 	int Mediator::GetUpgradeLevel(UpgradeType upgrade_type)
 	{
 		return upgrade_manager.GetUpgradeLevel(upgrade_type);
+	}
+
+	const Unit* Mediator::GetMostRecentBuilding(UNIT_TYPEID type)
+	{
+		Units possible_buildings = GetUnits(Unit::Alliance::Self, IsUnit(type));
+		if (possible_buildings.size() == 0)
+			return NULL;
+
+		for (int i = 0; i < possible_buildings.size(); i++)
+		{
+			if (possible_buildings.size() == 1)
+				return possible_buildings[0];
+
+			if (possible_buildings[i]->build_progress == 1)
+			{
+				possible_buildings.erase(possible_buildings.begin() + i);
+				i--;
+			}
+		}
+		std::sort(possible_buildings.begin(), possible_buildings.end(),
+			[](const Unit* a, const Unit* b) -> bool
+		{
+			return a->build_progress < b->build_progress;
+		});
+		return possible_buildings[0];
 	}
 
 	const Unit* Mediator::GetBuilder(Point2D position)
@@ -646,6 +673,7 @@ namespace sc2
 	void Mediator::DefendThirdBaseZerg()
 	{
 		army_manager.CreateArmyGroup(ArmyRole::defend_third, { ADEPT }, 1, 1);
+		army_manager.CreateArmyGroup(ArmyRole::outside_control, { ORACLE }, 1, 3);
 
 		StateMachine* oracle_fsm = new OracleHarassStateMachine(agent, agent->Observation()->GetUnits(Unit::Alliance::Self, IsUnit(ORACLE)), 
 			agent->locations->third_base_pylon_gap, agent->locations->natural_door_closed, "Oracles");
@@ -699,6 +727,11 @@ namespace sc2
 	ArmyGroup* Mediator::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)
 	{
 		return army_manager.CreateArmyGroup(role, unit_types, desired_units, max_units);
+	}
+
+	void Mediator::ScourMap()
+	{
+		army_manager.ScourMap();
 	}
 
 	Point2D Mediator::GetStartLocation()
@@ -836,9 +869,13 @@ namespace sc2
 	}
 	void Mediator::OnUnitCreated(const Unit* unit)
 	{
-		if (unit->unit_type == UNIT_TYPEID::PROTOSS_PROBE)
+		if (unit->unit_type == PROBE)
 		{
 			worker_manager.PlaceWorker(unit);
+		}
+		else if (unit->unit_type == NEXUS)
+		{
+			army_manager.NexusStarted();
 		}
 		else
 		{

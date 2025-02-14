@@ -1613,186 +1613,45 @@ namespace sc2 {
 		groups.insert(groups.begin() + 1, mediator.army_manager.army_groups.begin(), mediator.army_manager.army_groups.end());
         for (int i = 0; i < groups.size(); i++)
         {
-            army_info += "Army " + std::to_string(i+1) + ":\n";
+            army_info += "Army " + std::to_string(i+1) + " - " + std::to_string(groups[i]->desired_units) + "/" + std::to_string(groups[i]->max_units) + "\n";
 			army_info += "  Role - " + ARMY_ROLE_TO_STRING.at(groups[i]->role) + "\n";
-			if (groups[i]->all_units.size() > 0)
+			if (groups[i]->all_units.size() + groups[i]->new_units.size() > 0)
 			{
 				army_info += "  Units: \n    ";
+				std::map<UNIT_TYPEID, int> unit_totals;
+				for (const auto& unit : groups[i]->all_units)
+				{
+					if (unit_totals.count(unit->unit_type) > 0)
+						unit_totals[unit->unit_type] += 1;
+					else
+						unit_totals[unit->unit_type] = 1;
+				}
+				for (const auto& unit : groups[i]->new_units)
+				{
+					if (unit_totals.count(unit->unit_type) > 0)
+						unit_totals[unit->unit_type] += 1;
+					else
+						unit_totals[unit->unit_type] = 1;
+				}
+
 				int num_per_line = 0;
-				if (groups[i]->zealots.size() > 0)
+				for (const auto& type : ALL_ARMY_UNITS)
 				{
-					if (num_per_line > 5)
+					if (unit_totals.count(type) > 0)
 					{
-						army_info += "\n    ";
-						num_per_line = 0;
+						if (num_per_line > 3)
+						{
+							army_info += "\n    ";
+							num_per_line = 0;
+						}
+						army_info += Utility::UnitTypeIdToString(type) + "-" + std::to_string(unit_totals[type]) + ", ";
+						num_per_line++;
 					}
-					army_info += "Zealots-" + std::to_string(groups[i]->zealots.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->stalkers.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Stalkers-" + std::to_string(groups[i]->stalkers.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->adepts.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Adepts-" + std::to_string(groups[i]->adepts.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->sentries.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Sentries-" + std::to_string(groups[i]->sentries.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->high_templar.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "High templar-" + std::to_string(groups[i]->high_templar.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->dark_templar.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Dark templar-" + std::to_string(groups[i]->dark_templar.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->archons.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Archons-" + std::to_string(groups[i]->archons.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->immortals.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Immortals - " + std::to_string(groups[i]->immortals.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->collossi.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Collossi-" + std::to_string(groups[i]->collossi.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->disrupter.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Disrupter-" + std::to_string(groups[i]->disrupter.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->observers.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Observers-" + std::to_string(groups[i]->observers.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->warp_prisms.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Warp prisms-" + std::to_string(groups[i]->warp_prisms.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->phoenixes.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Phoenixes-" + std::to_string(groups[i]->phoenixes.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->void_rays.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Void rays-" + std::to_string(groups[i]->void_rays.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->oracles.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Oracles-" + std::to_string(groups[i]->oracles.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->carriers.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Carriers-" + std::to_string(groups[i]->carriers.size()) + ", ";
-					num_per_line++;
-				}
-				if (groups[i]->tempests.size() > 0)
-				{
-					if (num_per_line > 5)
-					{
-						army_info += "\n    ";
-						num_per_line = 0;
-					}
-					army_info += "Tempests-" + std::to_string(groups[i]->tempests.size()) + ", ";
-					num_per_line++;
 				}
 				army_info += "\n";
 			}
         }
-        Debug()->DebugTextOut(army_info, Point2D(.8, .5), Color(255, 255, 255), 20);
+        Debug()->DebugTextOut(army_info, Point2D(.8, .3), Color(255, 255, 255), 20);
     }
 
     void TheBigBot::DisplaySupplyInfo()

@@ -36,7 +36,7 @@ public:
 	void SetStargateProduction(UNIT_TYPEID);
 
 	void OnBuildingConstructionComplete(const Unit*);
-	void Run();
+	void RunUnitProduction();
 
 	void SetWarpInAtProxy(bool);
 	std::vector<Point2D> FindWarpInSpots(Point2D);

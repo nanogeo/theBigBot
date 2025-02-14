@@ -70,6 +70,7 @@ public:
 	bool CanBuildBuilding(UNIT_TYPEID);
 	bool IsUnitOccupied(const Unit*);
 	int GetUpgradeLevel(UpgradeType);
+	const Unit* GetMostRecentBuilding(UNIT_TYPEID);
 
 	const Unit* GetBuilder(Point2D);
 	void BuildBuilding(UNIT_TYPEID, Point2D, const Unit*);
@@ -119,6 +120,7 @@ public:
 	void SetWarpInAtProxy(bool);
 
 	ArmyGroup* CreateArmyGroup(ArmyRole, std::vector<UNIT_TYPEID>, int, int);
+	void ScourMap();
 
 	Point2D GetStartLocation();
 	Point2D GetEnemyStartLocation();

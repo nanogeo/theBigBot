@@ -256,7 +256,10 @@ enum ArmyRole
 	simple_attack,
 	defend_door,
 	defend_third,
-	defend_main
+	defend_main,
+	defend_natural,
+	defend_outer,
+	defend_base
 };
 
 const std::map<ArmyRole, std::string> ARMY_ROLE_TO_STRING = { {ArmyRole::none, "None"},
@@ -267,7 +270,10 @@ const std::map<ArmyRole, std::string> ARMY_ROLE_TO_STRING = { {ArmyRole::none, "
 																{ArmyRole::simple_attack, "Simple attack"},
 																{ArmyRole::defend_door, "Defend door"},
 																{ArmyRole::defend_third, "Defend Third"},
-																{ArmyRole::defend_main, "Defend main"} };
+																{ArmyRole::defend_main, "Defend main"},
+																{ArmyRole::defend_natural, "Defend natural"},
+																{ArmyRole::defend_outer, "Defend outer"},
+																{ArmyRole::defend_base, "Defend base"} };
 
 struct ScoutInfoZerg
 {

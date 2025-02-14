@@ -61,6 +61,9 @@ ArmyGroup* ArmyManager::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> 
 	case ArmyRole::scour:
 		army = new ArmyGroup(mediator, role, unit_types);
 		break;
+	case ArmyRole::defend_base:
+		army = new ArmyGroup(mediator, mediator->GetMostRecentBuilding(NEXUS)->pos, role, unit_types);
+		break;
 	default:
 		std::cerr << "Unknown ArmyRole in CreateArmyGroup" << std::endl;
 		return NULL;
@@ -113,6 +116,9 @@ void ArmyManager::RunArmyGroups()
 		case ArmyRole::defend_main:
 			
 			break;
+		case ArmyRole::defend_base:
+			army_group->DefendLocation();
+			break;
 		default:
 			std::cerr << "Unknown ArmyRole in RunArmyGroup" << std::endl;
 		}
@@ -140,7 +146,20 @@ void ArmyManager::FindArmyGroupForUnit(const Unit* unit)
 	std::sort(possibles_groups.begin(), possibles_groups.end(),
 		[](const ArmyGroup* a, const ArmyGroup* b) -> bool
 	{
-		return ((double)(a->all_units.size()) / (double)(a->desired_units)) > ((double)(b->all_units.size()) / (double)(b->desired_units));
+		if (a->desired_units == 0)
+		{
+			if (b->desired_units > b->all_units.size())
+				return false;
+			return ((double)(a->all_units.size()) / (double)(a->max_units)) < ((double)(b->all_units.size()) / (double)(b->max_units));
+		}
+		if (b->desired_units == 0)
+		{
+			if (a->desired_units > a->all_units.size())
+				return true;
+			return ((double)(a->all_units.size()) / (double)(a->max_units)) < ((double)(b->all_units.size()) / (double)(b->max_units));
+		}
+
+		return ((double)(a->all_units.size()) / (double)(a->desired_units)) < ((double)(b->all_units.size()) / (double)(b->desired_units));
 	});
 
 	possibles_groups[0]->AddNewUnit(unit);
@@ -170,6 +189,54 @@ void ArmyManager::BalanceUnits()
 		return;
 
 	// shuffle other groups units if necessary
+	for (const auto& group : army_groups)
+	{
+		Units extra = group->GetExtraUnits();
+		for (const auto& unit : extra)
+		{
+			group->RemoveUnit(unit);
+			FindArmyGroupForUnit(unit);
+		}
+	}
+}
+
+void ArmyManager::ScourMap()
+{
+	for (const auto& army_group : army_groups)
+	{
+		army_group->role = ArmyRole::scour;
+	}
+}
+
+void ArmyManager::NexusStarted()
+{
+	CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 5);
+}
+
+void ArmyManager::RemoveArmyGroupWithRole(ArmyRole role)
+{
+	for (int i = 0; i < army_groups.size(); i++)
+	{
+		if (army_groups[i]->role == role)
+		{
+			DeleteArmyGroup(army_groups[i]);
+			i--;
+		}
+	}
+	BalanceUnits();
+}
+
+void ArmyManager::DeleteArmyGroup(ArmyGroup* army)
+{
+	Units unassigned_units;
+	unassigned_units.insert(unassigned_units.end(), army->all_units.begin(), army->all_units.end());
+	unassigned_units.insert(unassigned_units.end(), army->new_units.begin(), army->new_units.end());
+	delete army;
+
+	for (const auto& unit : unassigned_units)
+	{
+		unassigned_group->AddNewUnit(unit);
+	}
 }
 
 }

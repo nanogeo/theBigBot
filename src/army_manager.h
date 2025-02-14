@@ -26,6 +26,12 @@ public:
 	void FindArmyGroupForUnit(const Unit*);
 	void OnUnitDestroyed(const Unit*);
 	void BalanceUnits();
+
+	void ScourMap();
+
+	void NexusStarted();
+	void RemoveArmyGroupWithRole(ArmyRole);
+	void DeleteArmyGroup(ArmyGroup*);
 };
 
 }

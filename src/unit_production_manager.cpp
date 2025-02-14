@@ -42,7 +42,7 @@ void UnitProductionManager::OnBuildingConstructionComplete(const Unit* building)
 	}
 }
 
-void UnitProductionManager::Run()
+void UnitProductionManager::RunUnitProduction()
 {
 	UpdateWarpgateStatus();
 

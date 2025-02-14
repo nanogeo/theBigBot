@@ -89,6 +89,7 @@ public:
 	int current_attack_index;
 	int high_ground_index;
 	PathManager attack_path_line;
+	Point2D defense_point;
 
 	bool advancing = true;
 	Point2D concave_origin = Point2D(0, 0);
@@ -114,11 +115,13 @@ public:
 	ArmyGroup(Mediator*, PathManager, std::vector<Point2D> attack_path, ArmyRole, std::vector<UNIT_TYPEID>);
 	ArmyGroup(Mediator*, std::vector<Point2D>, ArmyRole, std::vector<UNIT_TYPEID>);
 	ArmyGroup(Mediator*, ArmyRole, std::vector<UNIT_TYPEID>);
+	ArmyGroup(Mediator*, Point2D, ArmyRole, std::vector<UNIT_TYPEID>);
 
 
 	void AddUnit(const Unit* unit);
 	void AddNewUnit(const Unit* unit);
 	void RemoveUnit(const Unit* unit);
+	Units GetExtraUnits();
 
 	
 
@@ -137,6 +140,7 @@ public:
 	void CannonRushPressure();
 	void ScourMap();
 	void SimpleAttack();
+	void DefendLocation();
 
 	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>);
 
