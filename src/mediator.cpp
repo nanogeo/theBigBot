@@ -216,24 +216,26 @@ namespace sc2
 
 	bool Mediator::SendScout()
 	{
-		/*Point2D pos = mediator->GetEnemyStartLocation();
-		const Unit* scouter = mediator->GetBuilder(pos);
+		Point2D pos = GetEnemyStartLocation();
+		const Unit* scouter = GetBuilder(pos);
 		if (scouter == NULL)
 		{
 			//std::cout << "Error could not find builder in Scout" << std::endl;
 			return false;
 		}
-		mediator->RemoveWorker(scouter);
-		if (mediator->GetEnemyRace() == Race::Zerg)
+		RemoveWorker(scouter);
+		if (GetEnemyRace() == Race::Zerg)
 		{
-			ScoutZergStateMachine* scout_fsm = new ScoutZergStateMachine(mediator, "Scout Zerg", scouter, mediator->locations->initial_scout_pos, mediator->locations->main_scout_path, mediator->locations->natural_scout_path, mediator->locations->enemy_natural, mediator->locations->possible_3rds);
-			mediator->active_FSMs.push_back(scout_fsm);
+			ScoutZergStateMachine* scout_fsm = new ScoutZergStateMachine(agent, "Scout Zerg", scouter, agent->locations->initial_scout_pos,
+				agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural, agent->locations->possible_3rds);
+			finite_state_machine_manager.AddStateMachine(scout_fsm);
 		}
 		else
 		{
-			ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(mediator, "Scout Terran", scouter, mediator->locations->initial_scout_pos, mediator->locations->main_scout_path, mediator->locations->natural_scout_path, mediator->locations->enemy_natural);
-			mediator->active_FSMs.push_back(scout_fsm);
-		}*/
+			ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(agent, "Scout Terran", scouter, agent->locations->initial_scout_pos,
+				agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural);
+			finite_state_machine_manager.AddStateMachine(scout_fsm);
+		}
 		return true;
 	}
 
