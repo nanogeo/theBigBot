@@ -195,8 +195,6 @@ void ArmyManager::BalanceUnits()
 		FindArmyGroupForUnit(unit);
 	}
 
-	if (unassigned_group->all_units.size() > 0)
-		return;
 
 	// shuffle other groups units if necessary
 	for (const auto& group : army_groups)
