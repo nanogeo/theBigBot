@@ -1023,7 +1023,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(205.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, PYLON})),
 					Data(&BuildOrderManager::TimePassed,			Condition(230.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(236.0f),			&BuildOrderManager::TrainOracle,						Result(STARGATE)),
-					Data(&BuildOrderManager::TimePassed,			Condition(236.0f),			&BuildOrderManager::OracleHarass,						Result()),
+					//Data(&BuildOrderManager::TimePassed,			Condition(236.0f),			&BuildOrderManager::OracleHarass,						Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(240.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({PYLON, GATEWAY, GATEWAY, GATEWAY})),
 					Data(&BuildOrderManager::TimePassed,			Condition(240.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({TWILIGHT, FORGE})),
 

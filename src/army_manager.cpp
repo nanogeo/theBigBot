@@ -83,6 +83,7 @@ void ArmyManager::RunArmyGroups()
 		switch (army_group->role)
 		{
 		case ArmyRole::outside_control:
+			army_group->OutsideControl();
 			break;
 		case ArmyRole::attack:
 		case ArmyRole::pressure:

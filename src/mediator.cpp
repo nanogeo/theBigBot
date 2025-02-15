@@ -673,11 +673,13 @@ namespace sc2
 	void Mediator::DefendThirdBaseZerg()
 	{
 		army_manager.CreateArmyGroup(ArmyRole::defend_third, { ADEPT }, 1, 1);
-		army_manager.CreateArmyGroup(ArmyRole::outside_control, { ORACLE }, 1, 3);
 
-		StateMachine* oracle_fsm = new OracleHarassStateMachine(agent, agent->Observation()->GetUnits(Unit::Alliance::Self, IsUnit(ORACLE)), 
+		StateMachine* oracle_fsm = new OracleHarassStateMachine(agent, {},
 			agent->locations->third_base_pylon_gap, agent->locations->natural_door_closed, "Oracles");
 		finite_state_machine_manager.active_state_machines.push_back(oracle_fsm);
+
+		ArmyGroup* oracles = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ORACLE }, 1, 3);
+		oracles->state_machine = oracle_fsm;
 	}
 
 	void Mediator::PlaceWorker(const Unit* worker)

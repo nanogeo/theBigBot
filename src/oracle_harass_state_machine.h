@@ -171,6 +171,7 @@ public:
 	~OracleHarassStateMachine();
 
 	void AddOracle(const Unit*);
+	bool AddUnit(const Unit*) override;
 	void OnUnitDestroyedListener(const Unit*);
 };
 

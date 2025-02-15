@@ -70,6 +70,7 @@ public:
     }
 
     void CloseStateMachine();
+    virtual bool AddUnit(const Unit*) { return false; }
 
 };
 

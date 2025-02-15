@@ -328,10 +328,10 @@ void OracleDefendLine::EnterState()
 	};
 	agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 
-	std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
+	/*std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
 		this->OnUnitCreatedListener(unit);
 	};
-	agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
+	agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated)*/
 }
 
 void OracleDefendLine::ExitState()
@@ -343,7 +343,7 @@ void OracleDefendLine::ExitState()
 	}
 	agent->RemoveListenerToOnUnitDamagedEvent(event_id);
 	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
-	agent->RemoveListenerToOnUnitCreatedEvent(event_id);
+	//agent->RemoveListenerToOnUnitCreatedEvent(event_id);
 	return;
 }
 
@@ -399,10 +399,10 @@ void OracleDefendLine::OnUnitDestroyedListener(const Unit* unit)
 void OracleDefendLine::OnUnitCreatedListener(const Unit* unit)
 {
 	//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
-	if (unit->unit_type == ORACLE)
+	/*if (unit->unit_type == ORACLE)
 	{
 		state_machine->oracles.push_back(unit);
-	}
+	}*/
 }
 
 
@@ -1083,13 +1083,13 @@ void OracleHarassReturnToBase::TickState()
 
 void OracleHarassReturnToBase::ExitState()
 {
-	for (const auto& oracle : agent->Observation()->GetUnits(IsFriendlyUnit(ORACLE)))
+	/*for (const auto& oracle : agent->Observation()->GetUnits(IsFriendlyUnit(ORACLE)))
 	{
 		if (std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle) == state_machine->oracles.end())
 		{
 			state_machine->AddOracle(oracle);
 		}
-	}
+	}*/
 	return;
 }
 
@@ -1160,6 +1160,19 @@ void OracleHarassStateMachine::AddOracle(const Unit* oracle)
 	is_beam_active[oracle] = false;
 	casting[oracle] = false;
 	casting_energy[oracle] = 0;
+}
+
+bool OracleHarassStateMachine::AddUnit(const Unit* unit)
+{
+	if (unit->unit_type != ORACLE)
+		return false;
+	if (dynamic_cast<OracleDefendLocation*>(current_state) || dynamic_cast<OracleDefendLine*>(current_state) ||
+		dynamic_cast<OracleDefendArmyGroup*>(current_state) || dynamic_cast<OracleHarassGroupUp*>(current_state))
+	{
+		AddOracle(unit);
+		return true;
+	}
+	return false;
 }
 
 void OracleHarassStateMachine::OnUnitDestroyedListener(const Unit* oracle)

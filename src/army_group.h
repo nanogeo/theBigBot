@@ -8,6 +8,7 @@
 #include "utility.h"
 #include "path_manager.h"
 #include "fire_control.h"
+#include "finite_state_machine.h"
 #include "definitions.h"
 
 
@@ -60,6 +61,7 @@ class ArmyGroup
 public:
 	Mediator* mediator;
 	ArmyRole role;
+	StateMachine* state_machine = nullptr;
 
 	Units all_units;
 	Units zealots;
@@ -141,6 +143,7 @@ public:
 	void ScourMap();
 	void SimpleAttack();
 	void DefendLocation();
+	void OutsideControl();
 
 	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>);
 

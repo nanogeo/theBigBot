@@ -39,7 +39,7 @@ namespace sc2 {
 	{
 		this->mediator = mediator;
 		event_id = mediator->GetUniqueId();
-
+		
 		this->attack_path = attack_path;
 		this->role = role;
 		for (const auto& type : unit_types)
@@ -1061,6 +1061,18 @@ namespace sc2 {
 				});
 
 				mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, enemy_units[0]);
+			}
+		}
+	}
+
+	void ArmyGroup::OutsideControl()
+	{
+		for (int i = 0; i < new_units.size(); i++)
+		{
+			if (state_machine->AddUnit(new_units[i]))
+			{
+				AddUnit(new_units[i]);
+				i--;
 			}
 		}
 	}
