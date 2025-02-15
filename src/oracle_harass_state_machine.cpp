@@ -772,6 +772,13 @@ void OracleHarassGroupUp::EnterState()
 
 State* OracleHarassGroupUp::TestTransitions()
 {
+	if (state_machine->oracles.size() == 0)
+		return NULL;
+	for (const auto& oracle : state_machine->oracles)
+	{
+		if (oracle->orders.size() == 0)
+			agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, consolidation_pos);
+	}
 	for (const auto &oracle : state_machine->oracles)
 	{
 		if (Distance2D(oracle->pos, consolidation_pos) > 1)
@@ -1073,7 +1080,10 @@ State* OracleHarassReturnToBase::TestTransitions()
 		if (Distance2D(oracle->pos, agent->locations->start_location) > 40)
 			return NULL;
 	}
-	return new OracleDefendLine(agent, state_machine, state_machine->third_base_pos, state_machine->door_guard_pos);
+	// delete sm and ag
+	agent->mediator.MarkStateMachineForDeletion(state_machine);
+	agent->mediator.MarkArmyGroupForDeletion(state_machine->attached_army_group);
+	return NULL;
 }
 
 void OracleHarassReturnToBase::TickState()
@@ -1135,7 +1145,19 @@ OracleHarassStateMachine::OracleHarassStateMachine(TheBigBot* agent, Units oracl
 	};
 	agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 
-	current_state = new OracleHarassReturnToBase(agent, this, { Point2D(59, 114) });
+	if (agent->Observation()->GetGameLoop() % 2 == 0)
+	{
+		harass_direction = true;
+		harass_index = 0;
+		current_state = new OracleHarassGroupUp(agent, this, agent->locations->oracle_path.entrance_point);
+	}
+	else
+	{
+		harass_direction = false;
+		harass_index = agent->locations->oracle_path.entrance_points.size() - 1;
+		current_state = new OracleHarassGroupUp(agent, this, agent->locations->oracle_path.exit_point);
+	}
+
 	for (int i = 0; i < oracles.size(); i++)
 	{
 		time_last_attacked[oracles[i]] = 0;

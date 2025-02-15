@@ -26,6 +26,16 @@ namespace sc2 {
 		this->mediator = mediator;
 		event_id = mediator->GetUniqueId();
 
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
+		std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
+			this->OnUnitDamagedListener(unit, health, shields);
+		};
+		mediator->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
+
 		this->attack_path = attack_path;
 		attack_path_line = attack_line;
 		this->role = role;
@@ -39,7 +49,17 @@ namespace sc2 {
 	{
 		this->mediator = mediator;
 		event_id = mediator->GetUniqueId();
-		
+
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
+		std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
+			this->OnUnitDamagedListener(unit, health, shields);
+		};
+		mediator->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
+
 		this->attack_path = attack_path;
 		this->role = role;
 		for (const auto& type : unit_types)
@@ -53,6 +73,16 @@ namespace sc2 {
 		this->mediator = mediator;
 		event_id = mediator->GetUniqueId();
 
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
+		std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
+			this->OnUnitDamagedListener(unit, health, shields);
+		};
+		mediator->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
+
 		this->role = role;
 		for (const auto& type : unit_types)
 		{
@@ -65,12 +95,28 @@ namespace sc2 {
 		this->mediator = mediator;
 		event_id = mediator->GetUniqueId();
 
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
+		std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
+			this->OnUnitDamagedListener(unit, health, shields);
+		};
+		mediator->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
+
 		this->defense_point = defense_point;
 		this->role = role;
 		for (const auto& type : unit_types)
 		{
 			this->unit_types.push_back(type);
 		}
+	}
+
+	ArmyGroup::~ArmyGroup()
+	{
+		mediator->RemoveListenerToOnUnitDamagedEvent(event_id);
+		mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
 	}
 
 	void ArmyGroup::AddUnit(const Unit* unit)
@@ -133,6 +179,11 @@ namespace sc2 {
 			break;
 		case UNIT_TYPEID::PROTOSS_ORACLE:
 			oracles.push_back(unit);
+			time_last_attacked[unit] = 0;
+			has_attacked[unit] = true;
+			is_beam_active[unit] = false;
+			casting[unit] = false;
+			casting_energy[unit] = 0;
 			break;
 		case UNIT_TYPEID::PROTOSS_CARRIER:
 			carriers.push_back(unit);
@@ -1098,7 +1149,7 @@ namespace sc2 {
 		}
 
 		// Find current units to micro
-		Units current_units;
+		Units basic_units;
 		if (using_standby)
 		{
 			std::vector<UNIT_TYPEID> types = { STALKER, SENTRY, ADEPT, ARCHON, IMMORTAL };
@@ -1106,7 +1157,7 @@ namespace sc2 {
 			{
 				if (std::find(types.begin(), types.end(), unit->unit_type) != types.end() &&
 					std::find(standby_units.begin(), standby_units.end(), unit) == standby_units.end())
-					current_units.push_back(unit);
+					basic_units.push_back(unit);
 			}
 		}
 		else
@@ -1115,16 +1166,18 @@ namespace sc2 {
 			for (const auto& unit : all_units)
 			{
 				if (std::find(types.begin(), types.end(), unit->unit_type) != types.end())
-					current_units.push_back(unit);
+					basic_units.push_back(unit);
 			}
 		}
 
-		if (static_cast<float>(current_units.size()) / all_units.size() < .25)
+		OraclesDefendArmy(basic_units);
+
+		if (static_cast<float>(basic_units.size()) / all_units.size() < .25)
 			return 1;
 
 		int return_value = 0;
 
-		if (FindUnitPositions(current_units, warp_prisms, dispersion, target_range))
+		if (FindUnitPositions(basic_units, warp_prisms, dispersion, target_range))
 			return_value = 2;
 
 		/*for (const auto& pos : agent->locations->attack_path_line.GetPoints())
@@ -1140,18 +1193,18 @@ namespace sc2 {
 		// Find units that can attack and those that cant
 		Units units_ready;
 		Units units_not_ready;
-		FindReadyUnits(current_units, units_ready, units_not_ready);
+		FindReadyUnits(basic_units, units_ready, units_not_ready);
 
 		float percent_units_needed = .25;
 
 		//if units are shooting then theres a reason to stay
-		if ((double)units_not_ready.size() / (double)current_units.size() > percent_units_needed)
+		if ((double)units_not_ready.size() / (double)basic_units.size() > percent_units_needed)
 			return_value = 0;
 
 
 			
 		
-		MicroReadyUnits(units_ready, target_priority, percent_units_needed, current_units.size());
+		MicroReadyUnits(units_ready, target_priority, percent_units_needed, basic_units.size());
 		std::vector<std::pair<const Unit*, UnitDanger>> units_requesting_pickup = MicroNonReadyUnits(units_not_ready);
 
 		for (const auto& request : units_requesting_pickup)
@@ -1188,6 +1241,271 @@ namespace sc2 {
 			}
 		}
 		return return_value;
+	}
+
+	void ArmyGroup::OraclesDefendArmy(Units basic_units)
+	{
+		if (oracles.size() == 0)
+			return;
+
+		Point2D center = attack_path[0];
+		if (basic_units.size() > 0)
+		{
+			Point2D median_center = Utility::MedianCenter(basic_units);
+			center = attack_path_line.GetPointFrom(median_center, 3, false);
+		}
+
+		Units enemy_burrowed_units = mediator->GetUnits(IsUnits(Utility::GetBurrowedUnitTypes()));
+
+		bool revelation_cast = false;
+		for (const auto& oracle : oracles)
+		{
+			if (casting[oracle])
+			{
+				revelation_cast = true;
+				break;
+			}
+		}
+		// revelate when units are burrowing
+		if (!revelation_cast)
+		{
+			const Unit* unit_to_revelate = NULL;
+			for (const auto& unit : enemy_burrowed_units)
+			{
+				if (Utility::DistanceToClosest(oracles, unit->pos) <= 9)
+				{
+					if (std::find(unit->buffs.begin(), unit->buffs.end(), BUFF_ID::ORACLEREVELATION) == unit->buffs.end())
+					{
+						unit_to_revelate = unit;
+						break;
+					}
+				}
+			}
+			if (unit_to_revelate != NULL)
+			{
+				const Unit* highest_over_75 = NULL;
+				const Unit* lowest_over_25 = NULL;
+				for (const auto& oracle : oracles)
+				{
+					if (oracle->energy > 75)
+					{
+						if (highest_over_75 == NULL || highest_over_75->energy < oracle->energy)
+							highest_over_75 = oracle;
+					}
+					else if (oracle->energy > 25)
+					{
+						if (lowest_over_25 == NULL || lowest_over_25->energy > oracle->energy)
+							lowest_over_25 = oracle;
+					}
+				}
+				if (highest_over_75 != NULL)
+				{
+					mediator->SetUnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
+					casting[highest_over_75] = true;
+					casting_energy[highest_over_75] = highest_over_75->energy;
+					//agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
+
+				}
+				else if (lowest_over_25 != NULL)
+				{
+					mediator->SetUnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
+					casting[lowest_over_25] = true;
+					casting_energy[lowest_over_25] = lowest_over_25->energy;
+					//agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
+				}
+			}
+		}
+
+
+		Units enemy_lings = mediator->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ZERGLING));
+		int num_close_lings = 0;
+		for (const auto& ling : enemy_lings)
+		{
+			if (Utility::DistanceToClosest(basic_units, ling->pos) < 4)
+				num_close_lings++;
+		}
+		if (num_close_lings > 4)
+		{
+			int num_stalkers_with_blink = 0;
+			float now = mediator->GetGameLoop() / 22.4;
+			for (const auto& last_blink_time : last_time_blinked)
+			{
+				if (now - last_blink_time.second > 7)
+					num_stalkers_with_blink++;
+			}
+			float percent_stalkers_with_blink = 1;
+			if (last_time_blinked.size() > 0)
+				percent_stalkers_with_blink = static_cast<float>(num_stalkers_with_blink) / static_cast<float>(last_time_blinked.size());
+
+			int num_oracles_needed = 0;
+
+			if (percent_stalkers_with_blink < .25)
+				num_oracles_needed = 3;
+			else if (percent_stalkers_with_blink < .5)
+				num_oracles_needed = 2;
+			else if (percent_stalkers_with_blink < .75)
+				num_oracles_needed = 1;
+
+			if (num_close_lings > 30)
+				num_oracles_needed += 3;
+			else if (num_close_lings > 20)
+				num_oracles_needed += 2;
+			else if (num_close_lings > 10)
+				num_oracles_needed += 1;
+
+
+			num_oracles_needed = std::min(num_oracles_needed, 3);
+
+			int num_oracles_active = 0;
+			for (const auto& beam_active : is_beam_active)
+			{
+				if (beam_active.second)
+					num_oracles_active++;
+			}
+			/*
+			agent->Debug()->DebugTextOut(std::to_string(num_close_lings), Point2D(.2, .18), Color(0, 255, 0), 20);
+			agent->Debug()->DebugTextOut(std::to_string(num_oracles_active), Point2D(.2, .2), Color(0, 255, 255), 20);
+			agent->Debug()->DebugTextOut(std::to_string(num_oracles_needed), Point2D(.2, .22), Color(0, 255, 255), 20);
+			agent->Debug()->DebugTextOut(std::to_string(percent_stalkers_with_blink), Point2D(.2, .24), Color(0, 255, 255), 20);
+			agent->Debug()->DebugTextOut(std::to_string(num_stalkers_with_blink), Point2D(.2, .26), Color(0, 255, 255), 20);
+			agent->Debug()->DebugTextOut(std::to_string(state_machine->attached_army_group->blink_ready.size()), Point2D(.2, .28), Color(0, 255, 255), 20);
+
+			for (int i = 0; i < state_machine->oracles.size(); i++)
+			{
+				if (state_machine->is_beam_active[i])
+					agent->Debug()->DebugTextOut(std::to_string(state_machine->oracles[i]->energy), Point2D(.2, .3 + .02 * i), Color(0, 255, 0), 20);
+				else
+					agent->Debug()->DebugTextOut(std::to_string(state_machine->oracles[i]->energy), Point2D(.2, .3 + .02 * i), Color(255, 0, 255), 20);
+
+			}*/
+
+			if (num_oracles_active > num_oracles_needed) // deactivate oracles
+			{
+				Units oracles = Units(oracles);
+				std::sort(oracles.begin(), oracles.end(), [](const Unit*& a, const Unit*& b) -> bool
+				{
+					return a->energy > b->energy;
+				});
+				for (const auto& oracle : oracles)
+				{
+					if (num_oracles_active == num_oracles_needed)
+						break;
+					if (oracle->energy > 10 && Utility::DistanceToClosest(enemy_lings, oracle->pos) > 5)
+					{
+						if (is_beam_active.count(oracle) && is_beam_active[oracle] == true)
+						{
+							is_beam_active[oracle] = false;
+							mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+							num_oracles_active--;
+						}
+					}
+				}
+			}
+			else if (num_oracles_active < num_oracles_needed) // activate more oracles
+			{
+				Units oracles = Units(oracles);
+				std::sort(oracles.begin(), oracles.end(), [](const Unit*& a, const Unit*& b) -> bool
+				{
+					return a->energy < b->energy;
+				});
+				for (const auto& oracle : oracles)
+				{
+					if (num_oracles_active == num_oracles_needed)
+						break;
+					if (oracle->energy > 40)
+					{
+						if (is_beam_active.count(oracle) && is_beam_active[oracle] == false)
+						{
+							is_beam_active[oracle] = true;
+							mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
+							num_oracles_active++;
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			Units oracles = Units(oracles);
+			std::sort(oracles.begin(), oracles.end(), [](const Unit*& a, const Unit*& b) -> bool
+			{
+				return a->energy > b->energy;
+			});
+			for (const auto& oracle : oracles)
+			{
+				if (oracle->energy > 10 && (enemy_lings.size() == 0 || Utility::DistanceToClosest(enemy_lings, oracle->pos)))
+				{
+					if (is_beam_active.count(oracle) && is_beam_active[oracle] == true)
+					{
+						is_beam_active[oracle] = false;
+						mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+					}
+				}
+			}
+		}
+		// add oracle to volley or agnore units targetted in volley?
+		// add event listeners for oracle
+		for (const auto& oracle : oracles)
+		{
+			if (casting[oracle])
+			{
+				if (casting_energy[oracle] > oracle->energy || casting_energy[oracle] + 5 < oracle->energy)
+				{
+					casting[oracle] = false;
+				}
+				else
+				{
+					continue;
+				}
+			}
+			if (is_beam_active[oracle] == false)
+			{
+				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center);
+				continue;
+			}
+			float now = mediator->GetGameLoop() / 22.4;
+			bool weapon_ready = now - time_last_attacked[oracle] > .8; //.61
+
+			/*agent->Debug()->DebugTextOut("weapon ready " + std::to_string(weapon_ready), Point2D(.2, .35), Color(0, 255, 0), 20);
+			agent->Debug()->DebugTextOut("has attacked " + std::to_string(state_machine->has_attacked[oracle]), Point2D(.2, .37), Color(0, 255, 0), 20);
+			agent->Debug()->DebugTextOut("target " + std::to_string(state_machine->target[oracle]), Point2D(.2, .39), Color(0, 255, 0), 20);*/
+
+
+			if (weapon_ready)
+			{
+				const Unit* closest_unit = Utility::ClosestTo(enemy_lings, oracle->pos);
+				if (closest_unit == NULL || Distance2D(closest_unit->pos, oracle->pos) > 6)
+				{
+					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center);
+					continue;
+				}
+
+
+				mediator->SetUnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit);
+				//agent->Debug()->DebugSphereOut(closest_unit->pos, .75, Color(0, 255, 255));
+
+				target[oracle] = closest_unit->tag;
+				time_last_attacked[oracle] = mediator->GetGameLoop() / 22.4;
+				has_attacked[oracle] = false;
+				//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
+			}
+			else if (has_attacked[oracle])
+			{
+				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center);
+
+				//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
+			}
+			else
+			{
+				//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
+			}
+		}
+		// update beam status for tired oracles
+		for (const auto& oracle : oracles)
+		{
+			if (oracle->energy <= 2)
+				is_beam_active[oracle] = false;
+		}
 	}
 
 	bool ArmyGroup::FindUnitPositions(Units units, Units prisms, float dispersion, float max_range)
@@ -1619,13 +1937,37 @@ namespace sc2 {
 
 	void ArmyGroup::OnUnitCreatedListener(const Unit* unit)
 	{
-		if (std::find(unit_types.begin(), unit_types.end(), unit->unit_type) != unit_types.end())
-			AddUnit(unit);
+		
+	}
+
+	void ArmyGroup::OnUnitDamagedListener(const Unit* unit, float health_damage, float shields_damage)
+	{
+		for (const auto& oracle : oracles)
+		{
+			if (target[oracle] == unit->tag)
+			{
+				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " took " + std::to_string(health) + " damage from orale", Point2D(.2, .4 + .02 * i), Color(0, 255, 0), 20);
+				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
+				has_attacked[oracle] = true;
+			}
+		}
 	}
 
 	void ArmyGroup::OnUnitDestroyedListener(const Unit* unit)
 	{
+		for (const auto& oracle : oracles)
+		{
+			if (target[oracle] == unit->tag)
+			{
+				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " desroyed by oracle", Point2D(.2, .45 + .02 * i), Color(0, 255, 0), 20);
+				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+				has_attacked[oracle] = true;
+			}
+		}
+
 		if (std::find(all_units.begin(), all_units.end(), unit) != all_units.end())
+			RemoveUnit(unit);
+		if (std::find(new_units.begin(), new_units.end(), unit) != new_units.end())
 			RemoveUnit(unit);
 	}
 

@@ -614,23 +614,14 @@ namespace sc2
 		finite_state_machine_manager.active_state_machines.push_back(adept_fsm);
 	}
 
-	void Mediator::AddOraclesToOracleHarassFSM()
+	void Mediator::StartOracleHarassStateMachine()
 	{
-		Units oracles = GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ORACLE));
-		for (const auto& fsm : finite_state_machine_manager.active_state_machines)
-		{
-			if (dynamic_cast<OracleHarassStateMachine*>(fsm))
-			{
-				OracleHarassStateMachine* state_machine = dynamic_cast<OracleHarassStateMachine*>(fsm);
-				for (const auto& oracle : oracles)
-				{
-					if (std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle) == state_machine->oracles.end())
-					{
-						state_machine->AddOracle(oracle);
-					}
-				}
-			}
-		}
+		OracleHarassStateMachine* oracle_fsm = new OracleHarassStateMachine(agent, {}, "Oracles");
+		finite_state_machine_manager.active_state_machines.push_back(oracle_fsm);
+
+		ArmyGroup* oracles_army = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ORACLE }, 2, 3);
+		oracles_army->state_machine = oracle_fsm;
+		oracle_fsm->attached_army_group = oracles_army;
 	}
 
 	bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)
@@ -670,16 +661,19 @@ namespace sc2
 		finite_state_machine_manager.active_state_machines.push_back(adept_defense_fsm);
 	}
 
+	void Mediator::MarkStateMachineForDeletion(StateMachine* state_machine)
+	{
+		finite_state_machine_manager.MarkStateMachineForDeletion(state_machine);
+	}
+
+	void Mediator::MarkArmyGroupForDeletion(ArmyGroup* army_group)
+	{
+		army_manager.MarkArmyGroupForDeletion(army_group);
+	}
+
 	void Mediator::DefendThirdBaseZerg()
 	{
 		army_manager.CreateArmyGroup(ArmyRole::defend_third, { ADEPT }, 1, 1);
-
-		StateMachine* oracle_fsm = new OracleHarassStateMachine(agent, {},
-			agent->locations->third_base_pylon_gap, agent->locations->natural_door_closed, "Oracles");
-		finite_state_machine_manager.active_state_machines.push_back(oracle_fsm);
-
-		ArmyGroup* oracles = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ORACLE }, 1, 3);
-		oracles->state_machine = oracle_fsm;
 	}
 
 	void Mediator::PlaceWorker(const Unit* worker)
@@ -910,4 +904,49 @@ namespace sc2
 	{
 		upgrade_manager.OnUpgradeCompleted(upgrade);
 	}
+
+
+
+	void Mediator::AddListenerToOnUnitDamagedEvent(int id, std::function<void(const Unit*, float, float)> func)
+	{
+		agent->AddListenerToOnUnitDamagedEvent(id, func);
+	}
+
+	void Mediator::RemoveListenerToOnUnitDamagedEvent(int id)
+	{
+		agent->RemoveListenerToOnUnitDamagedEvent(id);
+	}
+
+	void Mediator::AddListenerToOnUnitDestroyedEvent(int id, std::function<void(const Unit*)> func)
+	{
+		agent->AddListenerToOnUnitDestroyedEvent(id, func);
+	}
+
+	void Mediator::RemoveListenerToOnUnitDestroyedEvent(int id)
+	{
+		agent->RemoveListenerToOnUnitDestroyedEvent(id);
+	}
+
+	void Mediator::AddListenerToOnUnitCreatedEvent(int id, std::function<void(const Unit*)> func)
+	{
+		agent->AddListenerToOnUnitCreatedEvent(id, func);
+	}
+
+	void Mediator::RemoveListenerToOnUnitCreatedEvent(int id)
+	{
+		agent->RemoveListenerToOnUnitCreatedEvent(id);
+	}
+
+	void Mediator::AddListenerToOnUnitEntersVisionEvent(int id, std::function<void(const Unit*)> func)
+	{
+		agent->AddListenerToOnUnitEntersVisionEvent(id, func);
+	}
+
+	void Mediator::RemoveListenerToOnUnitEntersVisionEvent(int id)
+	{
+		agent->RemoveListenerToOnUnitEntersVisionEvent(id);
+	}
+
+
+
 }

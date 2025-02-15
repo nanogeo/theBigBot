@@ -111,6 +111,14 @@ public:
 	int desired_units = 0;
 	int max_units = 100;
 
+	// oracles
+	std::map<const Unit*, float> time_last_attacked;
+	std::map<const Unit*, bool> has_attacked;
+	std::map<const Unit*, uint64_t> target;
+	std::map<const Unit*, bool> is_beam_active;
+	std::map<const Unit*, bool> casting;
+	std::map<const Unit*, float> casting_energy;
+
 	PersistentFireControl persistent_fire_control;
 
 	ArmyGroup() : persistent_fire_control() {};
@@ -119,6 +127,7 @@ public:
 	ArmyGroup(Mediator*, ArmyRole, std::vector<UNIT_TYPEID>);
 	ArmyGroup(Mediator*, Point2D, ArmyRole, std::vector<UNIT_TYPEID>);
 
+	~ArmyGroup();
 
 	void AddUnit(const Unit* unit);
 	void AddNewUnit(const Unit* unit);
@@ -146,7 +155,7 @@ public:
 	void OutsideControl();
 
 	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>);
-
+	void OraclesDefendArmy(Units);
 
 	bool FindUnitPositions(Units, Units, float, float);
 	void FindReadyUnits(Units, Units&, Units&);
@@ -158,7 +167,9 @@ public:
 	void AutoAddNewUnits(std::vector<UNIT_TYPEID>);
 	void OnNewUnitCreatedListener(const Unit*);
 	void AutoAddUnits(std::vector<UNIT_TYPEID>);
+
 	void OnUnitCreatedListener(const Unit*);
+	void OnUnitDamagedListener(const Unit*, float, float);
 	void OnUnitDestroyedListener(const Unit*);
 
 

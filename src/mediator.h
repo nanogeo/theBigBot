@@ -107,9 +107,11 @@ public:
 	void RemoveStateMachine(StateMachine*);
 	void CreateFourGateBlinkFSM();
 	void CreateAdeptHarassProtossFSM();
-	void AddOraclesToOracleHarassFSM();
+	void StartOracleHarassStateMachine();
 	bool RemoveScoutToProxy(UNIT_TYPEID, int);
 	void CreateAdeptBaseDefenseTerranFSM();
+	void MarkStateMachineForDeletion(StateMachine*);
+	void MarkArmyGroupForDeletion(ArmyGroup* army_group);
 
 	void DefendThirdBaseZerg();
 
@@ -155,6 +157,23 @@ public:
 	void OnUnitDamaged(const Unit*, float, float);
 	void OnUnitDestroyed(const Unit*); // remove from army units
 	void OnUpgradeCompleted(UPGRADE_ID);
+
+
+	void AddListenerToOnUnitDamagedEvent(int, std::function<void(const Unit*, float, float)>);
+	void RemoveListenerToOnUnitDamagedEvent(int);
+	void CallOnUnitDamagedEvent(const Unit*, float, float);
+
+	void AddListenerToOnUnitDestroyedEvent(int, std::function<void(const Unit*)>);
+	void RemoveListenerToOnUnitDestroyedEvent(int);
+	void CallOnUnitDestroyedEvent(const Unit*);
+
+	void AddListenerToOnUnitCreatedEvent(int, std::function<void(const Unit*)>);
+	void RemoveListenerToOnUnitCreatedEvent(int);
+	void CallOnUnitCreatedEvent(const Unit*);
+
+	void AddListenerToOnUnitEntersVisionEvent(int, std::function<void(const Unit*)>);
+	void RemoveListenerToOnUnitEntersVisionEvent(int);
+	void CallOnUnitEntersVisionEvent(const Unit*);
 };
 
 
