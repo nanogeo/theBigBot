@@ -40,6 +40,10 @@ public:
         this->name = name;
         current_state->EnterState();
     }
+    virtual ~StateMachine()
+    {
+        delete current_state;
+    }
     virtual void RunStateMachine()
     {
         State* new_state = current_state->TestTransitions();
