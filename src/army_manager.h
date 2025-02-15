@@ -15,6 +15,7 @@ public:
 	Mediator* mediator;
 	ArmyGroup* unassigned_group;
 	std::vector<ArmyGroup*> army_groups;
+	std::vector<ArmyGroup*> army_groups_to_delete;
 
 	ArmyManager(Mediator* mediator);
 
@@ -32,6 +33,7 @@ public:
 	void NexusStarted();
 	void RemoveArmyGroupWithRole(ArmyRole);
 	void DeleteArmyGroup(ArmyGroup*);
+	void MarkArmyGroupForDeletion(ArmyGroup*);
 };
 
 }

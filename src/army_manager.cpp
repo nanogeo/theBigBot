@@ -78,47 +78,56 @@ ArmyGroup* ArmyManager::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> 
 
 void ArmyManager::RunArmyGroups()
 {
-	for (const auto& army_group : army_groups)
+	for (int i = 0; i < army_groups.size(); i++)
 	{
-		switch (army_group->role)
+		if (std::find(army_groups_to_delete.begin(), army_groups_to_delete.end(), army_groups[i]) != army_groups_to_delete.end())
+		{
+			army_groups_to_delete.erase(std::remove(army_groups_to_delete.begin(), army_groups_to_delete.end(), army_groups[i]), army_groups_to_delete.end());
+			DeleteArmyGroup(army_groups[i]);
+			army_groups.erase(army_groups.begin() + i);
+			i--;
+			BalanceUnits();
+			continue;
+		}
+		switch (army_groups[i]->role)
 		{
 		case ArmyRole::outside_control:
-			army_group->OutsideControl();
+			army_groups[i]->OutsideControl();
 			break;
 		case ArmyRole::attack:
 		case ArmyRole::pressure:
 			switch (mediator->GetEnemyRace())
 			{
 			case Race::Zerg:
-				army_group->AttackLine(0, 6, ZERG_PRIO);
+				army_groups[i]->AttackLine(0, 6, ZERG_PRIO);
 				break;
 			case Race::Protoss:
-				army_group->AttackLine(0, 6, PROTOSS_PRIO);
+				army_groups[i]->AttackLine(0, 6, PROTOSS_PRIO);
 				break;
 			case Race::Terran:
-				army_group->AttackLine(2, 6, TERRAN_PRIO);
+				army_groups[i]->AttackLine(2, 6, TERRAN_PRIO);
 				break;
 			default:
 				std::cerr << "Unknown enemy race in RunArmyGroup" << std::endl;
 			}
 			break;
 		case ArmyRole::scour:
-			army_group->ScourMap();
+			army_groups[i]->ScourMap();
 			break;
 		case ArmyRole::simple_attack:
-			army_group->SimpleAttack();
+			army_groups[i]->SimpleAttack();
 			break;
 		case ArmyRole::defend_door:
-			army_group->DefendFrontDoor(mediator->agent->locations->natural_door_open, mediator->agent->locations->natural_door_closed);
+			army_groups[i]->DefendFrontDoor(mediator->agent->locations->natural_door_open, mediator->agent->locations->natural_door_closed);
 			break;
 		case ArmyRole::defend_third:
-			army_group->DefendThirdBase(mediator->agent->locations->third_base_pylon_gap);
+			army_groups[i]->DefendThirdBase(mediator->agent->locations->third_base_pylon_gap);
 			break;
 		case ArmyRole::defend_main:
 			
 			break;
 		case ArmyRole::defend_base:
-			army_group->DefendLocation();
+			army_groups[i]->DefendLocation();
 			break;
 		default:
 			std::cerr << "Unknown ArmyRole in RunArmyGroup" << std::endl;
@@ -236,8 +245,13 @@ void ArmyManager::DeleteArmyGroup(ArmyGroup* army)
 
 	for (const auto& unit : unassigned_units)
 	{
-		unassigned_group->AddNewUnit(unit);
+		unassigned_group->AddUnit(unit);
 	}
+}
+
+void ArmyManager::MarkArmyGroupForDeletion(ArmyGroup* army_group)
+{
+	army_groups_to_delete.push_back(army_group);
 }
 
 }
