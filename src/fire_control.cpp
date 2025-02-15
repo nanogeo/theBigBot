@@ -334,6 +334,13 @@ namespace sc2 {
 		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 	}
 
+	PersistentFireControl::~PersistentFireControl()
+	{
+		agent->RemoveListenerToOnUnitDamagedEvent(event_id);
+		agent->RemoveListenerToOnUnitEntersVisionEvent(event_id);
+		agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+	}
+
 	void PersistentFireControl::OnUnitTakesDamageListener(const Unit* unit, float health, float shields)
 	{
 		float total_damage = health + shields;

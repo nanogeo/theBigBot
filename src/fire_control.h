@@ -163,6 +163,7 @@ public:
 
 	PersistentFireControl() {};
 	PersistentFireControl(TheBigBot*);
+	~PersistentFireControl();
 
 	void OnUnitTakesDamageListener(const Unit*, float, float);
 	void OnUnitEntersVisionListener(const Unit*);
