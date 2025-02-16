@@ -135,8 +135,8 @@ public:
 class BlinkStalkerAttackTerran : public StateMachine
 {
 public:
-	ArmyGroup* army_group;
-	const Unit* prism;
+	const Unit* prism = NULL;
+	Units stalkers;
 	bool attacking_main = false;
 	Point2D consolidation_pos;
 	Point2D prism_consolidation_pos;
@@ -147,13 +147,14 @@ public:
 
 
 	int event_id;
-	BlinkStalkerAttackTerran(TheBigBot* agent, std::string name, ArmyGroup* army, Point2D consolidation_pos, Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos);
+	BlinkStalkerAttackTerran(TheBigBot* agent, std::string name, Point2D consolidation_pos, 
+		Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos);
 
 
 	virtual void RunStateMachine() override;
+	bool AddUnit(const Unit*) override;
 
 	~BlinkStalkerAttackTerran();
-	void OnUnitCreatedListener(const Unit*);
 };
 
 

@@ -251,17 +251,36 @@ namespace sc2
 			return false;
 		}
 		RemoveWorker(scouter);
-		if (GetEnemyRace() == Race::Zerg)
+		switch (GetEnemyRace())
+		{
+		case Race::Zerg:
 		{
 			ScoutZergStateMachine* scout_fsm = new ScoutZergStateMachine(agent, "Scout Zerg", scouter, agent->locations->initial_scout_pos,
 				agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural, agent->locations->possible_3rds);
 			finite_state_machine_manager.AddStateMachine(scout_fsm);
+			break;
 		}
-		else
+		case Race::Terran:
 		{
 			ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(agent, "Scout Terran", scouter, agent->locations->initial_scout_pos,
 				agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural);
 			finite_state_machine_manager.AddStateMachine(scout_fsm);
+			break;
+		}
+		case Race::Protoss: // TODO make a dedicated protoss scout state machine
+		{
+			ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(agent, "Scout Protoss", scouter, agent->locations->initial_scout_pos,
+				agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural);
+			finite_state_machine_manager.AddStateMachine(scout_fsm);
+			break;
+		}
+		default: // TODO make a dedicated random scout state machine
+		{
+			ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(agent, "Scout Random", scouter, agent->locations->initial_scout_pos,
+				agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural);
+			finite_state_machine_manager.AddStateMachine(scout_fsm);
+			break;
+		}
 		}
 		return true;
 	}
@@ -588,30 +607,22 @@ namespace sc2
 		ArmyGroup* army = CreateArmyGroup(ArmyRole::outside_control, { STALKER, PRISM }, 15, 25);
 		army->using_standby = true;
 		army->standby_pos = agent->locations->blink_presure_consolidation;
-		for (const auto& fsm : finite_state_machine_manager.active_state_machines)
-		{
-			if (fsm->name == "Stalker base defense")
-			{
-				finite_state_machine_manager.active_state_machines.erase(std::remove(finite_state_machine_manager.active_state_machines.begin(), 
-					finite_state_machine_manager.active_state_machines.end(), fsm), finite_state_machine_manager.active_state_machines.end());
-				break;
-			}
-		}
-		for (const auto& unit : GetUnits(IsUnits({ PRISM, STALKER })))
-		{
-			if (IsUnitOccupied(unit))
-				continue;
-			army->AddUnit(unit);
-		}
-		BlinkStalkerAttackTerran* blink_fsm = new BlinkStalkerAttackTerran(agent, "4 gate blink pressure", army, agent->locations->blink_presure_consolidation,
+
+		BlinkStalkerAttackTerran* blink_fsm = new BlinkStalkerAttackTerran(agent, "4 gate blink pressure", agent->locations->blink_presure_consolidation,
 			agent->locations->blink_pressure_prism_consolidation, agent->locations->blink_pressure_blink_up, agent->locations->blink_pressure_blink_down);
 		finite_state_machine_manager.active_state_machines.push_back(blink_fsm);
+		army->state_machine = blink_fsm;
+		blink_fsm->attached_army_group = army;
 	}
 
 	void Mediator::CreateAdeptHarassProtossFSM()
 	{
 		AdeptHarassProtoss* adept_fsm = new AdeptHarassProtoss(agent, "adept harass protoss", GetUnits(IsFriendlyUnit(ADEPT)), agent->locations->adept_harrass_protoss_consolidation);
 		finite_state_machine_manager.active_state_machines.push_back(adept_fsm);
+
+		ArmyGroup* adept_army = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ADEPT }, 2, 2);
+		adept_army->state_machine = adept_fsm;
+		adept_fsm->attached_army_group = adept_army;
 	}
 
 	void Mediator::StartOracleHarassStateMachine()
@@ -639,6 +650,14 @@ namespace sc2
 			state_machine = GetStateMachineByName("Scout Terran");
 			scout = ((ScoutTerranStateMachine*)state_machine)->scout;
 			break;
+		case Race::Protoss:
+			state_machine = GetStateMachineByName("Scout Protoss");
+			scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+			break;
+		case Race::Random:
+			state_machine = GetStateMachineByName("Scout Random");
+			scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+			break;
 		}
 
 		if (scout != NULL && scout->is_alive)
@@ -655,10 +674,13 @@ namespace sc2
 
 	void Mediator::CreateAdeptBaseDefenseTerranFSM()
 	{
-		const Unit* adept = GetUnits(IsFriendlyUnit(ADEPT))[0];
-		AdeptBaseDefenseTerran* adept_defense_fsm = new AdeptBaseDefenseTerran(agent, "Adept base defense", adept, 
+		AdeptBaseDefenseTerran* adept_defense_fsm = new AdeptBaseDefenseTerran(agent, "Adept base defense", 
 			agent->locations->main_early_dead_space, agent->locations->natural_front);
 		finite_state_machine_manager.active_state_machines.push_back(adept_defense_fsm);
+
+		ArmyGroup* adept_harass = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ADEPT }, 1, 1);
+		adept_harass->state_machine = adept_defense_fsm;
+		adept_defense_fsm->attached_army_group = adept_harass;
 	}
 
 	void Mediator::MarkStateMachineForDeletion(StateMachine* state_machine)
@@ -674,6 +696,19 @@ namespace sc2
 	void Mediator::DefendThirdBaseZerg()
 	{
 		army_manager.CreateArmyGroup(ArmyRole::defend_third, { ADEPT }, 1, 1);
+	}
+
+	void Mediator::AddToDefense(int base, int amount)
+	{
+		Point2D base_location = agent->locations->nexi_locations[base];
+		for (auto& army_group : army_manager.army_groups)
+		{
+			if (army_group->defense_point == base_location)
+			{
+				army_group->desired_units += amount;
+			}
+		}
+		army_manager.BalanceUnits();
 	}
 
 	void Mediator::PlaceWorker(const Unit* worker)

@@ -114,6 +114,7 @@ public:
 	void MarkArmyGroupForDeletion(ArmyGroup* army_group);
 
 	void DefendThirdBaseZerg();
+	void AddToDefense(int, int);
 
 	void PlaceWorker(const Unit*);
 	void RemoveWorker(const Unit*);

@@ -1136,12 +1136,16 @@ namespace sc2 {
 			const Unit* unit = new_units[i];
 			if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
 			{
-				for (const auto& point : attack_path)
+				Point2D closest = Utility::ClosestTo(attack_path, unit->pos);
+				for (int i = find(attack_path.begin(), attack_path.end(), closest) - attack_path.begin(); i < attack_path.size(); i++)
 				{
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
+					if (unit->unit_type == PRISM)
+						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, attack_path[i], true);
+					else
+						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, attack_path[i], true);
 				}
 			}
-			if ((all_units.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(all_units)) < 5) || (all_units.size() == 0 && Distance2D(unit->pos, attack_path[0]) < 2))
+			if ((all_units.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(all_units)) < 5) || (all_units.size() == 0 && Utility::DistanceToClosest(attack_path, unit->pos) < 2))
 			{
 				AddUnit(unit);
 				i--;
@@ -1909,15 +1913,6 @@ namespace sc2 {
 				break;
 			}
 		}
-	}
-
-	void ArmyGroup::AutoAddNewUnits(std::vector<UNIT_TYPEID> unit_types)
-	{
-		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
-			this->OnNewUnitCreatedListener(unit);
-		};
-		mediator->agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
-		this->unit_types = unit_types;
 	}
 
 	void ArmyGroup::OnNewUnitCreatedListener(const Unit* unit)

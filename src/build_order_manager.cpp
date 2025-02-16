@@ -728,7 +728,7 @@ bool BuildOrderManager::StalkerDefendBaseTerran(BuildOrderResultArgData data)
 {
 	if (mediator->GetUnits(IsFriendlyUnit(STALKER)).size() > 0)
 	{
-		mediator->CreateAdeptBaseDefenseTerranFSM();
+		//mediator->CreateAdeptBaseDefenseTerranFSM();
 		return true;
 	}
 	return false;
@@ -867,6 +867,12 @@ bool BuildOrderManager::SetUnitProduction(BuildOrderResultArgData data)
 bool BuildOrderManager::SetWarpInAtProxy(BuildOrderResultArgData data)
 {
 	mediator->SetWarpInAtProxy(true);
+	return true;
+}
+
+bool BuildOrderManager::AddToNaturalDefense(BuildOrderResultArgData data)
+{
+	mediator->AddToDefense(1, data.amount);
 	return true;
 }
 
@@ -1111,7 +1117,7 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(148.0f),			&BuildOrderManager::BuildBuilding,						Result(TWILIGHT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::StalkerDefendBaseTerran,			Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::AddToNaturalDefense,				Result(1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::BuildBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(183.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
 					Data(&BuildOrderManager::TimePassed,			Condition(203.0f),			&BuildOrderManager::ResearchBlink,						Result()),
@@ -1123,6 +1129,7 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(223.0f),			&BuildOrderManager::ChronoBuilding,						Result(TWILIGHT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(225.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(227.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result(0)),
+					Data(&BuildOrderManager::TimePassed,			Condition(235.0f),			&BuildOrderManager::BuildProxy,							Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(243.0f),			&BuildOrderManager::TrainPrism,							Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(243.0f),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(245.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
@@ -1130,7 +1137,6 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(253.0f),			&BuildOrderManager::ChronoBuilding,						Result(TWILIGHT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::StartFourGateBlinkPressure,			Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::BuildProxy,							Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::BuildBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result()),
 					//Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),

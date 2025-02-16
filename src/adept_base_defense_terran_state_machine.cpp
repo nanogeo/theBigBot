@@ -11,12 +11,19 @@ namespace sc2 {
 // TODO adjust distances 4, 20, 15
 void AdeptBaseDefenseTerranClearBase::TickState()
 {
+	if (state_machine->adept == NULL)
+		return;
 	if (checked_dead_space == false)
 	{
 		if (Distance2D(state_machine->adept->pos, state_machine->dead_space_spot) < 4)
+		{
 			checked_dead_space = true;
+		}
 		else
+		{
+			agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->dead_space_spot);
 			return;
+		}
 	}
 	if (state_machine->target == NULL)
 	{
@@ -64,6 +71,8 @@ void AdeptBaseDefenseTerranClearBase::TickState()
 
 void AdeptBaseDefenseTerranClearBase::EnterState()
 {
+	if (state_machine->adept == NULL)
+		return;
 	agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->dead_space_spot);
 }
 
@@ -74,6 +83,8 @@ void AdeptBaseDefenseTerranClearBase::ExitState()
 
 State* AdeptBaseDefenseTerranClearBase::TestTransitions()
 {
+	if (state_machine->adept == NULL)
+		return NULL;
 	if (Distance2D(state_machine->adept->pos, state_machine->front_of_base[0]) < 5 || Distance2D(state_machine->adept->pos, state_machine->front_of_base[1]) < 5)
 		return new AdeptBaseDefenseTerranDefendFront(agent, state_machine);
 
@@ -429,11 +440,10 @@ void AdeptBaseDefenseTerranScoutBase::UpdateShadeTarget()
 
 #pragma region AdeptBaseDefenseTerran
 
-AdeptBaseDefenseTerran::AdeptBaseDefenseTerran(TheBigBot* agent, std::string name, const Unit* adept, Point2D dead_space_spot, std::vector<Point2D> front_of_base) {
+AdeptBaseDefenseTerran::AdeptBaseDefenseTerran(TheBigBot* agent, std::string name, Point2D dead_space_spot, std::vector<Point2D> front_of_base) {
 	this->agent = agent;
 	this->name = name;
 	current_state = new AdeptBaseDefenseTerranClearBase(agent, this);
-	this->adept = adept;
 	this->dead_space_spot = dead_space_spot;
 	this->front_of_base = front_of_base;
 
@@ -454,6 +464,15 @@ AdeptBaseDefenseTerran::~AdeptBaseDefenseTerran()
 {
 	agent->RemoveListenerToOnUnitCreatedEvent(event_id);
 	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+}
+
+bool AdeptBaseDefenseTerran::AddUnit(const Unit* unit)
+{
+	if (unit->unit_type != ADEPT || adept != NULL)
+		return false;
+	adept = unit;
+	agent->Actions()->UnitCommand(adept, ABILITY_ID::GENERAL_MOVE, dead_space_spot);
+	return true;
 }
 
 void AdeptBaseDefenseTerran::OnUnitCreatedListener(const Unit* unit)

@@ -183,6 +183,7 @@ public:
 	bool ReturnToMainBuild(BuildOrderResultArgData); // to string
 	bool SetUnitProduction(BuildOrderResultArgData); // to string
 	bool SetWarpInAtProxy(BuildOrderResultArgData); // to string
+	bool AddToNaturalDefense(BuildOrderResultArgData); // to string
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string

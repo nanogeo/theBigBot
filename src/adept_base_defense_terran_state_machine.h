@@ -101,7 +101,7 @@ public:
 class AdeptBaseDefenseTerran : public StateMachine
 {
 public:
-	const Unit* adept;
+	const Unit* adept = NULL;
 	int frame_shade_used = 0;
 	bool attack_status = false;
 	const Unit* shade = NULL;
@@ -109,8 +109,10 @@ public:
 	const Unit* target = NULL;
 	std::vector<Point2D> front_of_base;
 	int event_id;
-	AdeptBaseDefenseTerran(TheBigBot* agent, std::string name, const Unit* adept, Point2D dead_space_spot, std::vector<Point2D> front_of_base);
+	AdeptBaseDefenseTerran(TheBigBot* agent, std::string name, Point2D dead_space_spot, std::vector<Point2D> front_of_base);
 	~AdeptBaseDefenseTerran();
+
+	bool AddUnit(const Unit*) override;
 
 	void OnUnitCreatedListener(const Unit*);
 	void OnUnitDestroyedListener(const Unit*);

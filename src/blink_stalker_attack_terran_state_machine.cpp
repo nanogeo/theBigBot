@@ -12,12 +12,7 @@ namespace sc2 {
 
 void BlinkStalkerAttackTerranMoveAcross::TickState()
 {
-	for (const auto& unit : state_machine->army_group->new_units)
-	{
-		state_machine->army_group->AddUnit(unit); //TODO check this works with removing units while iterating of new_units
-	}
-
-	agent->Actions()->UnitCommand(state_machine->army_group->stalkers, ABILITY_ID::ATTACK_ATTACK, state_machine->consolidation_pos);
+	agent->Actions()->UnitCommand(state_machine->stalkers, ABILITY_ID::ATTACK_ATTACK, state_machine->consolidation_pos);
 	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism_consolidation_pos);
 }
 
@@ -48,7 +43,7 @@ State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 		return new BlinkStalkerAttackTerranWarpIn(agent, state_machine);
 	}*/
 
-	if (Distance2D(Utility::FurthestFrom(state_machine->army_group->stalkers, state_machine->consolidation_pos)->pos, state_machine->consolidation_pos) < 4 &&
+	if (Utility::DistanceToFurthest(state_machine->stalkers, state_machine->consolidation_pos) < 4 &&
 		Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 2)
 	{
 		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
@@ -67,7 +62,7 @@ std::string BlinkStalkerAttackTerranMoveAcross::toString()
 
 void BlinkStalkerAttackTerranWarpIn::TickState()
 {
-	/*for (const auto& stalker : state_machine->army_group->stalkers)
+	/*for (const auto& stalker : state_machine->stalkers)
 	{
 		agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK, state_machine->consolidation_pos);
 	}
@@ -127,21 +122,14 @@ std::string BlinkStalkerAttackTerranWarpIn::toString()
 
 void BlinkStalkerAttackTerranConsolidate::TickState()
 {
-	// if any newly added units are close to the consolidation point then add then to the army
-	for (const auto& unit : state_machine->army_group->new_units)
+	if(Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) > 3)
+		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism_consolidation_pos);
+	for (const auto& unit : state_machine->stalkers)
 	{
-		if (Distance2D(unit->pos, state_machine->consolidation_pos) < 5)
-			state_machine->army_group->AddUnit(unit);
+		if (Distance2D(unit->pos, state_machine->consolidation_pos) > 3)
+			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, state_machine->consolidation_pos);
 	}
 
-	for (const auto& unit : state_machine->army_group->all_units)
-	{
-		if (unit->unit_type == PRISM && Distance2D(unit->pos, state_machine->prism_consolidation_pos) > 3)
-			agent->Actions()->UnitCommand(unit, ABILITY_ID::GENERAL_MOVE, state_machine->prism_consolidation_pos);
-
-		if (unit->unit_type == STALKER && Distance2D(unit->pos, state_machine->consolidation_pos) > 3)
-			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK, state_machine->consolidation_pos);
-	}
 
 	/*if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM && Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 1)
 	{
@@ -215,18 +203,21 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 {
 	if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
 	{
+		if (state_machine->stalkers.size() < 8)
+			return NULL;
+
 		float stalkers_healthy = 0;
-		for (const auto& stalker : state_machine->army_group->stalkers) // TODO change to enough stalkers not all
+		for (const auto& stalker : state_machine->stalkers) // TODO change to enough stalkers not all
 		{
 			if (stalker->shield >= 70 && Distance2D(stalker->pos, state_machine->consolidation_pos) < 5)
 			{
 				stalkers_healthy += 1;
 			}
 		}
-		if (stalkers_healthy / state_machine->army_group->stalkers.size() > .5)
+		if (stalkers_healthy / state_machine->stalkers.size() > .5)
 		{
 			if (state_machine->attacking_main)
-				return new BlinkStalkerAttackTerranBlinkUp(agent, state_machine, state_machine->army_group->stalkers);
+				return new BlinkStalkerAttackTerranBlinkUp(agent, state_machine, state_machine->stalkers);
 			else
 				return new BlinkStalkerAttackTerranAttack(agent, state_machine);
 		}
@@ -258,7 +249,7 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 		}
 		if (blinked)
 		{
-			state_machine->army_group->last_time_blinked[stalkers_to_blink[i]] = agent->Observation()->GetGameLoop();
+			state_machine->attached_army_group->last_time_blinked[stalkers_to_blink[i]] = agent->Observation()->GetGameLoop();
 			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
 			i--;
 			continue;
@@ -277,12 +268,12 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 void BlinkStalkerAttackTerranBlinkUp::EnterState()
 {
 	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos);
-	agent->Actions()->UnitCommand(state_machine->army_group->stalkers, ABILITY_ID::ATTACK_ATTACK, state_machine->blink_up_pos);
+	agent->Actions()->UnitCommand(state_machine->stalkers, ABILITY_ID::ATTACK_ATTACK, state_machine->blink_up_pos);
 }
 
 void BlinkStalkerAttackTerranBlinkUp::ExitState()
 {
-	state_machine->army_group->standby_pos = state_machine->blink_down_pos;
+	state_machine->attached_army_group->standby_pos = state_machine->blink_down_pos;
 }
 
 State* BlinkStalkerAttackTerranBlinkUp::TestTransitions()
@@ -308,28 +299,27 @@ void BlinkStalkerAttackTerranAttack::TickState()
 
 void BlinkStalkerAttackTerranAttack::EnterState()
 {
-	state_machine->army_group->standby_units = {};
+	state_machine->attached_army_group->standby_units = {};
 	if (state_machine->attacking_main)
-		state_machine->army_group->attack_path_line = agent->locations->blink_main_attack_path_lines[agent->Observation()->GetGameLoop() % 2 ? 0 : 1];
+		state_machine->attached_army_group->attack_path_line = agent->locations->blink_main_attack_path_lines[agent->Observation()->GetGameLoop() % 2 ? 0 : 1];
 	else
-		state_machine->army_group->attack_path_line = agent->locations->blink_nat_attack_path_line;
+		state_machine->attached_army_group->attack_path_line = agent->locations->blink_nat_attack_path_line;
 }
 
 void BlinkStalkerAttackTerranAttack::ExitState()
 {
 	state_machine->attacking_main = !state_machine->attacking_main;
-	state_machine->army_group->concave_origin = Point2D(0, 0);
+	state_machine->attached_army_group->concave_origin = Point2D(0, 0);
 }
 
 State* BlinkStalkerAttackTerranAttack::TestTransitions()
 {
-	int attack_line_status = state_machine->army_group->AttackLine(.2, 2, TERRAN_PRIO);
+	int attack_line_status = state_machine->attached_army_group->AttackLine(.2, 2, TERRAN_PRIO);
 	if (attack_line_status == 1 || attack_line_status == 2)
 	{
 		if (state_machine->attacking_main)
 		{
-
-			return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine, state_machine->army_group->stalkers);
+			return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine, state_machine->stalkers);
 		}
 		else
 		{
@@ -350,7 +340,7 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 	//	if (state_machine->attacking_main)
 	//	{
 	//		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->blink_up_pos);
-	//		return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine, state_machine->army_group->stalkers);
+	//		return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine, state_machine->stalkers);
 
 	//	}
 	//	else
@@ -361,7 +351,7 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 	//}
 
 	/*int stalkers_ok = 0;
-	for (const auto &stalker : state_machine->army_group->stalkers)
+	for (const auto &stalker : state_machine->stalkers)
 	{
 		if (stalker->shield > 20)
 			stalkers_ok++;
@@ -447,7 +437,7 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 		}
 		if (blinked && Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_up_pos) < 4)
 		{
-			state_machine->army_group->last_time_blinked[stalkers_to_blink[i]] = agent->Observation()->GetGameLoop();
+			state_machine->attached_army_group->last_time_blinked[stalkers_to_blink[i]] = agent->Observation()->GetGameLoop();
 			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
 			i--;
 			continue;
@@ -471,13 +461,13 @@ void BlinkStalkerAttackTerranLeaveHighground::EnterState()
 
 void BlinkStalkerAttackTerranLeaveHighground::ExitState()
 {
-	state_machine->army_group->standby_pos = state_machine->consolidation_pos;
+	state_machine->attached_army_group->standby_pos = state_machine->consolidation_pos;
 	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
 }
 
 State* BlinkStalkerAttackTerranLeaveHighground::TestTransitions()
 {
-	if (stalkers_to_blink.size() == 0 || Utility::DistanceToFurthest(state_machine->army_group->stalkers, state_machine->consolidation_pos) < 8)
+	if (stalkers_to_blink.size() == 0 || Utility::DistanceToFurthest(state_machine->stalkers, state_machine->consolidation_pos) < 8)
 		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 	return NULL;
 }
@@ -506,23 +496,16 @@ void BlinkStalkerAttackTerranLeaveHighground::OnUnitDestroyedListener(const Unit
 
 #pragma region BlinkStalkerAttackTerran
 
-BlinkStalkerAttackTerran::BlinkStalkerAttackTerran(TheBigBot* agent, std::string name, ArmyGroup* army, Point2D consolidation_pos, Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos) {
+BlinkStalkerAttackTerran::BlinkStalkerAttackTerran(TheBigBot* agent, std::string name, 
+	Point2D consolidation_pos, Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos) {
 	this->agent = agent;
 	this->name = name;
-	this->army_group = army;
-	this->prism = army->warp_prisms[0];
 	this->consolidation_pos = consolidation_pos;
 	this->prism_consolidation_pos = prism_consolidation_pos;
 	this->blink_up_pos = blink_up_pos;
 	this->blink_down_pos = blink_down_pos;
 	current_state = new BlinkStalkerAttackTerranMoveAcross(agent, this);
 
-	event_id = agent->GetUniqueId();
-	army->AutoAddNewUnits({ STALKER });
-	/*std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
-		this->OnUnitCreatedListener(unit);
-	};
-	agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);*/
 
 	current_state->EnterState();
 }
@@ -530,18 +513,30 @@ BlinkStalkerAttackTerran::BlinkStalkerAttackTerran(TheBigBot* agent, std::string
 void BlinkStalkerAttackTerran::RunStateMachine()
 {
 	StateMachine::RunStateMachine();
-	agent->Actions()->UnitCommand(army_group->new_units, ABILITY_ID::GENERAL_MOVE, consolidation_pos);
+	agent->Actions()->UnitCommand(attached_army_group->new_units, ABILITY_ID::ATTACK_ATTACK, consolidation_pos);
+}
+
+bool BlinkStalkerAttackTerran::AddUnit(const Unit* unit)
+{
+	if (dynamic_cast<BlinkStalkerAttackTerranMoveAcross*>(current_state) || dynamic_cast<BlinkStalkerAttackTerranConsolidate*>(current_state))
+	{
+		if (unit->unit_type == PRISM && prism == NULL)
+		{
+			prism = unit;
+			return true;
+		}
+		else if (unit->unit_type == STALKER && Distance2D(unit->pos, consolidation_pos) < 6)
+		{
+			stalkers.push_back(unit);
+			return true;
+		}
+	}
+	return false;
 }
 
 BlinkStalkerAttackTerran::~BlinkStalkerAttackTerran()
 {
-	agent->RemoveListenerToOnUnitCreatedEvent(event_id);
-}
-
-void BlinkStalkerAttackTerran::OnUnitCreatedListener(const Unit* unit)
-{
-	if (unit->unit_type == UNIT_TYPEID::PROTOSS_STALKER)
-		army_group->AddUnit(unit);
+	
 }
 
 
