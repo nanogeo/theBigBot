@@ -158,18 +158,18 @@ void ArmyManager::FindArmyGroupForUnit(const Unit* unit)
 	{
 		if (a->desired_units == 0)
 		{
-			if (b->desired_units > b->all_units.size())
+			if (b->desired_units > b->all_units.size() + b->new_units.size())
 				return false;
-			return ((double)(a->all_units.size()) / (double)(a->max_units)) < ((double)(b->all_units.size()) / (double)(b->max_units));
+			return ((double)(a->all_units.size() + a->new_units.size()) / (double)(a->max_units)) < ((double)(b->all_units.size() + b->new_units.size()) / (double)(b->max_units));
 		}
 		if (b->desired_units == 0)
 		{
-			if (a->desired_units > a->all_units.size())
+			if (a->desired_units > a->all_units.size() + a->new_units.size())
 				return true;
-			return ((double)(a->all_units.size()) / (double)(a->max_units)) < ((double)(b->all_units.size()) / (double)(b->max_units));
+			return ((double)(a->all_units.size() + a->new_units.size()) / (double)(a->max_units)) < ((double)(b->all_units.size() + b->new_units.size()) / (double)(b->max_units));
 		}
 
-		return ((double)(a->all_units.size()) / (double)(a->desired_units)) < ((double)(b->all_units.size()) / (double)(b->desired_units));
+		return ((double)(a->all_units.size() + a->new_units.size()) / (double)(a->desired_units)) < ((double)(b->all_units.size() + b->new_units.size()) / (double)(b->desired_units));
 	});
 
 	possibles_groups[0]->AddNewUnit(unit);
