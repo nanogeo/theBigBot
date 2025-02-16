@@ -163,7 +163,6 @@ public:
 	std::map<const Unit*, float> casting_energy;
 	bool harass_direction = true;
 	int harass_index = 0;
-	ArmyGroup* attached_army_group = NULL;
 	int event_id;
 	OracleHarassStateMachine(TheBigBot* agent, Units oracles, Point2D third_base_pos, Point2D door_guard_pos, std::string name);
 	OracleHarassStateMachine(TheBigBot* agent, Units oracles, std::string name);

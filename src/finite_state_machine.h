@@ -13,6 +13,7 @@
 namespace sc2 {
 
 class TheBigBot;
+class ArmyGroup;
 
 class State
 {
@@ -33,6 +34,7 @@ public:
     TheBigBot* agent;
     State* current_state;
     std::string name;
+    ArmyGroup* attached_army_group = NULL;
     StateMachine() {}
     StateMachine(TheBigBot* agent, State* starting_state, std::string name) {
         this->agent = agent;
