@@ -114,9 +114,11 @@ public:
 	static float GetDPS(const Unit*);
 	static int GetArmor(const Unit*);
 	static int GetCargoSize(const Unit*);
-	static float GetRange(const Unit *);
-	static float RealGroundRange(const Unit *, const Unit *);
-	static float GetMaxRange(Units);
+	static float GetGroundRange(const Unit *);
+	static float GetAirRange(const Unit*);
+	static float RealRange(const Unit *, const Unit *);
+	static float GetMaxGroundRange(Units);
+	static float GetMaxAirRange(Units);
 	static float GetDamagePoint(const Unit*);
 	static int GetProjectileTime(const Unit*, float dist);
 	static float GetWeaponCooldown(const Unit*);

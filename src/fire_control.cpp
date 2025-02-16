@@ -452,7 +452,7 @@ namespace sc2 {
 			Units units_in_range;
 			for (const auto& Eunit : Eunits)
 			{
-				if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealGroundRange(unit, Eunit))
+				if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealRange(unit, Eunit))
 					units_in_range.push_back(Eunit);
 			}
 			unit_targets[unit] = units_in_range;
@@ -480,7 +480,7 @@ namespace sc2 {
 			{
 				if (enemy_unit_hp[Eunit] <= 0)
 					continue;
-				if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealGroundRange(unit, Eunit) + extra_range)
+				if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealRange(unit, Eunit) + extra_range)
 					units_in_range.push_back(Eunit);
 			}
 			unit_targets[unit] = units_in_range;

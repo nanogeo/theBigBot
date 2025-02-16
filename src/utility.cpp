@@ -522,7 +522,7 @@ int Utility::DangerLevelAt(const Unit* unit, Point2D pos, const ObservationInter
 	int possible_damage = 0;
 	for (const auto &enemy_unit : observation->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)))
 	{
-		if (!enemy_unit->is_building && Distance2D(pos, enemy_unit->pos) <= RealGroundRange(enemy_unit, unit))
+		if (!enemy_unit->is_building && Distance2D(pos, enemy_unit->pos) <= RealRange(enemy_unit, unit))
 			possible_damage += GetDamage(enemy_unit, unit, observation);
 	}
 	return possible_damage;
@@ -1281,7 +1281,7 @@ int Utility::GetCargoSize(const Unit* unit)
 
 }
 
-float Utility::GetRange(const Unit* unit)
+float Utility::GetGroundRange(const Unit* unit)
 {
 	switch (unit->unit_type.ToType())
 	{
@@ -1307,8 +1307,6 @@ float Utility::GetRange(const Unit* unit)
 		return 6;
 	case UNIT_TYPEID::PROTOSS_COLOSSUS: // TODO extended thermal lance
 		return 7;
-	case UNIT_TYPEID::PROTOSS_PHOENIX: // TODO anion pulse crystals
-		return 5;
 	case UNIT_TYPEID::PROTOSS_VOIDRAY:
 		return 6;
 	case UNIT_TYPEID::PROTOSS_ORACLE:
@@ -1321,12 +1319,8 @@ float Utility::GetRange(const Unit* unit)
 		return 7;
 	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS: // terran hi sec auto tracking
 		return 6;
-	case UNIT_TYPEID::TERRAN_MISSILETURRET:
-		return 6;
 	case UNIT_TYPEID::TERRAN_SCV:
 		return .1;
-	case UNIT_TYPEID::TERRAN_MULE:
-		return 0;
 	case UNIT_TYPEID::TERRAN_MARINE:
 		return 5;
 	case UNIT_TYPEID::TERRAN_MARAUDER:
@@ -1353,10 +1347,6 @@ float Utility::GetRange(const Unit* unit)
 		return 6;
 	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
 		return 9;
-	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
-		return 6;
-	case UNIT_TYPEID::TERRAN_LIBERATOR: // flying
-		return  5;
 	case UNIT_TYPEID::TERRAN_LIBERATORAG:
 		return 0;
 	case UNIT_TYPEID::TERRAN_BANSHEE:
@@ -1364,8 +1354,6 @@ float Utility::GetRange(const Unit* unit)
 	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
 		return 6;
 	case UNIT_TYPEID::ZERG_SPINECRAWLER: // zerg
-		return 7;
-	case UNIT_TYPEID::ZERG_SPORECRAWLER:
 		return 7;
 	case UNIT_TYPEID::ZERG_DRONE:
 		return .1;
@@ -1387,8 +1375,6 @@ float Utility::GetRange(const Unit* unit)
 		return .1;
 	case UNIT_TYPEID::ZERG_MUTALISK:
 		return 3;
-	case UNIT_TYPEID::ZERG_CORRUPTOR:
-		return 6;
 	case UNIT_TYPEID::ZERG_BROODLORD:
 		return 10;
 	case UNIT_TYPEID::ZERG_LOCUSTMP:
@@ -1411,20 +1397,98 @@ float Utility::GetRange(const Unit* unit)
 	}
 }
 
-float Utility::RealGroundRange(const Unit* attacking_unit, const Unit * target)
+float Utility::GetAirRange(const Unit* unit)
 {
-	float range = attacking_unit->radius + target->radius;
-	range += GetRange(attacking_unit);
-	return range;
+	switch (unit->unit_type.ToType())
+	{
+	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
+		return 7;
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		return 5;
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		return 6;
+	case UNIT_TYPEID::PROTOSS_ARCHON:
+		return 3;
+	case UNIT_TYPEID::PROTOSS_PHOENIX: // TODO anion pulse crystals
+		return 5;
+	case UNIT_TYPEID::PROTOSS_VOIDRAY:
+		return 6;
+	case UNIT_TYPEID::PROTOSS_CARRIER:
+		return 14;
+	case UNIT_TYPEID::PROTOSS_TEMPEST:
+		return  14;
+	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+		return 7;
+	case UNIT_TYPEID::TERRAN_MISSILETURRET: // terran
+		return 6;
+	case UNIT_TYPEID::TERRAN_MARINE:
+		return 5;
+	case UNIT_TYPEID::TERRAN_GHOST:
+		return 6;
+	case UNIT_TYPEID::TERRAN_CYCLONE:
+		return 5;
+	case UNIT_TYPEID::TERRAN_THOR:
+		return 10;
+	case UNIT_TYPEID::TERRAN_THORAP:
+		return 11;
+	case UNIT_TYPEID::TERRAN_AUTOTURRET:
+		return 6;
+	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+		return 6;
+	case UNIT_TYPEID::TERRAN_LIBERATOR:
+		return  5;
+	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
+		return 6;
+	case UNIT_TYPEID::ZERG_SPORECRAWLER: // zerg
+		return 7;
+	case UNIT_TYPEID::ZERG_QUEEN:
+		return 7;
+	case UNIT_TYPEID::ZERG_HYDRALISK: // grooved spines
+		return 6;
+	case UNIT_TYPEID::ZERG_MUTALISK:
+		return 3;
+	case UNIT_TYPEID::ZERG_CORRUPTOR:
+		return 6;
+	default:
+		//std::cout << "Error invalid unit type in GetRange\n";
+		return 0;
+	}
 }
 
-float Utility::GetMaxRange(Units units)
+float Utility::RealRange(const Unit* attacking_unit, const Unit * target)
+{
+	if (target->is_flying)
+	{
+		float range = attacking_unit->radius + target->radius;
+		range += GetAirRange(attacking_unit);
+		return range;
+	}
+	else
+	{
+		float range = attacking_unit->radius + target->radius;
+		range += GetGroundRange(attacking_unit);
+		return range;
+	}
+}
+
+float Utility::GetMaxGroundRange(Units units)
 {
 	float highest_range = 0;
 	for (const auto &unit : units)
 	{
-		if (GetRange(unit) > highest_range)
-			highest_range = GetRange(unit);
+		if (GetGroundRange(unit) > highest_range)
+			highest_range = GetGroundRange(unit);
+	}
+	return highest_range;
+}
+
+float Utility::GetMaxAirRange(Units units)
+{
+	float highest_range = 0;
+	for (const auto& unit : units)
+	{
+		if (GetAirRange(unit) > highest_range)
+			highest_range = GetAirRange(unit);
 	}
 	return highest_range;
 }
@@ -1887,7 +1951,7 @@ const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 			).count();
 #endif
 
-		if (Distance2D(unit->pos, Funit->pos) >= RealGroundRange(unit, Funit))
+		if (Distance2D(unit->pos, Funit->pos) >= RealRange(unit, Funit))
 		{
 #ifdef DEBUG_TIMING
 			/*unsigned long long dist_check = std::chrono::duration_cast<std::chrono::microseconds>(

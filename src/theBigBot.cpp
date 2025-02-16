@@ -879,7 +879,7 @@ namespace sc2 {
 			{
 				for (const auto &Funit : allied_units)
 				{
-					if (Distance2D(Eunit->pos, Funit->pos) < Utility::RealGroundRange(Eunit, Funit)/* && Utility::IsFacing(Eunit, Funit)*/)
+					if (Distance2D(Eunit->pos, Funit->pos) < Utility::RealRange(Eunit, Funit)/* && Utility::IsFacing(Eunit, Funit)*/)
 					{
 						EnemyAttack attack = EnemyAttack(Eunit, loop);
 						if (enemy_attacks.count(Funit) == 0)
@@ -1903,7 +1903,7 @@ namespace sc2 {
 			{
 				for (const auto& Eunit : Eunits)
 				{
-					if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealGroundRange(unit, Eunit) + extra_range)
+					if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealRange(unit, Eunit) + extra_range)
 						units_in_range.push_back(Eunit);
 				}
 				extra_range++;

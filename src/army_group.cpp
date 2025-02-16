@@ -842,7 +842,7 @@ namespace sc2 {
 		if (close_enemies.size() > 0)
 		{
 			concave_target = Utility::MedianCenter(close_enemies);
-			max_range = std::max(Utility::GetMaxRange(close_enemies) + 2, 6.0f);
+			max_range = std::max(Utility::GetMaxGroundRange(close_enemies) + 2, 6.0f);
 		}
 
 		Point2D retreat_concave_origin = attack_path_line.GetPointFrom(concave_target, max_range, false);
@@ -898,7 +898,7 @@ namespace sc2 {
 
 		// TODO use fire control to find the best target
 		const Unit* closest_to_guard = Utility::ClosestTo(enemies, guard->pos);
-		if (Distance2D(closest_to_guard->pos, guard->pos) < Utility::RealGroundRange(guard, closest_to_guard))
+		if (Distance2D(closest_to_guard->pos, guard->pos) < Utility::RealRange(guard, closest_to_guard))
 		{
 			// enemy in range
 			if (Distance2D(guard->pos, guard_move_to) > .5)

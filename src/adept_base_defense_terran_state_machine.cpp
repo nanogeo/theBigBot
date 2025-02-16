@@ -285,7 +285,7 @@ void AdeptBaseDefenseTerranScoutBase::TickState()
 	Units enemy_units = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
 	for (const auto& unit : enemy_units)
 	{
-		double range = Utility::RealGroundRange(unit, state_machine->adept) + 2;
+		double range = Utility::RealRange(unit, state_machine->adept) + 2;
 		Point2D intersection = agent->locations->attack_path_line.GetPointFrom(unit->pos, range, false); // TODO use adept runaway not the attack path
 		if (intersection != Point2D(0, 0))
 		{
