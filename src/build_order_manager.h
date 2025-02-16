@@ -177,13 +177,13 @@ public:
 	bool CannonRushAttack(BuildOrderResultArgData);
 	bool SendAllInAttack(BuildOrderResultArgData);
 	bool SendAdeptHarassProtoss(BuildOrderResultArgData);
-	bool ScourMap(BuildOrderResultArgData); // to string
-	bool CheckForEarlyPool(BuildOrderResultArgData); // to string
-	bool BuildNaturalDefensiveBuilding(BuildOrderResultArgData); // to string
-	bool ReturnToMainBuild(BuildOrderResultArgData); // to string
-	bool SetUnitProduction(BuildOrderResultArgData); // to string
-	bool SetWarpInAtProxy(BuildOrderResultArgData); // to string
-	bool AddToNaturalDefense(BuildOrderResultArgData); // to string
+	bool ScourMap(BuildOrderResultArgData);
+	bool CheckForEarlyPool(BuildOrderResultArgData);
+	bool BuildNaturalDefensiveBuilding(BuildOrderResultArgData);
+	bool ReturnToMainBuild(BuildOrderResultArgData);
+	bool SetUnitProduction(BuildOrderResultArgData);
+	bool SetWarpInAtProxy(BuildOrderResultArgData);
+	bool AddToNaturalDefense(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string
@@ -276,6 +276,10 @@ struct BuildOrderData
 			str += " ";
 			str += Utility::UnitTypeIdToString(condition_arg.unitId);
 			str += "s are made, ";
+		}
+		else if (condition == &BuildOrderManager::ReadyToScour)
+		{
+			str += "ready to scour, ";
 		}
 		else
 		{
@@ -552,6 +556,38 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::SendAllInAttack)
 		{
 			str += "send all in attack";
+		}
+		else if (result == &BuildOrderManager::SendAdeptHarassProtoss)
+		{
+			str += "send adept harass vs protoss";
+		}
+		else if (result == &BuildOrderManager::ScourMap)
+		{
+			str += "scour map";
+		}
+		else if (result == &BuildOrderManager::CheckForEarlyPool)
+		{
+			str += "check for early pool";
+		}
+		else if (result == &BuildOrderManager::BuildNaturalDefensiveBuilding)
+		{
+			str += "build defensive building at natural";
+		}
+		else if (result == &BuildOrderManager::ReturnToMainBuild)
+		{
+			str += "return to main build";
+		}
+		else if (result == &BuildOrderManager::SetUnitProduction)
+		{
+			str += "set unit production";
+		}
+		else if (result == &BuildOrderManager::SetWarpInAtProxy)
+		{
+			str += "set warp in a t proxy";
+		}
+		else if (result == &BuildOrderManager::AddToNaturalDefense)
+		{
+			str += "add to natural defense";
 		}
 
 		return str;
