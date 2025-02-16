@@ -18,16 +18,17 @@ void ArmyManager::SetUpInitialArmies()
 	switch (mediator->GetEnemyRace())
 	{
 	case Race::Protoss:
-		CreateArmyGroup(ArmyRole::defend_main, { ZEALOT, ADEPT, STALKER, SENTRY }, 2, 4);
+		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 3);
 		break;
 	case Race::Zerg:
 		CreateArmyGroup(ArmyRole::defend_door, { ZEALOT, ADEPT, STALKER, SENTRY }, 1, 1);
+		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 3);
 		break;
 	case Race::Terran:
-		CreateArmyGroup(ArmyRole::defend_main, { ADEPT, STALKER, SENTRY }, 1, 4);
+		CreateArmyGroup(ArmyRole::defend_base, { ADEPT, STALKER, SENTRY }, 0, 3);
 		break;
 	case Race::Random:
-		CreateArmyGroup(ArmyRole::defend_main, { ZEALOT, ADEPT, STALKER, SENTRY }, 1, 4);
+		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 3);
 		break;
 	}
 }
@@ -131,6 +132,7 @@ void ArmyManager::RunArmyGroups()
 			break;
 		default:
 			std::cerr << "Unknown ArmyRole in RunArmyGroup" << std::endl;
+			break;
 		}
 	}
 }
@@ -218,7 +220,7 @@ void ArmyManager::ScourMap()
 
 void ArmyManager::NexusStarted()
 {
-	CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 5);
+	CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 3);
 }
 
 void ArmyManager::RemoveArmyGroupWithRole(ArmyRole role)
