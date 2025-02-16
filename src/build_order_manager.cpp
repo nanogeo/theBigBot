@@ -316,6 +316,7 @@ bool BuildOrderManager::TrainObserver(BuildOrderResultArgData data)
 			if (robo->build_progress == 1 && robo->orders.size() == 0)
 			{
 				mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_OBSERVER);
+				mediator->CreateArmyGroup(ArmyRole::observer_scout, { OBSERVER }, 1, 2);
 				return true;
 			}
 		}

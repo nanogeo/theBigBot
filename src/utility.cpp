@@ -358,6 +358,17 @@ Units Utility::GetUnitsWithin(Units units, Point2D position, float dist)
 	return close_units;
 }
 
+Units Utility::GetUnitsWithinRange(Units units, const Unit* target, float extra)
+{
+	Units within_range;
+	for (const auto& unit : units)
+	{
+		if (Distance2D(unit->pos, target->pos) <= RealRange(unit, target) + extra)
+			within_range.push_back(unit);
+	}
+	return within_range;
+}
+
 Point2D Utility::ClosestPointOnLine(Point2D point, Point2D start, Point2D end)
 {
 	// undefined / 0 slope

@@ -105,7 +105,7 @@ namespace sc2 {
 		};
 		mediator->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
 
-		this->defense_point = defense_point;
+		this->target_pos = defense_point;
 		this->role = role;
 		for (const auto& type : unit_types)
 		{
@@ -1082,8 +1082,8 @@ namespace sc2 {
 	{
 		for (int i = 0; i < new_units.size(); i++)
 		{
-			mediator->SetUnitCommand(new_units[i], ABILITY_ID::ATTACK_ATTACK, defense_point);
-			if (Distance2D(new_units[i]->pos, defense_point) <= 10)
+			mediator->SetUnitCommand(new_units[i], ABILITY_ID::ATTACK_ATTACK, target_pos);
+			if (Distance2D(new_units[i]->pos, target_pos) <= 10)
 			{
 				AddUnit(new_units[i]);
 				i--;
@@ -1094,16 +1094,16 @@ namespace sc2 {
 			// find closest enemy to unit and defense point
 			// if within 10 of defense point and weapon off cooldown then attack unit
 			// else move back to defense point
-			if (unit->weapon_cooldown > 0 || Distance2D(unit->pos, defense_point) > 10)
+			if (unit->weapon_cooldown > 0 || Distance2D(unit->pos, target_pos) > 10)
 			{
-				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, defense_point);
+				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, target_pos);
 			}
 			else
 			{
-				Units enemy_units = Utility::CloserThan(mediator->GetUnits(Unit::Alliance::Enemy), 20, defense_point);
+				Units enemy_units = Utility::CloserThan(mediator->GetUnits(Unit::Alliance::Enemy), 20, target_pos);
 				if (enemy_units.size() == 0)
 					continue;
-				Point2D defense_pos = defense_point;
+				Point2D defense_pos = target_pos;
 				std::sort(enemy_units.begin(), enemy_units.end(),
 					[&unit, &defense_pos](const Unit* a, const Unit* b) -> bool
 				{
@@ -1113,6 +1113,52 @@ namespace sc2 {
 
 				mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, enemy_units[0]);
 			}
+		}
+	}
+
+	void ArmyGroup::ObserverScout()
+	{
+		for (int i = 0; i < new_units.size(); i++)
+		{
+			if (new_units[i]->unit_type == OBSERVER)
+			{
+				AddUnit(new_units[i]);
+				i--;
+			}
+		}
+		Point2D enemy_main = Utility::PointBetween(mediator->GetEnemyStartLocation(), mediator->GetStartLocation(), 2);
+		Point2D enemy_natural = Utility::PointBetween(mediator->GetEnemyNaturalLocation(), mediator->GetStartLocation(), 2);
+		// update target
+		if (target_pos == Point2D(0, 0))
+		{
+			target_pos = enemy_main;
+		}
+		else
+		{
+			Point2D obs = Utility::Center(observers);
+			if (obs == Point2D(0, 0))
+				return;
+
+			double s = -1 * (enemy_main.x - enemy_natural.x) / (enemy_main.y - enemy_natural.y);
+			double main_direction = s * (enemy_natural.x - enemy_main.x) - enemy_natural.y + enemy_main.y;
+			double natural_direction = s * (enemy_main.x - enemy_natural.x) - enemy_main.y + enemy_natural.y;
+
+			double outside_main = s * (obs.x - enemy_main.x) - obs.y + enemy_main.y;
+			double outside_natural = s * (obs.x - enemy_natural.x) - obs.y + enemy_natural.y;
+
+			if (target_pos == enemy_main && ((main_direction * outside_main) < 0 || Distance2D(obs, enemy_main) < 10))
+				target_pos = enemy_natural;
+			else if (target_pos == enemy_natural && ((natural_direction * outside_natural) < 0 || Distance2D(obs, enemy_natural) < 10))
+				target_pos = enemy_main;
+		}
+		Units enemy_units = mediator->GetUnits(Unit::Alliance::Enemy);
+		for (const auto& obs : observers)
+		{
+			const Unit* closest_danger = Utility::ClosestUnitTo(Utility::GetUnitsWithinRange(enemy_units, obs, 1), obs->pos);
+			if (closest_danger == NULL)
+				mediator->SetUnitCommand(obs, ABILITY_ID::GENERAL_MOVE, target_pos);
+			else
+				mediator->SetUnitCommand(obs, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(obs->pos, closest_danger->pos, -1));
 		}
 	}
 

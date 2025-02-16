@@ -127,7 +127,8 @@ std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to)
 		// ignore slow warpins
 		if (!Utility::AnyUnitWithin(mediator->GetUnits(Unit::Alliance::Self, IsUnits({ NEXUS, WARP_GATE })), pylon->pos, 6.5))
 		{
-			if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)), pylon->pos) < 20) // allow slow warp ins for proxy pylons
+			// allow slow warp ins for proxy pylons
+			if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)), pylon->pos) < 20)
 				continue;
 		}
 		if (Utility::AnyUnitWithin(mediator->GetUnits(Unit::Alliance::Enemy), pylon->pos, 10))

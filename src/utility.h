@@ -100,6 +100,7 @@ public:
 	static float DistanceToFurthest(std::vector<Point2D>, Point2D);
 	static float AnyUnitWithin(Units, Point2D, float);
 	static Units GetUnitsWithin(Units, Point2D, float);
+	static Units GetUnitsWithinRange(Units, const Unit*, float);
 	static Point2D ClosestPointOnLine(Point2D, Point2D, Point2D);
 	static Units CloserThan(Units, float, Point2D);
 	static bool HasBuff(const Unit*, BUFF_ID);

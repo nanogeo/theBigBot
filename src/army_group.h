@@ -91,7 +91,7 @@ public:
 	int current_attack_index;
 	int high_ground_index;
 	PathManager attack_path_line;
-	Point2D defense_point;
+	Point2D target_pos;
 
 	bool advancing = true;
 	Point2D concave_origin = Point2D(0, 0);
@@ -152,6 +152,7 @@ public:
 	void ScourMap();
 	void SimpleAttack();
 	void DefendLocation();
+	void ObserverScout();
 	void OutsideControl();
 
 	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>);

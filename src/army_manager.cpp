@@ -65,6 +65,9 @@ ArmyGroup* ArmyManager::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> 
 	case ArmyRole::defend_base:
 		army = new ArmyGroup(mediator, mediator->GetMostRecentBuilding(NEXUS)->pos, role, unit_types);
 		break;
+	case ArmyRole::observer_scout:
+		army = new ArmyGroup(mediator, role, unit_types);
+		break;
 	default:
 		std::cerr << "Unknown ArmyRole in CreateArmyGroup" << std::endl;
 		return NULL;
@@ -129,6 +132,9 @@ void ArmyManager::RunArmyGroups()
 			break;
 		case ArmyRole::defend_base:
 			army_groups[i]->DefendLocation();
+			break;
+		case ArmyRole::observer_scout:
+			army_groups[i]->ObserverScout();
 			break;
 		default:
 			std::cerr << "Unknown ArmyRole in RunArmyGroup" << std::endl;

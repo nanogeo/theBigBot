@@ -703,7 +703,7 @@ namespace sc2
 		Point2D base_location = agent->locations->nexi_locations[base];
 		for (auto& army_group : army_manager.army_groups)
 		{
-			if (army_group->defense_point == base_location)
+			if (army_group->target_pos == base_location)
 			{
 				army_group->desired_units += amount;
 			}
@@ -773,6 +773,11 @@ namespace sc2
 	Point2D Mediator::GetEnemyStartLocation()
 	{
 		return agent->Observation()->GetGameInfo().enemy_start_locations[0];
+	}
+
+	Point2D Mediator::GetEnemyNaturalLocation()
+	{
+		return agent->locations->enemy_natural;
 	}
 
 	PathManager Mediator::GetDirectAttackLine()

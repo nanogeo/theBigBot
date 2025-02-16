@@ -127,6 +127,7 @@ public:
 
 	Point2D GetStartLocation();
 	Point2D GetEnemyStartLocation();
+	Point2D GetEnemyNaturalLocation();
 	PathManager GetDirectAttackLine();
 	std::vector<Point2D> GetDirectAttackPath();
 	PathManager GetIndirectAttackLine();
