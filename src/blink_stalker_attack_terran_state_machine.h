@@ -124,7 +124,7 @@ public:
 	virtual void ExitState() override;
 	virtual State* TestTransitions() override;
 
-	void OnUnitDestroyedListener(const Unit*);
+	void RemoveUnit(const Unit*);
 
 };
 
@@ -153,6 +153,7 @@ public:
 
 	virtual void RunStateMachine() override;
 	bool AddUnit(const Unit*) override;
+	void RemoveUnit(const Unit*) override;
 
 	~BlinkStalkerAttackTerran();
 };

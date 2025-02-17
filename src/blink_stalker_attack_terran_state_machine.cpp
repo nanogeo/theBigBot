@@ -326,38 +326,48 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 		}
 	}
-	//bool gates_almost_ready = true;
-	//for (const auto &status : agent->warpgate_status)
-	//{
-	//	if (status.second.frame_ready > agent->Observation()->GetGameLoop() + 45)
-	//	{
-	//		gates_almost_ready = false;
-	//		break;
-	//	}
-	//}
-	//if (gates_almost_ready && agent->Observation()->IsPathable(state_machine->prism->pos) && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, agent->warpgate_status.size() - 1, agent->Observation())) // TODO why check if prism on pathable terrain?
-	//{
-	//	if (state_machine->attacking_main)
-	//	{
-	//		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->blink_up_pos);
-	//		return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine, state_machine->stalkers);
+	if (state_machine->attacking_main)
+	{
+		for (int i = 0; i < state_machine->attached_army_group->standby_units.size(); i++)
+		{
+			const Unit* unit = state_machine->attached_army_group->standby_units[i];
+			if (Distance2D(unit->pos, state_machine->attached_army_group->standby_pos) > 2)
+			{
+				agent->Actions()->UnitCommand(unit, ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos);
+				continue;
+			}
+			for (const auto& ability : agent->Query()->GetAbilitiesForUnit(unit).abilities)
+			{
+				if (ability.ability_id == ABILITY_ID::EFFECT_BLINK)
+				{
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos);
+					state_machine->attached_army_group->RemoveUnit(unit);
+					state_machine->attached_army_group->AddNewUnit(unit);
+					i--;
+					break;
+				}
+			}
+		}
+	}
 
-	//	}
-	//	else
-	//	{
-	//		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism->pos);
-	//		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
-	//	}
-	//}
-
-	/*int stalkers_ok = 0;
+	int stalkers_ok = 0;
 	for (const auto &stalker : state_machine->stalkers)
 	{
 		if (stalker->shield > 20)
 			stalkers_ok++;
 	}
-	if (stalkers_ok < 4)
-		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);*/
+	if (stalkers_ok < 6)
+	{
+		if (state_machine->attacking_main)
+		{
+			return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine, state_machine->stalkers);
+		}
+		else
+		{
+			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
+		}
+	}
+
 	return NULL;
 }
 
@@ -406,57 +416,63 @@ BlinkStalkerAttackTerranLeaveHighground::BlinkStalkerAttackTerranLeaveHighground
 	stalkers_to_blink = stalkers;
 
 	event_id = agent->GetUniqueId();
-	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
-		this->OnUnitDestroyedListener(unit);
-	};
-	agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 }
 
 void BlinkStalkerAttackTerranLeaveHighground::TickState()
 {
 	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->blink_up_pos);
 	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
-	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism_consolidation_pos, true);
+	//agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism_consolidation_pos, true);
 
 	for (int i = 0; i < stalkers_to_blink.size(); i++)
 	{
-		bool blinked = true;
-		if (stalkers_to_blink[i]->health <= 0)
+		bool blink_ready = false;
+		const Unit* stalker = stalkers_to_blink[i];
+		if (stalker->is_alive == false)
 		{
 			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
 			i--;
 			continue;
 		}
-		for (const auto& ability : agent->Query()->GetAbilitiesForUnit(stalkers_to_blink[i]).abilities)
+		for (const auto& ability : agent->Query()->GetAbilitiesForUnit(stalker).abilities)
 		{
 			if (ability.ability_id == ABILITY_ID::EFFECT_BLINK)
 			{
-				blinked = false;
+				blink_ready = true;
 				break;
 			}
 		}
-		if (blinked && Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_up_pos) < 4)
+		if (Distance2D(stalker->pos, state_machine->blink_up_pos) < 3)
 		{
-			state_machine->attached_army_group->last_time_blinked[stalkers_to_blink[i]] = agent->Observation()->GetGameLoop();
-			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
+			state_machine->attached_army_group->RemoveUnit(stalker);
+			state_machine->attached_army_group->AddNewUnit(stalker);
 			i--;
 			continue;
 		}
-		if (Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_down_pos) < 2)
+		if (Distance2D(stalker->pos, state_machine->blink_down_pos) < 2)
 		{
-			agent->Actions()->UnitCommand(stalkers_to_blink[i], ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos);
-			agent->Actions()->UnitCommand(stalkers_to_blink[i], ABILITY_ID::GENERAL_MOVE, state_machine->consolidation_pos, true);
+			if (blink_ready)
+			{
+				agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos);
+			}
+			else
+			{
+				agent->Actions()->UnitCommand(stalker, ABILITY_ID::SMART, state_machine->prism);
+			}
 		}
 		else
 		{
-			agent->Actions()->UnitCommand(stalkers_to_blink[i], ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos);
+			agent->Actions()->UnitCommand(stalker, ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos);
 		}
 	}
 }
 
 void BlinkStalkerAttackTerranLeaveHighground::EnterState()
 {
-
+	for (const auto& stalker : state_machine->stalkers)
+	{
+		stalkers_to_blink.push_back(stalker);
+	}
 }
 
 void BlinkStalkerAttackTerranLeaveHighground::ExitState()
@@ -477,17 +493,9 @@ std::string BlinkStalkerAttackTerranLeaveHighground::toString()
 	return "leave high ground";
 }
 
-
-void BlinkStalkerAttackTerranLeaveHighground::OnUnitDestroyedListener(const Unit* unit)
+void BlinkStalkerAttackTerranLeaveHighground::RemoveUnit(const Unit* unit)
 {
-	if (stalkers_to_blink.size() == 0)
-		return;
-	auto found = std::find(stalkers_to_blink.begin(), stalkers_to_blink.end(), unit);
-	if (found != stalkers_to_blink.end())
-	{
-		int index = found - stalkers_to_blink.begin();
-		stalkers_to_blink.erase(stalkers_to_blink.begin() + index);
-	}
+	stalkers_to_blink.erase(std::remove(stalkers_to_blink.begin(), stalkers_to_blink.end(), unit), stalkers_to_blink.end());
 }
 
 
@@ -532,6 +540,14 @@ bool BlinkStalkerAttackTerran::AddUnit(const Unit* unit)
 		}
 	}
 	return false;
+}
+
+void BlinkStalkerAttackTerran::RemoveUnit(const Unit* unit)
+{
+	stalkers.erase(std::remove(stalkers.begin(), stalkers.end(), unit), stalkers.end());
+
+	if (dynamic_cast<BlinkStalkerAttackTerranLeaveHighground*>(current_state))
+		dynamic_cast<BlinkStalkerAttackTerranLeaveHighground*>(current_state)->RemoveUnit(unit);
 }
 
 BlinkStalkerAttackTerran::~BlinkStalkerAttackTerran()

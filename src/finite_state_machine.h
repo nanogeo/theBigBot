@@ -77,6 +77,7 @@ public:
 
     void CloseStateMachine();
     virtual bool AddUnit(const Unit*) { return false; }
+    virtual void RemoveUnit(const Unit*) {};
 
 };
 

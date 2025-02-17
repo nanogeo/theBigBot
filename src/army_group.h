@@ -88,8 +88,8 @@ public:
 	Units possibly_confused_units;
 
 	std::vector<Point2D> attack_path;
-	int current_attack_index;
-	int high_ground_index;
+	int current_attack_index = 0;
+	int high_ground_index = 0;
 	PathManager attack_path_line;
 	Point2D target_pos;
 
