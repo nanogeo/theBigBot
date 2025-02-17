@@ -42,7 +42,9 @@ State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism->pos);
 		return new BlinkStalkerAttackTerranWarpIn(agent, state_machine);
 	}*/
-	if (state_machine->attached_army_group->AttackLine(.2, 2, TERRAN_PRIO) > 0)
+	if ((state_machine->attached_army_group->AttackLine(.2, 2, TERRAN_PRIO) > 0 && state_machine->stalkers.size() > 0) ||
+		Distance2D(state_machine->attached_army_group->concave_origin, agent->Observation()->GetGameInfo().enemy_start_locations[0]) + 8 < 
+		Distance2D(state_machine->consolidation_pos, agent->Observation()->GetGameInfo().enemy_start_locations[0]))
 		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 
 	if (Utility::DistanceToFurthest(state_machine->stalkers, state_machine->consolidation_pos) < 4 &&
@@ -130,8 +132,7 @@ void BlinkStalkerAttackTerranConsolidate::TickState()
 	{
 		if (Distance2D(unit->pos, state_machine->consolidation_pos) > 10)
 			agent->Actions()->UnitCommand(unit, ABILITY_ID::GENERAL_MOVE, state_machine->consolidation_pos);
-
-		if (Distance2D(unit->pos, state_machine->consolidation_pos) > 3)
+		else if (Distance2D(unit->pos, state_machine->consolidation_pos) > 3)
 			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, state_machine->consolidation_pos);
 	}
 
@@ -206,6 +207,11 @@ void BlinkStalkerAttackTerranConsolidate::ExitState()
 
 State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 {
+	if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), state_machine->consolidation_pos) < 12)
+	{
+		state_machine->attacking_main = false;
+		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
+	}
 	if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
 	{
 		if (state_machine->stalkers.size() < 8)
@@ -283,6 +289,12 @@ void BlinkStalkerAttackTerranBlinkUp::ExitState()
 
 State* BlinkStalkerAttackTerranBlinkUp::TestTransitions()
 {
+	if (stalkers_to_blink.size() == state_machine->attached_army_group->stalkers.size() && 
+		Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), Utility::MedianCenter(stalkers_to_blink)) < 10)
+	{
+		state_machine->attacking_main = false;
+		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
+	}
 	if (stalkers_to_blink.size() == 0)
 		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
 	return NULL;
@@ -299,7 +311,27 @@ std::string BlinkStalkerAttackTerranBlinkUp::toString()
 
 void BlinkStalkerAttackTerranAttack::TickState()
 {
-
+	float now = agent->Observation()->GetGameLoop() / 22.4;
+	for (const auto& tank : agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsUnits({ SIEGE_TANK, SIEGE_TANK_SIEGED })))
+	{
+		Units stalkers_in_range;
+		for (const auto& stalker : state_machine->stalkers)
+		{
+			//if (stalker->weapon_cooldown > 0)
+			//	continue;
+			bool blink_off_cooldown = now - state_machine->attached_army_group->last_time_blinked[stalker] > 7;
+			if ((blink_off_cooldown && Distance2D(stalker->pos, tank->pos) < Utility::RealRange(stalker, tank) + 8) ||
+				(Distance2D(stalker->pos, tank->pos) < Utility::RealRange(stalker, tank)))
+			{
+				stalkers_in_range.push_back(stalker);
+			}
+		}
+		if (stalkers_in_range.size() * 17 >= tank->health)
+		{
+			target = tank;
+			break;
+		}
+	}
 }
 
 void BlinkStalkerAttackTerranAttack::EnterState()
@@ -369,7 +401,10 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 		}
 		else
 		{
-			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
+			if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), state_machine->consolidation_pos) >= 12)
+			{
+				return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
+			}
 		}
 	}
 
@@ -538,10 +573,29 @@ bool BlinkStalkerAttackTerran::AddUnit(const Unit* unit)
 			prism = unit;
 			return true;
 		}
-		else if (unit->unit_type == STALKER && Distance2D(unit->pos, consolidation_pos) < 6)
+		else if (unit->unit_type == STALKER)
 		{
-			stalkers.push_back(unit);
-			return true;
+			if (Distance2D(unit->pos, consolidation_pos) < 6)
+			{
+				stalkers.push_back(unit);
+				return true;
+			}
+			else if (dynamic_cast<BlinkStalkerAttackTerranMoveAcross*>(current_state))
+			{
+				if (stalkers.size() == 0 || Distance2D(unit->pos, Utility::MedianCenter(stalkers)) < 6)
+				{
+					stalkers.push_back(unit);
+					return true;
+				}
+				else
+				{
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(stalkers));
+				}
+			}
+			else
+			{
+				agent->Actions()->UnitCommand(unit, ABILITY_ID::GENERAL_MOVE, consolidation_pos);
+			}
 		}
 	}
 	return false;

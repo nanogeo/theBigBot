@@ -65,6 +65,7 @@ class BlinkStalkerAttackTerranAttack : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
+	const Unit* target = NULL;
 	BlinkStalkerAttackTerranAttack(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->agent = agent;

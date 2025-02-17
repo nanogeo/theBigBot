@@ -1200,8 +1200,18 @@ namespace sc2 {
 			}
 			if ((all_units.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(all_units)) < 5) || (all_units.size() == 0 && Utility::DistanceToClosest(attack_path, unit->pos) < 2))
 			{
-				AddUnit(unit);
-				i--;
+				if (state_machine)
+				{
+					if (state_machine->AddUnit(unit))
+					{
+						AddUnit(unit);
+						i--;
+					}
+				}
+				else {
+					AddUnit(unit);
+					i--;
+				}
 			}
 		}
 
