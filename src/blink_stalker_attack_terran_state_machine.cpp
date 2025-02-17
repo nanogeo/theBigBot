@@ -12,8 +12,8 @@ namespace sc2 {
 
 void BlinkStalkerAttackTerranMoveAcross::TickState()
 {
-	agent->Actions()->UnitCommand(state_machine->stalkers, ABILITY_ID::ATTACK_ATTACK, state_machine->consolidation_pos);
-	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism_consolidation_pos);
+	//agent->Actions()->UnitCommand(state_machine->stalkers, ABILITY_ID::ATTACK_ATTACK, state_machine->consolidation_pos);
+	//agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism_consolidation_pos);
 }
 
 void BlinkStalkerAttackTerranMoveAcross::EnterState()
@@ -42,6 +42,8 @@ State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism->pos);
 		return new BlinkStalkerAttackTerranWarpIn(agent, state_machine);
 	}*/
+	if (state_machine->attached_army_group->AttackLine(.2, 2, TERRAN_PRIO) > 0)
+		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 
 	if (Utility::DistanceToFurthest(state_machine->stalkers, state_machine->consolidation_pos) < 4 &&
 		Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 2)
@@ -126,6 +128,9 @@ void BlinkStalkerAttackTerranConsolidate::TickState()
 		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism_consolidation_pos);
 	for (const auto& unit : state_machine->stalkers)
 	{
+		if (Distance2D(unit->pos, state_machine->consolidation_pos) > 10)
+			agent->Actions()->UnitCommand(unit, ABILITY_ID::GENERAL_MOVE, state_machine->consolidation_pos);
+
 		if (Distance2D(unit->pos, state_machine->consolidation_pos) > 3)
 			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, state_machine->consolidation_pos);
 	}
@@ -209,7 +214,7 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 		float stalkers_healthy = 0;
 		for (const auto& stalker : state_machine->stalkers) // TODO change to enough stalkers not all
 		{
-			if (stalker->shield >= 70 && Distance2D(stalker->pos, state_machine->consolidation_pos) < 5)
+			if (stalker->shield >= 70 && Distance2D(stalker->pos, state_machine->consolidation_pos) < 7)
 			{
 				stalkers_healthy += 1;
 			}

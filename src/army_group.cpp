@@ -1833,7 +1833,7 @@ namespace sc2 {
 
 				if (using_standby)
 				{
-					if ((unit->shield + unit->health) / (unit->shield_max + unit->health_max) < .3) // TODO this threshold should be passed in
+					if (unit->shield == 0 || (unit->shield + unit->health) / (unit->shield_max + unit->health_max) < .3) // TODO this threshold should be passed in
 					{
 						standby_units.push_back(unit);
 						mediator->SetUnitCommand(unit, ABILITY_ID::EFFECT_BLINK, standby_pos);

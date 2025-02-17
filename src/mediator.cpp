@@ -607,6 +607,8 @@ namespace sc2
 		ArmyGroup* army = CreateArmyGroup(ArmyRole::outside_control, { STALKER, PRISM }, 15, 25);
 		army->using_standby = true;
 		army->standby_pos = agent->locations->blink_presure_consolidation;
+		army->attack_path = GetDirectAttackPath();
+		army->attack_path_line = GetDirectAttackLine();
 
 		BlinkStalkerAttackTerran* blink_fsm = new BlinkStalkerAttackTerran(agent, "4 gate blink pressure", agent->locations->blink_presure_consolidation,
 			agent->locations->blink_pressure_prism_consolidation, agent->locations->blink_pressure_blink_up, agent->locations->blink_pressure_blink_down);
