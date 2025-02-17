@@ -239,8 +239,8 @@ namespace sc2 {
 									P(52, 127) };
 
 
-		blink_presure_consolidation = P(69, 97);
-		blink_pressure_prism_consolidation = P(73, 97);
+		blink_presure_consolidation = P(76, 95);
+		blink_pressure_prism_consolidation = P(79, 93);
 		blink_pressure_blink_up = P(56, 120);
 		blink_pressure_blink_down = P(53, 123);
 
