@@ -227,7 +227,7 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 		}
 		if (stalkers_healthy / state_machine->stalkers.size() > .5)
 		{
-			if (state_machine->attacking_main)
+			if (state_machine->attacking_main && state_machine->prism->is_alive)
 				return new BlinkStalkerAttackTerranBlinkUp(agent, state_machine, state_machine->stalkers);
 			else
 				return new BlinkStalkerAttackTerranAttack(agent, state_machine);
@@ -284,7 +284,7 @@ void BlinkStalkerAttackTerranBlinkUp::EnterState()
 
 void BlinkStalkerAttackTerranBlinkUp::ExitState()
 {
-	state_machine->attached_army_group->standby_pos = state_machine->blink_down_pos;
+	
 }
 
 State* BlinkStalkerAttackTerranBlinkUp::TestTransitions()
@@ -296,7 +296,10 @@ State* BlinkStalkerAttackTerranBlinkUp::TestTransitions()
 		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
 	}
 	if (stalkers_to_blink.size() == 0)
+	{
+		state_machine->attached_army_group->standby_pos = state_machine->blink_down_pos;
 		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
+	}
 	return NULL;
 }
 
@@ -311,27 +314,7 @@ std::string BlinkStalkerAttackTerranBlinkUp::toString()
 
 void BlinkStalkerAttackTerranAttack::TickState()
 {
-	float now = agent->Observation()->GetGameLoop() / 22.4;
-	for (const auto& tank : agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsUnits({ SIEGE_TANK, SIEGE_TANK_SIEGED })))
-	{
-		Units stalkers_in_range;
-		for (const auto& stalker : state_machine->stalkers)
-		{
-			//if (stalker->weapon_cooldown > 0)
-			//	continue;
-			bool blink_off_cooldown = now - state_machine->attached_army_group->last_time_blinked[stalker] > 7;
-			if ((blink_off_cooldown && Distance2D(stalker->pos, tank->pos) < Utility::RealRange(stalker, tank) + 8) ||
-				(Distance2D(stalker->pos, tank->pos) < Utility::RealRange(stalker, tank)))
-			{
-				stalkers_in_range.push_back(stalker);
-			}
-		}
-		if (stalkers_in_range.size() * 17 >= tank->health)
-		{
-			target = tank;
-			break;
-		}
-	}
+	
 }
 
 void BlinkStalkerAttackTerranAttack::EnterState()
@@ -345,21 +328,45 @@ void BlinkStalkerAttackTerranAttack::EnterState()
 
 void BlinkStalkerAttackTerranAttack::ExitState()
 {
-	state_machine->attacking_main = !state_machine->attacking_main;
-	state_machine->attached_army_group->concave_origin = Point2D(0, 0);
+
 }
 
 State* BlinkStalkerAttackTerranAttack::TestTransitions()
 {
-	int attack_line_status = state_machine->attached_army_group->AttackLine(.2, 2, TERRAN_PRIO);
+	float now = agent->Observation()->GetGameLoop() / 22.4;
+	for (const auto& tank : agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsUnits({ SIEGE_TANK, SIEGE_TANK_SIEGED })))
+	{
+		Units stalkers_in_range;
+		for (const auto& stalker : state_machine->stalkers)
+		{
+			if (stalker->weapon_cooldown > 0)
+				continue;
+			bool blink_off_cooldown = now - state_machine->attached_army_group->last_time_blinked[stalker] > 7;
+			if ((blink_off_cooldown && Distance2D(stalker->pos, tank->pos) < Utility::RealRange(stalker, tank) + 8) ||
+				(Distance2D(stalker->pos, tank->pos) < Utility::RealRange(stalker, tank)))
+			{
+				stalkers_in_range.push_back(stalker);
+			}
+		}
+		if (stalkers_in_range.size() * 17 >= tank->health)
+		{
+			target = tank;
+			return new BlinkStalkerAttackTerranSnipeUnit(agent, state_machine, target);
+		}
+	}
+	int attack_line_status = state_machine->attached_army_group->AttackLine(.2, 2, TERRAN_PRIO, true);
 	if (attack_line_status == 1 || attack_line_status == 2)
 	{
 		if (state_machine->attacking_main)
 		{
+			state_machine->attacking_main = !state_machine->attacking_main;
+			state_machine->attached_army_group->concave_origin = Point2D(0, 0);
 			return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine, state_machine->stalkers);
 		}
 		else
 		{
+			state_machine->attacking_main = !state_machine->attacking_main;
+			state_machine->attached_army_group->concave_origin = Point2D(0, 0);
 			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 		}
 	}
@@ -397,12 +404,16 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 	{
 		if (state_machine->attacking_main)
 		{
+			state_machine->attacking_main = !state_machine->attacking_main;
+			state_machine->attached_army_group->concave_origin = Point2D(0, 0);
 			return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine, state_machine->stalkers);
 		}
 		else
 		{
 			if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), state_machine->consolidation_pos) >= 12)
 			{
+				state_machine->attacking_main = !state_machine->attacking_main;
+				state_machine->attached_army_group->concave_origin = Point2D(0, 0);
 				return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 			}
 		}
@@ -427,7 +438,23 @@ void BlinkStalkerAttackTerranSnipeUnit::TickState()
 
 void BlinkStalkerAttackTerranSnipeUnit::EnterState()
 {
-
+	float now = agent->Observation()->GetGameLoop() / 22.4; 
+	for (const auto& stalker : state_machine->stalkers)
+	{
+		if (stalker->weapon_cooldown == 0)
+		{
+			bool blink_off_cooldown = now - state_machine->attached_army_group->last_time_blinked[stalker] > 7;
+			if (blink_off_cooldown)
+			{
+				agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, target->pos);
+				agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK_ATTACK, target, true);
+			}
+			else
+			{
+				agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK_ATTACK, target);
+			}
+		}
+	}
 }
 
 void BlinkStalkerAttackTerranSnipeUnit::ExitState()
@@ -437,6 +464,8 @@ void BlinkStalkerAttackTerranSnipeUnit::ExitState()
 
 State* BlinkStalkerAttackTerranSnipeUnit::TestTransitions()
 {
+	if (target->is_alive == false)
+		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
 	return NULL;
 }
 

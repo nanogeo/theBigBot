@@ -82,10 +82,12 @@ class BlinkStalkerAttackTerranSnipeUnit : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranSnipeUnit(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
+	const Unit* target;
+	BlinkStalkerAttackTerranSnipeUnit(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine, const Unit* target)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
+		this->target = target;
 	}
 	virtual std::string toString() override;
 	void TickState() override;
