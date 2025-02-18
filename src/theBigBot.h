@@ -328,6 +328,7 @@ public:
     void DisplayArmyGroups();
     void DisplaySupplyInfo();
 	void DisplayEnemyAttacks();
+	void DisplayEnemyPositions();
 	void DisplayAlliedAttackStatus();
 	void PrintNonPathablePoints();
 	void ShowLocations();

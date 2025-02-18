@@ -182,6 +182,7 @@ namespace sc2 {
 
 		//DisplayEnemyAttacks();
 
+		DisplayEnemyPositions();
 
 		//DisplayAlliedAttackStatus();
 
@@ -1711,6 +1712,16 @@ namespace sc2 {
 			}
 		}
 		Debug()->DebugTextOut(message, Point2D(.8, .4), Color(255, 0, 0), 20);
+	}
+
+	void TheBigBot::DisplayEnemyPositions()
+	{
+		for (const auto& unit : enemy_unit_saved_position)
+		{
+			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit.first->unit_type), ToPoint3D(unit.second.pos), Color(255, 128, 128), 20);
+			if (unit.first->unit_type == SIEGE_TANK || unit.first->unit_type == SIEGE_TANK_SIEGED)
+				Debug()->DebugSphereOut(ToPoint3D(unit.second.pos), 14, Color(255, 128, 128));
+		}
 	}
 
 	void TheBigBot::DisplayAlliedAttackStatus()
