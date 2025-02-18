@@ -65,7 +65,7 @@ namespace sc2 {
 				started = false;
 			}
 
-			for each (auto &point in locations->attack_path_line.GetPoints())
+			for (auto& point : locations->attack_path_line.GetPoints())
 			{
 				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(0, 255, 255));
 			}
@@ -83,13 +83,13 @@ namespace sc2 {
 			}*/
 
 
-			for each (Point2D point in locations->attack_path_short)
+			for (const auto &point : locations->attack_path_short)
 			{
 				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));
 				Debug()->DebugTextOut(std::to_string(point.x) + ", " + std::to_string(point.y), ToPoint3D(point), Color(255, 0, 0), 20);
 			}
 
-			for each (Point2D point in locations->attack_path_short_line.GetPoints())
+			for (const auto &point : locations->attack_path_short_line.GetPoints())
 			{
 				Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
 			}
