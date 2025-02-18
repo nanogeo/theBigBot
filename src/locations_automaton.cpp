@@ -104,7 +104,7 @@ namespace sc2 {
 
 
 		cyber_core_locations = { P(152.5, 126.5),
-									P(139.5, 127.5),
+									P(139.75, 127.25),
 									P(136.5, 140.5) };
 
 		tech_locations = { P(150.5, 113.5),
