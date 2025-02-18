@@ -150,6 +150,7 @@ public:
 	bool Contain(BuildOrderResultArgData);
 	bool StalkerOraclePressure(BuildOrderResultArgData);
 	bool ZealotDoubleprong(BuildOrderResultArgData);
+	bool ZealotDoubleprongLarge(BuildOrderResultArgData);
 	bool MicroOracles(BuildOrderResultArgData);
 	bool OracleHarass(BuildOrderResultArgData);
 	bool SpawnUnits(BuildOrderResultArgData);
@@ -182,8 +183,10 @@ public:
 	bool BuildNaturalDefensiveBuilding(BuildOrderResultArgData);
 	bool ReturnToMainBuild(BuildOrderResultArgData);
 	bool SetUnitProduction(BuildOrderResultArgData);
+	bool CancelWarpgateUnitProduction(BuildOrderResultArgData);
 	bool SetWarpInAtProxy(BuildOrderResultArgData);
 	bool AddToNaturalDefense(BuildOrderResultArgData);
+	bool CheckTankCount(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string
@@ -208,6 +211,7 @@ public:
 
 
 	void SetEarlyPoolInterrupt();
+	void SetChargeTransition();
 
 };
 
@@ -581,6 +585,10 @@ struct BuildOrderData
 		{
 			str += "set unit production";
 		}
+		else if (result == &BuildOrderManager::CancelWarpgateUnitProduction)
+		{
+			str += "cancel warpgate unit production";
+		}
 		else if (result == &BuildOrderManager::SetWarpInAtProxy)
 		{
 			str += "set warp in a t proxy";
@@ -588,6 +596,10 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::AddToNaturalDefense)
 		{
 			str += "add to natural defense";
+		}
+		else if (result == &BuildOrderManager::CheckTankCount)
+		{
+			str += "check tank count";
 		}
 
 		return str;
