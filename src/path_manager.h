@@ -11,6 +11,7 @@ namespace sc2
 	public:
 		double GetMin() { return min; };
 		double GetMax() { return max; };
+		bool IsPositiveDirection() { return pos_direction; };
 		virtual Point2D EvaluateAt(double) const = 0;
 		Point2D GetStartPoint() { return EvaluateAt(start); };
 		Point2D GetEndPoint()  { return EvaluateAt(end); };
@@ -259,6 +260,8 @@ public:
 	Point2D GetEndPoint();
 	Point2D GetStart();
 	Point2D GetEnd();
+	Point2D GetFurthestForward(std::vector<Point2D>);
+	Point2D GetFurthestBack(std::vector<Point2D>);
 
 	LineSegment* FitLineSegment(Point2D, Point2D, Point2D, Point2D);
 };

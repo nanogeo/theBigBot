@@ -544,6 +544,82 @@ Point2D PathManager::GetEndPoint()
 	return segments[segments.size() - 1]->GetEndPoint();
 }
 
+Point2D PathManager::GetFurthestForward(std::vector<Point2D> points)
+{
+	int best_index = 0;
+	Point2D best_point = GetStartPoint();
+	for (const auto& point : points)
+	{
+		int index = FindClosestSegmentIndex(point);
+		if (index > best_index)
+		{
+			best_index = index;
+			best_point = point;
+			continue;
+		}
+		if (index == best_index)
+		{
+			if (dynamic_cast<LineSegmentCurveX*>(segments[index]) || dynamic_cast<LineSegmentLinearX*>(segments[index]))
+			{
+				if (segments[index]->IsPositiveDirection() != (best_point.x > point.x))
+				{
+					best_index = index;
+					best_point = point;
+					continue;
+				}
+			}
+			else
+			{
+				if (segments[index]->IsPositiveDirection() != (best_point.y > point.y))
+				{
+					best_index = index;
+					best_point = point;
+					continue;
+				}
+			}
+		}
+	}
+	return best_point;
+}
+
+Point2D PathManager::GetFurthestBack(std::vector<Point2D> points)
+{
+	int best_index = 1000;
+	Point2D best_point = GetEndPoint();
+	for (const auto& point : points)
+	{
+		int index = FindClosestSegmentIndex(point);
+		if (index < best_index)
+		{
+			best_index = index;
+			best_point = point;
+			continue;
+		}
+		if (index == best_index)
+		{
+			if (dynamic_cast<LineSegmentCurveX*>(segments[index]) || dynamic_cast<LineSegmentLinearX*>(segments[index]))
+			{
+				if (segments[index]->IsPositiveDirection() != (best_point.x < point.x))
+				{
+					best_index = index;
+					best_point = point;
+					continue;
+				}
+			}
+			else
+			{
+				if (segments[index]->IsPositiveDirection() != (best_point.y < point.y))
+				{
+					best_index = index;
+					best_point = point;
+					continue;
+				}
+			}
+		}
+	}
+	return best_point;
+}
+
 
 LineSegment* PathManager::FitLineSegment(Point2D p1, Point2D p2, Point2D p3, Point2D p4)
 {
