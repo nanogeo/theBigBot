@@ -110,6 +110,7 @@ public:
 	std::vector<UNIT_TYPEID> unit_types;
 	int desired_units = 0;
 	int max_units = 100;
+	bool ready = false;
 
 	// oracles
 	std::map<const Unit*, float> time_last_attacked;
