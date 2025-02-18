@@ -752,6 +752,11 @@ namespace sc2
 		}
 	}
 
+	void Mediator::CancelWarpgateUnitProduction()
+	{
+		unit_production_manager.SetWarpgateProduction(UNIT_TYPEID::BALL);
+	}
+
 	void Mediator::SetWarpInAtProxy(bool status)
 	{
 		unit_production_manager.SetWarpInAtProxy(status);

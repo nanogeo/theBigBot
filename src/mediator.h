@@ -120,6 +120,7 @@ public:
 	void RemoveWorker(const Unit*);
 
 	void SetUnitProduction(UNIT_TYPEID);
+	void CancelWarpgateUnitProduction();
 	void SetWarpInAtProxy(bool);
 
 	ArmyGroup* CreateArmyGroup(ArmyRole, std::vector<UNIT_TYPEID>, int, int);
