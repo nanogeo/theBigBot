@@ -859,6 +859,13 @@ namespace sc2
 		return agent->Query()->GetAbilitiesForUnit(unit);
 	}
 
+	Point2D Mediator::GetUnitPosition(const Unit* unit)
+	{
+		if (agent->enemy_unit_saved_position.count(unit) != 0)
+			return agent->enemy_unit_saved_position[unit].pos;
+		return Point2D(0, 0);
+	}
+
 	// TODO make these boolean if the command is invalid
 	void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, bool queued_command)
 	{

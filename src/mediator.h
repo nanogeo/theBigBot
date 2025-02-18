@@ -145,6 +145,7 @@ public:
 	Units GetUnits(Filter);
 	const Unit* GetUnit(Tag);
 	AvailableAbilities GetAbilitiesForUnit(const Unit*);
+	Point2D GetUnitPosition(const Unit*);
 
 	void SetUnitCommand(const Unit* unit, AbilityID ability, bool queued_command = false);
 	void SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, bool queued_command = false);
