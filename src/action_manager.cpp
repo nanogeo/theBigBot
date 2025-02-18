@@ -317,12 +317,33 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 
 	// TODO make global upgrade tracker
 	std::vector<ABILITY_ID> upgrades = {};
-	if (mediator->GetUpgradeLevel(UpgradeType::shields) < 3)
-		upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSSHIELDS);
-	if (mediator->GetUpgradeLevel(UpgradeType::ground_weapons) < 3)
-		upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS);
-	if (mediator->GetUpgradeLevel(UpgradeType::ground_armor) < 3)
-		upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR);
+	if (mediator->GetEnemyRace() == Race::Zerg)
+	{
+		if (mediator->GetUpgradeLevel(UpgradeType::shields) < 3)
+			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSSHIELDS);
+		if (mediator->GetUpgradeLevel(UpgradeType::ground_weapons) < 3)
+			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS);
+		if (mediator->GetUpgradeLevel(UpgradeType::ground_armor) < 3)
+			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR);
+	}
+	else if (mediator->GetEnemyRace() == Race::Terran)
+	{
+		if (mediator->GetUpgradeLevel(UpgradeType::ground_armor) < 3)
+			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR);
+		if (mediator->GetUpgradeLevel(UpgradeType::ground_weapons) < 3)
+			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS);
+		if (mediator->GetUpgradeLevel(UpgradeType::shields) < 3)
+			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSSHIELDS);
+	}
+	else
+	{
+		if (mediator->GetUpgradeLevel(UpgradeType::ground_weapons) < 3)
+			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS);
+		if (mediator->GetUpgradeLevel(UpgradeType::ground_armor) < 3)
+			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR);
+		if (mediator->GetUpgradeLevel(UpgradeType::shields) < 3)
+			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSSHIELDS);
+	}
 
 	Units idle_forges;
 	for (const auto &forge : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
