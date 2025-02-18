@@ -156,15 +156,15 @@ public:
 	void ObserverScout();
 	void OutsideControl();
 
-	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>);
+	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>, bool = false);
 	void OraclesDefendArmy(Units);
 
-	bool FindUnitPositions(Units, Units, float, float);
+	bool FindUnitPositions(Units, Units, float, float, Point2D);
 	void FindReadyUnits(Units, Units&, Units&);
 	void MicroReadyUnits(Units, std::vector<std::vector<UNIT_TYPEID>>, float, int);
 	std::vector<std::pair<const Unit*, UnitDanger>> MicroNonReadyUnits(Units);
 	void MicroWarpPrisms(std::vector<std::pair<const Unit*, UnitDanger>>);
-
+	Point2D FindLimitToAdvance();
 
 	void AutoAddNewUnits(std::vector<UNIT_TYPEID>);
 	void OnNewUnitCreatedListener(const Unit*);

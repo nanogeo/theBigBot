@@ -1189,7 +1189,7 @@ namespace sc2 {
 	}
 
 	// returns: 0 - normal operation, 1 - all units dead or in standby, 2 - reached the end of the attack path
-	int ArmyGroup::AttackLine(float dispersion, float target_range, std::vector<std::vector<UNIT_TYPEID>> target_priority)
+	int ArmyGroup::AttackLine(float dispersion, float target_range, std::vector<std::vector<UNIT_TYPEID>> target_priority, bool limit_advance)
 	{
 		for (int i = 0; i < new_units.size(); i++)
 		{
@@ -1251,7 +1251,15 @@ namespace sc2 {
 
 		int return_value = 0;
 
-		if (FindUnitPositions(basic_units, warp_prisms, dispersion, target_range))
+		Point2D limit = attack_path_line.GetEndPoint();
+		if (limit_advance)
+		{
+			limit = FindLimitToAdvance();
+		}
+
+		mediator->agent->Debug()->DebugSphereOut(mediator->ToPoint3D(limit), 1.5, Color(255, 255, 255));
+
+		if (FindUnitPositions(basic_units, warp_prisms, dispersion, target_range, attack_path_line.GetPointFrom(limit, 1, false)))
 			return_value = 2;
 
 		/*for (const auto& pos : agent->locations->attack_path_line.GetPoints())
@@ -1582,7 +1590,7 @@ namespace sc2 {
 		}
 	}
 
-	bool ArmyGroup::FindUnitPositions(Units units, Units prisms, float dispersion, float max_range)
+	bool ArmyGroup::FindUnitPositions(Units units, Units prisms, float dispersion, float max_range, Point2D limit)
 	{
 		float unit_size = .625; // TODO figure this out by the larget unit in current_units?
 		// first concave origin can just be the closest points on the line
@@ -1656,7 +1664,9 @@ namespace sc2 {
 		Point2D new_origin;
 
 		// too close
-		if (Distance2D(concave_origin, concave_target) < target_range - .1 || (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, concave_origin) < 2 + unit_size))
+		if (Distance2D(concave_origin, concave_target) < target_range - .1 || 
+			(close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, concave_origin) < 2 + unit_size) ||
+			concave_origin == attack_path_line.GetFurthestForward({ concave_origin, limit }))
 		{
 
 			// if were already retreating and we have the correct number of points then check if we need a new concave
@@ -1706,6 +1716,7 @@ namespace sc2 {
 			// need a new concave
 			float dist_to_move_origin = std::min(1.0f, abs(Distance2D(concave_origin, concave_target) - target_range));
 			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, true);
+			new_origin = attack_path_line.GetFurthestBack({ new_origin, limit });
 			// if new origin is further away then ignore it
 			if (Distance2D(concave_origin, concave_target) < Distance2D(new_origin, concave_target))
 				return reached_end;
@@ -1983,6 +1994,19 @@ namespace sc2 {
 				break;
 			}
 		}
+	}
+
+	Point2D ArmyGroup::FindLimitToAdvance()
+	{
+		std::vector<Point2D> danger_points;
+		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ SIEGE_TANK, SIEGE_TANK_SIEGED })))
+		{
+			Point2D pos = mediator->GetUnitPosition(unit);
+			std::vector<Point2D> intersection_points = attack_path_line.FindCircleIntersection(pos, 14);
+			Point2D danger_point = attack_path_line.GetFurthestBack(intersection_points);
+			danger_points.push_back(danger_point);
+		}
+		return attack_path_line.GetFurthestBack(danger_points);
 	}
 
 	void ArmyGroup::OnNewUnitCreatedListener(const Unit* unit)
