@@ -221,6 +221,11 @@ void ArmyManager::ScourMap()
 	for (const auto& army_group : army_groups)
 	{
 		army_group->role = ArmyRole::scour;
+		if (army_group->state_machine)
+		{
+			mediator->RemoveStateMachine(army_group->state_machine);
+			army_group->state_machine = NULL;
+		}
 	}
 }
 
