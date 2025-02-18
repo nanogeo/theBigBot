@@ -14,7 +14,7 @@ struct UnitCommand
     AbilityID ability;
     Point2D target_point;
     const Unit* target_tag;
-    UnitCommand::UnitCommand()
+    UnitCommand()
     {
         target_tag = NULL;
         target_point = Point2D(0, 0);
