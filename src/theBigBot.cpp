@@ -138,7 +138,7 @@ namespace sc2 {
 			//PrintNonPathablePoints();
 
 
-			
+
 			int id = Observation()->GetPlayerID();
             auto infos = Observation()->GetGameInfo().player_info;
             if (infos.size() > 0)
@@ -167,6 +167,7 @@ namespace sc2 {
 
 			mediator.SetUpManagers(curr_build_order);
 
+
 			started = true;
         }
 
@@ -191,10 +192,14 @@ namespace sc2 {
 		mediator.RunManagers();
 
 
+#ifndef BUILD_FOR_LADDER
 
-        DisplayDebugHud();
+		DisplayDebugHud();
 
-        Debug()->SendDebug();
+		Debug()->SendDebug();
+
+#endif // !BUILD_FOR_LADDER
+
 
 
 
