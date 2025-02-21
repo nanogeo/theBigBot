@@ -985,6 +985,7 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 	{
 		army_manager.OnUnitDestroyed(unit);
 	}
+	scouting_manager.OnUnitDestroyed(unit);
 }
 void Mediator::OnUpgradeCompleted(UPGRADE_ID upgrade)
 {
