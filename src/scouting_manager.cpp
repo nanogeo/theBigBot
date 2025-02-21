@@ -225,6 +225,22 @@ void ScoutingManager::AddNewUnit(const Unit* unit)
 
 	switch (unit->unit_type.ToType())
 	{
+	case REFINERY:
+	case ASSIMILATOR:
+	case EXTRACTOR:
+		if (first_gas_timing == 0)
+			first_gas_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+		else if (second_gas_timing == 0)
+			second_gas_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+		break;
+	case COMMAND_CENTER:
+	case HATCHERY:
+	case NEXUS:
+		if (natural_timing == 0 && unit->build_progress < 1)
+			natural_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+		else if (third_timing == 0 && unit->build_progress < 1)
+			third_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+		break;
 	case BARRACKS:
 		if (first_barrack_time == 0)
 			first_barrack_time = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
@@ -233,17 +249,32 @@ void ScoutingManager::AddNewUnit(const Unit* unit)
 		if (factory_timing == 0)
 			factory_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
 		break;
-	case REFINERY:
-		if (gas_timing == 0)
-			gas_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
-		else if (second_gas_timing == 0)
-			second_gas_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+	case GATEWAY:
+		if (first_gate_timing == 0)
+			first_gate_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+		else if (second_gate_timing == 0)
+			second_gate_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
 		break;
-	case COMMAND_CENTER:
-		if (natural_timing == 0 && unit->build_progress < 1)
-			natural_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+	case PYLON:
+		if (first_pylon_timing == 0)
+			first_pylon_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+		else if (second_pylon_timing == 0)
+			second_pylon_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
 		break;
-
+	case ROBO:
+	case TWILIGHT:
+	case STARGATE:
+		if (tech_choice == UNIT_TYPEID::BALL)
+			tech_choice = unit->unit_type;
+		break;
+	case SPAWNING_POOL:
+		if (spawning_pool_time == 0)
+			spawning_pool_time = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+		break;
+	case ROACH_WARREN:
+		if (roach_warren_time == 0)
+			roach_warren_time = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+		break;
 	}
 }
 

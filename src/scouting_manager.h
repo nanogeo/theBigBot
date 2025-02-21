@@ -20,14 +20,27 @@ public:
 	std::map<const Unit*, EnemyUnitPosition> enemy_unit_saved_position;
 	std::map<UNIT_TYPEID, int> enemy_unit_counts;
 
+
+	float first_gas_timing = 0;
+	float second_gas_timing = 0;
+	float natural_timing = 0;
+	float third_timing = 0;
+
 	// Terran scouting info
 	float first_barrack_time = 0;
 	float factory_timing = 0;
-	float natural_timing = 0;
-	float gas_timing = 0;
-	float second_gas_timing = 0;
 	FirstRaxProduction first_rax_production = FirstRaxProduction::idle;
 
+	// Protoss scouting info
+	float first_gate_timing = 0;
+	float second_gate_timing = 0;
+	float first_pylon_timing = 0;
+	float second_pylon_timing = 0;
+	UNIT_TYPEID tech_choice = UNIT_TYPEID::BALL;
+
+	// Zerg scouting info
+	float spawning_pool_time = 0;
+	float roach_warren_time = 0;
 	
 
 	ScoutingManager(Mediator* mediator)
