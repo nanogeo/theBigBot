@@ -49,41 +49,50 @@ namespace sc2 {
 
     void TheBigBot::OnStep()
     {
+		if (!started)
+		{
+			//PrintNonPathablePoints();
+
+			mediator.SetUpManagers(debug_mode);
+
+			started = true;
+		}
 		if (debug_mode)
 		{
-			if (!started)
-			{
-				mediator.SetBuildOrder(curr_build_order);
-				started = true;
-			}
-			if (!started && Observation()->GetGameLoop() < 1800)
+			UpdateEffectPositions();
+
+			UpdateEnemyWeaponCooldowns();
+
+			UpdateEnemyWeaponCooldowns();
+
+			//DisplayEnemyAttacks();
+
+			DisplayEnemyPositions();
+
+			//DisplayAlliedAttackStatus();
+
+			RemoveCompletedAtacks();
+
+			mediator.RunManagers();
+
+
+			/*if (!started && Observation()->GetGameLoop() < 1800)
 			{
 				for (const auto& probe : Observation()->GetUnits(IsUnit(PROBE)))
 				{
 					std::cout << probe->pos.x << ", " << probe->pos.y << std::endl;
 				}
 				started = false;
-			}
+			}*/
 
-			for (auto& point : locations->attack_path_line.GetPoints())
+			/*for (auto& point : locations->attack_path_line.GetPoints())
 			{
 				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(0, 255, 255));
-			}
-
-			PathManager path;
-			/*LineSegment* line = path.FitLineSegment(Point2D(40.25, 77.5), Point2D(44.5, 98.25), Point2D(41.5, 73.75), Point2D(47.75, 101.25));
-
-			path.segments.push_back(line);
-
-			std::vector<Point2D> points = path.GetPoints();
-
-			for each (Point2D point in points)
-			{
-				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 0, 255));
 			}*/
 
 
-			for (const auto &point : locations->attack_path_short)
+
+			/*for (const auto &point : locations->attack_path_short)
 			{
 				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));
 				Debug()->DebugTextOut(std::to_string(point.x) + ", " + std::to_string(point.y), ToPoint3D(point), Color(255, 0, 0), 20);
@@ -92,7 +101,7 @@ namespace sc2 {
 			for (const auto &point : locations->attack_path_short_line.GetPoints())
 			{
 				Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
-			}
+			}*/
 
 			/*std::vector<Point2D> points2;
 			Point2D point = path.GetStartPoint();
@@ -133,51 +142,10 @@ namespace sc2 {
 			ShowLocations();*/
 
 
-        if (!started)
-        {
-			//PrintNonPathablePoints();
-
-
-
-			int id = Observation()->GetPlayerID();
-            auto infos = Observation()->GetGameInfo().player_info;
-            if (infos.size() > 0)
-            {
-				enemy_race = infos[2 - id].race_requested;
-				if (!debug_mode)
-				{
-					switch (enemy_race)
-					{
-					case Race::Protoss:
-						curr_build_order = BuildOrder::three_gate_robo;
-						break;
-					case Race::Terran:
-						curr_build_order = BuildOrder::four_gate_blink;
-						break;
-					case Race::Zerg:
-						curr_build_order = BuildOrder::oracle_gatewayman_pvz;
-						break;
-					default:
-						curr_build_order = BuildOrder::three_gate_robo;
-						break;
-					}
-				}
-            }
-
-
-			mediator.SetUpManagers(curr_build_order);
-
-
-			started = true;
-        }
 
 		UpdateEffectPositions();
 
-		UpdateEnemyUnitPositions();
-
 		UpdateEnemyWeaponCooldowns();
-
-		UpdateEnemyUnitPositions();
 
 		UpdateEnemyWeaponCooldowns();
 

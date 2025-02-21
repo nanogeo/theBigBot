@@ -460,13 +460,12 @@ void Locations::SetTestingLocations(Point3D start_location, BuildOrder build_ord
 
 	this->start_location = start_location;
 
-	attack_path = { P(34, 139),
-					P(59, 114.5),
-					P(85, 89),
-					P(112, 62.5),
-					P(142, 33) };
+	attack_path = { P(31, 142),
+					P(75, 97),
+					P(102, 74),
+					P(146, 30) };
 
-	attack_path_line = PathManager({ new LineSegmentLinearX(-.98, 172.5, 30, 150, swap, center_point, true) }, true, !swap),
+	attack_path_line = PathManager(attack_path);
 
 	third_base_pylon_gap = P(34, 139);
 

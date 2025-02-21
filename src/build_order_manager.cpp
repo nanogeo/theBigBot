@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <vector>
 
+// temp
+#include "theBigBot.h"
 
 #define Data BuildOrderData
 #define Condition BuildOrderConditionArgData
@@ -907,22 +909,22 @@ bool BuildOrderManager::CheckTankCount(BuildOrderResultArgData data)
 
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
-	//mediator->Debug()->DebugCreateUnit(STALKER, mediator->locations->attack_path[0], 2, 10);
-	////mediator->Debug()->DebugCreateUnit(PRISM, mediator->locations->attack_path[0], 2, 1);
-	////mediator->Debug()->DebugCreateUnit(MARINE, mediator->locations->attack_path[2], 2, 18);
-	////mediator->Debug()->DebugCreateUnit(MARAUDER, mediator->locations->attack_path[2], 2, 6);
-	////mediator->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, mediator->locations->attack_path[2], 2, 1);
-	//mediator->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, mediator->locations->attack_path[2], 1, 6);
-	//mediator->Debug()->DebugGiveAllUpgrades();
+	mediator->agent->Debug()->DebugCreateUnit(STALKER, mediator->agent->locations->attack_path[1], 2, 10);
+	mediator->agent->Debug()->DebugCreateUnit(PRISM, mediator->agent->locations->attack_path[1], 2, 1);
+	mediator->agent->Debug()->DebugCreateUnit(MARINE, mediator->agent->locations->attack_path[2], 1, 18);
+	mediator->agent->Debug()->DebugCreateUnit(MARAUDER, mediator->agent->locations->attack_path[2], 1, 6);
+	mediator->agent->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, mediator->agent->locations->attack_path[2], 1, 1);
+	//mediator->agent->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, mediator->agent->locations->attack_path[2], 1, 6);
+	mediator->agent->Debug()->DebugGiveAllUpgrades();
+	mediator->agent->Debug()->DebugShowMap();
 	return true;
 }
 
 bool BuildOrderManager::AttackLine(BuildOrderResultArgData data)
 {
-	/*ArmyGroup* army = new ArmyGroup(mediator, mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)), mediator->locations->attack_path_line);
-	army->standby_pos = mediator->locations->attack_path[0];
-	army->using_standby = true;
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionAttackLine, new ActionArgData(army)));*/
+	ArmyGroup* army = mediator->CreateArmyGroup(ArmyRole::pressure, { STALKER, PRISM }, 20, 20);
+	army->standby_pos = mediator->agent->locations->attack_path[0];
+	army->using_standby = false;
 	return true;
 }
 
