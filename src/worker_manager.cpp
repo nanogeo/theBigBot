@@ -569,6 +569,15 @@ void WorkerManager::DistributeWorkers()
 	}
 	for (const auto &worker : workers)
 	{
+		if (worker->weapon_cooldown == 0)
+		{
+			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), worker->pos);
+			if (enemy_unit != NULL && Distance2D(worker->pos, enemy_unit->pos) <= 1)
+			{
+				mediator->SetUnitCommand(worker, ABILITY_ID::ATTACK_ATTACK, enemy_unit);
+				continue;
+			}
+		}
 		if (IsCarryingMinerals(*worker))
 		{
 			// close to nexus then return the mineral
@@ -576,7 +585,7 @@ void WorkerManager::DistributeWorkers()
 			if (nexi.size() == 0)
 				return;
 			Point2D closest_nexus = Utility::ClosestTo(nexi, worker->pos)->pos;
-			if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
+			if (DistanceSquared2D(closest_nexus, worker->pos) < 10 || Utility::CloserThan(workers, 1, worker->pos).size() > 1)
 			{
 				mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_RETURN);
 				continue;
@@ -606,7 +615,7 @@ void WorkerManager::DistributeWorkers()
 			const Unit *mineral_patch = mineral_patches_reversed[worker].mineral_tag;
 			if (mineral_patch != NULL)
 			{
-				if (DistanceSquared2D(worker->pos, mineral_patch->pos) < 4 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
+				if (DistanceSquared2D(worker->pos, mineral_patch->pos) < 4 || Utility::CloserThan(workers, 1, worker->pos).size() > 1)
 				{
 					if (worker->orders.size() == 0 || worker->orders[0].target_unit_tag != mineral_patch->tag)
 					{
