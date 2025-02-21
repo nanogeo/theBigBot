@@ -641,6 +641,15 @@ void WorkerManager::DistributeWorkers()
 	}
 	for (const auto &worker : gas_workers)
 	{
+		if (worker->weapon_cooldown == 0)
+		{
+			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), worker->pos);
+			if (enemy_unit != NULL && Distance2D(worker->pos, enemy_unit->pos) <= 1)
+			{
+				mediator->SetUnitCommand(worker, ABILITY_ID::ATTACK_ATTACK, enemy_unit);
+				continue;
+			}
+		}
 		const Unit* assimilator = assimilators_reversed[worker].assimilator_tag;
 		if (assimilators[assimilator].workers[1] != NULL)
 		{
