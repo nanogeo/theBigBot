@@ -467,7 +467,7 @@ namespace sc2 {
 		return attacks;
 	}
 
-	std::map<const Unit*, const Unit*> PersistentFireControl::FindAttacks(Units units, std::vector<std::vector<UNIT_TYPEID>> prio, float extra_range)
+	std::map<const Unit*, const Unit*> PersistentFireControl::FindAttacks(Units units, std::vector<std::vector<UNIT_TYPEID>> prio, float max_extra_range)
 	{
 		UpdateEnemyUnitHealth();
 		std::map<const Unit*, std::vector<const Unit*>> unit_targets;
@@ -476,12 +476,17 @@ namespace sc2 {
 		for (const auto& unit : units)
 		{
 			Units units_in_range;
-			for (const auto& Eunit : Eunits)
+			float extra_range = 0;
+			while (units_in_range.size() == 0 && extra_range <= max_extra_range)
 			{
-				if (enemy_unit_hp[Eunit] <= 0)
-					continue;
-				if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealRange(unit, Eunit) + extra_range)
-					units_in_range.push_back(Eunit);
+				for (const auto& Eunit : Eunits)
+				{
+					if (enemy_unit_hp[Eunit] <= 0)
+						continue;
+					if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealRange(unit, Eunit) + extra_range)
+						units_in_range.push_back(Eunit);
+				}
+				extra_range += .5;
 			}
 			unit_targets[unit] = units_in_range;
 		}
