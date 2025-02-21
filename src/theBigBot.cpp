@@ -276,8 +276,6 @@ namespace sc2 {
     void TheBigBot::OnUnitDestroyed(const Unit *unit)
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
-		if (enemy_unit_saved_position.find(unit) != enemy_unit_saved_position.end())
-			enemy_unit_saved_position.erase(unit);
 		if (enemy_weapon_cooldown.find(unit) != enemy_weapon_cooldown.end())
 			enemy_weapon_cooldown.erase(unit);
 		//if (unit->alliance == Unit::Alliance::Enemy)
@@ -803,28 +801,7 @@ namespace sc2 {
 		return damage;
 	}
 
-	void TheBigBot::UpdateEnemyUnitPositions()
-	{
-		for (const auto &unit : Observation()->GetUnits(Unit::Alliance::Enemy))
-		{
-			if (enemy_unit_saved_position.count(unit) > 0)
-			{
-				if (enemy_unit_saved_position[unit].pos == unit->pos)
-				{
-					enemy_unit_saved_position[unit].frames++;
-				}
-				else
-				{
-					enemy_unit_saved_position[unit].pos = unit->pos;
-					enemy_unit_saved_position[unit].frames = 0;
-				}
-			}
-			else
-			{
-				enemy_unit_saved_position[unit] = EnemyUnitPosition(unit->pos);
-			}
-		}
-	}
+	
 
 	void TheBigBot::UpdateEnemyWeaponCooldowns()
 	{
@@ -920,7 +897,7 @@ namespace sc2 {
 				).count();
 #endif
 
-			if (target != NULL && enemy_weapon_cooldown[Eunit] == 0 && enemy_unit_saved_position[Eunit].frames > Utility::GetDamagePoint(Eunit) * 22.4)
+			if (target != NULL && enemy_weapon_cooldown[Eunit] == 0 && mediator.scouting_manager.enemy_unit_saved_position[Eunit].frames > Utility::GetDamagePoint(Eunit) * 22.4)
 			{
 				float damage_point = Utility::GetDamagePoint(Eunit);
 				if (damage_point == 0)
@@ -959,7 +936,7 @@ namespace sc2 {
 			if (enemy_weapon_cooldown[Eunit] < 0)
 			{
 				enemy_weapon_cooldown[Eunit] = 0;
-				enemy_unit_saved_position[Eunit].frames = -1;
+				mediator.scouting_manager.enemy_unit_saved_position[Eunit].frames = -1;
 			}
 			//Debug()->DebugTextOut(std::to_string(enemy_weapon_cooldown[Eunit]), Eunit->pos + Point3D(0, 0, .2), Color(255, 0, 255), 20);
 
@@ -1721,7 +1698,7 @@ namespace sc2 {
 
 	void TheBigBot::DisplayEnemyPositions()
 	{
-		for (const auto& unit : enemy_unit_saved_position)
+		for (const auto& unit : mediator.scouting_manager.enemy_unit_saved_position)
 		{
 			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit.first->unit_type), ToPoint3D(unit.second.pos), Color(255, 128, 128), 20);
 			if (unit.first->unit_type == SIEGE_TANK || unit.first->unit_type == SIEGE_TANK_SIEGED)

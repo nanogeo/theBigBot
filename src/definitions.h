@@ -352,4 +352,20 @@ struct UnitCost
 	}
 };
 
+struct EnemyUnitPosition
+{
+	Point2D pos;
+	int frames;
+	EnemyUnitPosition()
+	{
+		pos = Point2D(0, 0);
+		frames = 0;
+	}
+	EnemyUnitPosition(Point2D pos)
+	{
+		this->pos = pos;
+		frames = 0;
+	}
+};
+
 }

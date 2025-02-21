@@ -254,30 +254,30 @@ void ScoutTerranStateMachine::CheckScoutingInfo()
 			if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_BARRACKS && agent->scout_info_terran.barrackes_timing == 0)
 			{
 				//std::cout << "barracks built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-				agent->scout_info_terran.barrackes_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+				agent->scout_info_terran.barrackes_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / 22.4);
 			}
 			else if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_FACTORY && agent->scout_info_terran.factory_timing == 0)
 			{
 				//std::cout << "factory built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-				agent->scout_info_terran.factory_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+				agent->scout_info_terran.factory_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / 22.4);
 			}
 			else if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_COMMANDCENTER && agent->scout_info_terran.natural_timing == 0 && unit->build_progress < 1)
 			{
 				//std::cout << "natural built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-				agent->scout_info_terran.natural_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+				agent->scout_info_terran.natural_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / 22.4);
 			}
 			else if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_REFINERY)
 			{
 				if (agent->scout_info_terran.gas_timing == 0)
 				{
 					//std::cout << "gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-					agent->scout_info_terran.gas_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+					agent->scout_info_terran.gas_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / 22.4);
 					agent->scout_info_terran.gas_pos = unit->pos;
 				}
 				else if (agent->scout_info_terran.second_gas_timing == 0 && unit->pos != agent->scout_info_terran.gas_pos)
 				{
 					//std::cout << "second gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-					agent->scout_info_terran.second_gas_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+					agent->scout_info_terran.second_gas_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / 22.4);
 				}
 			}
 		}

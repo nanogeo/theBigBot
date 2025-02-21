@@ -1863,7 +1863,7 @@ bool Utility::IsOnHighGround(Point3D unit, Point3D enemy_unit)
 	return unit.z + .5 < enemy_unit.z;
 }
 
-float Utility::GetTimeBuilt(const Unit* unit, const ObservationInterface* observation)
+float Utility::GetTimeBuilt(const Unit* unit, float curr_time)
 {
 	float build_time = 0;
 	switch (unit->unit_type.ToType())
@@ -1896,7 +1896,7 @@ float Utility::GetTimeBuilt(const Unit* unit, const ObservationInterface* observ
 		//std::cout << "Error Unknown building in GetTimeBuilt\n";
 		break;
 	}
-	return (observation->GetGameLoop() / 22.4) - (build_time * unit->build_progress);
+	return curr_time - (build_time * unit->build_progress);
 }
 
 AbilityID Utility::UnitToWarpInAbility(UNIT_TYPEID type)

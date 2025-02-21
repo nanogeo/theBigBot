@@ -117,21 +117,6 @@ struct Army
 
 
 
-struct EnemyUnitPosition
-{
-	Point2D pos;
-	int frames;
-	EnemyUnitPosition()
-	{
-		pos = Point2D(0, 0);
-		frames = 0;
-	}
-	EnemyUnitPosition(Point2D pos)
-	{
-		this->pos = pos;
-		frames = 0;
-	}
-};
 
 struct EnemyAttack
 {
@@ -228,7 +213,6 @@ public:
     NavMesh nav_mesh;
     const Unit* probe;
 	std::vector<Triangle*> overlaps;
-	std::map<const Unit*, EnemyUnitPosition> enemy_unit_saved_position;
 	std::map<const Unit*, float> enemy_weapon_cooldown;
 	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
 	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
@@ -301,14 +285,12 @@ public:
 
     // Utility
 	int IncomingDamage(const Unit*);
-	void UpdateEnemyUnitPositions();
 	void UpdateEnemyWeaponCooldowns();
 	void RemoveCompletedAtacks();
 	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float);
 	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);
 	void SetUpUnitTypeInfo();
 	void PrintAttacks(std::map<const Unit*, const Unit*>);
-	bool UnitIsOccupied(const Unit*);
 	Point3D ToPoint3D(Point2D);
 	int GetUniqueId();
 	void UpdateEffectPositions();

@@ -178,24 +178,24 @@ void ScoutZergStateMachine::CheckScoutingInfo()
             if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_SPAWNINGPOOL && agent->scout_info_zerg.pool_timing == 0)
             {
                 //std::cout << "pool built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-                agent->scout_info_zerg.pool_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+                agent->scout_info_zerg.pool_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / 22.4);
             }
             else if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_ROACHWARREN && agent->scout_info_zerg.roach_warren_timing == 0)
             {
                 //std::cout << "roach warren built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-                agent->scout_info_zerg.roach_warren_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+                agent->scout_info_zerg.roach_warren_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / 22.4);
             }
             else if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_EXTRACTOR && agent->scout_info_zerg.gas_timing == 0)
             {
                 //std::cout << "gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-                agent->scout_info_zerg.gas_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+                agent->scout_info_zerg.gas_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / 22.4);
             }
             else if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_HATCHERY && agent->scout_info_zerg.natural_timing == 0)
             {
                 if (Distance2D(unit->pos, enemy_natural_pos) < 2)
                 {
                     //std::cout << "natural built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-                    agent->scout_info_zerg.natural_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+                    agent->scout_info_zerg.natural_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / 22.4);
                 }
             }
             else if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_HATCHERY && agent->scout_info_zerg.third_timing == 0)
@@ -205,7 +205,7 @@ void ScoutZergStateMachine::CheckScoutingInfo()
                     if (Distance2D(unit->pos, pos) < 2)
                     {
                         //std::cout << "third built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-                        agent->scout_info_zerg.third_timing = Utility::GetTimeBuilt(unit, agent->Observation());
+                        agent->scout_info_zerg.third_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / 22.4);
                     }
                 }
             }

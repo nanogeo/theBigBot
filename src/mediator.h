@@ -13,6 +13,7 @@
 #include "finite_state_machine_manager.h"
 #include "army_manager.h"
 #include "unit_production_manager.h"
+#include "scouting_manager.h"
 #include "definitions.h"
 
 namespace sc2
@@ -30,10 +31,12 @@ public:
 		upgrade_manager(this),
 		finite_state_machine_manager(this),
 		army_manager(this),
-		unit_production_manager(this)
+		unit_production_manager(this),
+		scouting_manager(this)
 	{
 		this->agent = agent;
 	}
+
 //private:
 	TheBigBot* agent;
 	BuildOrderManager build_order_manager;
@@ -44,10 +47,11 @@ public:
 	FiniteStateMachineManager finite_state_machine_manager;
 	ArmyManager army_manager;
 	UnitProductionManager unit_production_manager;
+	ScoutingManager scouting_manager;
 
 
 public:
-	void SetUpManagers(BuildOrder);
+	void SetUpManagers(bool);
 	void RunManagers();
 
 	int GetGameLoop();
