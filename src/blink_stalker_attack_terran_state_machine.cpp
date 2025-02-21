@@ -42,7 +42,7 @@ State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism->pos);
 		return new BlinkStalkerAttackTerranWarpIn(agent, state_machine);
 	}*/
-	if ((state_machine->attached_army_group->AttackLine(.2, 2, TERRAN_PRIO) > 0 && state_machine->stalkers.size() > 0) ||
+	if ((state_machine->attached_army_group->AttackLine(.2, 7, TERRAN_PRIO) > 0 && state_machine->stalkers.size() > 0) ||
 		Distance2D(state_machine->attached_army_group->concave_origin, agent->Observation()->GetGameInfo().enemy_start_locations[0]) + 8 < 
 		Distance2D(state_machine->consolidation_pos, agent->Observation()->GetGameInfo().enemy_start_locations[0]))
 		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
@@ -354,7 +354,7 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 			return new BlinkStalkerAttackTerranSnipeUnit(agent, state_machine, target);
 		}
 	}
-	int attack_line_status = state_machine->attached_army_group->AttackLine(.2, 2, TERRAN_PRIO, true);
+	int attack_line_status = state_machine->attached_army_group->AttackLine(.2, 7, TERRAN_PRIO, true);
 	if (attack_line_status == 1 || attack_line_status == 2)
 	{
 		if (state_machine->attacking_main)

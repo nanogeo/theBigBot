@@ -1718,8 +1718,8 @@ namespace sc2 {
 			new_origin = attack_path_line.GetPointFrom(concave_origin, dist_to_move_origin, true);
 			new_origin = attack_path_line.GetFurthestBack({ new_origin, limit });
 			// if new origin is further away then ignore it
-			if (Distance2D(concave_origin, concave_target) < Distance2D(new_origin, concave_target))
-				return reached_end;
+			/*if (Distance2D(concave_origin, concave_target) < Distance2D(new_origin, concave_target))
+				return reached_end;*/
 
 		}
 		else // perfect range
