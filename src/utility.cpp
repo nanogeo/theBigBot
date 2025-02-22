@@ -363,7 +363,8 @@ Units Utility::GetUnitsWithinRange(Units units, const Unit* target, float extra)
 	Units within_range;
 	for (const auto& unit : units)
 	{
-		if (Distance2D(unit->pos, target->pos) <= RealRange(unit, target) + extra)
+		float range = RealRange(unit, target);
+		if (range > 0 && Distance2D(unit->pos, target->pos) <= range + extra)
 			within_range.push_back(unit);
 	}
 	return within_range;
