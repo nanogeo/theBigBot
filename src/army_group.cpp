@@ -1197,12 +1197,12 @@ namespace sc2 {
 			if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
 			{
 				Point2D closest = Utility::ClosestTo(attack_path, unit->pos);
-				for (int i = find(attack_path.begin(), attack_path.end(), closest) - attack_path.begin(); i < attack_path.size(); i++)
+				for (int j = find(attack_path.begin(), attack_path.end(), closest) - attack_path.begin(); j < attack_path.size(); j++)
 				{
 					if (unit->unit_type == PRISM)
-						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, attack_path[i], true);
+						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, attack_path[j], true);
 					else
-						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, attack_path[i], true);
+						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, attack_path[j], true);
 				}
 			}
 			if ((all_units.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(all_units)) < 5) || (all_units.size() == 0 && Utility::DistanceToClosest(attack_path, unit->pos) < 2))
@@ -1221,6 +1221,9 @@ namespace sc2 {
 				}
 			}
 		}
+
+		if (all_units.size() == 0)
+			return 0;
 
 		// Find current units to micro
 		Units basic_units;
