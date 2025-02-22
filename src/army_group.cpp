@@ -1211,11 +1211,14 @@ namespace sc2 {
 				{
 					if (state_machine->AddUnit(unit))
 					{
+						std::cerr << "Add Unit with state_machine" << std::endl;
 						AddUnit(unit);
 						i--;
 					}
 				}
-				else {
+				else 
+				{
+					std::cerr << "Add Unit without state_machine" << std::endl;
 					AddUnit(unit);
 					i--;
 				}
@@ -1223,7 +1226,10 @@ namespace sc2 {
 		}
 
 		if (all_units.size() == 0)
+		{
 			return 0;
+			std::cerr << "all unit is empty" << std::endl
+		}
 
 		// Find current units to micro
 		Units basic_units;
@@ -1248,9 +1254,11 @@ namespace sc2 {
 		}
 
 		OraclesDefendArmy(basic_units);
+		std::cerr << "done microing oracles" << std::endl;
 
 		if (static_cast<float>(basic_units.size()) / all_units.size() < .25)
 			return 1;
+		std::cerr << "enough basic units to continue" << std::endl;
 
 		int return_value = 0;
 
@@ -1262,6 +1270,7 @@ namespace sc2 {
 
 		mediator->agent->Debug()->DebugSphereOut(mediator->ToPoint3D(limit), 1.5, Color(255, 255, 255));
 
+		std::cerr << "find positions" << std::endl;
 		if (FindUnitPositions(basic_units, warp_prisms, dispersion, target_range, attack_path_line.GetPointFrom(limit, 1, false)))
 			return_value = 2;
 
@@ -1286,6 +1295,7 @@ namespace sc2 {
 		if ((double)units_not_ready.size() / (double)basic_units.size() > percent_units_needed)
 			return_value = 0;
 
+		std::cerr << "after check enough units" << std::endl;
 
 			
 		
@@ -1332,6 +1342,8 @@ namespace sc2 {
 	{
 		if (oracles.size() == 0)
 			return;
+		
+		std::cerr << "oracles to micro" << std::endl;
 
 		Point2D center = attack_path[0];
 		if (basic_units.size() > 0)
@@ -1402,6 +1414,7 @@ namespace sc2 {
 		}
 
 
+		std::cerr << "look for enemy lings" << std::endl;
 		Units enemy_lings = mediator->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ZERGLING));
 		int num_close_lings = 0;
 		for (const auto& ling : enemy_lings)
@@ -1409,6 +1422,7 @@ namespace sc2 {
 			if (Utility::DistanceToClosest(basic_units, ling->pos) < 4)
 				num_close_lings++;
 		}
+		std::cerr << "num close lings " << std::to_string(num_close_lings) << std::endl;
 		if (num_close_lings > 4)
 		{
 			int num_stalkers_with_blink = 0;
