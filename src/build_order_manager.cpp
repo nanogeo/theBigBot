@@ -815,11 +815,13 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 	if (info.third_timing != 0 && info.third_timing < 90)
 	{
 		// 3 hatch before pool
+		mediator->SendChat("Tag: scout_triple_hatch", ChatChannel::Team);
 		return true;
 	}
 	else if (mediator->GetGameLoop() / 22.4 >= 90)
 	{
 		// late pool
+		mediator->SendChat("Tag: scout_late_pool", ChatChannel::Team);
 		return true;
 	}
 	else if (info.pool_timing == 0)
@@ -831,16 +833,19 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		// 12 pool
 		SetEarlyPoolInterrupt(); // TODO new interrupt for 12 pool
 		build_order_step = 0;
+		mediator->SendChat("Tag: scout_12_pool", ChatChannel::Team);
 	}
 	else if (info.pool_timing < 45)
 	{
 		// pool first
 		SetEarlyPoolInterrupt();
 		build_order_step = 0;
+		mediator->SendChat("Tag: scout_pool_first", ChatChannel::Team);
 	}
 	else if (info.pool_timing >= 45)
 	{
 		// hatch first
+		mediator->SendChat("Tag: scout_hatch_pool", ChatChannel::Team);
 		return true;
 	}
 	return false;
