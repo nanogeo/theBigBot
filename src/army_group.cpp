@@ -1200,9 +1200,16 @@ namespace sc2 {
 				for (int j = find(attack_path.begin(), attack_path.end(), closest) - attack_path.begin(); j < attack_path.size(); j++)
 				{
 					if (unit->unit_type == PRISM)
-						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, attack_path[j], true);
+					{
+						if (all_units.size() == 0)
+							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, attack_path[j], true);
+						else
+							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(all_units));
+					}
 					else
+					{
 						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, attack_path[j], true);
+					}
 				}
 			}
 			if ((all_units.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(all_units)) < 5) || (all_units.size() == 0 && Utility::DistanceToClosest(attack_path, unit->pos) < 2))
