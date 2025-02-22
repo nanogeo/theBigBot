@@ -1228,7 +1228,7 @@ namespace sc2 {
 		if (all_units.size() == 0)
 		{
 			return 0;
-			std::cerr << "all unit is empty" << std::endl
+			std::cerr << "all unit is empty" << std::endl;
 		}
 
 		// Find current units to micro
