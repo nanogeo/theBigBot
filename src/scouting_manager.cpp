@@ -52,6 +52,7 @@ void ScoutingManager::SetEnemyRace(UNIT_TYPEID type)
 	case TEMPEST:
 	case MOTHERSHIP:
 		enemy_race = Race::Protoss;
+		mediator->SendChat("Tag: race_protoss", ChatChannel::Team);
 		break;
 	case COMMAND_CENTER:
 	case COMMAND_CENTER_FLYING:
@@ -106,6 +107,7 @@ void ScoutingManager::SetEnemyRace(UNIT_TYPEID type)
 	case BANSHEE:
 	case BATTLECRUISER:
 		enemy_race = Race::Terran;
+		mediator->SendChat("Tag: race_terran", ChatChannel::Team);
 		break;
 	case LARVA:
 	case EGG:
@@ -173,6 +175,7 @@ void ScoutingManager::SetEnemyRace(UNIT_TYPEID type)
 	case CREEP_TUMOR_2:
 	case CREEP_TUMOR_3:
 		enemy_race = Race::Zerg;
+		mediator->SendChat("Tag: race_zerg", ChatChannel::Team);
 		break;
 	default:
 		std::cerr << "Unknown unit type in SetEnemyRace: " << Utility::UnitTypeIdToString(type) << std::endl;

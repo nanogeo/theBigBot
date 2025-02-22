@@ -44,15 +44,19 @@ void Mediator::SetUpManagers(bool debug)
 		switch (scouting_manager.enemy_race)
 		{
 		case Race::Protoss:
+			SendChat("Tag: race_protoss", ChatChannel::Team);
 			SetBuildOrder(BuildOrder::three_gate_robo);
 			break;
 		case Race::Terran:
+			SendChat("Tag: race_terran", ChatChannel::Team);
 			SetBuildOrder(BuildOrder::four_gate_blink);
 			break;
 		case Race::Zerg:
+			SendChat("Tag: race_zerg", ChatChannel::Team);
 			SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 			break;
 		default:
+			SendChat("Tag: race_random", ChatChannel::Team);
 			SetBuildOrder(BuildOrder::three_gate_robo);
 			break;
 		}
