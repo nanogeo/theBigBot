@@ -368,6 +368,7 @@ void Mediator::SetBuildOrder(BuildOrder build)
 {
 	agent->locations = new Locations(ToPoint3D(GetStartLocation()), build, GetMapName());
 	build_order_manager.SetBuildOrder(build);
+	SendChat("Tag: " + GetMapName(), ChatChannel::Team);
 }
 
 // TODO create locations manager
