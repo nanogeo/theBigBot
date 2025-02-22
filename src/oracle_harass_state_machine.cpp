@@ -349,12 +349,9 @@ void OracleDefendLine::ExitState()
 
 State* OracleDefendLine::TestTransitions()
 {
-	if (state_machine->attached_army_group != NULL)
-		return new OracleDefendArmyGroup(agent, state_machine);
-
 	if (state_machine->oracles.size() > 1 && state_machine->sent_harass == false) 
 	{
-		if (true) //(agent->Observation()->GetGameLoop() % 2 == 0)
+		if (agent->Observation()->GetGameLoop() % 2 == 0)
 		{
 			state_machine->harass_direction = true;
 			state_machine->harass_index = 0;
@@ -1157,7 +1154,7 @@ OracleHarassStateMachine::OracleHarassStateMachine(TheBigBot* agent, Units oracl
 		harass_index = agent->locations->oracle_path.entrance_points.size() - 1;
 		current_state = new OracleHarassGroupUp(agent, this, agent->locations->oracle_path.exit_point);
 	}
-
+	
 	for (int i = 0; i < oracles.size(); i++)
 	{
 		time_last_attacked[oracles[i]] = 0;

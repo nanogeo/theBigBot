@@ -661,10 +661,10 @@ void Mediator::CreateAdeptHarassProtossFSM()
 
 void Mediator::StartOracleHarassStateMachine()
 {
-	OracleHarassStateMachine* oracle_fsm = new OracleHarassStateMachine(agent, {}, "Oracles");
+	OracleHarassStateMachine* oracle_fsm = new OracleHarassStateMachine(agent, {}, agent->locations->nexi_locations[2], agent->locations->natural_door_closed, "Oracles");
 	finite_state_machine_manager.active_state_machines.push_back(oracle_fsm);
 
-	ArmyGroup* oracles_army = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ORACLE }, 2, 3);
+	ArmyGroup* oracles_army = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ORACLE }, 2, 2);
 	oracles_army->state_machine = oracle_fsm;
 	oracle_fsm->attached_army_group = oracles_army;
 }
