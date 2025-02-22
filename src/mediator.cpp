@@ -978,8 +978,7 @@ void Mediator::OnUnitDamaged(const Unit* unit, float health_damage, float shield
 }
 void Mediator::OnUnitDestroyed(const Unit* unit)
 {
-	if (unit->mineral_contents > 0)
-		worker_manager.RemoveSpentMineralPatch(unit);
+	worker_manager.OnUnitDestroyed(unit);
 
 	if (std::find(ALL_ARMY_UNITS.begin(), ALL_ARMY_UNITS.end(), unit->unit_type) != ALL_ARMY_UNITS.end())
 	{

@@ -911,4 +911,12 @@ void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
 	}
 }
 
+void WorkerManager::OnUnitDestroyed(const Unit* unit)
+{
+	if (unit->mineral_contents > 0)
+		RemoveSpentMineralPatch(unit);
+	else
+		RemoveWorker(unit);
+}
+
 }

@@ -115,7 +115,7 @@ public:
 	void SetNewBase(const Unit*);
 	void RemoveSpentMineralPatch(const Unit*);
 
-
+	void OnUnitDestroyed(const Unit*);
 };
 
 }
