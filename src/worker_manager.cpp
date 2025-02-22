@@ -571,7 +571,7 @@ void WorkerManager::DistributeWorkers()
 	{
 		if (worker->weapon_cooldown == 0)
 		{
-			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), worker->pos);
+			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), worker->pos);
 			if (enemy_unit != NULL && Distance2D(worker->pos, enemy_unit->pos) <= Utility::RealRange(worker, enemy_unit))
 			{
 				mediator->SetUnitCommand(worker, ABILITY_ID::ATTACK_ATTACK, enemy_unit);
@@ -643,7 +643,7 @@ void WorkerManager::DistributeWorkers()
 	{
 		if (worker->weapon_cooldown == 0)
 		{
-			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), worker->pos);
+			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), worker->pos);
 			if (enemy_unit != NULL && Distance2D(worker->pos, enemy_unit->pos) <= Utility::RealRange(worker, enemy_unit))
 			{
 				mediator->SetUnitCommand(worker, ABILITY_ID::ATTACK_ATTACK, enemy_unit);
