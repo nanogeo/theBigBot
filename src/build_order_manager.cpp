@@ -274,6 +274,11 @@ bool BuildOrderManager::TrainZealot(BuildOrderResultArgData data)
 
 bool BuildOrderManager::TrainOracle(BuildOrderResultArgData data)
 {
+	for (const auto& stargate : mediator->GetUnits(IsFriendlyUnit(STARGATE)))
+	{
+		if (stargate->orders.size() > 0 && stargate->orders[0].ability_id == ABILITY_ID::TRAIN_ORACLE)
+			return true;
+	}
 	if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_ORACLE, 1))
 	{
 		for (const auto &stargate : mediator->GetUnits(IsFriendlyUnit(STARGATE)))
@@ -281,7 +286,6 @@ bool BuildOrderManager::TrainOracle(BuildOrderResultArgData data)
 			if (stargate->build_progress == 1 && stargate->orders.size() == 0)
 			{
 				mediator->SetUnitCommand(stargate, ABILITY_ID::TRAIN_ORACLE);
-				return true;
 			}
 		}
 	}
@@ -290,19 +294,18 @@ bool BuildOrderManager::TrainOracle(BuildOrderResultArgData data)
 
 bool BuildOrderManager::TrainPrism(BuildOrderResultArgData data)
 {
-	std::cerr << "Trying to train prism at " << mediator->GetGameLoop() / 22.4 << std::endl;
+	for (const auto& robo : mediator->GetUnits(IsFriendlyUnit(ROBO)))
+	{
+		if (robo->orders.size() > 0 && robo->orders[0].ability_id == ABILITY_ID::TRAIN_WARPPRISM)
+			return true;
+	}
 	if (mediator->CanAfford(PRISM, 1))
 	{
-		std::cerr << "Can afford prism" << std::endl;
 		for (const auto &robo : mediator->GetUnits(IsFriendlyUnit(ROBO)))
 		{
-			std::cerr << "Robo build progress: " << robo->build_progress << std::endl;
-			std::cerr << "Robo orders: " << robo->orders.size() << std::endl;
 			if (robo->build_progress == 1 && robo->orders.size() == 0)
 			{
 				mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
-				std::cerr << "Prism trained at " << mediator->GetGameLoop() / 22.4 << std::endl;
-				return true;
 			}
 		}
 	}
@@ -311,6 +314,11 @@ bool BuildOrderManager::TrainPrism(BuildOrderResultArgData data)
 
 bool BuildOrderManager::TrainObserver(BuildOrderResultArgData data)
 {
+	for (const auto& robo : mediator->GetUnits(IsFriendlyUnit(ROBO)))
+	{
+		if (robo->orders.size() > 0 && robo->orders[0].ability_id == ABILITY_ID::TRAIN_OBSERVER)
+			return true;
+	}
 	if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_OBSERVER, 1))
 	{
 		for (const auto &robo : mediator->GetUnits(IsFriendlyUnit(ROBO)))
@@ -319,7 +327,6 @@ bool BuildOrderManager::TrainObserver(BuildOrderResultArgData data)
 			{
 				mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_OBSERVER);
 				mediator->CreateArmyGroup(ArmyRole::observer_scout, { OBSERVER }, 1, 2);
-				return true;
 			}
 		}
 	}
