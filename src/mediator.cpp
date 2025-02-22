@@ -682,24 +682,52 @@ bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)
 {
 	const Unit* scout = NULL;
 	Race enemy_race = GetEnemyRace();
-	StateMachine* state_machine;
+	StateMachine* state_machine = NULL;
 	switch (enemy_race)
 	{
 	case Race::Zerg:
 		state_machine = GetStateMachineByName("Scout Zerg");
-		scout = ((ScoutZergStateMachine*)state_machine)->scout;
+		if (state_machine != NULL)
+		{
+			scout = ((ScoutZergStateMachine*)state_machine)->scout;
+		}
+		else
+		{
+			state_machine = GetStateMachineByName("Scout Random");
+			if (state_machine != NULL)
+				scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+		}
 		break;
 	case Race::Terran:
 		state_machine = GetStateMachineByName("Scout Terran");
-		scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+		if (state_machine != NULL)
+		{
+			scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+		}
+		else
+		{
+			state_machine = GetStateMachineByName("Scout Random");
+			if (state_machine != NULL)
+				scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+		}
 		break;
 	case Race::Protoss:
 		state_machine = GetStateMachineByName("Scout Protoss");
-		scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+		if (state_machine != NULL)
+		{
+			scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+		}
+		else
+		{
+			state_machine = GetStateMachineByName("Scout Random");
+			if (state_machine != NULL)
+				scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+		}
 		break;
 	case Race::Random:
 		state_machine = GetStateMachineByName("Scout Random");
-		scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+		if (state_machine != NULL)
+			scout = ((ScoutTerranStateMachine*)state_machine)->scout;
 		break;
 	}
 
