@@ -76,6 +76,8 @@ public:
 	int GetUpgradeLevel(UpgradeType);
 	const Unit* GetMostRecentBuilding(UNIT_TYPEID);
 
+	void SendChat(std::string, ChatChannel);
+
 	const Unit* GetBuilder(Point2D);
 	void BuildBuilding(UNIT_TYPEID, Point2D, const Unit*);
 	void BuildBuildingMulti(std::vector<UNIT_TYPEID>, Point2D, const Unit*);

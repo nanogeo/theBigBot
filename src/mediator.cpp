@@ -241,6 +241,11 @@ const Unit* Mediator::GetMostRecentBuilding(UNIT_TYPEID type)
 	return possible_buildings[0];
 }
 
+void Mediator::SendChat(std::string message, ChatChannel channel)
+{
+	agent->Actions()->SendChat(message, channel);
+}
+
 const Unit* Mediator::GetBuilder(Point2D position)
 {
 	return worker_manager.GetBuilder(position);

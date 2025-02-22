@@ -55,6 +55,8 @@ namespace sc2 {
 
 			mediator.SetUpManagers(debug_mode);
 
+			Actions()->SendChat("glhf", ChatChannel::All);
+
 			started = true;
 		}
 		if (debug_mode)
