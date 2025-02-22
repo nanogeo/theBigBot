@@ -116,7 +116,7 @@ bool IsNotFlyingUnit::operator()(const Unit& unit_) const {
 
 const Unit* Utility::ClosestTo(Units units, Point2D position)
 {
-	const Unit* current_closest;
+	const Unit* current_closest = NULL;
 	float current_distance = INFINITY;
 	for (const auto &unit : units)
 	{
@@ -137,7 +137,7 @@ const Unit* Utility::ClosestTo(Units units, Point2D position)
 
 const Unit* Utility::ClosestToLine(Units units, LineSegmentLinearX line)
 {
-	const Unit* current_closest;
+	const Unit* current_closest = NULL;
 	float current_distance = INFINITY;
 	for (const auto& unit : units)
 	{
@@ -210,7 +210,7 @@ Point2D Utility::ClosestTo(std::vector<Point2D> points, Point2D position)
 
 const Unit* Utility::ClosestUnitTo(Units units, Point2D position)
 {
-	const Unit* current_closest;
+	const Unit* current_closest = NULL;
 	float current_distance = INFINITY;
 	for (const auto &unit : units)
 	{
@@ -245,7 +245,7 @@ Point2D Utility::NthClosestTo(std::vector<Point2D> points, Point2D position, int
 
 const Unit* Utility::FurthestFrom(Units units, Point2D position)
 {
-	const Unit* current_furthest;
+	const Unit* current_furthest = NULL;
 	float current_distance = 0;
 	for (const auto &unit : units)
 	{
