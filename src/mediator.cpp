@@ -28,7 +28,6 @@ namespace sc2
 void Mediator::SetUpManagers(bool debug)
 {
 	worker_manager.new_base = agent->Observation()->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS))[0];
-	army_manager.SetUpInitialArmies();
 
 	int id = agent->Observation()->GetPlayerID();
 	auto infos = agent->Observation()->GetGameInfo().player_info;
@@ -59,6 +58,7 @@ void Mediator::SetUpManagers(bool debug)
 		}
 	}
 
+	army_manager.SetUpInitialArmies();
 }
 
 void Mediator::RunManagers()
