@@ -18,6 +18,7 @@
 #include <typeinfo>
 #include <ctime>
 #include <cstdlib>
+#include <stdexcept>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -49,18 +50,104 @@ namespace sc2 {
 
     void TheBigBot::OnStep()
     {
-		if (!started)
+		try
 		{
-			//PrintNonPathablePoints();
+			if (!started)
+			{
+				//PrintNonPathablePoints();
 
-			mediator.SetUpManagers(debug_mode);
+				mediator.SetUpManagers(debug_mode);
 
-			Actions()->SendChat("glhf", ChatChannel::All);
+				Actions()->SendChat("glhf", ChatChannel::All);
 
-			started = true;
-		}
-		if (debug_mode)
-		{
+				started = true;
+			}
+			if (debug_mode)
+			{
+				UpdateEffectPositions();
+
+				UpdateEnemyWeaponCooldowns();
+
+				UpdateEnemyWeaponCooldowns();
+
+				//DisplayEnemyAttacks();
+
+				DisplayEnemyPositions();
+
+				//DisplayAlliedAttackStatus();
+
+				RemoveCompletedAtacks();
+
+				mediator.RunManagers();
+
+
+				/*if (!started && Observation()->GetGameLoop() < 1800)
+				{
+					for (const auto& probe : Observation()->GetUnits(IsUnit(PROBE)))
+					{
+						std::cout << probe->pos.x << ", " << probe->pos.y << std::endl;
+					}
+					started = false;
+				}*/
+
+				/*for (auto& point : locations->attack_path_line.GetPoints())
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(0, 255, 255));
+				}*/
+
+
+
+				/*for (const auto &point : locations->attack_path_short)
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));
+					Debug()->DebugTextOut(std::to_string(point.x) + ", " + std::to_string(point.y), ToPoint3D(point), Color(255, 0, 0), 20);
+				}
+
+				for (const auto &point : locations->attack_path_short_line.GetPoints())
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
+				}*/
+
+				/*std::vector<Point2D> points2;
+				Point2D point = path.GetStartPoint();
+				while (Distance2D(point, path.GetEndPoint()) > 1)
+				{
+					points2.push_back(point);
+					point = path.GetPointFrom(point, 1, true);
+				}
+
+				for each (Point2D point in points2)
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 0, 255));
+				}*/
+
+				Debug()->SendDebug();
+				return;
+			}
+
+
+
+			Units bla = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ADEPT));
+			Units funits = Observation()->GetUnits(Unit::Alliance::Self);
+			Units nunits = Observation()->GetUnits(Unit::Alliance::Neutral);
+			Units eunits = Observation()->GetUnits(Unit::Alliance::Enemy);
+			frames_passed++;
+			//std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
+
+
+
+
+			/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Neutral))
+			{
+				Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
+			}*/
+
+
+			/*if (!debug_mode)
+				ShowLocations();*/
+
+
+
 			UpdateEffectPositions();
 
 			UpdateEnemyWeaponCooldowns();
@@ -78,102 +165,22 @@ namespace sc2 {
 			mediator.RunManagers();
 
 
-			/*if (!started && Observation()->GetGameLoop() < 1800)
-			{
-				for (const auto& probe : Observation()->GetUnits(IsUnit(PROBE)))
-				{
-					std::cout << probe->pos.x << ", " << probe->pos.y << std::endl;
-				}
-				started = false;
-			}*/
-
-			/*for (auto& point : locations->attack_path_line.GetPoints())
-			{
-				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(0, 255, 255));
-			}*/
-
-
-
-			/*for (const auto &point : locations->attack_path_short)
-			{
-				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));
-				Debug()->DebugTextOut(std::to_string(point.x) + ", " + std::to_string(point.y), ToPoint3D(point), Color(255, 0, 0), 20);
-			}
-
-			for (const auto &point : locations->attack_path_short_line.GetPoints())
-			{
-				Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
-			}*/
-
-			/*std::vector<Point2D> points2;
-			Point2D point = path.GetStartPoint();
-			while (Distance2D(point, path.GetEndPoint()) > 1)
-			{
-				points2.push_back(point);
-				point = path.GetPointFrom(point, 1, true);
-			}
-
-			for each (Point2D point in points2)
-			{
-				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 0, 255));
-			}*/
-
-			Debug()->SendDebug();
-			return;
-		}
-
-
-
-		Units bla = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ADEPT));
-		Units funits = Observation()->GetUnits(Unit::Alliance::Self);
-		Units nunits = Observation()->GetUnits(Unit::Alliance::Neutral);
-		Units eunits = Observation()->GetUnits(Unit::Alliance::Enemy);
-		frames_passed++;
-        //std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
-        
-        
-
-
-		/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Neutral))
-		{
-			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
-		}*/
-
-
-		/*if (!debug_mode)
-			ShowLocations();*/
-
-
-
-		UpdateEffectPositions();
-
-		UpdateEnemyWeaponCooldowns();
-
-		UpdateEnemyWeaponCooldowns();
-
-		//DisplayEnemyAttacks();
-
-		DisplayEnemyPositions();
-
-		//DisplayAlliedAttackStatus();
-
-		RemoveCompletedAtacks();
-
-		mediator.RunManagers();
-
-
 #ifndef BUILD_FOR_LADDER
 
-		DisplayDebugHud();
+			DisplayDebugHud();
 
-		Debug()->SendDebug();
+			Debug()->SendDebug();
 
 #endif // !BUILD_FOR_LADDER
 
 
 
 
-
+		}
+		catch (const std::exception& e)
+		{
+			std::cerr << "Exception: " << e.what() << std::endl;
+		}
     }
 
     void TheBigBot::OnBuildingConstructionComplete(const Unit *building)
