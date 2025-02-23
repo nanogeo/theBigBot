@@ -1532,12 +1532,14 @@ namespace sc2 {
 		}
 		else
 		{
-			Units oracles = Units(oracles);
-			std::sort(oracles.begin(), oracles.end(), [](const Unit*& a, const Unit*& b) -> bool
+			Units oracles2 = Units(oracles);
+			std::cerr << "made oracles2" << std::endl;
+			std::sort(oracles2.begin(), oracles2.end(), [](const Unit*& a, const Unit*& b) -> bool
 			{
 				return a->energy > b->energy;
 			});
-			for (const auto& oracle : oracles)
+			std::cerr << "sorted oracles2" << std::endl;
+			for (const auto& oracle : oracles2)
 			{
 				if (oracle->energy > 10 && (enemy_lings.size() == 0 || Utility::DistanceToClosest(enemy_lings, oracle->pos)))
 				{
