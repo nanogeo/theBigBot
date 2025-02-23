@@ -574,7 +574,7 @@ void WorkerManager::DistributeWorkers()
 			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), worker->pos);
 			if (enemy_unit != NULL && Distance2D(worker->pos, enemy_unit->pos) <= Utility::RealRange(worker, enemy_unit))
 			{
-				mediator->SetUnitCommand(worker, ABILITY_ID::ATTACK_ATTACK, enemy_unit);
+				mediator->SetUnitCommand(worker, ABILITY_ID::ATTACK, enemy_unit);
 				continue;
 			}
 		}
@@ -617,12 +617,12 @@ void WorkerManager::DistributeWorkers()
 			{
 				if (DistanceSquared2D(worker->pos, mineral_patch->pos) < 4 || Utility::CloserThan(workers, 1, worker->pos).size() > 1)
 				{
-					if (worker->orders.size() == 0 || worker->orders[0].target_unit_tag != mineral_patch->tag)
+					if (worker->orders.size() == 0 || worker->orders[0].ability_id == ABILITY_ID::ATTACK || worker->orders[0].target_unit_tag != mineral_patch->tag)
 					{
 						mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER, mineral_patch);
 					}
 				}
-				else if (worker->orders.size() == 0 || worker->orders[0].ability_id != ABILITY_ID::GENERAL_MOVE || DistanceSquared2D(mineral_patches_reversed[worker].pick_up_point, worker->orders[0].target_pos) > 1)
+				else if (worker->orders.size() == 0 || worker->orders[0].ability_id == ABILITY_ID::ATTACK || worker->orders[0].ability_id != ABILITY_ID::GENERAL_MOVE || DistanceSquared2D(mineral_patches_reversed[worker].pick_up_point, worker->orders[0].target_pos) > 1)
 				{
 					mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, mineral_patches_reversed[worker].pick_up_point);
 				}
@@ -646,7 +646,7 @@ void WorkerManager::DistributeWorkers()
 			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), worker->pos);
 			if (enemy_unit != NULL && Distance2D(worker->pos, enemy_unit->pos) <= Utility::RealRange(worker, enemy_unit))
 			{
-				mediator->SetUnitCommand(worker, ABILITY_ID::ATTACK_ATTACK, enemy_unit);
+				mediator->SetUnitCommand(worker, ABILITY_ID::ATTACK, enemy_unit);
 				continue;
 			}
 		}
@@ -654,7 +654,7 @@ void WorkerManager::DistributeWorkers()
 		if (assimilators[assimilator].workers[1] != NULL)
 		{
 			// 2 or 3 workers assigned to gas
-			if (worker->orders.size() == 0)
+			if (worker->orders.size() == 0 || worker->orders[0].ability_id == ABILITY_ID::ATTACK)
 			{
 				mediator->SetUnitCommand(worker, ABILITY_ID::SMART, assimilator);
 			}
@@ -704,12 +704,12 @@ void WorkerManager::DistributeWorkers()
 			{
 				if (DistanceSquared2D(worker->pos, assimilator->pos) < 4 || Utility::CloserThan(workers, .75, worker->pos).size() > 1)
 				{
-					if (worker->orders.size() == 0 || worker->orders[0].target_unit_tag != assimilator->tag)
+					if (worker->orders.size() == 0 || worker->orders[0].ability_id == ABILITY_ID::ATTACK || worker->orders[0].target_unit_tag != assimilator->tag)
 					{
 						mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER, assimilator);
 					}
 				}
-				else if (worker->orders.size() == 0 || worker->orders[0].ability_id != ABILITY_ID::GENERAL_MOVE || DistanceSquared2D(assimilators_reversed[worker].pick_up_point, worker->orders[0].target_pos) > 1)
+				else if (worker->orders.size() == 0 || worker->orders[0].ability_id == ABILITY_ID::ATTACK || worker->orders[0].ability_id != ABILITY_ID::GENERAL_MOVE || DistanceSquared2D(assimilators_reversed[worker].pick_up_point, worker->orders[0].target_pos) > 1)
 				{
 					mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, assimilators_reversed[worker].pick_up_point);
 				}
