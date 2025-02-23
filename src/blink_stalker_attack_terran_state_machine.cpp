@@ -28,28 +28,20 @@ void BlinkStalkerAttackTerranMoveAcross::ExitState()
 
 State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 {
-	/*bool gates_almost_ready = true;
-	for (const auto& status : agent->warpgate_status)
-	{
-		if (status.second.frame_ready > agent->Observation()->GetGameLoop() + 45)
-		{
-			gates_almost_ready = false;
-			break;
-		}
-	}
-	if (gates_almost_ready && agent->Observation()->IsPathable(state_machine->prism->pos) && Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, agent->warpgate_status.size() - 1, agent->Observation()))
-	{
-		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism->pos);
-		return new BlinkStalkerAttackTerranWarpIn(agent, state_machine);
-	}*/
 	if ((state_machine->attached_army_group->AttackLine(.2, 7, TERRAN_PRIO) > 0 && state_machine->stalkers.size() > 0) ||
-		Distance2D(state_machine->attached_army_group->concave_origin, agent->Observation()->GetGameInfo().enemy_start_locations[0]) + 8 < 
+		Distance2D(state_machine->attached_army_group->concave_origin, agent->Observation()->GetGameInfo().enemy_start_locations[0]) + 8 <
 		Distance2D(state_machine->consolidation_pos, agent->Observation()->GetGameInfo().enemy_start_locations[0]))
+	{
+		if (state_machine->attached_army_group)
+			state_machine->attached_army_group->using_standby = true;
 		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
+	}
 
 	if (Utility::DistanceToFurthest(state_machine->stalkers, state_machine->consolidation_pos) < 4 &&
 		Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 2)
 	{
+		if (state_machine->attached_army_group)
+			state_machine->attached_army_group->using_standby = true;
 		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 	}
 	return NULL;

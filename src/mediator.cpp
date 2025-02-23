@@ -648,7 +648,6 @@ void Mediator::RemoveStateMachine(StateMachine* state_machine)
 void Mediator::CreateFourGateBlinkFSM()
 {
 	ArmyGroup* army = CreateArmyGroup(ArmyRole::outside_control, { STALKER, PRISM }, 15, 25);
-	army->using_standby = true;
 	army->standby_pos = agent->locations->blink_presure_consolidation;
 	army->attack_path = GetDirectAttackPath();
 	army->attack_path_line = GetDirectAttackLine();
