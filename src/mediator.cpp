@@ -68,8 +68,10 @@ void Mediator::SetUpManagers(bool debug)
 void Mediator::RunManagers()
 {
 	scouting_manager.UpdateInfo();
+	std::cerr << "1" << std::endl;
 
 	worker_manager.DistributeWorkers();
+	std::cerr << "2" << std::endl;
 	if (worker_manager.new_base != NULL)
 	{
 		//std::cout << "add new base\n";
@@ -83,17 +85,25 @@ void Mediator::RunManagers()
 	if (agent->Observation()->GetGameLoop() % 5 == 0)
 		worker_manager.BuildWorkers();
 
+	std::cerr << "3" << std::endl;
 	unit_production_manager.RunUnitProduction();
 
+	std::cerr << "4" << std::endl;
 	build_order_manager.CheckBuildOrder();
 
+	std::cerr << "5" << std::endl;
 	action_manager.ProcessActions();
 
+	std::cerr << "6" << std::endl;
 	finite_state_machine_manager.RunStateMachines();
 
+	std::cerr << "7" << std::endl;
 	army_manager.RunArmyGroups();
 
+	std::cerr << "8" << std::endl;
 	unit_command_manager.ParseUnitCommands();
+
+	std::cerr << "9" << std::endl;
 }
 
 int  Mediator::GetGameLoop()
