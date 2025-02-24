@@ -2013,13 +2013,15 @@ namespace sc2 {
 	Point2D ArmyGroup::FindLimitToAdvance()
 	{
 		std::vector<Point2D> danger_points;
-		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ SIEGE_TANK, SIEGE_TANK_SIEGED })))
+		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ SIEGE_TANK_SIEGED })))
 		{
 			Point2D pos = mediator->GetUnitPosition(unit);
 			std::vector<Point2D> intersection_points = attack_path_line.FindCircleIntersection(pos, 14);
 			Point2D danger_point = attack_path_line.GetFurthestBack(intersection_points);
 			danger_points.push_back(danger_point);
 		}
+		Point2D furthest_back = attack_path_line.GetFurthestBack(danger_points);
+		danger_points.erase(std::remove(danger_points.begin(), danger_points.end(), furthest_back), danger_points.end());
 		return attack_path_line.GetFurthestBack(danger_points);
 	}
 
