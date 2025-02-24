@@ -106,7 +106,7 @@ void ArmyManager::RunArmyGroups()
 				army_groups[i]->AttackLine(0, 6, ZERG_PRIO);
 				break;
 			case Race::Protoss:
-				army_groups[i]->AttackLine(0, 6, PROTOSS_PRIO);
+				army_groups[i]->AttackLine(0, 8, PROTOSS_PRIO);
 				break;
 			case Race::Terran:
 				army_groups[i]->AttackLine(.2, 7, TERRAN_PRIO);
