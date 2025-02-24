@@ -219,6 +219,9 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 		}
 		if (stalkers_healthy / state_machine->stalkers.size() > .5)
 		{
+			if (agent->mediator.GetMapName() == "Acropolis AIE") // acropolis does not have a blink up spot
+				state_machine->attacking_main = false;
+
 			if (state_machine->attacking_main && state_machine->prism->is_alive)
 				return new BlinkStalkerAttackTerranBlinkUp(agent, state_machine, state_machine->stalkers);
 			else
