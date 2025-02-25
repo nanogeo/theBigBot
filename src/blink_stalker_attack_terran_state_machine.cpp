@@ -329,7 +329,7 @@ void BlinkStalkerAttackTerranAttack::ExitState()
 State* BlinkStalkerAttackTerranAttack::TestTransitions()
 {
 	float now = agent->Observation()->GetGameLoop() / 22.4;
-	for (const auto& tank : agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsUnits({ SIEGE_TANK, SIEGE_TANK_SIEGED })))
+	for (const auto& tank : agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsUnits({ SIEGE_TANK, SIEGE_TANK_SIEGED, MEDIVAC })))
 	{
 		Units stalkers_in_range;
 		for (const auto& stalker : state_machine->stalkers)
