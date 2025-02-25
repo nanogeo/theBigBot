@@ -122,7 +122,7 @@ void BlinkStalkerAttackTerranConsolidate::TickState()
 		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism_consolidation_pos);
 	for (const auto& unit : state_machine->stalkers)
 	{
-		if (Distance2D(unit->pos, state_machine->consolidation_pos) > 10)
+		if (Distance2D(unit->pos, state_machine->consolidation_pos) > 10 || unit->weapon_cooldown > 0)
 			agent->Actions()->UnitCommand(unit, ABILITY_ID::GENERAL_MOVE, state_machine->consolidation_pos);
 		else if (Distance2D(unit->pos, state_machine->consolidation_pos) > 3)
 			agent->Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, state_machine->consolidation_pos);
