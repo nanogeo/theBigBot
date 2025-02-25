@@ -1211,6 +1211,10 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueUpgrades,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueChronos,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(410.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY, GATEWAY, GATEWAY})),
+					Data(&BuildOrderManager::TimePassed,			Condition(420.0f),			&BuildOrderManager::ResearchCharge,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(500.0f),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
+					Data(&BuildOrderManager::TimePassed,			Condition(500.0f),			&BuildOrderManager::ZealotDoubleprong,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(720.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::ReadyToScour,			Condition(900.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
