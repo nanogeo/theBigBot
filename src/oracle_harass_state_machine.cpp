@@ -222,7 +222,7 @@ void OracleDefendLine::TickState()
 			bool beam_active = state_machine->is_beam_active[oracle];
 			bool beam_activatable = false;
 
-			if (!beam_active && oracle->energy >= 40)
+			if (!beam_active && oracle->energy >= 40 && enemy_units.size() > 5)
 				beam_activatable = true;
 
 			const Unit* closest_unit = Utility::ClosestTo(enemy_units, oracle->pos);
@@ -242,7 +242,10 @@ void OracleDefendLine::TickState()
 				}
 				else if (state_machine->has_attacked[oracle])
 				{
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+					if ((agent->Observation()->GetUnit(oracle->engaged_target_tag) == NULL || 
+						Distance2D(oracle->pos, agent->Observation()->GetUnit(oracle->engaged_target_tag)->pos) > 3) ||
+						Distance2D(oracle->pos, closest_unit->pos) > 3)  // only move if target is getting away
+						agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
 					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 				}
 				else
@@ -252,7 +255,7 @@ void OracleDefendLine::TickState()
 			}
 			else if (beam_activatable)
 			{
-				if (Distance2D(oracle->pos, closest_unit->pos) < 3)
+				if (Distance2D(oracle->pos, closest_unit->pos) < 2)
 				{
 					agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
 					state_machine->is_beam_active[oracle] = true;
