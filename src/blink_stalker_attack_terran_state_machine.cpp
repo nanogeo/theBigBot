@@ -350,7 +350,7 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 		}
 	}
 	int attack_line_status = state_machine->attached_army_group->AttackLine(.2, 7, TERRAN_PRIO, true);
-	if (attack_line_status == 1 || attack_line_status == 2)
+	if (attack_line_status == 1 || attack_line_status == 2 || state_machine->attached_army_group->new_units.size() > state_machine->stalkers.size() * 1.5)
 	{
 		if (state_machine->attacking_main)
 		{
