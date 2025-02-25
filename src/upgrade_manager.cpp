@@ -40,13 +40,13 @@ void UpgradeManager::OnUpgradeCompleted(UPGRADE_ID upgrade)
 		has_storm = true;
 		break;
 	case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1:
-		ground_weapon = 1;
+		ground_weapons = 1;
 		break;
 	case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2:
-		ground_weapon = 2;
+		ground_weapons = 2;
 		break;
 	case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL3:
-		ground_weapon = 3;
+		ground_weapons = 3;
 		break;
 	case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL1:
 		ground_armor = 1;
@@ -67,13 +67,13 @@ void UpgradeManager::OnUpgradeCompleted(UPGRADE_ID upgrade)
 		shields = 3;
 		break;
 	case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1:
-		air_weapon = 1;
+		air_weapons = 1;
 		break;
 	case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL2:
-		air_weapon = 2;
+		air_weapons = 2;
 		break;
 	case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL3:
-		air_weapon = 3;
+		air_weapons = 3;
 		break;
 	case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL1:
 		air_armor = 1;
