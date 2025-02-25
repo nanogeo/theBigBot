@@ -1804,7 +1804,7 @@ namespace sc2 {
 		if (static_cast<float>(units.size()) / static_cast<float>(total_units) >= percent_needed)
 		{
 			// find targets for each unit
-			std::map<const Unit*, const Unit*> found_targets = persistent_fire_control.FindAttacks(units, target_priority, 2);
+			std::map<const Unit*, const Unit*> found_targets = persistent_fire_control.FindAttacks(units, target_priority, 1);
 			for (const auto& unit : units)
 			{
 				if (found_targets.count(unit) > 0)
