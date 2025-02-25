@@ -1124,7 +1124,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(410.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({FLEET_BEACON, STARGATE})),
 					Data(&BuildOrderManager::HasUnits,				Condition(ZEALOT, 12),		&BuildOrderManager::ZealotDoubleprong,					Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(FLEET_BEACON),	&BuildOrderManager::SetUnitProduction,					Result(CARRIER)),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(500.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::ReadyToScour,			Condition(600.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
