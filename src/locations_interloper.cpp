@@ -198,7 +198,7 @@ namespace sc2 {
 												P(28, 121) };
 		std::vector<Point2D> exit_points = { P(48, 125),
 											P(17, 134),
-											P(63, 110) };
+											P(16, 108) };
 		std::vector<Point2D> base_points = { P(58.5, 128.5),
 											P(26.5, 137.5),
 											P(25.5, 111.5) };
