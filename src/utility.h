@@ -144,6 +144,7 @@ public:
 	static int MaxCanAfford(UNIT_TYPEID, const ObservationInterface*);
 	static std::vector<UNIT_TYPEID> GetBurrowedUnitTypes();
 	static std::vector<double> GetRealQuarticRoots(double, double, double, double, double);
+	static bool IsBiological(UNIT_TYPEID);
 
 	static std::string UnitTypeIdToString(UNIT_TYPEID);
 	static std::string AbilityIdToString(ABILITY_ID);

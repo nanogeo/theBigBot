@@ -2482,6 +2482,25 @@ std::vector<double> Utility::GetRealQuarticRoots(double A, double B, double C, d
 	return real_roots;
 }
 
+bool Utility::IsBiological(UNIT_TYPEID type)
+{
+	switch (type)
+	{
+	case ZEALOT:
+	case ADEPT:
+	case HIGH_TEMPLAR:
+	case DARK_TEMPLAR:
+	case SCV:
+	case MARINE:
+	case MARAUDER:
+	case REAPER:
+	case GHOST:
+	case HELLBAT:
+		return true;
+	}
+	return false;
+}
+
 std::string Utility::UnitTypeIdToString(UNIT_TYPEID typeId)
 {
 	switch (typeId)

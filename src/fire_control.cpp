@@ -384,7 +384,7 @@ namespace sc2 {
 	void PersistentFireControl::OnUnitEntersVisionListener(const Unit* unit)
 	{
 		if (enemy_unit_hp.count(unit) == 0)
-			enemy_unit_hp[unit] = unit->health + unit->shield;
+			enemy_unit_hp[unit] = unit->health + unit->shield + 1;
 	}
 
 	void PersistentFireControl::AddFriendlyUnit(const Unit* unit)
@@ -424,7 +424,22 @@ namespace sc2 {
 	{
 		for (const auto unit_hp : enemy_unit_hp)
 		{
-			enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield);
+			if (agent->mediator.GetEnemyRace() == Race::Zerg)
+			{
+				enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 1);
+			}
+			else if (agent->mediator.GetEnemyRace() == Race::Terran && Utility::IsBiological(unit_hp.first->unit_type))
+			{
+				Units medivacs = agent->Observation()->GetUnits(IsUnit(MEDIVAC));
+				if (medivacs.size() > 0 && Utility::DistanceToClosest(medivacs, unit_hp.first->pos) < 4)
+					enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 10);
+				else
+					enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield);
+			}
+			else
+			{
+				enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 1);
+			}
 		}
 
 		for (int i = 0; i < outgoing_attacks.size(); i++)
