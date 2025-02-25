@@ -28,9 +28,9 @@ void BlinkStalkerAttackTerranMoveAcross::ExitState()
 
 State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 {
-	if ((state_machine->attached_army_group->AttackLine(.2, 7, TERRAN_PRIO) > 0 && state_machine->stalkers.size() > 0) ||
-		Distance2D(state_machine->attached_army_group->concave_origin, agent->Observation()->GetGameInfo().enemy_start_locations[0]) + 8 <
-		Distance2D(state_machine->consolidation_pos, agent->Observation()->GetGameInfo().enemy_start_locations[0]))
+	if (state_machine->stalkers.size() > 0 && (state_machine->attached_army_group->AttackLine(.2, 7, TERRAN_PRIO) > 0 ||
+		state_machine->attached_army_group->attack_path_line.GetFurthestForward({ state_machine->attached_army_group->concave_origin,
+			state_machine->attached_army_group->attack_path_line.FindClosestPoint(state_machine->consolidation_pos) }) == state_machine->attached_army_group->concave_origin))
 	{
 		if (state_machine->attached_army_group)
 			state_machine->attached_army_group->using_standby = true;
@@ -285,7 +285,7 @@ void BlinkStalkerAttackTerranBlinkUp::ExitState()
 State* BlinkStalkerAttackTerranBlinkUp::TestTransitions()
 {
 	if (stalkers_to_blink.size() == state_machine->attached_army_group->stalkers.size() && 
-		Utility::DistanceToClosest(agent->Observation()->GetUnits(Unit::Alliance::Enemy), Utility::MedianCenter(stalkers_to_blink)) < 10)
+		Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), Utility::MedianCenter(stalkers_to_blink)) < 10)
 	{
 		state_machine->attacking_main = false;
 		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
