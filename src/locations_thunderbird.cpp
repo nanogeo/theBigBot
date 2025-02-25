@@ -172,9 +172,10 @@ namespace sc2 {
 
 		high_ground_index = 5;
 
-		attack_path_alt = { P(112, 100),
-							P(97, 127),
-							P(70, 124),
+		attack_path_alt = { P(81, 55),
+							P(38, 63),
+							P(57, 88),
+							P(41, 103),
 							P(41, 132) };
 
 		high_ground_index_alt = 2;
