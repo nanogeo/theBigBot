@@ -246,7 +246,9 @@ namespace sc2 {
 		blink_pressure_blink_down = P(53, 123);
 
 
-		std::vector<Point2D> blink_nat_attack_path = { P(69, 97),
+		std::vector<Point2D> blink_nat_attack_path = { P(98, 96),
+														P(83, 96),
+														P(64, 99),
 														P(58, 103),
 														P(46, 105),
 														P(35, 104) };
