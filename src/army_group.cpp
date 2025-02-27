@@ -1047,22 +1047,31 @@ namespace sc2 {
 
 	void ArmyGroup::ScourMap()
 	{
+		Units enemy_buildings = mediator->GetUnits(Unit::Alliance::Enemy, IsBuilding());
 		ImageData raw_map = mediator->GetPathingGrid();
 		for (const auto& unit : mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)))
 		{
 			if (unit->orders.size() == 0)
 			{
-				std::srand(unit->tag + mediator->GetGameLoop());
-				int x = std::rand() % raw_map.width;
-				int y = std::rand() % raw_map.height;
-				Point2D pos = Point2D(x, y);
-				while (!unit->is_flying && !mediator->IsPathable(pos))
+				if (enemy_buildings.size() > 0)
 				{
-					x = std::rand() % raw_map.width;
-					y = std::rand() % raw_map.height;
-					pos = Point2D(x, y);
+					const Unit* closest = Utility::ClosestTo(enemy_buildings, unit->pos);
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos);
 				}
-				mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, pos);
+				else
+				{
+					std::srand(unit->tag + mediator->GetGameLoop());
+					int x = std::rand() % raw_map.width;
+					int y = std::rand() % raw_map.height;
+					Point2D pos = Point2D(x, y);
+					while (!unit->is_flying && !mediator->IsPathable(pos))
+					{
+						x = std::rand() % raw_map.width;
+						y = std::rand() % raw_map.height;
+						pos = Point2D(x, y);
+					}
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, pos);
+				}
 			}
 		}
 	}
