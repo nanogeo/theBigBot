@@ -181,7 +181,8 @@ public:
 	bool ScourMap(BuildOrderResultArgData);
 	bool CheckForEarlyPool(BuildOrderResultArgData);
 	bool BuildNaturalDefensiveBuilding(BuildOrderResultArgData);
-	bool ReturnToMainBuild(BuildOrderResultArgData);
+	bool ReturnToOracleGatewaymanPvZ(BuildOrderResultArgData);
+	bool ReturnTo4GateBlink(BuildOrderResultArgData);
 	bool SetUnitProduction(BuildOrderResultArgData);
 	bool CancelWarpgateUnitProduction(BuildOrderResultArgData);
 	bool SetWarpInAtProxy(BuildOrderResultArgData);
@@ -580,10 +581,14 @@ struct BuildOrderData
 		{
 			str += "build defensive building at natural";
 		}
-		else if (result == &BuildOrderManager::ReturnToMainBuild)
+		else if (result == &BuildOrderManager::ReturnToOracleGatewaymanPvZ)
 		{
-			str += "return to main build";
+			str += "return to oracle gatewayman PvZ";
 		}
+		else if (result == &BuildOrderManager::ReturnTo4GateBlink)
+		{
+			str += "return to 4 gate blink";
+			}
 		else if (result == &BuildOrderManager::SetUnitProduction)
 		{
 			str += "set unit production";

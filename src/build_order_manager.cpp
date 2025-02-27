@@ -860,10 +860,17 @@ bool BuildOrderManager::BuildNaturalDefensiveBuilding(BuildOrderResultArgData da
 	return true;
 }
 
-bool BuildOrderManager::ReturnToMainBuild(BuildOrderResultArgData data)
+bool BuildOrderManager::ReturnToOracleGatewaymanPvZ(BuildOrderResultArgData data)
 {
 	SetOracleGatewaymanPvZ();
 	build_order_step = 20;
+	return true;
+}
+
+bool BuildOrderManager::ReturnTo4GateBlink(BuildOrderResultArgData data)
+{
+	Set4GateBlink();
+	build_order_step = 23;
 	return true;
 }
 
@@ -917,13 +924,13 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 		// minor proxy
 		SetMinorProxyRaxResponse();
 		build_order_step = 0;
-		mediator->SendChat("Tag: scout_proxy_rax", ChatChannel::Team);
+		mediator->SendChat("Tag: scout_minor/possible_proxy_rax", ChatChannel::Team);
 		break;
 	case 2:
 		// major proxy
 		SetMajorProxyRaxResponse();
 		build_order_step = 0;
-		mediator->SendChat("Tag: scout_proxy_rax", ChatChannel::Team);
+		mediator->SendChat("Tag: scout_major_proxy_rax", ChatChannel::Team);
 		break;
 	}
 	return false;
@@ -1045,7 +1052,7 @@ void BuildOrderManager::SetEarlyPoolInterrupt()
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::ChronoBuilding,						Result(STARGATE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::ReturnToMainBuild,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::ReturnToOracleGatewaymanPvZ,					Result()),
 	};
 }
 
@@ -1072,59 +1079,24 @@ void BuildOrderManager::SetChargeTransition()
 
 void BuildOrderManager::SetMinorProxyRaxResponse()
 {
-	build_order = { Data(&BuildOrderManager::NumWorkers,			Condition(19),				&BuildOrderManager::CutWorkers,							Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(101.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(101.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(105.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainAdept,							Result(ADEPT, 1)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(122.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,			Condition(122.0f),			&BuildOrderManager::AddToNaturalDefense,				Result(5)),
-					Data(&BuildOrderManager::TimePassed,			Condition(133.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(134.0f),			&BuildOrderManager::UncutWorkers,						Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(152.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
-					Data(&BuildOrderManager::NumWorkers,			Condition(22),				&BuildOrderManager::CutWorkers,							Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(165.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(170.0f),			&BuildOrderManager::ResearchWarpgate,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(179.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(187.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(192.0f),			&BuildOrderManager::UncutWorkers,						Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(208.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::CancelImmediatelySaturateGasses,	Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::ImmediatelySemiSaturateGasses,		Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(217.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(235.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(240.0f),			&BuildOrderManager::BuildBuilding,						Result(TWILIGHT)),
-					//Data(&BuildOrderManager::TimePassed,			Condition(248.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(250.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::BuildBuilding,						Result(ROBO)),
-					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
-					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(276.0f),			&BuildOrderManager::ResearchBlink,						Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(276.0f),			&BuildOrderManager::ChronoTillFinished,					Result(TWILIGHT)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::TrainObserver,						Result()),
-					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
-					Data(&BuildOrderManager::HasUnits,				Condition(OBSERVER, 1),		&BuildOrderManager::TrainPrism,							Result()),
-					Data(&BuildOrderManager::HasUnits,				Condition(OBSERVER, 1),		&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
-					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
-					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::AddToNaturalDefense,				Result(-4)),
-					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::StartFourGateBlinkPressure,			Result()),
-
-					//Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({FORGE, FORGE})),
-					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::ResearchCharge,						Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::ContinueUpgrades,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::ContinueChronos,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
-					Data(&BuildOrderManager::TimePassed,			Condition(410.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
-					Data(&BuildOrderManager::TimePassed,			Condition(460.0f),			&BuildOrderManager::ZealotDoubleprong,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(480.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
-					Data(&BuildOrderManager::ReadyToScour,			Condition(900.0f),			&BuildOrderManager::ScourMap,							Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(115.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::AdeptDefendBaseTerran,				Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(148.0f),			&BuildOrderManager::BuildBuilding,						Result(TWILIGHT)),
+					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::AddToNaturalDefense,				Result(1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::BuildBuilding,						Result(ROBO)),
+					Data(&BuildOrderManager::TimePassed,			Condition(183.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
+					Data(&BuildOrderManager::TimePassed,			Condition(203.0f),			&BuildOrderManager::ResearchBlink,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(203.0f),			&BuildOrderManager::ChronoBuilding,						Result(TWILIGHT)),
+					Data(&BuildOrderManager::TimePassed,			Condition(205.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::ReturnTo4GateBlink,					Result()),
 	};
 }
 
