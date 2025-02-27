@@ -302,7 +302,7 @@ int ScoutingManager::CheckTerranScoutingInfoEarly()
 			actual_scv_count++;
 	}
 	int difference = correct_scv_count - actual_scv_count;
-	if (difference == 0)
+	if (difference <= 1)
 	{
 		// no proxy
 		return 0;
