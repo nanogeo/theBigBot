@@ -281,6 +281,44 @@ void ScoutingManager::AddNewUnit(const Unit* unit)
 	}
 }
 
+int ScoutingManager::CheckTerranScoutingInfoEarly()
+{
+	if (mediator->GetCurrentTime() > 240) // 4 mins is no longer early
+		return 0;
+
+	if (natural_timing > 0)
+		return 0;
+
+	int correct_scv_count = floor(mediator->GetCurrentTime() / 12) + 12;
+	if (GetEnemyUnitCount(ORBITAL) > 0)
+		correct_scv_count -= 2;
+
+	int actual_scv_count = 1; // start at 1 in case one was just produced
+	for (const auto& scv : enemy_unit_saved_position)
+	{
+		if (scv.first->unit_type == SCV && 
+			(Distance2D(scv.second.pos, mediator->GetEnemyStartLocation()) > 15 ||
+			Distance2D(scv.second.pos, mediator->GetStartLocation()) > 15))
+			actual_scv_count++;
+	}
+	int difference = correct_scv_count - actual_scv_count;
+	if (difference == 0)
+	{
+		// no proxy
+		return 0;
+	}
+	else if (difference <= 2)
+	{
+		// minor proxy
+		return 1;
+	}
+	else
+	{
+		// major proxy
+		return 2;
+	}
+}
+
 void ScoutingManager::OnUnitDestroyed(const Unit* unit)
 {
 	if (enemy_unit_saved_position.find(unit) != enemy_unit_saved_position.end())

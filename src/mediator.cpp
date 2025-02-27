@@ -548,7 +548,6 @@ Point2D Mediator::GetProxyLocation(UNIT_TYPEID unit_type)
 
 	}
 	std::cerr << "Error no viable point found in GetProxyLocation for type " << UnitTypeToName(unit_type) << std::endl;
-	std::cerr << "Possible locations:" << std::endl;
 	return Point2D(0, 0);
 }
 
@@ -559,7 +558,36 @@ std::vector<Point2D> Mediator::GetProxyLocations(UNIT_TYPEID unit_type)
 
 Point2D Mediator::GetNaturalDefensiveLocation(UNIT_TYPEID unit_type)
 {
-	return agent->locations->defensive_natural_battery_locations[0];
+	if (unit_type == BATTERY)
+	{
+		std::vector<Point2D> possible_locations = agent->locations->defensive_natural_battery_locations;
+		for (const auto& point : possible_locations)
+		{
+			bool blocked = false;
+			bool in_energy_field = (unit_type == PYLON || unit_type == ASSIMILATOR || unit_type == NEXUS);
+			for (const auto& building : agent->Observation()->GetUnits(IsBuilding()))
+			{
+				if (Point2D(building->pos) == point)
+				{
+					blocked = true;
+					break;
+				}
+				if (!in_energy_field && building->unit_type == PYLON)
+				{
+					if (Distance2D(Point2D(building->pos), point) < 6.5)
+					{
+						in_energy_field = true;
+					}
+				}
+			}
+			if (!blocked && in_energy_field)
+				return point;
+		}
+		std::cerr << "Error no viable point found in GetNaturalDefensiveLocation for type " << UnitTypeToName(unit_type) << std::endl;
+		return Point2D(0, 0);
+	}
+	if (unit_type == PYLON)
+		return Utility::PointBetween(agent->locations->nexi_locations[1], agent->locations->natural_door_closed, 4);
 }
 
 Point2D Mediator::GetFirstPylonLocation()
@@ -778,6 +806,7 @@ void Mediator::AddToDefense(int base, int amount)
 		if (army_group->target_pos == base_location)
 		{
 			army_group->desired_units += amount;
+			army_group->max_units += amount;
 		}
 	}
 	army_manager.BalanceUnits();

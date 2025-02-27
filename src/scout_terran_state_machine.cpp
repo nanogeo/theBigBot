@@ -72,19 +72,17 @@ State* ScoutTScoutMain::TestTransitions()
 	}
 	if (state_machine->index >= state_machine->main_scout_path.size())
 	{
-		if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_BARRACKS)).size() > 1)
+		if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_BARRACKS)).size() > 1 ||
+			agent->mediator.scouting_manager.first_barrack_time == 0 ||
+			agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_REFINERY)).size() > 1)
 		{
 			state_machine->index = 0;
 			state_machine->current_target = state_machine->main_scout_path[0];
+			agent->mediator.scouting_manager.CheckTerranScoutingInfoEarly();
 		}
-		else if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_REFINERY)).size() <= 1)
+		else
 		{
 			return new ScoutTScoutNatural(agent, state_machine);
-		}
-		else if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_REFINERY)).size() > 1)
-		{
-			state_machine->index = 0;
-			state_machine->current_target = state_machine->main_scout_path[0];
 		}
 	}
 	return NULL;

@@ -187,6 +187,7 @@ public:
 	bool SetWarpInAtProxy(BuildOrderResultArgData);
 	bool AddToNaturalDefense(BuildOrderResultArgData);
 	bool CheckTankCount(BuildOrderResultArgData);
+	bool CheckForProxyRax(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string
@@ -212,6 +213,8 @@ public:
 
 	void SetEarlyPoolInterrupt();
 	void SetChargeTransition();
+	void SetMinorProxyRaxResponse();
+	void SetMajorProxyRaxResponse();
 
 };
 
@@ -600,6 +603,10 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::CheckTankCount)
 		{
 			str += "check tank count";
+		}
+		else if (result == &BuildOrderManager::CheckForProxyRax)
+		{
+			str += "check for proxy rax";
 		}
 
 		return str;

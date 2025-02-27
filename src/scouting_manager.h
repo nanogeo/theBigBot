@@ -55,6 +55,7 @@ public:
 
 	void UpdateInfo();
 	void AddNewUnit(const Unit*);
+	int CheckTerranScoutingInfoEarly();
 
 	void OnUnitDestroyed(const Unit*);
 

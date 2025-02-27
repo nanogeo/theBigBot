@@ -125,7 +125,9 @@ namespace sc2 {
 								P(93.5, 79.5) };
 
 		defensive_natural_battery_locations = { P(139, 140),
-												P(139, 142) };
+												P(139, 142),
+												P(142, 143),
+												P(147, 141) };
 
 		attack_path_short = { P(138.5, 137.5),//
 								P(134, 136),
