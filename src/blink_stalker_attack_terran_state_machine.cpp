@@ -329,7 +329,7 @@ void BlinkStalkerAttackTerranAttack::ExitState()
 State* BlinkStalkerAttackTerranAttack::TestTransitions()
 {
 	float now = agent->Observation()->GetGameLoop() / 22.4;
-	for (const auto& tank : agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsUnits({ SIEGE_TANK, SIEGE_TANK_SIEGED, MEDIVAC })))
+	for (const auto& unit : agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsUnits({ SIEGE_TANK, SIEGE_TANK_SIEGED, MEDIVAC, BATTLECRUISER })))
 	{
 		Units stalkers_in_range;
 		for (const auto& stalker : state_machine->stalkers)
@@ -337,15 +337,15 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 			if (stalker->weapon_cooldown > 0)
 				continue;
 			bool blink_off_cooldown = now - state_machine->attached_army_group->last_time_blinked[stalker] > 7;
-			if ((blink_off_cooldown && Distance2D(stalker->pos, tank->pos) < Utility::RealRange(stalker, tank) + 8) ||
-				(Distance2D(stalker->pos, tank->pos) < Utility::RealRange(stalker, tank)))
+			if ((blink_off_cooldown && Distance2D(stalker->pos, unit->pos) < Utility::RealRange(stalker, unit) + 8) ||
+				(Distance2D(stalker->pos, unit->pos) < Utility::RealRange(stalker, unit)))
 			{
 				stalkers_in_range.push_back(stalker);
 			}
 		}
-		if (stalkers_in_range.size() * 17 >= tank->health)
+		if (stalkers_in_range.size() * (unit->unit_type == BATTLECRUISER ? 15 : 17) >= unit->health)
 		{
-			target = tank;
+			target = unit;
 			return new BlinkStalkerAttackTerranSnipeUnit(agent, state_machine, target);
 		}
 	}
