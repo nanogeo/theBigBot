@@ -246,22 +246,35 @@ namespace sc2 {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health_damage) << " damage\n";
 		//if (unit->alliance == Unit::Alliance::Self)
 	        //std::cout << unit->tag << " took " << std::to_string(health_damage + shield_damage) << " damage\n";
-        CallOnUnitDamagedEvent(unit, health_damage, shield_damage);
-		mediator.OnUnitDamaged(unit, health_damage, shield_damage);
+		try
+		{
+			CallOnUnitDamagedEvent(unit, health_damage, shield_damage);
+			mediator.OnUnitDamaged(unit, health_damage, shield_damage);
+		}
+		catch (const std::exception& e)
+		{
+			std::cerr << "OnUnitDamaged exception: " << e.what() << std::endl;
+		}
     }
 
     void TheBigBot::OnUnitDestroyed(const Unit *unit)
     {
         //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
-		if (enemy_weapon_cooldown.find(unit) != enemy_weapon_cooldown.end())
-			enemy_weapon_cooldown.erase(unit);
-		//if (unit->alliance == Unit::Alliance::Enemy)
-			//std::cout << unit->tag << " destroyed\n";
-        CallOnUnitDestroyedEvent(unit);
-		nav_mesh.RemoveObstacle(unit);
+		try
+		{
+			if (enemy_weapon_cooldown.find(unit) != enemy_weapon_cooldown.end())
+				enemy_weapon_cooldown.erase(unit);
+			//if (unit->alliance == Unit::Alliance::Enemy)
+				//std::cout << unit->tag << " destroyed\n";
+			CallOnUnitDestroyedEvent(unit);
+			nav_mesh.RemoveObstacle(unit);
 
-		mediator.OnUnitDestroyed(unit);
-
+			mediator.OnUnitDestroyed(unit);
+		}
+		catch (const std::exception& e)
+		{
+			std::cerr << "OnUnitDestroyed exception: " << e.what() << std::endl;
+		}
 		if (debug_mode)
 		{
 			if (std::find(test_army.stalkers.begin(), test_army.stalkers.end(), unit) != test_army.stalkers.end())
