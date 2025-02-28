@@ -359,6 +359,8 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 		{
 			mediator->SetUnitCommand(forge, upgrades[0]);
 			upgrades.erase(upgrades.begin());
+			if (upgrades.size() == 0)
+				break;
 		}
 	}
 
@@ -382,6 +384,8 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 		{
 			mediator->SetUnitCommand(cyber, air_upgrades[0]);
 			air_upgrades.erase(air_upgrades.begin());
+			if (air_upgrades.size() == 0)
+				break;
 		}
 	}
 
