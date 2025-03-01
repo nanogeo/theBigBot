@@ -246,6 +246,18 @@ const Unit* Mediator::GetMostRecentBuilding(UNIT_TYPEID type)
 	return possible_buildings[0];
 }
 
+float Mediator::GetLineDangerLevel(PathManager path)
+{
+	float danger = 0;
+	for (const auto& unit : scouting_manager.enemy_unit_saved_position)
+	{
+		Point2D closest_point = path.FindClosestPoint(unit.second.pos);
+		if (Distance2D(closest_point, unit.second.pos) < Utility::GetGroundRange(unit.first))
+			danger += Utility::GetDPS(unit.first);
+	}
+	return danger;
+}
+
 void Mediator::SendChat(std::string message, ChatChannel channel)
 {
 	agent->Actions()->SendChat(message, channel);

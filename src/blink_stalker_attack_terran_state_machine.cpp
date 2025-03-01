@@ -219,13 +219,27 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 		}
 		if (stalkers_healthy / state_machine->stalkers.size() > .5)
 		{
-			if (agent->mediator.GetMapName() == "Acropolis AIE") // acropolis does not have a blink up spot
+			// acropolis does not have a blink up spot
+			if (agent->mediator.GetMapName() == "Acropolis AIE" || state_machine->prism->is_alive == false)
+			{
 				state_machine->attacking_main = false;
-
-			if (state_machine->attacking_main && state_machine->prism->is_alive)
-				return new BlinkStalkerAttackTerranBlinkUp(agent, state_machine, state_machine->stalkers);
-			else
 				return new BlinkStalkerAttackTerranAttack(agent, state_machine);
+			}
+			
+			float danger_nat = agent->mediator.GetLineDangerLevel(agent->locations->blink_nat_attack_path_line);
+			float danger_main_1 = agent->mediator.GetLineDangerLevel(agent->locations->blink_main_attack_path_lines[0]);
+			float danger_main_2 = agent->mediator.GetLineDangerLevel(agent->locations->blink_main_attack_path_lines[1]);
+
+			if (danger_nat <= danger_main_1 && danger_nat <= danger_main_2)
+			{
+				state_machine->attacking_main = false;
+				return new BlinkStalkerAttackTerranAttack(agent, state_machine);
+			}
+			else
+			{
+				state_machine->attacking_main = true;
+				return new BlinkStalkerAttackTerranBlinkUp(agent, state_machine, state_machine->stalkers);
+			}
 		}
 	}
 	return NULL;
@@ -242,6 +256,8 @@ std::string BlinkStalkerAttackTerranConsolidate::toString()
 
 void BlinkStalkerAttackTerranBlinkUp::TickState()
 {
+	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
+	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos);
 	for (int i = 0; i < stalkers_to_blink.size(); i++)
 	{
 		bool blinked = true;
@@ -316,9 +332,19 @@ void BlinkStalkerAttackTerranAttack::EnterState()
 {
 	state_machine->attached_army_group->standby_units = {};
 	if (state_machine->attacking_main)
-		state_machine->attached_army_group->attack_path_line = agent->locations->blink_main_attack_path_lines[agent->Observation()->GetGameLoop() % 2 ? 0 : 1];
+	{
+		float danger_main_1 = agent->mediator.GetLineDangerLevel(agent->locations->blink_main_attack_path_lines[0]);
+		float danger_main_2 = agent->mediator.GetLineDangerLevel(agent->locations->blink_main_attack_path_lines[1]);
+
+		if (danger_main_1 < danger_main_2)
+			state_machine->attached_army_group->attack_path_line = agent->locations->blink_main_attack_path_lines[0];
+		else
+			state_machine->attached_army_group->attack_path_line = agent->locations->blink_main_attack_path_lines[1];
+	}
 	else
+	{
 		state_machine->attached_army_group->attack_path_line = agent->locations->blink_nat_attack_path_line;
+	}
 }
 
 void BlinkStalkerAttackTerranAttack::ExitState()

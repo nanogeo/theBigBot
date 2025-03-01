@@ -75,6 +75,7 @@ public:
 	bool IsUnitOccupied(const Unit*);
 	int GetUpgradeLevel(UpgradeType);
 	const Unit* GetMostRecentBuilding(UNIT_TYPEID);
+	float GetLineDangerLevel(PathManager);
 
 	void SendChat(std::string, ChatChannel);
 
