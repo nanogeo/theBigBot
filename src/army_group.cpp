@@ -892,6 +892,15 @@ namespace sc2 {
 		const Unit* guard = all_units[0];
 
 		Units enemies = mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
+		for (int i = 0; i < enemies.size(); i++)
+		{
+			if (enemies[i]->is_building)
+			{
+				enemies.erase(enemies.begin() + i);
+				i--;
+			}
+		}
+
 		if (enemies.size() == 0)
 		{
 			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, door_open_pos);
@@ -900,6 +909,12 @@ namespace sc2 {
 
 		const Unit* closest_to_door = Utility::ClosestTo(enemies, door_closed_pos);
 		double dist_to_closest = Distance2D(closest_to_door->pos, door_closed_pos);
+
+		if (dist_to_closest > 10)
+		{
+			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, door_open_pos);
+			return;
+		}
 
 		Point2D guard_move_to = Utility::PointBetween(door_closed_pos, closest_to_door->pos, std::min(4.0, std::max(0.0, (dist_to_closest / 2) - 1)));
 
