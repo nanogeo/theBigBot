@@ -256,7 +256,7 @@ namespace sc2 {
 																	{ P(47, 76),
 																	P(33, 78),
 																	P(26, 70),
-																	P(26, 62) } };
+																	P(25, 62) } };
 
 		blink_main_attack_path_lines = { PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
 
