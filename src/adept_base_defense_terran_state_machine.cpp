@@ -283,7 +283,7 @@ void AdeptBaseDefenseTerranScoutBase::TickState()
 {
 	Point2D furthest_point = adept_scout_shade;
 	Units enemy_units = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
-	for (const auto& unit : enemy_units)
+	/*for (const auto& unit : enemy_units)
 	{
 		double range = Utility::RealRange(unit, state_machine->adept) + 2;
 		Point2D intersection = agent->locations->attack_path_line.GetPointFrom(unit->pos, range, false); // TODO use adept runaway not the attack path
@@ -295,8 +295,19 @@ void AdeptBaseDefenseTerranScoutBase::TickState()
 				furthest_point = intersection;
 			}
 		}
+	}*/
+	Units close_enemies = Utility::GetUnitsWithinRange(enemy_units, state_machine->adept, 2);
+	if (close_enemies.size() > 0)
+	{
+		const Unit* closest_enemy = close_enemies[0];
+		for (const auto& enemy : close_enemies)
+		{
+			if (Utility::RealRange(enemy, state_machine->adept) - Distance2D(enemy->pos, state_machine->adept->pos) >
+				Utility::RealRange(closest_enemy, state_machine->adept) - Distance2D(closest_enemy->pos, state_machine->adept->pos))
+				closest_enemy = enemy;
+		}
+		furthest_point = Utility::PointBetween(closest_enemy->pos, state_machine->adept->pos, 9);
 	}
-
 	//agent->Debug()->DebugSphereOut(agent->ToPoint3D(furthest_point), .5, Color(255, 255, 0));
 
 	const Unit* closest_unit = Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), state_machine->adept->pos);
@@ -325,7 +336,7 @@ void AdeptBaseDefenseTerranScoutBase::TickState()
 	}
 	else
 	{
-		agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, closest_unit);
+		agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, adept_scout_shade);
 	}
 	/*else if (Distance2D(closest_unit->pos, state_machine->adept->pos) <= 4)
 	{
