@@ -2023,7 +2023,7 @@ namespace sc2 {
 					if (mediator->upgrade_manager.has_blink && blink_off_cooldown)
 					{
 
-						mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, Utility::PointBetween(request.first->pos, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), request.first->pos)->pos, -4)); // TODO adjustable blink distance
+						mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, standby_pos); // TODO adjustable blink distance
 
 						attack_status[request.first] = false;
 						last_time_blinked[request.first] = now;
