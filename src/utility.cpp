@@ -524,6 +524,28 @@ Point2D Utility::PointBetween(Point2D start, Point2D end, float dist)
 	return Point2D(start.x + dist * (end.x - start.x) / total_dist, start.y + dist * (end.y - start.y) / total_dist);
 }
 
+Point2D Utility::ClosestIntersectionTo(Point2D center1, double radius1, Point2D center2, double radius2, Point2D point)
+{
+	double dist = Distance2D(center1, center2);
+	if (dist > radius1 + radius2 ||
+		dist < abs(radius1 - radius2) ||
+		(dist == 0 && radius1 == radius2))
+	{
+		return point;
+	}
+	double a = (pow(radius1, 2) - pow(radius2, 2) + pow(dist, 2)) / (2 * dist);
+	double h = sqrt(pow(radius1, 2) - pow(a, 2));
+	double x = center1.x + a * (center2.x - center1.x) / dist;
+	double y = center1.y + a * (center2.y - center1.y) / dist;
+	Point2D intersection1 = Point2D(x + h * (center2.y - center1.y) / dist, y - h * (center2.x - center1.x) / dist);
+	Point2D intersection2 = Point2D(x - h * (center2.y - center1.y) / dist, y + h * (center2.x - center1.x) / dist);
+
+	if (Distance2D(intersection1, point) <= Distance2D(intersection2, point))
+		return intersection1;
+	else
+		return intersection2;
+}
+
 int Utility::DangerLevel(const Unit* unit, const ObservationInterface* observation)
 {
 	return DangerLevelAt(unit, unit->pos, observation);
