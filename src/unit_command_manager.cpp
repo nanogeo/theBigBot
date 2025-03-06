@@ -146,7 +146,7 @@ void UnitCommandManager::ParseUnitCommands()
 			file << "None, 0 0, 0, ";
 		if (itr->second.target_point == Point2D(0, 0))
 		{
-			if (itr->second.target_tag->tag == 0)
+			if (itr->second.target_tag == NULL)
 			{
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability);
 				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, 0, " << std::endl;
