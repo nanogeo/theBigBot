@@ -133,34 +133,45 @@ void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, const U
 
 void UnitCommandManager::ParseUnitCommands()
 {
+
+#ifndef BUILD_FOR_LADDER
 	std::ofstream file;
 	file.open("unit_commands.txt", std::ios::app);
+#endif
 	// TODO check if move command is the same place the unit is
 	for (std::map<const Unit*, UnitCommand>::iterator itr = current_commands.begin(); itr != current_commands.end(); itr++)
 	{
+#ifndef BUILD_FOR_LADDER
 		file << mediator->GetGameLoop() << ", " << itr->first->tag << ", " << Utility::UnitTypeIdToString(itr->first->unit_type) << ", ";
 		if (itr->first->orders.size() > 0)
 			file << Utility::AbilityIdToString(itr->first->orders[0].ability_id.ToType()) << ", " << itr->first->orders[0].target_pos.x << " " << 
 			itr->first->orders[0].target_pos.y << ", " << itr->first->orders[0].target_unit_tag << ", ";
 		else
 			file << "None, 0 0, 0, ";
+#endif
 		if (itr->second.target_point == Point2D(0, 0))
 		{
 			if (itr->second.target_tag == NULL)
 			{
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability);
+#ifndef BUILD_FOR_LADDER
 				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, 0, " << std::endl;
+#endif
 			}
 			else
 			{
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target_tag);
+#ifndef BUILD_FOR_LADDER
 				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, " << itr->second.target_tag->tag << ", " << std::endl;
+#endif
 			}
 		}
 		else
 		{
 			agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target_point);
+#ifndef BUILD_FOR_LADDER
 			file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", " << itr->second.target_point.x << " " << itr->second.target_point.y << ", 0, " << std::endl;
+#endif
 		}
 	}
 
@@ -185,7 +196,10 @@ void UnitCommandManager::ParseUnitCommands()
 			}
 		}
 	}
+
+#ifndef BUILD_FOR_LADDER
 	file.close();
+#endif
 
 	current_commands.clear();
 	queued_commands.clear();
