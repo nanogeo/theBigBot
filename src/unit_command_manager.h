@@ -39,10 +39,21 @@ struct UnitCommand
     }
     bool operator==(UnitCommand u)
     {
-        if (ability == u.ability && (target_point == u.target_point && target_tag == u.target_tag)) 
-            return true;
-        else
-            return false;
+        if ((target_point == u.target_point && target_tag == u.target_tag))
+        {
+            if (ability == ABILITY_ID::SMART && 
+                (u.ability == ABILITY_ID::SMART ||
+                u.ability == ABILITY_ID::HARVEST_GATHER ||
+                u.ability == ABILITY_ID::HARVEST_RETURN ||
+                u.ability == ABILITY_ID::GENERAL_MOVE))
+                    return true;
+            if (u.ability == ABILITY_ID::SMART &&
+                    (ability == ABILITY_ID::HARVEST_GATHER ||
+                    ability == ABILITY_ID::HARVEST_RETURN ||
+                    ability == ABILITY_ID::GENERAL_MOVE))
+                return true;
+        }
+        return false;
     }
 };
 

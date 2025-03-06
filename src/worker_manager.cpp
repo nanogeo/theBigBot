@@ -119,9 +119,8 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 		if (!mineral_patches[mineral_patches_reversed[patch.first].mineral_tag].is_close)
 			far_only_mineral_patches_reversed_keys.push_back(patch.first);
 		mineral_patches_reversed_keys.push_back(patch.first);
-
 	}
-	const Unit* closest;
+	const Unit* closest = NULL;
 	if (far_only_mineral_patches_reversed_keys.size() > 0) 
 	{
 		closest = Utility::ClosestTo(far_only_mineral_patches_reversed_keys, position);
@@ -129,7 +128,7 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 	if (mineral_patches_reversed_keys.size() > 0)
 	{
 		const Unit* c = Utility::ClosestTo(mineral_patches_reversed_keys, position);
-		if (Distance2D(closest->pos, position) < Distance2D(c->pos, position) * 1.2 && closest != NULL) 
+		if (closest != NULL && Distance2D(closest->pos, position) < Distance2D(c->pos, position) * 1.2)
 			return closest;
 		else
 			return c;
@@ -652,11 +651,11 @@ void WorkerManager::DistributeWorkers()
 					Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) < 2)
 				{
 					mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, mineral_patches_reversed[worker].pick_up_point);
-					mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER_PROBE, mineral_patches_reversed[worker].mineral_tag, true);
+					mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER, mineral_patches_reversed[worker].mineral_tag, true);
 				}
 				else if (Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) >= 2)
 				{
-					mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER_PROBE, mineral_patches_reversed[worker].mineral_tag);
+					mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER, mineral_patches_reversed[worker].mineral_tag);
 				}
 			}
 			else

@@ -19,8 +19,20 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, boo
 		queued_commands[unit].push_back(new_command);
 		return;
 	}
-	if (unit->orders.size() > 0 && unit->orders[0].ability_id == ability) // command already being followed
-		return;
+	if (unit->orders.size() > 0) // command already being followed
+	{
+		if (ability == ABILITY_ID::SMART &&
+			(unit->orders[0].ability_id == ABILITY_ID::SMART ||
+				unit->orders[0].ability_id == ABILITY_ID::HARVEST_GATHER ||
+				unit->orders[0].ability_id == ABILITY_ID::HARVEST_RETURN ||
+				unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE))
+			return;
+		if (unit->orders[0].ability_id == ABILITY_ID::SMART &&
+			(ability == ABILITY_ID::HARVEST_GATHER ||
+				ability == ABILITY_ID::HARVEST_RETURN ||
+				ability == ABILITY_ID::GENERAL_MOVE))
+			return;
+	}
 	if (!current_commands.count(unit)) // new command
 		current_commands[unit] = new_command;
 	else if (current_commands[unit] == new_command) // duplicate command
@@ -38,8 +50,20 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Poi
 		queued_commands[unit].push_back(new_command);
 		return;
 	}
-	if (unit->orders.size() > 0 && unit->orders[0].ability_id == ability && Distance2D(unit->orders[0].target_pos, point) < .01) // command already being followed
-		return;
+	if (unit->orders.size() > 0 && Distance2D(unit->orders[0].target_pos, point) < .01) // command already being followed
+	{
+		if (ability == ABILITY_ID::SMART &&
+			(unit->orders[0].ability_id == ABILITY_ID::SMART ||
+				unit->orders[0].ability_id == ABILITY_ID::HARVEST_GATHER ||
+				unit->orders[0].ability_id == ABILITY_ID::HARVEST_RETURN ||
+				unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE))
+			return;
+		if (unit->orders[0].ability_id == ABILITY_ID::SMART &&
+			(ability == ABILITY_ID::HARVEST_GATHER ||
+				ability == ABILITY_ID::HARVEST_RETURN ||
+				ability == ABILITY_ID::GENERAL_MOVE))
+			return;
+	}
 	if (unit->orders.size() == 0 && ability == ABILITY_ID::GENERAL_MOVE && Distance2D(unit->pos, point) < .01) // ignore move commands to the units current position
 		return;
 	if (!current_commands.count(unit)) // new command
@@ -59,8 +83,21 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, con
 		queued_commands[unit].push_back(new_command);
 		return;
 	}
-	if (unit->orders.size() > 0 && unit->orders[0].ability_id == ability && unit->orders[0].target_unit_tag == target->tag) // command already being followed
-		return;
+	if (unit->orders.size() > 0 && unit->orders[0].target_unit_tag == target->tag) // command already being followed
+	{
+		if (ability == unit->orders[0].ability_id || 
+			(ability == ABILITY_ID::SMART &&
+			(unit->orders[0].ability_id == ABILITY_ID::HARVEST_GATHER ||
+				unit->orders[0].ability_id == ABILITY_ID::HARVEST_RETURN ||
+				unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE)))
+			return;
+		if (ability == unit->orders[0].ability_id ||
+			(unit->orders[0].ability_id == ABILITY_ID::SMART &&
+			(ability == ABILITY_ID::HARVEST_GATHER ||
+				ability == ABILITY_ID::HARVEST_RETURN ||
+				ability == ABILITY_ID::GENERAL_MOVE)))
+			return;
+	}
 	if (!current_commands.count(unit)) // new command
 		current_commands[unit] = new_command;
 	else if (current_commands[unit] == new_command) // duplicate command
@@ -103,12 +140,13 @@ void UnitCommandManager::ParseUnitCommands()
 	{
 		file << mediator->GetGameLoop() << ", " << itr->first->tag << ", " << Utility::UnitTypeIdToString(itr->first->unit_type) << ", ";
 		if (itr->first->orders.size() > 0)
-			file << Utility::AbilityIdToString(itr->first->orders[0].ability_id.ToType()) << ", " << itr->first->orders[0].target_pos.x << " " << itr->first->orders[0].target_pos.y << ", " << itr->first->orders[0].target_unit_tag << ", ";
+			file << Utility::AbilityIdToString(itr->first->orders[0].ability_id.ToType()) << ", " << itr->first->orders[0].target_pos.x << " " << 
+			itr->first->orders[0].target_pos.y << ", " << itr->first->orders[0].target_unit_tag << ", ";
 		else
 			file << "None, 0 0, 0, ";
 		if (itr->second.target_point == Point2D(0, 0))
 		{
-			if (itr->second.target_tag == 0)
+			if (itr->second.target_tag->tag == 0)
 			{
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability);
 				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, 0, " << std::endl;
@@ -116,7 +154,7 @@ void UnitCommandManager::ParseUnitCommands()
 			else
 			{
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target_tag);
-				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, " << itr->second.target_tag << ", " << std::endl;
+				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, " << itr->second.target_tag->tag << ", " << std::endl;
 			}
 		}
 		else
@@ -132,7 +170,7 @@ void UnitCommandManager::ParseUnitCommands()
 		{
 			if (command.target_point == Point2D(0, 0))
 			{
-				if (command.target_tag == 0)
+				if (command.target_tag->tag == 0)
 				{
 					agent->Actions()->UnitCommand(itr->first, command.ability, true);
 				}
