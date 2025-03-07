@@ -177,37 +177,66 @@ namespace sc2 {
 
 
 		}
-		catch (const std::exception& e)
+		catch (const std::exception& ex) {
+			std::cerr << "OnStep Exception: " << ex.what() << std::endl;
+			throw ex;
+		}
+		catch (...)
 		{
-			std::cerr << "Exception: " << e.what() << std::endl;
+			std::cerr << "OnStep Other exception" << std::endl;
+			throw;
 		}
     }
 
     void TheBigBot::OnBuildingConstructionComplete(const Unit *building)
     {
-		mediator.OnBuildingConstructionComplete(building);
-        if (debug_mode)
-        {
-            std::cout << Utility::UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
-			//nav_mesh.AddNewObstacle(building);
-            return;
-        }
+		try
+		{
+			mediator.OnBuildingConstructionComplete(building);
+			if (debug_mode)
+			{
+				std::cout << Utility::UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
+				//nav_mesh.AddNewObstacle(building);
+				return;
+			}
         
-        if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
-        {
-            for (const auto &location : locations->proxy_pylon_locations)
-            {
-                if (Point2D(building->pos) == location)
-                {
-                    proxy_pylons.push_back(building->tag);
-                }
-            }
-        }
+			if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
+			{
+				for (const auto &location : locations->proxy_pylon_locations)
+				{
+					if (Point2D(building->pos) == location)
+					{
+						proxy_pylons.push_back(building->tag);
+					}
+				}
+			}
+		}
+		catch (const std::exception& ex) {
+			std::cerr << "OnBuildingConstructionComplete Exception: " << ex.what() << std::endl;
+			throw ex;
+		}
+		catch (...)
+		{
+			std::cerr << "OnBuildingConstructionComplete Other exception" << std::endl;
+			throw;
+		}
     }
 
     void TheBigBot::OnNeutralUnitCreated(const Unit *building)
     {
-		mediator.OnNeutralUnitCreated(building);
+		try
+		{
+			mediator.OnNeutralUnitCreated(building);
+		}
+		catch (const std::exception& ex) {
+			std::cerr << "OnNeutralUnitCreated Exception: " << ex.what() << std::endl;
+			throw ex;
+		}
+		catch (...)
+		{
+			std::cerr << "OnNeutralUnitCreated Other exception" << std::endl;
+			throw;
+		}
         /*if (debug_mode)
         {
             std::cout << UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
@@ -217,11 +246,23 @@ namespace sc2 {
 
     void TheBigBot::OnUnitCreated(const Unit *unit)
     {
-        if (Observation()->GetGameLoop() == 0)
-            return;
-		CallOnUnitCreatedEvent(unit);
+		try
+		{
+			if (Observation()->GetGameLoop() == 0)
+				return;
+			CallOnUnitCreatedEvent(unit);
 
-		mediator.OnUnitCreated(unit);
+			mediator.OnUnitCreated(unit);
+		}
+		catch (const std::exception& ex) {
+			std::cerr << "OnUnitCreated Exception: " << ex.what() << std::endl;
+			throw ex;
+		}
+		catch (...)
+		{
+			std::cerr << "OnUnitCreated Other exception" << std::endl;
+			throw;
+		}
 
         
         /*if len(self.adept_groups) > 0:
@@ -234,11 +275,23 @@ namespace sc2 {
 
 	void TheBigBot::OnUnitEnterVision(const Unit* unit)
 	{
-		if (Observation()->GetGameLoop() == 0)
-			return;
-		CallOnUnitEntersVisionEvent(unit);
+		try
+		{
+			if (Observation()->GetGameLoop() == 0)
+				return;
+			CallOnUnitEntersVisionEvent(unit);
 
-		mediator.OnUnitEnterVision(unit);
+			mediator.OnUnitEnterVision(unit);
+		}
+		catch (const std::exception& ex) {
+			std::cerr << "OnUnitEnterVision Exception: " << ex.what() << std::endl;
+			throw ex;
+		}
+		catch (...)
+		{
+			std::cerr << "OnUnitEnterVision Other exception" << std::endl;
+			throw;
+		}
 	}
 
     void TheBigBot::OnUnitDamaged(const Unit *unit, float health_damage, float shield_damage)
@@ -251,9 +304,14 @@ namespace sc2 {
 			CallOnUnitDamagedEvent(unit, health_damage, shield_damage);
 			mediator.OnUnitDamaged(unit, health_damage, shield_damage);
 		}
-		catch (const std::exception& e)
+		catch (const std::exception& ex) {
+			std::cerr << "OnUnitDamaged Exception: " << ex.what() << std::endl;
+			throw ex;
+		}
+		catch (...)
 		{
-			std::cerr << "OnUnitDamaged exception: " << e.what() << std::endl;
+			std::cerr << "OnUnitDamaged Other exception" << std::endl;
+			throw;
 		}
     }
 
@@ -271,9 +329,14 @@ namespace sc2 {
 
 			mediator.OnUnitDestroyed(unit);
 		}
-		catch (const std::exception& e)
+		catch (const std::exception& ex) {
+			std::cerr << "OnUnitDestroyed Exception: " << ex.what() << std::endl;
+			throw ex;
+		}
+		catch (...)
 		{
-			std::cerr << "OnUnitDestroyed exception: " << e.what() << std::endl;
+			std::cerr << "OnUnitDestroyed Other exception" << std::endl;
+			throw;
 		}
 		if (debug_mode)
 		{
@@ -287,7 +350,19 @@ namespace sc2 {
 
 	void TheBigBot::OnUpgradeCompleted(UpgradeID upgrade)
 	{
-		mediator.OnUpgradeCompleted(upgrade);
+		try
+		{
+			mediator.OnUpgradeCompleted(upgrade);
+		}
+		catch (const std::exception& ex) {
+			std::cerr << "OnUpgradeCompleted Exception: " << ex.what() << std::endl;
+			throw ex;
+		}
+		catch (...)
+		{
+			std::cerr << "OnUpgradeCompleted Other exception" << std::endl;
+			throw;
+		}
 	}
 
 

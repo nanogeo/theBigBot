@@ -11,8 +11,40 @@
 #include <iostream>
 
 #ifdef BUILD_FOR_LADDER
+
+#include <csignal>
+#include <cstdlib>
+
 namespace
 {
+
+// General signal handler
+void signalHandler(int signal, siginfo_t* info, void* context) {
+    std::cerr << "Caught signal: " << signal << std::endl;
+
+    // Handle specific signal types
+    switch (signal) {
+    case SIGSEGV:
+        std::cerr << "Segmentation fault!" << std::endl;
+        break;
+    case SIGFPE:
+        std::cerr << "Floating-point exception!" << std::endl;
+        break;
+    case SIGILL:
+        std::cerr << "Illegal instruction!" << std::endl;
+        break;
+    case SIGABRT:
+        std::cerr << "Aborted!" << std::endl;
+        break;
+    default:
+        std::cerr << "Caught other signal" << std::endl;
+        break;
+    }
+
+    // Exit after catching the signal
+    std::exit(EXIT_FAILURE);
+}
+
 
 struct Options
 {
@@ -57,33 +89,41 @@ void ParseArguments(int argc, char* argv[], Options* options_)
 
 int main(int argc, char* argv[])
 {
-    std::cerr << "Main begins\n";
+    struct sigaction sa;
+    sa.sa_flags = SA_SIGINFO; // Use siginfo_t
+    sa.sa_sigaction = signalHandler; // Register signal handler
+    sigemptyset(&sa.sa_mask);
+
+    // Register for multiple signals
+    if (sigaction(SIGSEGV, &sa, nullptr) == -1) {
+        perror("sigaction");
+        return 1;
+    }
+    if (sigaction(SIGFPE, &sa, nullptr) == -1) {
+        perror("sigaction");
+        return 1;
+    }
+    if (sigaction(SIGILL, &sa, nullptr) == -1) {
+        perror("sigaction");
+        return 1;
+    }
+    if (sigaction(SIGABRT, &sa, nullptr) == -1) {
+        perror("sigaction");
+        return 1;
+    }
+
     Options options;
     ParseArguments(argc, argv, &options);
-    std::cerr << "Parse args\n";
 
     sc2::Coordinator coordinator;
-    std::cerr << "Coord made\n";
-    /*if (!coordinator.LoadSettings(argc, argv))
-    {
-        std::cerr << "Coord load setting failed\n";
-        return 1;
-    }*/
-    std::cerr << "Coord load setting succeeded\n";
     sc2::TheBigBot bot;
-    std::cerr << "Bot made\n";
 
     size_t num_agents = 2;
     coordinator.SetParticipants({ CreateParticipant(sc2::Race::Protoss, &bot, "theBigBot") });
 
-    std::cerr << "Set parts done\n";
-    std::cerr << "Gameport: " << std::to_string(options.GamePort) << "\n";
-    std::cout << "Connecting to port " << options.GamePort << std::endl;
     coordinator.Connect(options.GamePort);
-    std::cerr << "Connected\n";
     coordinator.SetupPorts(num_agents, options.StartPort, false);
 
-    std::cerr << "Setup ports done\n";
     // NB (alkurbatov): Increase speed of steps processing.
     // Disables ability to control your bot during game.
     // Recommended for competitions.
@@ -91,7 +131,7 @@ int main(int argc, char* argv[])
 
     coordinator.JoinGame();
     coordinator.SetTimeoutMS(10000);
-    std::cout << "Successfully joined game" << std::endl;
+    std::cerr << "Successfully joined game" << std::endl;
 
     while (coordinator.Update())
     {
