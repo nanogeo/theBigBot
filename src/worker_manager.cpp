@@ -631,7 +631,7 @@ void WorkerManager::DistributeWorkers()
 				continue;
 			}
 			else*/
-			if (Distance2D(worker->pos, mineral_patches_reversed[worker].drop_off_point) > .75 &&
+			if (Distance2D(worker->pos, mineral_patches_reversed[worker].drop_off_point) > .5 &&
 				Distance2D(worker->pos, mineral_patches_reversed[worker].drop_off_point) < 2)
 			{
 				mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, mineral_patches_reversed[worker].drop_off_point);
@@ -647,7 +647,7 @@ void WorkerManager::DistributeWorkers()
 			const Unit *mineral_patch = mineral_patches_reversed[worker].mineral_tag;
 			if (mineral_patch != NULL)
 			{
-				if (Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) > .75 && 
+				if (Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) > .5 && 
 					Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) < 2)
 				{
 					mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, mineral_patches_reversed[worker].pick_up_point);
@@ -715,7 +715,7 @@ void WorkerManager::DistributeWorkers()
 
 			const Unit* closest_nexus = Utility::ClosestTo(nexi, worker->pos);
 
-			if (Distance2D(worker->pos, assimilators_reversed[worker].drop_off_point) > .75 &&
+			if (Distance2D(worker->pos, assimilators_reversed[worker].drop_off_point) > .5 &&
 				Distance2D(worker->pos, assimilators_reversed[worker].drop_off_point) < 2)
 			{
 				mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, assimilators_reversed[worker].drop_off_point);
@@ -731,7 +731,7 @@ void WorkerManager::DistributeWorkers()
 			const Unit* mineral_patch = assimilators_reversed[worker].assimilator_tag;
 			if (mineral_patch != NULL)
 			{
-				if (Distance2D(worker->pos, assimilators_reversed[worker].pick_up_point) > .75 &&
+				if (Distance2D(worker->pos, assimilators_reversed[worker].pick_up_point) > .5 &&
 					Distance2D(worker->pos, assimilators_reversed[worker].pick_up_point) < 2)
 				{
 					mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, assimilators_reversed[worker].pick_up_point);
