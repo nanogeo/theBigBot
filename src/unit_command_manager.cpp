@@ -21,11 +21,12 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, boo
 	}
 	if (unit->orders.size() > 0) // command already being followed
 	{
-		if (ability == ABILITY_ID::SMART &&
+		if (ability == unit->orders[0].ability_id ||
+			(ability == ABILITY_ID::SMART &&
 			(unit->orders[0].ability_id == ABILITY_ID::SMART ||
 				unit->orders[0].ability_id == ABILITY_ID::HARVEST_GATHER ||
 				unit->orders[0].ability_id == ABILITY_ID::HARVEST_RETURN ||
-				unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE))
+				unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE)))
 			return;
 		if (unit->orders[0].ability_id == ABILITY_ID::SMART &&
 			(ability == ABILITY_ID::HARVEST_GATHER ||
@@ -52,11 +53,12 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Poi
 	}
 	if (unit->orders.size() > 0 && Distance2D(unit->orders[0].target_pos, point) < .01) // command already being followed
 	{
-		if (ability == ABILITY_ID::SMART &&
+		if (ability == unit->orders[0].ability_id ||
+			(ability == ABILITY_ID::SMART &&
 			(unit->orders[0].ability_id == ABILITY_ID::SMART ||
 				unit->orders[0].ability_id == ABILITY_ID::HARVEST_GATHER ||
 				unit->orders[0].ability_id == ABILITY_ID::HARVEST_RETURN ||
-				unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE))
+				unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE)))
 			return;
 		if (unit->orders[0].ability_id == ABILITY_ID::SMART &&
 			(ability == ABILITY_ID::HARVEST_GATHER ||
