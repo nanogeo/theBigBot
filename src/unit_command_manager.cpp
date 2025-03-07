@@ -183,7 +183,7 @@ void UnitCommandManager::ParseUnitCommands()
 		{
 			if (command.target_point == Point2D(0, 0))
 			{
-				if (command.target_tag->tag == 0)
+				if (command.target_tag == NULL)
 				{
 					agent->Actions()->UnitCommand(itr->first, command.ability, true);
 				}
