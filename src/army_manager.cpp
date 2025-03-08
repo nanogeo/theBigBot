@@ -19,17 +19,112 @@ void ArmyManager::SetUpInitialArmies()
 	{
 	case Race::Protoss:
 		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 3);
+		CreateProtossArmyTemplates();
 		break;
 	case Race::Zerg:
 		CreateArmyGroup(ArmyRole::defend_door, { ZEALOT, ADEPT, STALKER, SENTRY }, 1, 1);
 		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 3);
+		CreateZergArmyTemplates();
 		break;
 	case Race::Terran:
 		CreateArmyGroup(ArmyRole::defend_base, { ADEPT, STALKER, SENTRY }, 0, 3);
+		CreateTerranArmyTemplates();
 		break;
 	case Race::Random:
 		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 3);
 		break;
+	}
+}
+
+void ArmyManager::CreateProtossArmyTemplates()
+{
+
+}
+
+void ArmyManager::CreateTerranArmyTemplates()
+{
+
+}
+
+void ArmyManager::CreateZergArmyTemplates()
+{
+	std::map<UNIT_TYPEID, int> stalker_oracle_req;
+	stalker_oracle_req[STALKER] = 7;
+	stalker_oracle_req[ORACLE] = 2;
+	stalker_oracle_req[CARRIER] = 0;
+	ArmyTemplate stalker_oracle = ArmyTemplate(stalker_oracle_req, 10, ArmyRole::pressure, 15, 25);
+	army_templates.push_back(stalker_oracle);
+
+	std::map<UNIT_TYPEID, int> zealot_double_prong_req;
+	zealot_double_prong_req[ZEALOT] = 10;
+	ArmyTemplate zealot_double_prong = ArmyTemplate(zealot_double_prong_req, 10, ArmyRole::simple_attack, 12, 20);
+	army_templates.push_back(zealot_double_prong);
+}
+
+void ArmyManager::CreateNewArmyGroups()
+{
+	std::map<UNIT_TYPEID, int> extra_units;
+
+	for (const auto& unit : unassigned_group->all_units)
+	{
+		if (extra_units.find(unit->unit_type) != extra_units.end())
+		{
+			extra_units[unit->unit_type]++;
+		}
+		else
+		{
+			extra_units[unit->unit_type] = 1;
+		}
+	}
+
+
+	// shuffle other groups units if necessary
+	for (const auto& group : army_groups)
+	{
+		Units extras = group->GetExtraUnits();
+		for (const auto& unit : extras)
+		{
+			if (extra_units.find(unit->unit_type) != extra_units.end())
+			{
+				extra_units[unit->unit_type]++;
+			}
+			else
+			{
+				extra_units[unit->unit_type] = 1;
+			}
+		}
+	}
+	const ArmyTemplate* template_to_create = NULL;
+	for (const auto& army_template : army_templates)
+	{
+		bool all_req_units = true;
+		for (const auto& type : army_template.required_units)
+		{
+			if (type.second > 0 && (extra_units.find(type.first) == extra_units.end() || extra_units[type.first] < type.second))
+			{
+				// not all required units found
+				all_req_units = false;
+				continue;
+			}
+		}
+		if (all_req_units)
+		{
+			if (template_to_create == NULL || army_template.priority < template_to_create->priority)
+			{
+				template_to_create = &army_template;
+			}
+		}
+	}
+
+	if (template_to_create != NULL)
+	{
+		// create new army with template
+		std::vector<UNIT_TYPEID> unit_types;
+		for (const auto& type : template_to_create->required_units)
+		{
+			unit_types.push_back(type.first);
+		}
+		CreateArmyGroup(template_to_create->role, unit_types, template_to_create->desired_units, template_to_create->max_units);
 	}
 }
 

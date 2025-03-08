@@ -91,6 +91,7 @@ void Mediator::RunManagers()
 
 	finite_state_machine_manager.RunStateMachines();
 
+	army_manager.CreateNewArmyGroups();
 	army_manager.RunArmyGroups();
 
 	unit_command_manager.ParseUnitCommands();
