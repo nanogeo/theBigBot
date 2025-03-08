@@ -492,14 +492,19 @@ namespace sc2 {
 		{
 			Units units_in_range;
 			float extra_range = 0;
-			while (units_in_range.size() == 0 && extra_range <= max_extra_range)
+			bool found_non_building = false;
+			while (!found_non_building && units_in_range.size() == 0 && extra_range <= max_extra_range)
 			{
 				for (const auto& Eunit : Eunits)
 				{
-					if (enemy_unit_hp[Eunit] <= 0)
+					if (enemy_unit_hp[Eunit] <= 0 || std::find(units_in_range.begin(), units_in_range.end(), Eunit) != units_in_range.end())
 						continue;
 					if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealRange(unit, Eunit) + extra_range)
+					{
 						units_in_range.push_back(Eunit);
+						if (!Eunit->is_building)
+							found_non_building = true;
+					}
 				}
 				extra_range += .5;
 			}
