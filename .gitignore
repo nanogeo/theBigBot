@@ -12,3 +12,9 @@ build/
 
 # Build log
 *.log
+
+# results update files
+replays/
+*.json
+spreadsheetID.txt
+aiarena_info.txt
