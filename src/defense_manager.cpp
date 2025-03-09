@@ -20,12 +20,12 @@ void DefenseManager::CheckForAttacks()
 		
 		if (close_enemies.size() == 0 && std::find(ongoing_attacks.begin(), ongoing_attacks.end(), base->pos) != ongoing_attacks.end())
 		{
-			std::cerr << "Attack ended at " << base->pos.x << ", " << base->pos.y << std::endl;
+			std::cerr << "Attack ended at " << base->pos.x << ", " << base->pos.y <<  " at " << mediator->GetCurrentTime() << std::endl;
 			ongoing_attacks.erase(std::remove(ongoing_attacks.begin(), ongoing_attacks.end(), base->pos), ongoing_attacks.end());
 		}
 		else if (close_enemies.size() > 0 && std::find(ongoing_attacks.begin(), ongoing_attacks.end(), base->pos) == ongoing_attacks.end())
 		{
-			std::cerr << "Attack started at " << base->pos.x << ", " << base->pos.y << std::endl;
+			std::cerr << "Attack started at " << base->pos.x << ", " << base->pos.y << " at " << mediator->GetCurrentTime() << std::endl;
 			ongoing_attacks.push_back(base->pos);
 		}
 	}
