@@ -69,6 +69,8 @@ void Mediator::RunManagers()
 {
 	scouting_manager.UpdateInfo();
 
+	defense_manager.CheckForAttacks();
+
 	worker_manager.DistributeWorkers();
 	if (worker_manager.new_base != NULL)
 	{
@@ -877,6 +879,15 @@ void Mediator::SetWarpInAtProxy(bool status)
 ArmyGroup* Mediator::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)
 {
 	return army_manager.CreateArmyGroup(role, unit_types, desired_units, max_units);
+}
+
+ArmyGroup* Mediator::GetArmyGroupDefendingBase(Point2D pos)
+{
+	for (const auto& army_group : army_manager.army_groups)
+	{
+		if (army_group->role == ArmyRole::defend_base && army_group->target_pos == pos)
+			return army_group;
+	}
 }
 
 void Mediator::ScourMap()

@@ -14,6 +14,8 @@
 #include "army_manager.h"
 #include "unit_production_manager.h"
 #include "scouting_manager.h"
+#include "defense_manager.h"
+
 #include "definitions.h"
 
 namespace sc2
@@ -32,7 +34,8 @@ public:
 		finite_state_machine_manager(this),
 		army_manager(this),
 		unit_production_manager(this),
-		scouting_manager(this)
+		scouting_manager(this),
+		defense_manager(this)
 	{
 		this->agent = agent;
 	}
@@ -48,6 +51,7 @@ public:
 	ArmyManager army_manager;
 	UnitProductionManager unit_production_manager;
 	ScoutingManager scouting_manager;
+	DefenseManager defense_manager;
 
 
 public:
@@ -122,6 +126,7 @@ public:
 
 	void DefendThirdBaseZerg();
 	void AddToDefense(int, int);
+	
 
 	void PlaceWorker(const Unit*);
 	void RemoveWorker(const Unit*);
@@ -131,6 +136,7 @@ public:
 	void SetWarpInAtProxy(bool);
 
 	ArmyGroup* CreateArmyGroup(ArmyRole, std::vector<UNIT_TYPEID>, int, int);
+	ArmyGroup* GetArmyGroupDefendingBase(Point2D);
 	void ScourMap();
 
 	Point2D GetStartLocation();
