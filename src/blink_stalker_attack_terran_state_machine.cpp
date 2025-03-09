@@ -269,7 +269,7 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 				break;
 			}
 		}
-		if (blinked)
+		if (blinked && Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_down_pos) < Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_up_pos))
 		{
 			state_machine->attached_army_group->last_time_blinked[stalkers_to_blink[i]] = agent->Observation()->GetGameLoop();
 			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
