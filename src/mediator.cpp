@@ -827,6 +827,12 @@ void Mediator::AddToDefense(int base, int amount)
 	army_manager.BalanceUnits();
 }
 
+
+std::vector<Point2D> Mediator::GetOngoingAttacks()
+{
+	return defense_manager.ongoing_attacks;
+}
+
 void Mediator::PlaceWorker(const Unit* worker)
 {
 	worker_manager.PlaceWorker(worker);

@@ -354,6 +354,18 @@ State* OracleDefendLine::TestTransitions()
 {
 	if (state_machine->oracles.size() > 1 && state_machine->sent_harass == false) 
 	{
+		bool low_energy = true;
+		for (const auto& oracle : state_machine->oracles)
+		{
+			if (oracle->energy < 25)
+			{
+				low_energy = false;
+				break;
+			}
+		}
+		if (low_energy || agent->mediator.GetOngoingAttacks().size() > 0)
+			return NULL;
+
 		if (agent->Observation()->GetGameLoop() % 2 == 0)
 		{
 			state_machine->harass_direction = true;

@@ -127,6 +127,7 @@ public:
 	void DefendThirdBaseZerg();
 	void AddToDefense(int, int);
 	
+	std::vector<Point2D> GetOngoingAttacks();
 
 	void PlaceWorker(const Unit*);
 	void RemoveWorker(const Unit*);
