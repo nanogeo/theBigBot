@@ -906,6 +906,11 @@ Point2D Mediator::GetStartLocation()
 	return agent->Observation()->GetStartLocation();
 }
 
+Point2D Mediator::GetNaturalLocation()
+{
+	return agent->locations->nexi_locations[1];
+}
+
 Point2D Mediator::GetEnemyStartLocation()
 {
 	return agent->Observation()->GetGameInfo().enemy_start_locations[0];

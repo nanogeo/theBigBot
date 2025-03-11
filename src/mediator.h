@@ -141,6 +141,7 @@ public:
 	void ScourMap();
 
 	Point2D GetStartLocation();
+	Point2D GetNaturalLocation();
 	Point2D GetEnemyStartLocation();
 	Point2D GetEnemyNaturalLocation();
 	PathManager GetDirectAttackLine();
