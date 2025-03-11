@@ -21,6 +21,7 @@ public:
 
 
 	void CheckForAttacks();
+	float JudgeFight(Units, Units, float, float, bool);
 };
 
 }
