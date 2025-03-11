@@ -846,7 +846,7 @@ namespace sc2 {
 		{
 			for (const auto &attack : enemy_attacks[unit])
 			{
-				damage += Utility::GetDamage(attack.unit, unit, Observation());
+				damage += Utility::GetDamage(attack.unit, unit);
 			}
 		}
 		for (int i = 0; i < corrosive_bile_times.size(); i++)

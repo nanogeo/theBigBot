@@ -557,32 +557,19 @@ int Utility::DangerLevelAt(const Unit* unit, Point2D pos, const ObservationInter
 	for (const auto &enemy_unit : observation->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)))
 	{
 		if (!enemy_unit->is_building && Distance2D(pos, enemy_unit->pos) <= RealRange(enemy_unit, unit))
-			possible_damage += GetDamage(enemy_unit, unit, observation);
+			possible_damage += GetDamage(enemy_unit, unit);
 	}
 	return possible_damage;
 }
 
-int Utility::GetDamage(const Unit* attacker, const Unit* target, const ObservationInterface* observation)
+int Utility::GetDamage(const Unit* attacker, const Unit* target)
 {
-	bool is_light = 0;
-	bool is_armored = 0;
-	bool is_biological = 0;
-	bool is_mechanical = 0;
-	bool is_massive = 0;
+	bool is_light = IsLight(target->unit_type);
+	bool is_armored = IsArmored(target->unit_type);
+	bool is_biological = IsBiological(target->unit_type);
+	bool is_mechanical = IsMechanical(target->unit_type);
+	bool is_massive = IsMassive(target->unit_type);
 	bool is_flying = target->is_flying;
-	for (const auto &attribute : observation->GetUnitTypeData()[target->unit_type].attributes)
-	{
-		if (attribute == Attribute::Light)
-			is_light = 1;
-		else if (attribute == Attribute::Armored)
-			is_armored = 1;
-		else if (attribute == Attribute::Biological)
-			is_biological = 1;
-		else if (attribute == Attribute::Mechanical)
-			is_mechanical = 1;
-		else if (attribute == Attribute::Massive)
-			is_massive = 1;
-	}
 	int upgrade_level = attacker->attack_upgrade_level;
 	int damage = 0;
 	int attacks = 1;
@@ -592,9 +579,13 @@ int Utility::GetDamage(const Unit* attacker, const Unit* target, const Observati
 		damage = 20;
 		break;
 	case UNIT_TYPEID::PROTOSS_PROBE:
+		if (is_flying)
+			return 0;
 		damage = 5;
 		break;
 	case UNIT_TYPEID::PROTOSS_ZEALOT:
+		if (is_flying)
+			return 0;
 		damage = 8 + (upgrade_level * 1);
 		attacks = 2;
 		break;
@@ -605,25 +596,37 @@ int Utility::GetDamage(const Unit* attacker, const Unit* target, const Observati
 		damage = 13 + (upgrade_level * 1) + (is_armored * (5 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::PROTOSS_ADEPT:
+		if (is_flying)
+			return 0;
 		damage = 10 + (upgrade_level * 1) + (is_light * (12 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		if (is_flying)
+			return 0;
 		damage = 4 + (upgrade_level * 1);
 		break;
 	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		if (is_flying)
+			return 0;
 		damage = 45 + (upgrade_level * 5);
 		break;
 	case UNIT_TYPEID::PROTOSS_ARCHON:
 		damage = 25 + (upgrade_level * 3) + (is_biological * (10 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::PROTOSS_IMMORTAL:
+		if (is_flying)
+			return 0;
 		damage = 20 + (upgrade_level * 2) + (is_armored * (30 + (upgrade_level * 3)));
 		break;
 	case UNIT_TYPEID::PROTOSS_COLOSSUS:
+		if (is_flying)
+			return 0;
 		damage = 10 + (upgrade_level * 1) + (is_light * (5 + (upgrade_level * 1)));
 		attacks = 2;
 		break;
 	case UNIT_TYPEID::PROTOSS_PHOENIX:
+		if (!is_flying)
+			return 0;
 		damage = 5 + (upgrade_level * 1) + (is_light * 5);
 		attacks = 2;
 		break;
@@ -631,6 +634,8 @@ int Utility::GetDamage(const Unit* attacker, const Unit* target, const Observati
 		damage = 6 + (upgrade_level * 1) + (is_armored * 4);
 		break;
 	case UNIT_TYPEID::PROTOSS_ORACLE:
+		if (is_flying)
+			return 0;
 		damage = 15 + (is_light * 7);
 		break;
 	case UNIT_TYPEID::PROTOSS_CARRIER:
@@ -645,22 +650,32 @@ int Utility::GetDamage(const Unit* attacker, const Unit* target, const Observati
 		attacks = 6;
 		break;
 	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS: // terran
+		if (is_flying)
+			return 0;
 		damage = 40;
 		break;
 	case UNIT_TYPEID::TERRAN_MISSILETURRET:
+		if (!is_flying)
+			return 0;
 		damage = 12;
 		attacks = 2;
 		break;
 	case UNIT_TYPEID::TERRAN_SCV:
+		if (is_flying)
+			return 0;
 		damage = 5;
 		break;
 	case UNIT_TYPEID::TERRAN_MARINE:
 		damage = 6 + (upgrade_level * 1);
 		break;
 	case UNIT_TYPEID::TERRAN_MARAUDER:
+		if (is_flying)
+			return 0;
 		damage = 10 + (upgrade_level * 1) + (is_armored * (10 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::TERRAN_REAPER:
+		if (is_flying)
+			return 0;
 		damage = 4 + (upgrade_level * 1);
 		attacks = 2;
 		break;
@@ -668,15 +683,23 @@ int Utility::GetDamage(const Unit* attacker, const Unit* target, const Observati
 		damage = 10 + (upgrade_level * 1) + (is_light * (10 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::TERRAN_HELLION: // TODO blue flame
+		if (is_flying)
+			return 0;
 		damage = 8 + (upgrade_level * 1) + (is_light * (6 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::TERRAN_HELLIONTANK:
+		if (is_flying)
+			return 0;
 		damage = 18 + (upgrade_level * 2) + (is_light * (0 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::TERRAN_SIEGETANK:
+		if (is_flying)
+			return 0;
 		damage = 15 + (upgrade_level * 2) + (is_armored * (10 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+		if (is_flying)
+			return 0;
 		damage = 40 + (upgrade_level * 4) + (is_armored * (30 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::TERRAN_CYCLONE:
@@ -709,20 +732,30 @@ int Utility::GetDamage(const Unit* attacker, const Unit* target, const Observati
 		damage = 18;
 		break;
 	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+		if (is_flying)
+			return 0;
 		damage = 12 + (upgrade_level * 1) + (is_mechanical * (8 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+		if (!is_flying)
+			return 0;
 		damage = 10 + (upgrade_level * 1) + (is_armored * 4);
 		attacks = 2;
 		break;
 	case UNIT_TYPEID::TERRAN_LIBERATOR:
+		if (!is_flying)
+			return 0;
 		damage = 5 + (upgrade_level * 1);
 		attacks = 2;
 		break;
 	case UNIT_TYPEID::TERRAN_LIBERATORAG:
+		if (is_flying)
+			return 0;
 		damage = 75 + (upgrade_level * 5);
 		break;
 	case UNIT_TYPEID::TERRAN_BANSHEE:
+		if (is_flying)
+			return 0;
 		damage = 12 + (upgrade_level * 1);
 		attacks = 2;
 		break;
@@ -737,15 +770,23 @@ int Utility::GetDamage(const Unit* attacker, const Unit* target, const Observati
 		}
 		break;
 	case UNIT_TYPEID::ZERG_SPINECRAWLER: // zerg
+		if (is_flying)
+			return 0;
 		damage = 25 + (is_armored * 5);
 		break;
 	case UNIT_TYPEID::ZERG_SPORECRAWLER:
+		if (!is_flying)
+			return 0;
 		damage = 15 + (is_biological * 15);
 		break;
 	case UNIT_TYPEID::ZERG_DRONE:
+	case UNIT_TYPEID::ZERG_DRONEBURROWED:
+		if (is_flying)
+			return 0;
 		damage = 5;
 		break;
 	case UNIT_TYPEID::ZERG_QUEEN:
+	case UNIT_TYPEID::ZERG_QUEENBURROWED:
 		if (is_flying)
 		{
 			damage = 9 + (upgrade_level * 1);
@@ -757,40 +798,67 @@ int Utility::GetDamage(const Unit* attacker, const Unit* target, const Observati
 		}
 		break;
 	case UNIT_TYPEID::ZERG_ZERGLING:
+	case UNIT_TYPEID::ZERG_ZERGLINGBURROWED:
+		if (is_flying)
+			return 0;
 		damage = 5 + (upgrade_level * 1);
 		break;
 	case UNIT_TYPEID::ZERG_BANELING:
+	case UNIT_TYPEID::ZERG_BANELINGBURROWED:
+		if (is_flying)
+			return 0;
 		damage = 16 + (upgrade_level * 2) + (is_light * (19 + (upgrade_level * 2)));
 		break;
 	case UNIT_TYPEID::ZERG_ROACH:
+	case UNIT_TYPEID::ZERG_ROACHBURROWED:
+		if (is_flying)
+			return 0;
 		damage = 16 + (upgrade_level * 2);
 		break;
 	case UNIT_TYPEID::ZERG_RAVAGER:
+	case UNIT_TYPEID::RAVAGERBURROWED:
+		if (is_flying)
+			return 0;
 		damage = 16 + (upgrade_level * 2);
 		break;
 	case UNIT_TYPEID::ZERG_HYDRALISK:
+	case UNIT_TYPEID::ZERG_HYDRALISKBURROWED:
 		damage = 12 + (upgrade_level * 2);
 		break;
 	case UNIT_TYPEID::ZERG_LURKERMP:
+	case UNIT_TYPEID::ZERG_LURKERMPBURROWED:
+		if (is_flying)
+			return 0;
 		damage = 20 + (upgrade_level * 2) + (is_armored * (10 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::ZERG_ULTRALISK:
+	case UNIT_TYPEID::ZERG_ULTRALISKBURROWED:
+		if (is_flying)
+			return 0;
 		damage = 35 + (upgrade_level * 3);
 		break;
 	case UNIT_TYPEID::ZERG_MUTALISK:
 		damage = 9 + (upgrade_level * 1);
 		break;
 	case UNIT_TYPEID::ZERG_CORRUPTOR:
+		if (!is_flying)
+			return 0;
 		damage = 14 + (upgrade_level * 1) + (is_massive * (6 + (upgrade_level * 1)));
 		break;
 	case UNIT_TYPEID::ZERG_BROODLORD:
+		if (is_flying)
+			return 0;
 		damage = 20 + (upgrade_level * 2);
 		attacks = 2;
 		break;
 	case UNIT_TYPEID::ZERG_LOCUSTMP:
+		if (is_flying)
+			return 0;
 		damage = 10 + (upgrade_level * 1);
 		break;
 	case UNIT_TYPEID::ZERG_BROODLING:
+		if (is_flying)
+			return 0;
 		damage = 4 + (upgrade_level * 1);
 		break;
 	default:
@@ -971,6 +1039,138 @@ float Utility::GetDPS(const Unit* attacker)
 	case UNIT_TYPEID::ZERG_BROODLING:
 		return 7 + (upgrade_level * 1.75);
 		break;
+	default:
+		//std::cout << "Error invalid unit type in GetDPS\n";
+		return 0;
+	}
+}
+
+float Utility::GetDPS(const Unit* attacker, const Unit* target)
+{
+	float damage = GetDamage(attacker, target) - GetArmor(target);
+
+	switch (attacker->unit_type.ToType())
+	{
+	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
+		return damage / .89;
+	case UNIT_TYPEID::PROTOSS_PROBE:
+		return damage / 1.07;
+	case UNIT_TYPEID::PROTOSS_ZEALOT:
+		return damage / .86;
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		return damage / .71;
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		return damage / 1.34;
+	case UNIT_TYPEID::PROTOSS_ADEPT: // TODO glaives
+		return damage / 1.61; // .64
+	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		return damage / 1.25;
+	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		return damage / 1.21;
+	case UNIT_TYPEID::PROTOSS_ARCHON:
+		return damage / 1.25;
+	case UNIT_TYPEID::PROTOSS_IMMORTAL:
+		return damage / 1.04;
+	case UNIT_TYPEID::PROTOSS_COLOSSUS:
+		return damage / 1.07;
+	case UNIT_TYPEID::PROTOSS_PHOENIX:
+		return damage / .79;
+	case UNIT_TYPEID::PROTOSS_VOIDRAY: // TODO prismatic alignment
+		return damage / .36;
+	case UNIT_TYPEID::PROTOSS_ORACLE:
+		return damage / .61;
+	case UNIT_TYPEID::PROTOSS_CARRIER:
+		return damage / 2.14;
+	case UNIT_TYPEID::PROTOSS_TEMPEST: // TODO techtonic destabilizers
+		return damage / 2.36;
+	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+		return damage / 1.58;
+	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS: // terran
+		return damage / 1.43;
+	case UNIT_TYPEID::TERRAN_MISSILETURRET:
+		return damage / .61;
+	case UNIT_TYPEID::TERRAN_SCV:
+		return damage / 1.07;
+	case UNIT_TYPEID::TERRAN_MARINE: // TODO stim
+		return damage / .61; // .41
+	case UNIT_TYPEID::TERRAN_MARAUDER:
+		return damage / 1.07; // .71
+	case UNIT_TYPEID::TERRAN_REAPER:
+		return damage / .79;
+	case UNIT_TYPEID::TERRAN_GHOST:
+		return damage / 1.07;
+	case UNIT_TYPEID::TERRAN_HELLION: // TODO blue flame
+		return damage / 1.79;
+	case UNIT_TYPEID::TERRAN_HELLIONTANK:
+		return damage / 1.43;
+	case UNIT_TYPEID::TERRAN_SIEGETANK:
+		return damage / .74;
+	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+		return damage / 2.14;
+	case UNIT_TYPEID::TERRAN_CYCLONE:
+		return damage / .71;
+	case UNIT_TYPEID::TERRAN_THOR:
+		if (target->is_flying)
+			return damage / 2.14;
+		else
+			return damage / .91;
+	case UNIT_TYPEID::TERRAN_THORAP:
+			return damage / .91;
+	case UNIT_TYPEID::TERRAN_AUTOTURRET:
+		return damage / .57;
+	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+		return damage / .71;
+	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+		return damage / 1.43;
+	case UNIT_TYPEID::TERRAN_LIBERATOR:
+		return damage / 1.29;
+	case UNIT_TYPEID::TERRAN_LIBERATORAG:
+		return damage / 1.14;
+	case UNIT_TYPEID::TERRAN_BANSHEE:
+		return damage / .89;
+	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
+		return damage / .16;
+	case UNIT_TYPEID::ZERG_SPINECRAWLER: // zerg
+		return damage / 1.32;
+	case UNIT_TYPEID::ZERG_SPORECRAWLER:
+		return damage / .61;
+	case UNIT_TYPEID::ZERG_DRONE:
+	case UNIT_TYPEID::ZERG_DRONEBURROWED:
+		return damage / 1.07;
+	case UNIT_TYPEID::ZERG_QUEEN:
+	case UNIT_TYPEID::ZERG_QUEENBURROWED:
+		return damage / .71;
+	case UNIT_TYPEID::ZERG_ZERGLING: // TODO adrenal
+	case UNIT_TYPEID::ZERG_ZERGLINGBURROWED:
+		return damage / .5; // .35
+	case UNIT_TYPEID::ZERG_BANELING:
+	case UNIT_TYPEID::ZERG_BANELINGBURROWED:
+		return damage;
+	case UNIT_TYPEID::ZERG_ROACH:
+	case UNIT_TYPEID::ZERG_ROACHBURROWED:
+		return damage / 1.43;
+	case UNIT_TYPEID::ZERG_RAVAGER:
+	case UNIT_TYPEID::RAVAGERBURROWED:
+		return damage / 1.14;
+	case UNIT_TYPEID::ZERG_HYDRALISK:
+	case UNIT_TYPEID::ZERG_HYDRALISKBURROWED:
+		return damage / .59;
+	case UNIT_TYPEID::ZERG_LURKERMP:
+	case UNIT_TYPEID::ZERG_LURKERMPBURROWED:
+		return damage / 1.43;
+	case UNIT_TYPEID::ZERG_ULTRALISK:
+	case UNIT_TYPEID::ZERG_ULTRALISKBURROWED:
+		return damage / .61;
+	case UNIT_TYPEID::ZERG_MUTALISK:
+		return damage / 1.09;
+	case UNIT_TYPEID::ZERG_CORRUPTOR:
+		return damage / 1.36;
+	case UNIT_TYPEID::ZERG_BROODLORD:
+		return damage / 1.79;
+	case UNIT_TYPEID::ZERG_LOCUSTMP:
+		return damage / .43;
+	case UNIT_TYPEID::ZERG_BROODLING:
+		return damage / .46;
 	default:
 		//std::cout << "Error invalid unit type in GetDPS\n";
 		return 0;
@@ -2518,6 +2718,413 @@ bool Utility::IsBiological(UNIT_TYPEID type)
 	case REAPER:
 	case GHOST:
 	case HELLBAT:
+	case LARVA:
+	case EGG:
+	case DRONE:
+	case DRONE_BURROWED:
+	case QUEEN:
+	case QUEEN_BURROWED:
+	case ZERGLING:
+	case ZERGLING_BURROWED:
+	case BANELING_EGG:
+	case BANELING:
+	case BANELING_BURROWED:
+	case ROACH:
+	case ROACH_BURROWED:
+	case RAVAGER_EGG:
+	case RAVAGER:
+	case RAVAGER_BURROWED:
+	case HYDRA:
+	case HYDRA_BURROWED:
+	case LURKER_EGG:
+	case LURKER:
+	case LURKER_BURROWED:
+	case INFESTOR:
+	case INFESTOR_BURROWED:
+	case SWARMHOST:
+	case SWARMHOST_BURROWED:
+	case ULTRALISK:
+	case ULTRALISK_BURROWED:
+	case LOCUST:
+	case LOCUST_FLYING:
+	case BROODLING:
+	case CHANGELING:
+	case CHANGELING_ZEALOT:
+	case NYDUS_WORM:
+	case OVERLORD:
+	case DROPPERLORD:
+	case OVERSEER_EGG:
+	case OVERSEER:
+	case OVERSEER_SIEGED:
+	case MUTALISK:
+	case CORRUPTER:
+	case BROOD_LORD_EGG:
+	case BROOD_LORD:
+	case VIPER:
+	case HATCHERY:
+	case LAIR:
+	case HIVE:
+	case SPINE_CRAWLER:
+	case SPINE_CRAWLER_UPROOTED:
+	case SPORE_CRAWLER:
+	case SPORE_CRAWLER_UPROOTED:
+	case SPAWNING_POOL:
+	case ROACH_WARREN:
+	case EVO_CHAMBER:
+	case EXTRACTOR:
+	case BANELING_NEST:
+	case HYDRA_DEN:
+	case LURKER_DEN:
+	case INFESTATION_PIT:
+	case NYDUS:
+	case SPIRE:
+	case GREATER_SPIRE:
+	case ULTRALISK_CAVERN:
+	case CREEP_TUMOR_1:
+	case CREEP_TUMOR_2:
+	case CREEP_TUMOR_3:
+		return true;
+	}
+	return false;
+}
+
+
+bool Utility::IsMechanical(UNIT_TYPEID type)
+{
+	switch (type)
+	{
+	case PROBE:
+	case STALKER:
+	case SENTRY:
+	case IMMORTAL:
+	case COLOSSUS:
+	case DISRUPTOR:
+	case OBSERVER:
+	case OBSERVER_SIEGED:
+	case PRISM:
+	case PRISM_SIEGED:
+	case PHOENIX:
+	case VOID_RAY:
+	case ORACLE:
+	case CARRIER:
+	case TEMPEST:
+	case MOTHERSHIP:
+	case COMMAND_CENTER:
+	case COMMAND_CENTER_FLYING:
+	case PLANETARY:
+	case ORBITAL:
+	case ORBITAL_FLYING:
+	case SUPPLY_DEPOT:
+	case SUPPLY_DEPOT_LOWERED:
+	case REFINERY:
+	case BARRACKS:
+	case BARRACKS_FLYING:
+	case ENGINEERING_BAY:
+	case BUNKER:
+	case SENSOR_TOWER:
+	case MISSILE_TURRET:
+	case FACTORY:
+	case FACTORY_FLYING:
+	case GHOST_ACADEMY:
+	case STARPORT:
+	case STARPORT_FLYING:
+	case ARMORY:
+	case FUSION_CORE:
+	case TECH_LAB:
+	case REACTOR:
+	case BARRACKS_TECH_LAB:
+	case BARRACKS_REACTOR:
+	case FACTORY_TECH_LAB:
+	case FACTORY_REACTOR:
+	case STARPORT_TECH_LAB:
+	case STARPORT_REACTOR:
+	case SCV:
+	case MULE:
+	case HELLION:
+	case HELLBAT:
+	case SIEGE_TANK:
+	case SIEGE_TANK_SIEGED:
+	case CYCLONE:
+	case THOR_AOE:
+	case THOR_AP:
+	case WIDOW_MINE:
+	case AUTO_TURRET:
+	case VIKING:
+	case VIKING_LANDED:
+	case MEDIVAC:
+	case LIBERATOR:
+	case LIBERATOR_SIEGED:
+	case RAVEN:
+	case BANSHEE:
+	case BATTLECRUISER:
+		return true;
+	}
+	return false;
+}
+
+bool Utility::IsLight(UNIT_TYPEID type)
+{
+	switch (type)
+	{
+	case PROBE:
+	case ZEALOT:
+	case ADEPT:
+	case HIGH_TEMPLAR:
+	case DARK_TEMPLAR:
+	case OBSERVER:
+	case OBSERVER_SIEGED:
+	case PHOENIX:
+	case SCV:
+	case MULE:
+	case MARINE:
+	case REAPER:
+	case HELLION:
+	case HELLBAT:
+	case WIDOW_MINE:
+	case RAVEN:
+	case BANSHEE:
+	case LARVA:
+	case DRONE:
+	case DRONE_BURROWED:
+	case ZERGLING:
+	case ZERGLING_BURROWED:
+	case HYDRA:
+	case HYDRA_BURROWED:
+	case LOCUST:
+	case LOCUST_FLYING:
+	case BROODLING:
+	case CHANGELING:
+	case CHANGELING_ZEALOT:
+	case MUTALISK:
+		return true;
+	}
+	return false;
+}
+
+bool Utility::IsArmored(UNIT_TYPEID type)
+{
+	switch (type)
+	{
+	case NEXUS:
+	case PYLON:
+	case GATEWAY:
+	case WARP_GATE:
+	case ASSIMILATOR:
+	case FORGE:
+	case CYBERCORE:
+	case CANNON:
+	case BATTERY:
+	case TWILIGHT:
+	case TEMPLAR_ARCHIVES:
+	case STARGATE:
+	case FLEET_BEACON:
+	case DARK_SHRINE:
+	case ROBO:
+	case ROBO_BAY:
+	case STALKER:
+	case IMMORTAL:
+	case COLOSSUS:
+	case DISRUPTOR:
+	case PRISM:
+	case PRISM_SIEGED:
+	case VOID_RAY:
+	case ORACLE:
+	case CARRIER:
+	case TEMPEST:
+	case MOTHERSHIP:
+	case COMMAND_CENTER:
+	case COMMAND_CENTER_FLYING:
+	case PLANETARY:
+	case ORBITAL:
+	case ORBITAL_FLYING:
+	case SUPPLY_DEPOT:
+	case SUPPLY_DEPOT_LOWERED:
+	case REFINERY:
+	case BARRACKS:
+	case BARRACKS_FLYING:
+	case ENGINEERING_BAY:
+	case BUNKER:
+	case SENSOR_TOWER:
+	case MISSILE_TURRET:
+	case FACTORY:
+	case FACTORY_FLYING:
+	case GHOST_ACADEMY:
+	case STARPORT:
+	case STARPORT_FLYING:
+	case ARMORY:
+	case FUSION_CORE:
+	case TECH_LAB:
+	case REACTOR:
+	case BARRACKS_TECH_LAB:
+	case BARRACKS_REACTOR:
+	case FACTORY_TECH_LAB:
+	case FACTORY_REACTOR:
+	case STARPORT_TECH_LAB:
+	case STARPORT_REACTOR:
+	case MARAUDER:
+	case SIEGE_TANK:
+	case SIEGE_TANK_SIEGED:
+	case CYCLONE:
+	case THOR_AOE:
+	case THOR_AP:
+	case AUTO_TURRET:
+	case VIKING:
+	case VIKING_LANDED:
+	case MEDIVAC:
+	case LIBERATOR:
+	case LIBERATOR_SIEGED:
+	case BATTLECRUISER:
+	case ROACH:
+	case ROACH_BURROWED:
+	case LURKER:
+	case LURKER_BURROWED:
+	case SWARMHOST:
+	case SWARMHOST_BURROWED:
+	case ULTRALISK:
+	case ULTRALISK_BURROWED:
+	case NYDUS_WORM:
+	case OVERLORD:
+	case DROPPERLORD:
+	case OVERSEER_EGG:
+	case OVERSEER:
+	case OVERSEER_SIEGED:
+	case CORRUPTER:
+	case BROOD_LORD:
+	case VIPER:
+	case HATCHERY:
+	case LAIR:
+	case HIVE:
+	case SPINE_CRAWLER:
+	case SPINE_CRAWLER_UPROOTED:
+	case SPORE_CRAWLER:
+	case SPORE_CRAWLER_UPROOTED:
+	case SPAWNING_POOL:
+	case ROACH_WARREN:
+	case EVO_CHAMBER:
+	case EXTRACTOR:
+	case BANELING_NEST:
+	case HYDRA_DEN:
+	case LURKER_DEN:
+	case INFESTATION_PIT:
+	case NYDUS:
+	case SPIRE:
+	case GREATER_SPIRE:
+	case ULTRALISK_CAVERN:
+		return true;
+	}
+	return false;
+}
+
+bool Utility::IsMassive(UNIT_TYPEID type)
+{
+	switch (type)
+	{
+	case COLOSSUS:
+	case ARCHON:
+	case CARRIER:
+	case TEMPEST:
+	case MOTHERSHIP:
+	case THOR_AOE:
+	case THOR_AP:
+	case BATTLECRUISER:
+	case ULTRALISK:
+	case ULTRALISK_BURROWED:
+	case BROOD_LORD_EGG:
+	case BROOD_LORD:
+		return true;
+	}
+	return false;
+}
+
+bool Utility::IsStructure(UNIT_TYPEID type)
+{
+	switch (type)
+	{
+	case NEXUS:
+	case PYLON:
+	case GATEWAY:
+	case WARP_GATE:
+	case ASSIMILATOR:
+	case FORGE:
+	case CYBERCORE:
+	case CANNON:
+	case BATTERY:
+	case TWILIGHT:
+	case TEMPLAR_ARCHIVES:
+	case STARGATE:
+	case FLEET_BEACON:
+	case DARK_SHRINE:
+	case ROBO:
+	case ROBO_BAY:
+	case COMMAND_CENTER:
+	case COMMAND_CENTER_FLYING:
+	case PLANETARY:
+	case ORBITAL:
+	case ORBITAL_FLYING:
+	case SUPPLY_DEPOT:
+	case SUPPLY_DEPOT_LOWERED:
+	case REFINERY:
+	case BARRACKS:
+	case BARRACKS_FLYING:
+	case ENGINEERING_BAY:
+	case BUNKER:
+	case SENSOR_TOWER:
+	case MISSILE_TURRET:
+	case FACTORY:
+	case FACTORY_FLYING:
+	case GHOST_ACADEMY:
+	case STARPORT:
+	case STARPORT_FLYING:
+	case ARMORY:
+	case FUSION_CORE:
+	case TECH_LAB:
+	case REACTOR:
+	case BARRACKS_TECH_LAB:
+	case BARRACKS_REACTOR:
+	case FACTORY_TECH_LAB:
+	case FACTORY_REACTOR:
+	case STARPORT_TECH_LAB:
+	case STARPORT_REACTOR:
+	case NYDUS_WORM:
+	case HATCHERY:
+	case LAIR:
+	case HIVE:
+	case SPINE_CRAWLER:
+	case SPINE_CRAWLER_UPROOTED:
+	case SPORE_CRAWLER:
+	case SPORE_CRAWLER_UPROOTED:
+	case SPAWNING_POOL:
+	case ROACH_WARREN:
+	case EVO_CHAMBER:
+	case EXTRACTOR:
+	case BANELING_NEST:
+	case HYDRA_DEN:
+	case LURKER_DEN:
+	case INFESTATION_PIT:
+	case NYDUS:
+	case SPIRE:
+	case GREATER_SPIRE:
+	case ULTRALISK_CAVERN:
+	case CREEP_TUMOR_1:
+	case CREEP_TUMOR_2:
+	case CREEP_TUMOR_3:
+		return true;
+	}
+	return false;
+}
+
+bool Utility::IsMelee(UNIT_TYPEID type)
+{
+	switch (type)
+	{
+	case PROBE:
+	case ZEALOT:
+	case DARK_TEMPLAR:
+	case SCV:
+	case DRONE:
+	case ZERGLING:
+	case ULTRALISK:
+	case BROODLING:
 		return true;
 	}
 	return false;

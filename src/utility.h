@@ -112,8 +112,9 @@ public:
 	static Point2D ClosestIntersectionTo(Point2D, double, Point2D, double, Point2D);
 	static int DangerLevel(const Unit *, const ObservationInterface*);
 	static int DangerLevelAt(const Unit *, Point2D, const ObservationInterface*);
-	static int GetDamage(const Unit*, const Unit*, const ObservationInterface*);
+	static int GetDamage(const Unit*, const Unit*);
 	static float GetDPS(const Unit*);
+	static float GetDPS(const Unit*, const Unit*);
 	static int GetArmor(const Unit*);
 	static int GetCargoSize(const Unit*);
 	static float GetGroundRange(const Unit *);
@@ -146,6 +147,12 @@ public:
 	static std::vector<UNIT_TYPEID> GetBurrowedUnitTypes();
 	static std::vector<double> GetRealQuarticRoots(double, double, double, double, double);
 	static bool IsBiological(UNIT_TYPEID);
+	static bool IsMechanical(UNIT_TYPEID);
+	static bool IsLight(UNIT_TYPEID);
+	static bool IsArmored(UNIT_TYPEID);
+	static bool IsMassive(UNIT_TYPEID);
+	static bool IsStructure(UNIT_TYPEID);
+	static bool IsMelee(UNIT_TYPEID);
 
 	static std::string UnitTypeIdToString(UNIT_TYPEID);
 	static std::string AbilityIdToString(ABILITY_ID);

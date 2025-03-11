@@ -151,12 +151,12 @@ namespace sc2 {
 
 	int FireControl::GetDamage(const Unit* Funit, const Unit* Eunit)
 	{
-		return Utility::GetDamage(Funit, Eunit, agent->Observation());
+		return Utility::GetDamage(Funit, Eunit);
 	}
 
 	bool FireControl::ApplyAttack(FriendlyUnitInfo* friendly_unit, EnemyUnitInfo* enemy_unit)
 	{
-		int damage = Utility::GetDamage(friendly_unit->unit, enemy_unit->unit, agent->Observation());
+		int damage = Utility::GetDamage(friendly_unit->unit, enemy_unit->unit);
 		bool Eunit_died = ApplyDamage(enemy_unit, damage);
 		attacks[friendly_unit->unit] = enemy_unit->unit;
 		RemoveFriendlyUnit(friendly_unit);
@@ -394,7 +394,7 @@ namespace sc2 {
 
 	void PersistentFireControl::ApplyAttack(const Unit* attacker, const Unit* target)
 	{
-		int damage = Utility::GetDamage(attacker, target, agent->Observation());
+		int damage = Utility::GetDamage(attacker, target);
 		enemy_unit_hp[target] = enemy_unit_hp[target] - damage;
 		outgoing_attacks.push_back(OutgoingDamage(attacker, target, damage, agent->Observation()->GetGameLoop() + 20)); // TODO calculate frame of hit
 	}
