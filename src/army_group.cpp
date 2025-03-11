@@ -1101,7 +1101,7 @@ namespace sc2 {
 		if (!ready)
 		{
 			mediator->SetUnitsCommand(all_units, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(all_units));
-			if (all_units.size() >= desired_units && Utility::GetUnitsWithin(all_units, Utility::MedianCenter(all_units), 10).size() > 10)
+			if (Utility::GetUnitsWithin(all_units, Utility::MedianCenter(all_units), 10).size() >= desired_units)
 				ready = true;
 		}
 		for (const auto& unit : all_units)
