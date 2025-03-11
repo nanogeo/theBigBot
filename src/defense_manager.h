@@ -21,6 +21,7 @@ public:
 
 
 	void CheckForAttacks();
+	void UpdateOngoingAttacks();
 	float JudgeFight(Units, Units, float, float, bool);
 };
 

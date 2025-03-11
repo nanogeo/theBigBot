@@ -71,6 +71,9 @@ void Mediator::RunManagers()
 
 	defense_manager.CheckForAttacks();
 
+	if (agent->Observation()->GetGameLoop() % 100 == 0)
+		defense_manager.UpdateOngoingAttacks();
+
 	worker_manager.DistributeWorkers();
 	if (worker_manager.new_base != NULL)
 	{

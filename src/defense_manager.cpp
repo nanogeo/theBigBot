@@ -17,6 +17,7 @@ void DefenseManager::CheckForAttacks()
 	{
 		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), base->pos, 20);
 		ArmyGroup* defense_group = mediator->GetArmyGroupDefendingBase(base->pos);
+		// consider wall when defending nat vs zerg
 		
 		if (close_enemies.size() == 0 && std::find(ongoing_attacks.begin(), ongoing_attacks.end(), base->pos) != ongoing_attacks.end())
 		{
@@ -31,6 +32,24 @@ void DefenseManager::CheckForAttacks()
 	}
 }
 
+void DefenseManager::UpdateOngoingAttacks()
+{
+	for (const auto& attack : ongoing_attacks)
+	{
+		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), attack, 20);
+		Units close_allies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)), attack, 20);
+		Units batteries = Utility::GetUnitsWithin(mediator->GetUnits(IsUnit(BATTERY)), attack, 20);
+		int total_energy = 0;
+		for (const auto& battery : batteries)
+		{
+			total_energy += battery->energy;
+		}
+		bool sim_city = (mediator->GetEnemyRace() == Race::Zerg && mediator->GetNaturalLocation() == attack) ? true : false;
+		float value = JudgeFight(close_enemies, close_allies, 0, total_energy, sim_city);
+		std::cerr << "Attack at " << attack.x << ", " << attack.y << " current value " << value << std::endl;
+	}
+
+}
 
 float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float enemy_battery_energy, float friendly_battery_energy, bool sim_city)
 {
