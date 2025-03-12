@@ -23,6 +23,8 @@ void DefenseManager::CheckForAttacks()
 		{
 			std::cerr << "Attack ended at " << base->pos.x << ", " << base->pos.y <<  " at " << mediator->GetCurrentTime() << std::endl;
 			ongoing_attacks.erase(std::remove(ongoing_attacks.begin(), ongoing_attacks.end(), base->pos), ongoing_attacks.end());
+			// reset desired defenses
+
 		}
 		else if (close_enemies.size() > 0 && std::find(ongoing_attacks.begin(), ongoing_attacks.end(), base->pos) == ongoing_attacks.end())
 		{
@@ -34,6 +36,7 @@ void DefenseManager::CheckForAttacks()
 
 void DefenseManager::UpdateOngoingAttacks()
 {
+	bool scary_attack = false;
 	for (const auto& attack : ongoing_attacks)
 	{
 		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), attack, 20);
@@ -47,8 +50,66 @@ void DefenseManager::UpdateOngoingAttacks()
 		bool sim_city = (mediator->GetEnemyRace() == Race::Zerg && mediator->GetNaturalLocation() == attack) ? true : false;
 		float value = JudgeFight(close_enemies, close_allies, 0, total_energy, sim_city);
 		std::cerr << "Attack at " << attack.x << ", " << attack.y << " current value " << value << std::endl;
-	}
+		if (value < 0)
+		{
+			scary_attack = true;
+			// pause build
+			mediator->PauseBuildOrder();
 
+			// warp in or make units from gates
+			if (mediator->CheckUpgrade(UPGRADE_ID::WARPGATERESEARCH))
+			{
+				if (mediator->GetWarpgateProduction() == UNIT_TYPEID::BALL)
+				{
+					mediator->SetUnitProduction(STALKER);
+					reset_warpgate_production = true;
+				}
+			}
+
+			// make units from other tech structures
+			if (mediator->GetRoboProduction() == UNIT_TYPEID::BALL)
+			{
+				mediator->SetUnitProduction(IMMORTAL);
+				reset_robo_production - true;
+			}
+			if (mediator->GetStargateProduction() == UNIT_TYPEID::BALL)
+			{
+				mediator->SetUnitProduction(VOID_RAY);
+				reset_stargate_production = true;
+			}
+
+			// increase desired defenders
+			if (close_allies.size() >= mediator->GetArmyGroupDefendingBase(attack)->desired_units)
+			{
+				if (value < 300)
+					mediator->AddToDefense(attack, 5);
+				else if (value < 200)
+					mediator->AddToDefense(attack, 4);
+				else if (value < 100)
+					mediator->AddToDefense(attack, 3);
+			}
+
+			// make defensive building(s)
+		}
+	}
+	if (!scary_attack)
+	{
+		// make sure build is continuing
+		mediator->UnPauseBuildOrder();
+
+		// stop unnecessary production
+		if (reset_warpgate_production)
+			mediator->CancelWarpgateUnitProduction();
+		if (reset_robo_production)
+			mediator->CancelRoboUnitProduction();
+		if (reset_stargate_production)
+			mediator->CancelStargateUnitProduction();
+
+		reset_warpgate_production = false;
+		reset_robo_production = false;
+		reset_stargate_production = false;
+
+	}
 }
 
 float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float enemy_battery_energy, float friendly_battery_energy, bool sim_city)

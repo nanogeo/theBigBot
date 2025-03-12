@@ -13,6 +13,9 @@ class DefenseManager
 public:
 	Mediator* mediator;
 	std::vector<Point2D> ongoing_attacks;
+	bool reset_warpgate_production = false;
+	bool reset_robo_production = false;
+	bool reset_stargate_production = false;
 
 	DefenseManager(Mediator* mediator)
 	{
