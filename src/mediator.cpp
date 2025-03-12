@@ -204,6 +204,11 @@ bool Mediator::CanAffordUpgrade(UPGRADE_ID upgrade_id)
 	return Utility::CanAffordUpgrade(upgrade_id, agent->Observation());
 }
 
+bool Mediator::CheckUpgrade(UPGRADE_ID upgrade_id)
+{
+	return upgrade_manager.CheckUpgrade(upgrade_id);
+}
+
 bool Mediator::CanBuildBuilding(UNIT_TYPEID unitId)
 {
 	return Utility::CanBuildBuilding(unitId, agent->Observation());
@@ -840,6 +845,19 @@ void Mediator::AddToDefense(int base, int amount)
 	army_manager.BalanceUnits();
 }
 
+void Mediator::AddToDefense(Point2D base_location, int amount)
+{
+	for (auto& army_group : army_manager.army_groups)
+	{
+		if (army_group->target_pos == base_location)
+		{
+			army_group->desired_units += amount;
+			army_group->max_units += amount;
+		}
+	}
+	army_manager.BalanceUnits();
+}
+
 
 std::vector<Point2D> Mediator::GetOngoingAttacks()
 {
@@ -885,9 +903,34 @@ void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
 	}
 }
 
+UNIT_TYPEID Mediator::GetWarpgateProduction()
+{
+	return unit_production_manager.warpgate_production;
+}
+
+UNIT_TYPEID Mediator::GetRoboProduction()
+{
+	return unit_production_manager.robo_production;
+}
+
+UNIT_TYPEID Mediator::GetStargateProduction()
+{
+	return unit_production_manager.stargate_production;
+}
+
 void Mediator::CancelWarpgateUnitProduction()
 {
 	unit_production_manager.SetWarpgateProduction(UNIT_TYPEID::BALL);
+}
+
+void Mediator::CancelRoboUnitProduction()
+{
+	unit_production_manager.SetRoboProduction(UNIT_TYPEID::BALL);
+}
+
+void Mediator::CancelStargateUnitProduction()
+{
+	unit_production_manager.SetStargateProduction(UNIT_TYPEID::BALL);
 }
 
 void Mediator::SetWarpInAtProxy(bool status)

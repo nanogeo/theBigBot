@@ -14,6 +14,7 @@ class UpgradeManager
 public:
 	Mediator* mediator;
 
+	bool has_warpgate = false;
 	bool has_blink = false;
 	bool has_charge = false;
 	bool has_storm = false;
@@ -31,6 +32,7 @@ public:
 
 	int GetUpgradeLevel(UpgradeType);
 	void OnUpgradeCompleted(UPGRADE_ID);
+	bool CheckUpgrade(UPGRADE_ID);
 };
 
 }

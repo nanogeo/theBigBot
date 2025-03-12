@@ -27,65 +27,139 @@ void UpgradeManager::OnUpgradeCompleted(UPGRADE_ID upgrade)
 {
 	switch (upgrade)
 	{
-	case sc2::UPGRADE_ID::BLINKTECH:
+	case UPGRADE_ID::WARPGATERESEARCH:
+		has_warpgate = true;
+		break;
+	case UPGRADE_ID::BLINKTECH:
 		has_blink = true;
 		break;
-	case sc2::UPGRADE_ID::CHARGE:
+	case UPGRADE_ID::CHARGE:
 		has_charge = true;
 		break;
-	case sc2::UPGRADE_ID::DARKTEMPLARBLINKUPGRADE:
+	case UPGRADE_ID::DARKTEMPLARBLINKUPGRADE:
 		has_dt_blink = true;
 		break;
-	case sc2::UPGRADE_ID::PSISTORMTECH:
+	case UPGRADE_ID::PSISTORMTECH:
 		has_storm = true;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1:
+	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1:
 		ground_weapons = 1;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2:
+	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2:
 		ground_weapons = 2;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL3:
+	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL3:
 		ground_weapons = 3;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL1:
+	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL1:
 		ground_armor = 1;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL2:
+	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL2:
 		ground_armor = 2;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL3:
+	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL3:
 		ground_armor = 3;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL1:
+	case UPGRADE_ID::PROTOSSSHIELDSLEVEL1:
 		shields = 1;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL2:
+	case UPGRADE_ID::PROTOSSSHIELDSLEVEL2:
 		shields = 2;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSSHIELDSLEVEL3:
+	case UPGRADE_ID::PROTOSSSHIELDSLEVEL3:
 		shields = 3;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1:
+	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1:
 		air_weapons = 1;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL2:
+	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL2:
 		air_weapons = 2;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL3:
+	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL3:
 		air_weapons = 3;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL1:
+	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL1:
 		air_armor = 1;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL2:
+	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL2:
 		air_armor = 2;
 		break;
-	case sc2::UPGRADE_ID::PROTOSSAIRARMORSLEVEL3:
+	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL3:
 		air_armor = 3;
 		break;
 	default:
 		std::cerr << "Unknown upgrade found in OnUpgradeCompleted" << std::endl;
+		break;
+	}
+}
+
+bool UpgradeManager::CheckUpgrade(UPGRADE_ID upgrade_id)
+{
+	switch (upgrade_id)
+	{
+	case UPGRADE_ID::WARPGATERESEARCH:
+		return has_warpgate;
+		break;
+	case UPGRADE_ID::BLINKTECH:
+		return has_blink;
+		break;
+	case UPGRADE_ID::CHARGE:
+		return has_charge;
+		break;
+	case UPGRADE_ID::DARKTEMPLARBLINKUPGRADE:
+		return has_dt_blink;
+		break;
+	case UPGRADE_ID::PSISTORMTECH:
+		return has_storm;
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1:
+		return ground_weapons > 0;
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2:
+		return ground_weapons > 1;
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL3:
+		return ground_weapons > 2;
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL1:
+		return ground_armor > 0;
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL2:
+		return ground_armor > 1;
+		break;
+	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL3:
+		return ground_armor > 2;
+		break;
+	case UPGRADE_ID::PROTOSSSHIELDSLEVEL1:
+		return shields > 0;
+		break;
+	case UPGRADE_ID::PROTOSSSHIELDSLEVEL2:
+		return shields > 1;
+		break;
+	case UPGRADE_ID::PROTOSSSHIELDSLEVEL3:
+		return shields > 2;
+		break;
+	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1:
+		return air_weapons > 0;
+		break;
+	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL2:
+		return air_weapons > 1;
+		break;
+	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL3:
+		return air_weapons > 2;
+		break;
+	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL1:
+		return air_armor > 0;
+		break;
+	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL2:
+		return air_armor > 1;
+		break;
+	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL3:
+		return air_armor > 2;
+		break;
+	default:
+		std::cerr << "Unknown upgrade found in OnUpgradeCompleted" << std::endl;
+		return false;
 		break;
 	}
 }

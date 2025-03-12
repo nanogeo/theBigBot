@@ -75,6 +75,7 @@ public:
 	bool CanAffordAfter(UNIT_TYPEID, UnitCost);
 	int MaxCanAfford(UNIT_TYPEID);
 	bool CanAffordUpgrade(UPGRADE_ID);
+	bool CheckUpgrade(UPGRADE_ID);
 	bool CanBuildBuilding(UNIT_TYPEID);
 	bool IsUnitOccupied(const Unit*);
 	int GetUpgradeLevel(UpgradeType);
@@ -128,6 +129,7 @@ public:
 
 	void DefendThirdBaseZerg();
 	void AddToDefense(int, int);
+	void AddToDefense(Point2D, int);
 	
 	std::vector<Point2D> GetOngoingAttacks();
 
@@ -135,7 +137,12 @@ public:
 	void RemoveWorker(const Unit*);
 
 	void SetUnitProduction(UNIT_TYPEID);
+	UNIT_TYPEID GetWarpgateProduction();
+	UNIT_TYPEID GetRoboProduction();
+	UNIT_TYPEID GetStargateProduction();
 	void CancelWarpgateUnitProduction();
+	void CancelRoboUnitProduction();
+	void CancelStargateUnitProduction();
 	void SetWarpInAtProxy(bool);
 
 	ArmyGroup* CreateArmyGroup(ArmyRole, std::vector<UNIT_TYPEID>, int, int);
