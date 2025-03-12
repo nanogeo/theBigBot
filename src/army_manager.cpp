@@ -18,20 +18,20 @@ void ArmyManager::SetUpInitialArmies()
 	switch (mediator->GetEnemyRace())
 	{
 	case Race::Protoss:
-		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 3);
+		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS, VOID_RAY, CARRIER, TEMPEST }, 0, 3);
 		CreateProtossArmyTemplates();
 		break;
 	case Race::Zerg:
 		CreateArmyGroup(ArmyRole::defend_door, { ZEALOT, ADEPT, STALKER, SENTRY }, 1, 1);
-		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 3);
+		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS, VOID_RAY, CARRIER, TEMPEST }, 0, 3);
 		CreateZergArmyTemplates();
 		break;
 	case Race::Terran:
-		CreateArmyGroup(ArmyRole::defend_base, { ADEPT, STALKER, SENTRY }, 0, 3);
+		CreateArmyGroup(ArmyRole::defend_base, { ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS, VOID_RAY, CARRIER, TEMPEST }, 0, 3);
 		CreateTerranArmyTemplates();
 		break;
 	case Race::Random:
-		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 3);
+		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS, VOID_RAY, CARRIER, TEMPEST }, 0, 3);
 		break;
 	}
 }
@@ -326,7 +326,7 @@ void ArmyManager::ScourMap()
 
 void ArmyManager::NexusStarted()
 {
-	CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY }, 0, 3);
+	CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS, VOID_RAY, CARRIER, TEMPEST }, 0, 3);
 }
 
 void ArmyManager::RemoveArmyGroupWithRole(ArmyRole role)
