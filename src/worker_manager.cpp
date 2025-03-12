@@ -619,7 +619,7 @@ void WorkerManager::DistributeWorkers()
 		if (IsCarryingMinerals(*worker) && worker->orders.size() <= 1)
 		{
 			// close to nexus then return the mineral
-			std::vector<const Unit*> nexi = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
+			std::vector<const Unit*> nexi = mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 			if (nexi.size() == 0)
 				return;
 
