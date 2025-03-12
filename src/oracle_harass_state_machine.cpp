@@ -354,12 +354,12 @@ State* OracleDefendLine::TestTransitions()
 {
 	if (state_machine->oracles.size() > 1 && state_machine->sent_harass == false) 
 	{
-		bool low_energy = true;
+		bool low_energy = false;
 		for (const auto& oracle : state_machine->oracles)
 		{
 			if (oracle->energy < 25)
 			{
-				low_energy = false;
+				low_energy = true;
 				break;
 			}
 		}
@@ -784,6 +784,7 @@ void OracleHarassGroupUp::EnterState()
 
 State* OracleHarassGroupUp::TestTransitions()
 {
+
 	if (state_machine->oracles.size() == 0)
 		return NULL;
 	for (const auto& oracle : state_machine->oracles)
