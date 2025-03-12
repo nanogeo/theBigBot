@@ -8,11 +8,28 @@ namespace sc2
 
 class Mediator;
 
+struct OngoingAttack
+{
+	Point2D location;
+	float status;
+	std::vector<const Unit*> pulled_workers;
+	OngoingAttack(Point2D location, float status, std::vector<const Unit*> pulled_workers)
+	{
+		this->location = location;
+		this->status = status;
+		this->pulled_workers = pulled_workers;
+	}
+	bool operator==(const OngoingAttack u) const
+	{
+		return location == u.location && status == u.status && pulled_workers == u.pulled_workers;
+	}
+};
+
 class DefenseManager
 {
 public:
 	Mediator* mediator;
-	std::vector<Point2D> ongoing_attacks;
+	std::vector<OngoingAttack> ongoing_attacks;
 	bool reset_warpgate_production = false;
 	bool reset_robo_production = false;
 	bool reset_stargate_production = false;

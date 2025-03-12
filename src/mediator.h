@@ -131,7 +131,7 @@ public:
 	void AddToDefense(int, int);
 	void AddToDefense(Point2D, int);
 	
-	std::vector<Point2D> GetOngoingAttacks();
+	std::vector<OngoingAttack> GetOngoingAttacks();
 
 	void PlaceWorker(const Unit*);
 	void RemoveWorker(const Unit*);

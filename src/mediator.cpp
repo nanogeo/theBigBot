@@ -859,7 +859,7 @@ void Mediator::AddToDefense(Point2D base_location, int amount)
 }
 
 
-std::vector<Point2D> Mediator::GetOngoingAttacks()
+std::vector<OngoingAttack> Mediator::GetOngoingAttacks()
 {
 	return defense_manager.ongoing_attacks;
 }

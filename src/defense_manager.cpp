@@ -19,17 +19,25 @@ void DefenseManager::CheckForAttacks()
 		ArmyGroup* defense_group = mediator->GetArmyGroupDefendingBase(base->pos);
 		// consider wall when defending nat vs zerg
 		
-		if (close_enemies.size() == 0 && std::find(ongoing_attacks.begin(), ongoing_attacks.end(), base->pos) != ongoing_attacks.end())
+		auto itr = std::find_if(ongoing_attacks.begin(), ongoing_attacks.end(), [base](const OngoingAttack& attack) { return Point2D(base->pos) == attack.location; });
+		if (close_enemies.size() == 0 && itr != ongoing_attacks.end())
 		{
 			std::cerr << "Attack ended at " << base->pos.x << ", " << base->pos.y <<  " at " << mediator->GetCurrentTime() << std::endl;
-			ongoing_attacks.erase(std::remove(ongoing_attacks.begin(), ongoing_attacks.end(), base->pos), ongoing_attacks.end());
+			ArmyGroup* army_group = mediator->GetArmyGroupDefendingBase(itr->location);
+			for (const auto& worker : itr->pulled_workers)
+			{
+				army_group->RemoveUnit(worker);
+				if (worker->is_alive)
+					mediator->PlaceWorker(worker);
+			}
 			// reset desired defenses
-
+			mediator->AddToDefense(itr->location, -1 * army_group->desired_units);
+			ongoing_attacks.erase(itr);
 		}
-		else if (close_enemies.size() > 0 && std::find(ongoing_attacks.begin(), ongoing_attacks.end(), base->pos) == ongoing_attacks.end())
+		else if (close_enemies.size() > 0 && itr == ongoing_attacks.end())
 		{
 			std::cerr << "Attack started at " << base->pos.x << ", " << base->pos.y << " at " << mediator->GetCurrentTime() << std::endl;
-			ongoing_attacks.push_back(base->pos);
+			ongoing_attacks.push_back(OngoingAttack(base->pos, 0, {}));
 		}
 	}
 }
@@ -37,20 +45,20 @@ void DefenseManager::CheckForAttacks()
 void DefenseManager::UpdateOngoingAttacks()
 {
 	bool scary_attack = false;
-	for (const auto& attack : ongoing_attacks)
+	for (auto& attack : ongoing_attacks)
 	{
-		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), attack, 20);
-		Units close_allies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)), attack, 20);
-		Units batteries = Utility::GetUnitsWithin(mediator->GetUnits(IsUnit(BATTERY)), attack, 20);
+		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), attack.location, 20);
+		Units close_allies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)), attack.location, 20);
+		Units batteries = Utility::GetUnitsWithin(mediator->GetUnits(IsUnit(BATTERY)), attack.location, 20);
 		int total_energy = 0;
 		for (const auto& battery : batteries)
 		{
 			total_energy += battery->energy;
 		}
-		bool sim_city = (mediator->GetEnemyRace() == Race::Zerg && mediator->GetNaturalLocation() == attack) ? true : false;
-		float value = JudgeFight(close_enemies, close_allies, 0, total_energy, sim_city);
-		std::cerr << "Attack at " << attack.x << ", " << attack.y << " current value " << value << std::endl;
-		if (value < 0)
+		bool sim_city = (mediator->GetEnemyRace() == Race::Zerg && mediator->GetNaturalLocation() == attack.location) ? true : false;
+		attack.status = JudgeFight(close_enemies, close_allies, 0, total_energy, sim_city);
+		std::cerr << "Attack at " << attack.location.x << ", " << attack.location.y << " current value " << attack.status<< std::endl;
+		if (attack.status < 0)
 		{
 			scary_attack = true;
 			// pause build
@@ -78,15 +86,28 @@ void DefenseManager::UpdateOngoingAttacks()
 				reset_stargate_production = true;
 			}
 
-			// increase desired defenders
-			if (close_allies.size() >= mediator->GetArmyGroupDefendingBase(attack)->desired_units)
+			if (attack.location == mediator->GetNaturalLocation() && attack.status <= 200 && attack.pulled_workers.size() == 0)
 			{
-				if (value < 300)
-					mediator->AddToDefense(attack, 5);
-				else if (value < 200)
-					mediator->AddToDefense(attack, 4);
-				else if (value < 100)
-					mediator->AddToDefense(attack, 3);
+				// pull workers
+				for (const auto& worker : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PROBE)), attack.location, 10))
+				{
+					mediator->RemoveWorker(worker);
+					attack.pulled_workers.push_back(worker);
+					ArmyGroup* army_group = mediator->GetArmyGroupDefendingBase(attack.location);
+					army_group->AddUnit(worker);
+				}
+				mediator->AddToDefense(attack.location, attack.pulled_workers.size());
+			}
+
+			// increase desired defenders
+			if (close_allies.size() >= mediator->GetArmyGroupDefendingBase(attack.location)->desired_units)
+			{
+				if (attack.status < 300)
+					mediator->AddToDefense(attack.location, 5);
+				else if (attack.status < 200)
+					mediator->AddToDefense(attack.location, 4);
+				else if (attack.status < 100)
+					mediator->AddToDefense(attack.location, 3);
 			}
 
 			// make defensive building(s)

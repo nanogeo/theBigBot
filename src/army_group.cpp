@@ -1127,8 +1127,26 @@ namespace sc2 {
 				i--;
 			}
 		}
+		const Unit* enemy_minerals = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Neutral), mediator->GetEnemyStartLocation());
+		const Unit* base_minerals = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Neutral), target_pos);
 		for (const auto &unit : all_units)
 		{
+			if (unit->unit_type == PROBE)
+			{
+				if (unit->weapon_cooldown == 0)
+				{
+					if (Utility::GetUnitsInRange(mediator->GetUnits(Unit::Alliance::Enemy), unit, 0).size() > 0 || 
+						Distance2D(unit->pos, target_pos) > 20)
+						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, unit->pos);
+					else if (unit->orders.size() == 0 || unit->orders[0].ability_id != ABILITY_ID::ATTACK)
+						mediator->SetUnitCommand(unit, ABILITY_ID::SMART, enemy_minerals);
+				}
+				else
+				{
+					mediator->SetUnitCommand(unit, ABILITY_ID::SMART, base_minerals);
+				}
+				continue;
+			}
 			// find closest enemy to unit and defense point
 			// if within 10 of defense point and weapon off cooldown then attack unit
 			// else move back to defense point
