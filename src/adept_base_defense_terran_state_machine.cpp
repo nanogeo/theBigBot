@@ -296,7 +296,7 @@ void AdeptBaseDefenseTerranScoutBase::TickState()
 			}
 		}
 	}*/
-	Units close_enemies = Utility::GetUnitsWithinRange(enemy_units, state_machine->adept, 2);
+	Units close_enemies = Utility::GetUnitsThatCanAttack(enemy_units, state_machine->adept, 2);
 	if (close_enemies.size() > 0)
 	{
 		const Unit* closest_enemy = close_enemies[0];

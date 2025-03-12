@@ -1192,7 +1192,7 @@ namespace sc2 {
 		Units enemy_units = mediator->GetUnits(Unit::Alliance::Enemy);
 		for (const auto& obs : observers)
 		{
-			const Unit* closest_danger = Utility::ClosestUnitTo(Utility::GetUnitsWithinRange(enemy_units, obs, 1), obs->pos);
+			const Unit* closest_danger = Utility::ClosestUnitTo(Utility::GetUnitsThatCanAttack(enemy_units, obs, 1), obs->pos);
 			if (closest_danger == NULL)
 				mediator->SetUnitCommand(obs, ABILITY_ID::GENERAL_MOVE, target_pos);
 			else

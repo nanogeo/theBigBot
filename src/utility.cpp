@@ -358,7 +358,19 @@ Units Utility::GetUnitsWithin(Units units, Point2D position, float dist)
 	return close_units;
 }
 
-Units Utility::GetUnitsWithinRange(Units units, const Unit* target, float extra)
+Units Utility::GetUnitsInRange(Units units, const Unit* attacker, float extra)
+{
+	Units within_range;
+	for (const auto& unit : units)
+	{
+		float range = RealRange(attacker, unit);
+		if (range > 0 && Distance2D(attacker->pos, unit->pos) <= range + extra)
+			within_range.push_back(unit);
+	}
+	return within_range;
+}
+
+Units Utility::GetUnitsThatCanAttack(Units units, const Unit* target, float extra)
 {
 	Units within_range;
 	for (const auto& unit : units)
