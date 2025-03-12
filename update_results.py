@@ -117,7 +117,7 @@ def GetMatchData(participation, i, auth, bot_name, bot_id, file_path, user_id):
     assert response.status_code == 200, 'Unexpected status_code returned from results'
 
     match_details = json.loads(response.text)
-    if match_details['result'] == None:
+    if match_details['result'] == None or participation['results'][i]['avg_step_time'] == None:
         print(f'No result for match {participation["results"][i]["match"]} - skipping')
         return []
 
