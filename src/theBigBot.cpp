@@ -1567,7 +1567,10 @@ namespace sc2 {
                 break;
             build_order_message += mediator.build_order_manager.build_order[i].toString() + "\n";
         }
-        Debug()->DebugTextOut(build_order_message, Point2D(.7, .1), Color(0, 255, 0), 20);
+		if (mediator.build_order_manager.run_build_order)
+			Debug()->DebugTextOut(build_order_message, Point2D(.7, .1), Color(0, 255, 0), 20);
+		else
+	        Debug()->DebugTextOut(build_order_message, Point2D(.7, .1), Color(255, 0, 0), 20);
     }
 
     void TheBigBot::DisplayActiveActions()
