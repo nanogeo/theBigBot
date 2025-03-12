@@ -96,6 +96,7 @@ public:
 	BuildOrder current_build_order;
 	std::vector<BuildOrderData> build_order;
 	int build_order_step = 0;
+	bool run_build_order = true;
 
 	BuildOrderManager(Mediator* mediator)
 	{

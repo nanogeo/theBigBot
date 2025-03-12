@@ -98,6 +98,8 @@ public:
 	void SetImmediatlySemiSaturateGasses(bool);
 
 	void SetBuildOrder(BuildOrder);
+	void PauseBuildOrder();
+	void UnPauseBuildOrder();
 	Point2D GetLocation(UNIT_TYPEID);
 	Point2D GetProxyLocation(UNIT_TYPEID);
 	std::vector<Point2D> GetProxyLocations(UNIT_TYPEID);

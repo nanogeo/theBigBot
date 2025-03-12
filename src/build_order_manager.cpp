@@ -22,6 +22,9 @@ namespace sc2
 
 void BuildOrderManager::CheckBuildOrder()
 {
+	if (!run_build_order)
+		return;
+
 	if (build_order_step < build_order.size())
 	{
 		Data current_step = build_order[build_order_step];

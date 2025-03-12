@@ -390,6 +390,16 @@ void Mediator::SetBuildOrder(BuildOrder build)
 	SendChat("Tag: " + GetMapName(), ChatChannel::Team);
 }
 
+void Mediator::PauseBuildOrder()
+{
+	build_order_manager.run_build_order = false;
+}
+
+void Mediator::UnPauseBuildOrder()
+{
+	build_order_manager.run_build_order = true;
+}
+
 // TODO create locations manager
 Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 {
