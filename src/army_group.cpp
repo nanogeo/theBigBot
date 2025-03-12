@@ -950,7 +950,7 @@ namespace sc2 {
 		}
 		for (const auto& unit : all_units)
 		{
-			if (Distance2D(unit->pos, third_base_pylon_gap) > 1)
+			if (Distance2D(unit->pos, third_base_pylon_gap) > 1 && unit->orders.size() == 0)
 			{
 				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, third_base_pylon_gap);
 				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_HOLDPOSITION, true);
