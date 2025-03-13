@@ -924,7 +924,9 @@ namespace sc2 {
 		if (Distance2D(closest_to_guard->pos, guard->pos) < Utility::RealRange(guard, closest_to_guard))
 		{
 			// enemy in range
-			if (Distance2D(guard->pos, guard_move_to) > .5)
+			if (Distance2D(guard->pos, guard_move_to) > .5 && 
+				Distance2D(guard->pos, Utility::ClosestTo(mediator->GetUnits(IsUnit(NEXUS)), guard->pos)->pos) > 
+					Distance2D(door_closed_pos, Utility::ClosestTo(mediator->GetUnits(IsUnit(NEXUS)), guard->pos)->pos))
 			{
 				mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to);
 			}
