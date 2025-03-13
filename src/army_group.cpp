@@ -941,12 +941,9 @@ namespace sc2 {
 
 	void ArmyGroup::DefendThirdBase(Point2D third_base_pylon_gap)
 	{
-		if (new_units.size() > 0)
+		while (new_units.size() > 0)
 		{
-			for (const auto& unit : new_units)
-			{
-				AddUnit(unit);
-			}
+			AddUnit(new_units[0]);
 		}
 		for (const auto& unit : all_units)
 		{
