@@ -20,7 +20,7 @@ struct ArmyTemplate
 		this->priority = priority;
 		this->role = role;
 		this->desired_units = desired_units;
-		this->required_units = required_units;
+		this->max_units = max_units;
 	}
 };
 
