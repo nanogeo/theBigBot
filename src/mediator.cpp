@@ -642,6 +642,82 @@ Point2D Mediator::GetFirstPylonLocation()
 	}
 }
 
+Point2D Mediator::FindLocation(UNIT_TYPEID unit_type, Point2D location)
+{
+
+	std::vector<Point2D> spots;
+	Point2D enemy_main = GetEnemyStartLocation();
+	Units buildings = GetUnits(Unit::Alliance::Self, IsBuilding());
+	Units pylons = GetUnits(Unit::Alliance::Self, IsFinishedUnit(UNIT_TYPEID::PROTOSS_PYLON));
+
+	std::sort(pylons.begin(), pylons.end(), [location](const Unit*& a, const Unit*& b) -> bool
+	{
+		return Distance2D(a->pos, location) < Distance2D(b->pos, location);
+	});
+
+	std::vector<Point2D> possible_locations;
+	for (const auto& pylon : pylons)
+	{
+		for (int i = -7; i <= 6; i += 1)
+		{
+			for (int j = -7; j <= 6; j += 1)
+			{
+				Point2D curr_pos = pylon->pos + Point2D(i, j);
+				if (Distance2D(location, enemy_main) < Distance2D(curr_pos, enemy_main))
+					continue;
+				bool blocked = false;
+				for (const auto& building : buildings)
+				{
+					float size = 1.5;
+					if (building->unit_type == NEXUS)
+						size = 2.5;
+					else if (building->unit_type == BATTERY || building->unit_type == CANNON ||
+						building->unit_type == PYLON || building->unit_type == DARK_SHRINE)
+						size = 1;
+					if (((curr_pos.x + 1 > building->pos.x - size && curr_pos.x - 1 < building->pos.x + size ) ||
+						(curr_pos.x - 1 > building->pos.x - size && curr_pos.x - 1 < building->pos.x + size)) &&
+						((curr_pos.y + 1 > building->pos.y - size && curr_pos.y + 1 < building->pos.y + size) ||
+							(curr_pos.y - 1 > building->pos.y - size && curr_pos.y - 1 < building->pos.y + size)))
+					{
+						blocked = true;
+						break;
+					}
+				}
+				if (!blocked)
+					possible_locations.push_back(curr_pos);
+			}
+		}
+	}
+
+	if (possible_locations.size() == 0)
+	{
+		std::cerr << "Error no viable point found in GetProxyLocation for type " << UnitTypeToName(unit_type) << std::endl;
+		return Point2D(0, 0);
+	}
+
+	std::sort(possible_locations.begin(), possible_locations.end(), [location, enemy_main](const Point2D& a, const Point2D& b) -> bool
+	{
+		return Distance2D(a, location) + Distance2D(a, enemy_main) < Distance2D(b, location) + Distance2D(b, enemy_main);
+	});
+
+	if (possible_locations.size() > 10)
+	{
+		std::sort(possible_locations.begin(), possible_locations.begin() + 10, [location](const Point2D& a, const Point2D& b) -> bool
+		{
+			return Distance2D(a, location) < Distance2D(b, location);
+		});
+	}
+	else if (possible_locations.size() > 5)
+	{
+		std::sort(possible_locations.begin(), possible_locations.begin() + 5, [location](const Point2D& a, const Point2D& b) -> bool
+		{
+			return Distance2D(a, location) < Distance2D(b, location);
+		});
+	}
+
+	return possible_locations[0];
+}
+
 void Mediator::ContinueBuildingPylons()
 {
 	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
@@ -858,10 +934,35 @@ void Mediator::AddToDefense(Point2D base_location, int amount)
 	army_manager.BalanceUnits();
 }
 
+void Mediator::BuildDefensiveBuilding(UNIT_TYPEID type, Point2D location)
+{
+	Point2D pos = FindLocation(BATTERY, location);
+
+	const Unit* builder = GetBuilder(pos);
+	if (builder == NULL)
+	{
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		return;
+	}
+	worker_manager.RemoveWorker(builder);
+
+	action_manager.AddAction(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, type, pos)));
+}
 
 std::vector<OngoingAttack> Mediator::GetOngoingAttacks()
 {
 	return defense_manager.ongoing_attacks;
+}
+
+float Mediator::GetWorstOngoingAttackValue()
+{
+	float min = 0;
+	for (const auto& attack : defense_manager.ongoing_attacks)
+	{
+		if (attack.status < min)
+			min = attack.status;
+	}
+	return min;
 }
 
 void Mediator::PlaceWorker(const Unit* worker)

@@ -106,6 +106,7 @@ public:
 	std::vector<Point2D> GetProxyLocations(UNIT_TYPEID);
 	Point2D GetNaturalDefensiveLocation(UNIT_TYPEID);
 	Point2D GetFirstPylonLocation();
+	Point2D FindLocation(UNIT_TYPEID, Point2D);
 
 	void ContinueBuildingPylons();
 	void ContinueMakingWorkers();
@@ -130,6 +131,7 @@ public:
 	void DefendThirdBaseZerg();
 	void AddToDefense(int, int);
 	void AddToDefense(Point2D, int);
+	void BuildDefensiveBuilding(UNIT_TYPEID, Point2D);
 	
 	std::vector<OngoingAttack> GetOngoingAttacks();
 

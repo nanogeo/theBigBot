@@ -97,6 +97,7 @@ void DefenseManager::UpdateOngoingAttacks()
 					army_group->AddUnit(worker);
 				}
 				mediator->AddToDefense(attack.location, attack.pulled_workers.size());
+				mediator->BuildDefensiveBuilding(BATTERY, attack.location);
 			}
 
 			// increase desired defenders
