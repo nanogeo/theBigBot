@@ -1473,10 +1473,13 @@ namespace sc2 {
 			);
 #endif
         DisplaySupplyInfo();
+
+		DisplayOngoingAttacks();
 #ifdef DEBUG_TIMING
 		std::chrono::microseconds suply_info = std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::high_resolution_clock::now().time_since_epoch()
 			);
+
 
 
 		std::ofstream debug_hud_file;
@@ -1745,6 +1748,19 @@ namespace sc2 {
 
         Debug()->DebugTextOut(supply_message, Point2D(.9, .05), Color(0, 255, 0), 20);
     }
+
+	void TheBigBot::DisplayOngoingAttacks()
+	{
+		std::string attacks_message = "Ongoing attacks:\n";
+		for (int i = 0; i < mediator.defense_manager.ongoing_attacks.size(); i++)
+		{
+			attacks_message += "pos: (" + std::to_string(mediator.defense_manager.ongoing_attacks[i].location.x) + ", " + std::to_string(mediator.defense_manager.ongoing_attacks[i].location.y) + ") ";
+			attacks_message += "pulled workers: " + std::to_string(mediator.defense_manager.ongoing_attacks[i].pulled_workers.size()) + ", ";
+			attacks_message += "status: " + std::to_string(mediator.defense_manager.ongoing_attacks[i].status) + "\n";
+
+		}
+		Debug()->DebugTextOut(attacks_message, Point2D(.5, 0), Color(0, 255, 0), 20);
+	}
 
 	void TheBigBot::DisplayEnemyAttacks()
 	{

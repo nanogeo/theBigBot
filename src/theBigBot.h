@@ -309,6 +309,7 @@ public:
     void DisplayBuildingStatuses();
     void DisplayArmyGroups();
     void DisplaySupplyInfo();
+	void DisplayOngoingAttacks();
 	void DisplayEnemyAttacks();
 	void DisplayEnemyPositions();
 	void DisplayAlliedAttackStatus();
