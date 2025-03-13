@@ -59,6 +59,11 @@ void ArmyManager::CreateZergArmyTemplates()
 	zealot_double_prong_req[ZEALOT] = 10;
 	ArmyTemplate zealot_double_prong = ArmyTemplate(zealot_double_prong_req, 10, ArmyRole::simple_attack, 12, 20);
 	army_templates.push_back(zealot_double_prong);
+
+	std::map<UNIT_TYPEID, int> oracle_harass_req;
+	oracle_harass_req[ORACLE] = 2;
+	ArmyTemplate oracle_harass = ArmyTemplate(oracle_harass_req, 2, ArmyRole::oracle_harass, 2, 2);
+	army_templates.push_back(oracle_harass);
 }
 
 void ArmyManager::CreateNewArmyGroups()
@@ -67,6 +72,8 @@ void ArmyManager::CreateNewArmyGroups()
 
 	for (const auto& unit : unassigned_group->all_units)
 	{
+		if (unit->unit_type == ORACLE && unit->energy < 20) // ignore oracles with little energy TODO same with sentries/templar
+			continue;
 		if (extra_units.find(unit->unit_type) != extra_units.end())
 		{
 			extra_units[unit->unit_type]++;
@@ -78,12 +85,13 @@ void ArmyManager::CreateNewArmyGroups()
 	}
 
 
-	// shuffle other groups units if necessary
 	for (const auto& group : army_groups)
 	{
 		Units extras = group->GetExtraUnits();
 		for (const auto& unit : extras)
 		{
+			if (unit->unit_type == ORACLE && unit->energy < 20) // ignore oracles with little energy TODO same with sentries/templar
+				continue;
 			if (extra_units.find(unit->unit_type) != extra_units.end())
 			{
 				extra_units[unit->unit_type]++;
@@ -160,8 +168,15 @@ ArmyGroup* ArmyManager::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> 
 	case ArmyRole::defend_base:
 		army = new ArmyGroup(mediator, mediator->GetMostRecentBuilding(NEXUS)->pos, role, unit_types);
 		break;
+	case ArmyRole::defend_outer:
+		army = new ArmyGroup(mediator, mediator->GetLocation(NEXUS, 2), mediator->GetNaturalLocation(), role, unit_types);
+		break;
 	case ArmyRole::observer_scout:
 		army = new ArmyGroup(mediator, role, unit_types);
+		break;
+	case ArmyRole::oracle_harass:
+		army = new ArmyGroup(mediator, ArmyRole::outside_control, unit_types);
+		mediator->StartOracleHarassStateMachine(army);
 		break;
 	default:
 		std::cerr << "Unknown ArmyRole in CreateArmyGroup" << std::endl;
@@ -227,6 +242,9 @@ void ArmyManager::RunArmyGroups()
 			break;
 		case ArmyRole::defend_base:
 			army_groups[i]->DefendLocation();
+			break;
+		case ArmyRole::defend_outer:
+			army_groups[i]->DefendLine();
 			break;
 		case ArmyRole::observer_scout:
 			army_groups[i]->ObserverScout();

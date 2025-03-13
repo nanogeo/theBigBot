@@ -153,7 +153,6 @@ public:
 	bool ZealotDoubleprong(BuildOrderResultArgData);
 	bool ZealotDoubleprongLarge(BuildOrderResultArgData);
 	bool MicroOracles(BuildOrderResultArgData);
-	bool OracleHarass(BuildOrderResultArgData);
 	bool SpawnUnits(BuildOrderResultArgData);
 	bool ResearchAttackOne(BuildOrderResultArgData);
 	bool ResearchAttackTwo(BuildOrderResultArgData);
@@ -461,10 +460,6 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::MicroOracles)
 		{
 			str += "micro oracles";
-		}
-		else if (result == &BuildOrderManager::OracleHarass)
-		{
-		str += "oracle harass";
 		}
 		else if (result == &BuildOrderManager::SpawnUnits)
 		{

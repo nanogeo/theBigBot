@@ -784,9 +784,22 @@ void OracleHarassGroupUp::EnterState()
 
 State* OracleHarassGroupUp::TestTransitions()
 {
-
-	if (state_machine->oracles.size() == 0)
+	if (state_machine->oracles.size() < 2)
+	{
+		// delete sm and ag
+		agent->mediator.MarkStateMachineForDeletion(state_machine);
+		agent->mediator.MarkArmyGroupForDeletion(state_machine->attached_army_group);
 		return NULL;
+	}
+
+	if (agent->mediator.GetWorstOngoingAttackValue() < -50)
+	{
+		// delete sm and ag
+		agent->mediator.MarkStateMachineForDeletion(state_machine);
+		agent->mediator.MarkArmyGroupForDeletion(state_machine->attached_army_group);
+		return NULL;
+	}
+
 	for (const auto& oracle : state_machine->oracles)
 	{
 		if (oracle->orders.size() == 0)

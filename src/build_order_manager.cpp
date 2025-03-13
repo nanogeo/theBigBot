@@ -573,12 +573,6 @@ bool BuildOrderManager::MicroOracles(BuildOrderResultArgData data)
 	return true;
 }
 
-bool BuildOrderManager::OracleHarass(BuildOrderResultArgData data)
-{
-	mediator->StartOracleHarassStateMachine();
-	return true;
-}
-
 bool BuildOrderManager::SpawnUnits(BuildOrderResultArgData data)
 {
 	//mediator->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, mediator->GetLocations(NEXUS)[2], 2, 15);
@@ -712,6 +706,7 @@ bool BuildOrderManager::ProxyDoubleRoboAllIn(BuildOrderResultArgData data)
 bool BuildOrderManager::DefendThirdBase(BuildOrderResultArgData data)
 {
 	mediator->DefendThirdBaseZerg();
+	mediator->CreateArmyGroup(ArmyRole::defend_outer, { ORACLE, VOID_RAY, CARRIER, TEMPEST }, 0, 10);
 	return true;
 }
 
@@ -1188,7 +1183,6 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(186.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(191.0f),			&BuildOrderManager::ChronoBuilding,						Result(STARGATE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(202.0f),			&BuildOrderManager::TrainOracle,						Result(STARGATE)),
-					Data(&BuildOrderManager::TimePassed,			Condition(202.0f),			&BuildOrderManager::OracleHarass,						Result()),
 
 					Data(&BuildOrderManager::TimePassed,			Condition(203.0f),			&BuildOrderManager::DefendThirdBase,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(205.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, PYLON})),

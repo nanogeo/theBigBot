@@ -113,6 +113,35 @@ namespace sc2 {
 		}
 	}
 
+	ArmyGroup::ArmyGroup(Mediator* mediator, Point2D start, Point2D end, ArmyRole role, std::vector<UNIT_TYPEID> unit_types) : persistent_fire_control(mediator->agent)
+	{
+		this->mediator = mediator;
+		event_id = mediator->GetUniqueId();
+
+		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+			this->OnUnitDestroyedListener(unit);
+		};
+		mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
+		std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
+			this->OnUnitDamagedListener(unit, health, shields);
+		};
+		mediator->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
+
+		double slope = (start.y - end.y) / (start.x - end.x);
+
+		double line_a = slope;
+		double line_b = start.y - (slope * start.x);
+
+		defense_line = new LineSegmentLinearX(line_a, line_b, start.x, end.x, false, Point2D(0, 0), false);
+
+		this->role = role;
+		for (const auto& type : unit_types)
+		{
+			this->unit_types.push_back(type);
+		}
+	}
+
 	ArmyGroup::~ArmyGroup()
 	{
 		mediator->RemoveListenerToOnUnitDamagedEvent(event_id);
@@ -957,6 +986,215 @@ namespace sc2 {
 		}
 
 		// TODO use fire control to find the best target
+	}
+
+	void ArmyGroup::DefendLine()
+	{
+		int desired = 0;
+		float status = mediator->GetWorstOngoingAttackValue();
+
+		if (status < -50)
+			desired = 5;
+		else if (status < -25)
+			desired = 3;
+		else if (status < 0)
+			desired = 1;
+
+		desired_units = std::max(desired, desired_units);
+		max_units = std::max(desired + 10, max_units);
+
+		for (int i = 0; i < new_units.size(); i++)
+		{
+			if (Distance2D(new_units[i]->pos, defense_line->GetStartPoint()) > 10)
+			{
+				mediator->SetUnitCommand(new_units[i], ABILITY_ID::GENERAL_MOVE, defense_line->GetStartPoint());
+			}
+			else
+			{
+				AddUnit(new_units[i]);
+				i--;
+			}
+		}
+
+		Units enemy_ground_units = mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
+		Units enemy_units = mediator->GetUnits(Unit::Alliance::Enemy);
+
+		// remove any enemies too far from defense location
+		for (int i = 0; i < enemy_ground_units.size(); i++) 
+		{
+			Point2D closest_pos = defense_line->FindClosestPoint(enemy_ground_units[i]->pos);
+			if (Distance2D(enemy_ground_units[i]->pos, closest_pos) > 15)
+			{
+				enemy_ground_units.erase(enemy_ground_units.begin() + i);
+				i--;
+			}
+		}
+		for (int i = 0; i < enemy_units.size(); i++)
+		{
+			Point2D closest_pos = defense_line->FindClosestPoint(enemy_units[i]->pos);
+			if (Distance2D(enemy_units[i]->pos, closest_pos) > 15)
+			{
+				enemy_units.erase(enemy_units.begin() + i);
+				i--;
+			}
+		}
+
+		if (enemy_units.size() == 0)
+		{
+			desired_units = 0;
+			max_units = 10;
+		}
+
+		if (enemy_ground_units.size() > 0)
+		{
+			int num_active_units = all_units.size() - oracles.size();
+			for (const auto& oracle : oracles)
+			{
+				if (is_beam_active[oracle])
+					num_active_units++;
+			}
+
+			for (const auto& oracle : oracles)
+			{
+				float now = mediator->GetCurrentTime();
+				bool weapon_ready = now - time_last_attacked[oracle] > .61;
+				bool beam_active = is_beam_active[oracle];
+				bool beam_activatable = false;
+
+				if (!beam_active && oracle->energy >= 40 && enemy_ground_units.size() > num_active_units * 2)
+					beam_activatable = true;
+
+				const Unit* closest_unit = Utility::ClosestTo(enemy_ground_units, oracle->pos);
+				if (beam_active)
+				{
+					if (oracle->energy <= 2)
+					{
+						is_beam_active[oracle] = false;
+					}
+					else if (Distance2D(oracle->pos, closest_unit->pos) > 4)
+					{
+						float dist = Distance2D(oracle->pos, closest_unit->pos);
+						mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), false);
+					}
+					else if (weapon_ready)
+					{
+						mediator->SetUnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit, false);
+						time_last_attacked[oracle] = now;
+						has_attacked[oracle] = false;
+						//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 255, 0));
+					}
+					else if (has_attacked[oracle])
+					{
+						if ((mediator->GetUnit(oracle->engaged_target_tag) == NULL ||
+							Distance2D(oracle->pos, mediator->GetUnit(oracle->engaged_target_tag)->pos) > 3) ||
+							Distance2D(oracle->pos, closest_unit->pos) > 3)  // only move if target is getting away
+							mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+						//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
+					}
+					else
+					{
+						//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
+					}
+				}
+				else if (beam_activatable)
+				{
+					if (Distance2D(oracle->pos, closest_unit->pos) < 2)
+					{
+						mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
+						is_beam_active[oracle] = true;
+					}
+					else
+					{
+						mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+					}
+				}
+				else
+				{
+					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
+				}
+				//agent->Debug()->DebugTextOut(std::to_string(now - state_machine->time_last_attacked[oracle]), Point2D(.7, .7), Color(0, 255, 255), 20);
+				//agent->Debug()->DebugTextOut(std::to_string(agent->Observation()->GetGameLoop()), Point2D(.7, .75), Color(0, 255, 255), 20);
+
+			}
+		}
+		else
+		{
+			for (const auto& oracle : oracles)
+			{
+				if (is_beam_active[oracle])
+				{
+					mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+					is_beam_active[oracle] = false;
+					continue;
+				}
+
+				double dist_to_start = Distance2D(oracle->pos, defense_line->GetStartPoint());
+				double dist_to_end = Distance2D(oracle->pos, defense_line->GetEndPoint());
+
+				if (oracle->orders.size() > 0 &&
+					(oracle->orders[0].target_pos == defense_line->GetStartPoint() || oracle->orders[0].target_pos == defense_line->GetEndPoint()))
+				{
+					continue;
+				}
+				else if (dist_to_start < 1)
+				{
+					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, defense_line->GetEndPoint());
+				}
+				else if (dist_to_end < 1)
+				{
+					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, defense_line->GetStartPoint());
+				}
+				else
+				{
+					if (dist_to_end < dist_to_start)
+						mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, defense_line->GetEndPoint());
+					else
+						mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, defense_line->GetStartPoint());
+				}
+			}
+		}
+
+		if (enemy_units.size() > 0)
+		{
+			for (const auto& unit : all_units)
+			{
+				if (unit->unit_type == ORACLE)
+					continue;
+
+				const Unit* closest_unit = Utility::ClosestTo(enemy_units, unit->pos);
+				if (closest_unit && (unit->orders.size() == 0 || unit->orders[0].ability_id != ABILITY_ID::ATTACK))
+				{
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest_unit->pos);
+				}
+				else if (closest_unit == NULL)
+				{
+					double dist_to_start = Distance2D(unit->pos, defense_line->GetStartPoint());
+					double dist_to_end = Distance2D(unit->pos, defense_line->GetEndPoint());
+
+					if (unit->orders.size() > 0 &&
+						(unit->orders[0].target_pos == defense_line->GetStartPoint() || unit->orders[0].target_pos == defense_line->GetEndPoint()))
+					{
+						continue;
+					}
+					else if (dist_to_start < 1)
+					{
+						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, defense_line->GetEndPoint());
+					}
+					else if (dist_to_end < 1)
+					{
+						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, defense_line->GetStartPoint());
+					}
+					else
+					{
+						if (dist_to_end < dist_to_start)
+							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, defense_line->GetEndPoint());
+						else
+							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, defense_line->GetStartPoint());
+					}
+				}
+			}
+		}
 	}
 
 	void ArmyGroup::CannonRushPressure()

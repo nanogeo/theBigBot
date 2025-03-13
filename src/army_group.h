@@ -91,6 +91,7 @@ public:
 	int current_attack_index = 0;
 	int high_ground_index = 0;
 	PathManager attack_path_line;
+	LineSegment* defense_line = NULL;
 	Point2D target_pos;
 
 	bool advancing = true;
@@ -127,6 +128,7 @@ public:
 	ArmyGroup(Mediator*, std::vector<Point2D>, ArmyRole, std::vector<UNIT_TYPEID>);
 	ArmyGroup(Mediator*, ArmyRole, std::vector<UNIT_TYPEID>);
 	ArmyGroup(Mediator*, Point2D, ArmyRole, std::vector<UNIT_TYPEID>);
+	ArmyGroup(Mediator*, Point2D, Point2D, ArmyRole, std::vector<UNIT_TYPEID>);
 
 	~ArmyGroup();
 
@@ -149,6 +151,7 @@ public:
 	
 	void DefendFrontDoor(Point2D, Point2D);
 	void DefendThirdBase(Point2D);
+	void DefendLine();
 	void CannonRushPressure();
 	void ScourMap();
 	void SimpleAttack();

@@ -529,6 +529,37 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 	return Point2D(0, 0);
 }
 
+Point2D Mediator::GetLocation(UNIT_TYPEID unit_type, int index)
+{
+	std::vector<Point2D> positions;
+	switch (unit_type)
+	{
+	case NEXUS:
+		positions = agent->locations->nexi_locations;
+		break;
+	case PYLON:
+		positions = agent->locations->pylon_locations;
+		break;
+	case GATEWAY:
+		positions = agent->locations->gateway_locations;
+		break;
+	case ROBO:
+	case TWILIGHT:
+	case STARGATE:
+	case ROBO_BAY:
+	case TEMPLAR_ARCHIVES:
+	case DARK_SHRINE:
+	case FLEET_BEACON:
+	case FORGE:
+		positions = agent->locations->tech_locations;
+		break;
+	}
+	if (positions.size() - 1 > index)
+		return positions[index];
+
+	return Point2D(0, 0);
+}
+
 Point2D Mediator::GetProxyLocation(UNIT_TYPEID unit_type)
 {
 	std::vector<Point2D> possible_locations;
@@ -806,14 +837,13 @@ void Mediator::CreateAdeptHarassProtossFSM()
 	adept_fsm->attached_army_group = adept_army;
 }
 
-void Mediator::StartOracleHarassStateMachine()
+void Mediator::StartOracleHarassStateMachine(ArmyGroup* army)
 {
-	OracleHarassStateMachine* oracle_fsm = new OracleHarassStateMachine(agent, {}, agent->locations->nexi_locations[2], agent->locations->natural_door_closed, "Oracles");
+	OracleHarassStateMachine* oracle_fsm = new OracleHarassStateMachine(agent, {}, "Oracle harass");
 	finite_state_machine_manager.active_state_machines.push_back(oracle_fsm);
 
-	ArmyGroup* oracles_army = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ORACLE }, 2, 2);
-	oracles_army->state_machine = oracle_fsm;
-	oracle_fsm->attached_army_group = oracles_army;
+	army->state_machine = oracle_fsm;
+	oracle_fsm->attached_army_group = army;
 }
 
 bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)

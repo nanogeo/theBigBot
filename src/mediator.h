@@ -102,6 +102,7 @@ public:
 	void PauseBuildOrder();
 	void UnPauseBuildOrder();
 	Point2D GetLocation(UNIT_TYPEID);
+	Point2D GetLocation(UNIT_TYPEID, int);
 	Point2D GetProxyLocation(UNIT_TYPEID);
 	std::vector<Point2D> GetProxyLocations(UNIT_TYPEID);
 	Point2D GetNaturalDefensiveLocation(UNIT_TYPEID);
@@ -122,7 +123,7 @@ public:
 	void RemoveStateMachine(StateMachine*);
 	void CreateFourGateBlinkFSM();
 	void CreateAdeptHarassProtossFSM();
-	void StartOracleHarassStateMachine();
+	void StartOracleHarassStateMachine(ArmyGroup*);
 	bool RemoveScoutToProxy(UNIT_TYPEID, int);
 	void CreateAdeptBaseDefenseTerranFSM();
 	void MarkStateMachineForDeletion(StateMachine*);
@@ -134,6 +135,7 @@ public:
 	void BuildDefensiveBuilding(UNIT_TYPEID, Point2D);
 	
 	std::vector<OngoingAttack> GetOngoingAttacks();
+	float GetWorstOngoingAttackValue();
 
 	void PlaceWorker(const Unit*);
 	void RemoveWorker(const Unit*);
