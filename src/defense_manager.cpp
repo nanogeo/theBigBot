@@ -86,7 +86,7 @@ void DefenseManager::UpdateOngoingAttacks()
 				reset_stargate_production = true;
 			}
 
-			if (attack.location == mediator->GetNaturalLocation() && attack.status <= 200 && attack.pulled_workers.size() == 0)
+			if (attack.location == mediator->GetNaturalLocation() && attack.status <= -50 && attack.pulled_workers.size() == 0)
 			{
 				// pull workers
 				for (const auto& worker : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PROBE)), attack.location, 10))
@@ -97,18 +97,19 @@ void DefenseManager::UpdateOngoingAttacks()
 					army_group->AddUnit(worker);
 				}
 				mediator->AddToDefense(attack.location, attack.pulled_workers.size());
+
 				mediator->BuildDefensiveBuilding(BATTERY, attack.location);
 			}
 
 			// increase desired defenders
 			if (close_allies.size() >= mediator->GetArmyGroupDefendingBase(attack.location)->desired_units)
 			{
-				if (attack.status < 300)
+				if (attack.status < -100)
 					mediator->AddToDefense(attack.location, 5);
-				else if (attack.status < 200)
+				else if (attack.status < -50)
 					mediator->AddToDefense(attack.location, 4);
-				else if (attack.status < 100)
-					mediator->AddToDefense(attack.location, 3);
+				else if (attack.status < 0)
+					mediator->AddToDefense(attack.location, 2);
 			}
 
 			// make defensive building(s)
