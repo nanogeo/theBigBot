@@ -107,13 +107,14 @@ public:
 	void SaturateGas(const Unit*);
 	void SemiSaturateGas(const Unit*);
 	void AddNewBase();
+	void RemoveBase(const Unit*);
 	void DistributeWorkers();
 	void BalanceWorers();
 	void BuildWorkers();
 
 	void AddAssimilator(const Unit*);
 	void SetNewBase(const Unit*);
-	void RemoveSpentMineralPatch(const Unit*);
+	void RemoveMineralPatch(const Unit*);
 
 	void OnUnitDestroyed(const Unit*);
 };

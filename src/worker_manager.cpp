@@ -591,6 +591,20 @@ void WorkerManager::AddNewBase()
 	}
 }
 
+void WorkerManager::RemoveBase(const Unit* nexus)
+{
+	Units minerals = mediator->GetUnits(IsMineralPatch());
+	for (const auto& mineral_field : mineral_patches)
+	{
+		if (Distance2D(nexus->pos, mineral_field.first->pos) < 10)
+		{
+			RemoveMineralPatch(mineral_field.first);
+		}
+	}
+	// TODO remove assimilators but make sure to add them back if if base gets rebuilt
+
+}
+
 void WorkerManager::DistributeWorkers()
 {
 	BalanceWorers();
@@ -863,16 +877,16 @@ void WorkerManager::SetNewBase(const Unit* nexus)
 	new_base = nexus;
 }
 
-void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
+void WorkerManager::RemoveMineralPatch(const Unit* patch)
 {
-	if (mineral_patches.count(spent_patch) > 0)
+	if (mineral_patches.count(patch) > 0)
 	{
 		Units assigned_workers;
-		mineral_patch_data spent_patch_data = mineral_patches[spent_patch];
+		mineral_patch_data patch_data = mineral_patches[patch];
 
 		for (int i = 0; i < 3; i++)
 		{
-			const Unit* worker = spent_patch_data.workers[i];
+			const Unit* worker = patch_data.workers[i];
 			if (worker != NULL)
 			{
 				assigned_workers.push_back(worker);
@@ -885,17 +899,17 @@ void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
 		}
 		for (int i = 0; i < first_2_mineral_patch_spaces.size(); i++)
 		{
-			if (first_2_mineral_patch_spaces[i]->mineral_patch == spent_patch)
+			if (first_2_mineral_patch_spaces[i]->mineral_patch == patch)
 			{
 				first_2_mineral_patch_spaces.erase(first_2_mineral_patch_spaces.begin() + i);
 				i--;
 			}
 		}
-		if (spent_patch_data.is_close)
+		if (patch_data.is_close)
 		{
 			for (const auto& space : close_3_mineral_patch_spaces)
 			{
-				if (space->mineral_patch == spent_patch)
+				if (space->mineral_patch == patch)
 				{
 					close_3_mineral_patch_spaces.erase(std::remove(close_3_mineral_patch_spaces.begin(), close_3_mineral_patch_spaces.end(), space), close_3_mineral_patch_spaces.end());
 					break;
@@ -903,7 +917,7 @@ void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
 			}
 			for (const auto& space : close_3_mineral_patch_extras)
 			{
-				if (space->mineral_patch == spent_patch)
+				if (space->mineral_patch == patch)
 				{
 					close_3_mineral_patch_extras.erase(std::remove(close_3_mineral_patch_extras.begin(), close_3_mineral_patch_extras.end(), space), close_3_mineral_patch_extras.end());
 					break;
@@ -914,7 +928,7 @@ void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
 		{
 			for (const auto& space : far_3_mineral_patch_spaces)
 			{
-				if (space->mineral_patch == spent_patch)
+				if (space->mineral_patch == patch)
 				{
 					far_3_mineral_patch_spaces.erase(std::remove(far_3_mineral_patch_spaces.begin(), far_3_mineral_patch_spaces.end(), space), far_3_mineral_patch_spaces.end());
 					break;
@@ -922,7 +936,7 @@ void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
 			}
 			for (const auto& space : far_3_mineral_patch_extras)
 			{
-				if (space->mineral_patch == spent_patch)
+				if (space->mineral_patch == patch)
 				{
 					far_3_mineral_patch_extras.erase(std::remove(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), space), far_3_mineral_patch_extras.end());
 					break;
@@ -931,7 +945,7 @@ void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
 		}
 			
 
-		mineral_patches.erase(spent_patch);
+		mineral_patches.erase(patch);
 		for (const auto &worker : assigned_workers)
 		{
 			PlaceWorker(worker);
@@ -942,9 +956,11 @@ void WorkerManager::RemoveSpentMineralPatch(const Unit* spent_patch)
 void WorkerManager::OnUnitDestroyed(const Unit* unit)
 {
 	if (unit->mineral_contents > 0)
-		RemoveSpentMineralPatch(unit);
-	else
+		RemoveMineralPatch(unit);
+	else if (unit->unit_type == PROBE)
 		RemoveWorker(unit);
+	else if (unit->unit_type == NEXUS)
+		RemoveBase(unit);
 }
 
 }

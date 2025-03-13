@@ -56,6 +56,7 @@ public:
 
 	void NexusStarted();
 	void RemoveArmyGroupWithRole(ArmyRole);
+	void RemoveDefenseGroupAt(Point2D);
 	void DeleteArmyGroup(ArmyGroup*);
 	void MarkArmyGroupForDeletion(ArmyGroup*);
 };

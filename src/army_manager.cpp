@@ -360,6 +360,19 @@ void ArmyManager::RemoveArmyGroupWithRole(ArmyRole role)
 	BalanceUnits();
 }
 
+void ArmyManager::RemoveDefenseGroupAt(Point2D pos)
+{
+	for (int i = 0; i < army_groups.size(); i++)
+	{
+		if (army_groups[i]->role == ArmyRole::defend_base && army_groups[i]->target_pos == pos)
+		{
+			DeleteArmyGroup(army_groups[i]);
+			i--;
+		}
+	}
+	BalanceUnits();
+}
+
 void ArmyManager::DeleteArmyGroup(ArmyGroup* army)
 {
 	Units unassigned_units;
