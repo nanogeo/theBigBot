@@ -78,7 +78,7 @@ void DefenseManager::UpdateOngoingAttacks()
 			if (mediator->GetRoboProduction() == UNIT_TYPEID::BALL)
 			{
 				mediator->SetUnitProduction(IMMORTAL);
-				reset_robo_production - true;
+				reset_robo_production = true;
 			}
 			if (mediator->GetStargateProduction() == UNIT_TYPEID::BALL)
 			{
