@@ -1135,7 +1135,7 @@ namespace sc2 {
 				if (unit->weapon_cooldown == 0)
 				{
 					if (Utility::GetUnitsInRange(mediator->GetUnits(Unit::Alliance::Enemy), unit, 0).size() > 0 || 
-						Distance2D(unit->pos, target_pos) > 20)
+						Distance2D(unit->pos, target_pos) > 15)
 						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, unit->pos);
 					else if (unit->orders.size() == 0 || unit->orders[0].ability_id != ABILITY_ID::ATTACK)
 						mediator->SetUnitCommand(unit, ABILITY_ID::SMART, enemy_minerals);
