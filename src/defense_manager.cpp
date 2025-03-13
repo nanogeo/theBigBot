@@ -173,7 +173,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 	}
 
 	
-	int max_runs = 40;
+	int max_runs = 20;
 	while (enemy_units.size() > 0 && friendly_units.size() > 0 && max_runs > 0)
 	{
 		int melee_attacks_this_round = 0;
@@ -181,7 +181,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 		bool friendly_damage_done = false;
 		for (int i = enemy_units.size() - 1; i >= 0; i--)
 		{
-			if (enemy_units[i]->unit_type == ORACLE && enemy_units[i]->energy / 2 <= 40 - max_runs)
+			if (enemy_units[i]->unit_type == ORACLE && (enemy_units[i]->energy - 10) / 2 <= 20 - max_runs)
 				continue;
 
 			float dps = 0;
