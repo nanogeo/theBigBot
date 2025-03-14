@@ -238,22 +238,24 @@ namespace sc2 {
 									P(126, 37) };
 
 
-		blink_presure_consolidation = P(117, 77);
-		blink_pressure_prism_consolidation = P(114, 81);
+		blink_presure_consolidation = P(135, 96);
+		blink_pressure_prism_consolidation = P(132, 100);
 		blink_pressure_blink_up = P(120.5, 56);
 		blink_pressure_blink_down = P(127.5, 50);
 
 
-		std::vector<Point2D> blink_nat_attack_path = { P(116, 92),
-														P(115, 84),
-														P(117, 77),
-														P(122, 73),
-														P(128, 72),
-														P(132, 75),
+		std::vector<Point2D> blink_nat_attack_path = { P(130.3, 126.5),
+														P(134.8, 122.4),
+														P(138.5, 110.5),
+														P(134.7, 106.8),
+														P(133, 100.4),
+														P(136.7, 93.6),
 														P(139, 73),
 														P(140, 68),
-														P(146, 58),
-														P(149, 55) };
+														P(138, 52.25),
+														P(135.5, 49.75),
+														P(140, 36),
+														P(147, 28) };
 
 		blink_nat_attack_path_line = PathManager(blink_nat_attack_path);
 
