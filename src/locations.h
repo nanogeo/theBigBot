@@ -115,6 +115,8 @@ public:
     std::vector<Point2D> attack_path;
 	PathManager attack_path_line;
 	std::vector<Point2D> attack_path_alt;
+	std::vector<Point2D> attack_path_special;
+	PathManager attack_path_special_line;
     int high_ground_index;
 	int high_ground_index_alt;
     Graph* air_graph; // unused

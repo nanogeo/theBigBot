@@ -95,7 +95,16 @@ namespace sc2 {
 					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(0, 255, 255));
 				}*/
 
+				for (const auto& point : locations->attack_path_special)
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));
+					Debug()->DebugTextOut(std::to_string(point.x) + ", " + std::to_string(point.y), ToPoint3D(point), Color(255, 0, 0), 20);
+				}
 
+				for (const auto& point : locations->attack_path_special_line.GetPoints())
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
+				}
 
 				/*for (const auto &point : locations->attack_path_short)
 				{

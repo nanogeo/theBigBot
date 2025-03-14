@@ -149,6 +149,31 @@ namespace sc2 {
 
 		attack_path_short_line = PathManager(attack_path_short);
 
+		attack_path_special = { P(131.4, 37.5),
+								P(127.8, 40.5),
+								P(119.3, 44.8),
+								P(113, 45),
+								P(106, 55.6),
+								P(103.5, 61.6),
+								P(105.7, 66.1),
+								P(109, 70.3),
+								P(103.9, 79.5),
+								P(100.4, 80.5),
+								P(96.5, 82.4),
+								P(94, 92.4),
+								P(87.3, 98.1),
+								P(80.3, 96.6),
+								P(75.1, 90.3),
+								P(79.4, 85.8),
+								P(78.7, 79.9),
+								P(76, 77.7),
+								P(67.8, 77.9),
+								P(52.8, 90.3),
+								P(52.5, 98.2),
+								P(61.8, 105.3), };
+
+
+		attack_path_special_line = PathManager(attack_path_special);
 
 		attack_path = { P(81, 38),
 						P(76, 41),

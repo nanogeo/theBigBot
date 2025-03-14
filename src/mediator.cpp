@@ -822,8 +822,8 @@ void Mediator::CreateFourGateBlinkFSM()
 {
 	ArmyGroup* army = CreateArmyGroup(ArmyRole::outside_control, { STALKER, PRISM }, 15, 25);
 	army->standby_pos = agent->locations->blink_presure_consolidation;
-	army->attack_path = GetDirectAttackPath();
-	army->attack_path_line = GetDirectAttackLine();
+	army->attack_path = GetStalkerAttackPath();
+	army->attack_path_line = GetStalkerAttackLine();
 
 	BlinkStalkerAttackTerran* blink_fsm = new BlinkStalkerAttackTerran(agent, "4 gate blink pressure", agent->locations->blink_presure_consolidation,
 		agent->locations->blink_pressure_prism_consolidation, agent->locations->blink_pressure_blink_up, agent->locations->blink_pressure_blink_down);
@@ -1121,6 +1121,22 @@ PathManager Mediator::GetDirectAttackLine()
 std::vector<Point2D> Mediator::GetDirectAttackPath()
 {
 	return agent->locations->attack_path_short;
+}
+
+PathManager Mediator::GetStalkerAttackLine()
+{
+	if (GetMapName() == "Abyssal Reef AIE")
+		return agent->locations->attack_path_special_line;
+	else
+		return agent->locations->attack_path_short_line;
+}
+
+std::vector<Point2D> Mediator::GetStalkerAttackPath()
+{
+	if (GetMapName() == "Abyssal Reef AIE")
+		return agent->locations->attack_path_special;
+	else
+		return agent->locations->attack_path_short;
 }
 
 PathManager Mediator::GetIndirectAttackLine()

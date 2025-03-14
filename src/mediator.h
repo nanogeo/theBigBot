@@ -160,6 +160,8 @@ public:
 	Point2D GetEnemyNaturalLocation();
 	PathManager GetDirectAttackLine();
 	std::vector<Point2D> GetDirectAttackPath();
+	PathManager GetStalkerAttackLine();
+	std::vector<Point2D> GetStalkerAttackPath();
 	PathManager GetIndirectAttackLine();
 	std::vector<Point2D> GetIndirectAttackPath();
 	std::vector<Point2D> GetAltAttackPath();
