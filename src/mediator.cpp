@@ -269,6 +269,11 @@ float Mediator::GetLineDangerLevel(PathManager path)
 	return danger;
 }
 
+bool Mediator::IsVisible(Point2D pos)
+{
+	return agent->Observation()->GetVisibility(pos) == Visibility::Visible;
+}
+
 void Mediator::SendChat(std::string message, ChatChannel channel)
 {
 	agent->Actions()->SendChat(message, channel);

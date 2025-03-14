@@ -81,6 +81,7 @@ public:
 	int GetUpgradeLevel(UpgradeType);
 	const Unit* GetMostRecentBuilding(UNIT_TYPEID);
 	float GetLineDangerLevel(PathManager);
+	bool IsVisible(Point2D);
 
 	void SendChat(std::string, ChatChannel);
 
