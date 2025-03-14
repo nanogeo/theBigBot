@@ -192,7 +192,7 @@ public:
 					//std::cout << "attack launched" << std::endl;
 				}
 			}
-		}*/
+		}
 		/*for (const auto &unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ROACH)))
 		{
 			if (Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)).size() == 0)
