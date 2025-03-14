@@ -154,18 +154,20 @@ namespace sc2 {
 
 			UpdateEnemyWeaponCooldowns();
 
-			//DisplayEnemyAttacks();
-
-			DisplayEnemyPositions();
-
-			//DisplayAlliedAttackStatus();
-
 			RemoveCompletedAtacks();
 
 			mediator.RunManagers();
 
 
 #ifndef BUILD_FOR_LADDER
+
+			//DisplayEnemyAttacks();
+
+			DisplayEnemyPositions();
+
+			DisplayKnownEffects();
+
+			//DisplayAlliedAttackStatus();
 
 			DisplayDebugHud();
 
@@ -1359,6 +1361,11 @@ namespace sc2 {
 
 	void TheBigBot::UpdateEffectPositions()
 	{
+		for (auto& zone : liberator_zone_current)
+		{
+			zone.current = false;
+		}
+
 		for (const auto& effect : Observation()->GetEffects())
 		{
 			if (effect.effect_id == 11) // EFFECT_CORROSIVEBILE
@@ -1369,6 +1376,22 @@ namespace sc2 {
 					{
 						corrosive_bile_positions.push_back(pos);
 						corrosive_bile_times.push_back(Observation()->GetGameLoop() + 48);
+					}
+				}
+			}
+			if (effect.effect_id == 9 || effect.effect_id == 8) // LIBERATORDEFENDERZONE || LIBERATORDEFENDERZONESETUP
+			{
+				for (const auto& pos : effect.positions)
+				{
+					auto itr = std::find_if(liberator_zone_current.begin(), liberator_zone_current.end(), [pos](const LiberatorZone& zone) { return zone.pos == pos; });
+
+					if (itr == liberator_zone_current.end())
+					{
+						liberator_zone_current.push_back(LiberatorZone(pos));
+					}
+					else
+					{
+						itr->current = true;
 					}
 				}
 			}
@@ -1386,6 +1409,17 @@ namespace sc2 {
 			Debug()->DebugSphereOut(ToPoint3D(corrosive_bile_positions[i]), .5, Color(255, 0, 255));
 			Debug()->DebugTextOut(std::to_string(corrosive_bile_times[i]), ToPoint3D(corrosive_bile_positions[i]), Color(255, 0, 255), 14);
 		}*/
+		
+
+		for (int k = 0; k < liberator_zone_current.size(); k++)
+		{
+			if (liberator_zone_current[k].current == false && mediator.IsVisible(liberator_zone_current[k].pos))
+			{
+				liberator_zone_current.erase(std::remove(liberator_zone_current.begin(), liberator_zone_current.end(), liberator_zone_current[k]), liberator_zone_current.end());
+				k--;
+			}
+		}
+
 	}
 
 
@@ -1787,6 +1821,20 @@ namespace sc2 {
 			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit.first->unit_type), ToPoint3D(unit.second.pos), Color(255, 128, 128), 20);
 			if (unit.first->unit_type == SIEGE_TANK || unit.first->unit_type == SIEGE_TANK_SIEGED)
 				Debug()->DebugSphereOut(ToPoint3D(unit.second.pos), 14, Color(255, 128, 128));
+		}
+	}
+
+	void TheBigBot::DisplayKnownEffects()
+	{
+		for (const auto& bile : corrosive_bile_positions)
+		{
+			Debug()->DebugTextOut("bile", ToPoint3D(bile), Color(255, 140, 0), 20);
+			Debug()->DebugSphereOut(ToPoint3D(bile), .5, Color(255, 140, 0));
+		}
+		for (const auto& zone : liberator_zone_current)
+		{
+			Debug()->DebugTextOut("liberator zone", ToPoint3D(zone.pos), Color(0, 0, 160), 20);
+			Debug()->DebugSphereOut(ToPoint3D(zone.pos), 5, Color(0, 0, 160));
 		}
 	}
 

@@ -64,6 +64,21 @@ struct BaseInfo
     }
 };
 
+struct LiberatorZone
+{
+	Point2D pos;
+	bool current;
+	LiberatorZone(Point2D pos)
+	{
+		this->pos = pos;
+		current = true;
+	}
+	bool operator==(const LiberatorZone &b)
+	{
+		return pos == b.pos;
+	}
+};
+
 struct Army
 {
     Units observers;
@@ -177,7 +192,7 @@ public:
 					//std::cout << "attack launched" << std::endl;
 				}
 			}
-		}
+		}*/
 		/*for (const auto &unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ROACH)))
 		{
 			if (Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)).size() == 0)
@@ -218,6 +233,7 @@ public:
 	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
 	std::vector<Point2D> corrosive_bile_positions;
 	std::vector<int> corrosive_bile_times;
+	std::vector<LiberatorZone> liberator_zone_current;
 	int current_unique_id = 0;
 
 
@@ -312,6 +328,7 @@ public:
 	void DisplayOngoingAttacks();
 	void DisplayEnemyAttacks();
 	void DisplayEnemyPositions();
+	void DisplayKnownEffects();
 	void DisplayAlliedAttackStatus();
 	void PrintNonPathablePoints();
 	void ShowLocations();
