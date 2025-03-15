@@ -116,6 +116,7 @@ public:
 	void ContinueChronos();
 	void ContinueExpanding();
 	bool TrainFromProxyRobo();
+	int GetNumBuildActions(UNIT_TYPEID);
 
 	ScoutInfoTerran GetScoutInfoTerran();
 	ScoutInfoZerg GetScoutInfoZerg();

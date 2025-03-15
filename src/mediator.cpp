@@ -649,6 +649,17 @@ Point2D Mediator::GetNaturalDefensiveLocation(UNIT_TYPEID unit_type)
 					}
 				}
 			}
+			for (const auto& action : action_manager.active_actions)
+			{
+				if (action->action == &ActionManager::ActionBuildBuilding)
+				{
+					if (Distance2D(point, action->action_arg->position) < 2)
+					{
+						blocked = true;
+						break;
+					}
+				}
+			}
 			if (!blocked && in_energy_field)
 				return point;
 		}
@@ -793,6 +804,22 @@ bool Mediator::TrainFromProxyRobo()
 		}
 	}
 	return false;
+}
+
+int Mediator::GetNumBuildActions(UNIT_TYPEID unit_type)
+{
+	int actions = 0;
+	for (const auto& action : action_manager.active_actions)
+	{
+		if (action->action == &ActionManager::ActionBuildBuilding)
+		{
+			if (action->action_arg->unitId == unit_type)
+			{
+				actions++;
+			}
+		}
+	}
+	return actions;
 }
 
 ScoutInfoTerran Mediator::GetScoutInfoTerran()

@@ -91,7 +91,8 @@ void DefenseManager::UpdateOngoingAttacks()
 				// BATTERY_OVERCHARGE
 				UseBatteryOvercharge(attack.location);
 				// make a new battery
-				mediator->BuildDefensiveBuilding(BATTERY, attack.location);
+				if (mediator->GetNumBuildActions(BATTERY) == 0)
+					mediator->BuildDefensiveBuilding(BATTERY, attack.location);
 				// pull workers
 				for (const auto& worker : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PROBE)), attack.location, 10))
 				{
