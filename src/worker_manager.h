@@ -68,6 +68,13 @@ struct mineral_patch_space
 	}
 };
 
+enum RemoveWorkerResult
+{
+	REMOVED_FROM_MINERALS,
+	REMOVED_FROM_GAS,
+	NOT_FOUND
+};
+
 class WorkerManager
 {
 public:
@@ -102,7 +109,7 @@ public:
 	void NewPlaceWorkerInGas(const Unit*, const Unit*);
 	void PlaceWorkerOnMinerals(const Unit*, const Unit*, int);
 	void NewPlaceWorkerOnMinerals(const Unit*, const Unit*);
-	void RemoveWorker(const Unit*);
+	RemoveWorkerResult RemoveWorker(const Unit*);
 	void SplitWorkers();
 	void SaturateGas(const Unit*);
 	void SemiSaturateGas(const Unit*);

@@ -351,7 +351,7 @@ void WorkerManager::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* min
 	mineral_patches_reversed[worker] = data;
 }
 
-void WorkerManager::RemoveWorker(const Unit* worker)
+RemoveWorkerResult WorkerManager::RemoveWorker(const Unit* worker)
 {
 	/*auto rem = [&](mineral_patch_space* space) -> bool
 	{
@@ -437,6 +437,7 @@ void WorkerManager::RemoveWorker(const Unit* worker)
 			}
 			mineral_patches[mineral].workers[2] = NULL;
 		}
+		return RemoveWorkerResult::REMOVED_FROM_MINERALS;
 	}
 	else if (assimilators_reversed.find(worker) != assimilators_reversed.end())
 	{
@@ -484,6 +485,11 @@ void WorkerManager::RemoveWorker(const Unit* worker)
 			assimilators[assimilator].workers[2] = NULL;
 			gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[2], assimilator));
 		}
+		return RemoveWorkerResult::REMOVED_FROM_GAS;
+	}
+	else
+	{
+		return RemoveWorkerResult::NOT_FOUND;
 	}
 }
 

@@ -1013,9 +1013,9 @@ void Mediator::PlaceWorker(const Unit* worker)
 	worker_manager.PlaceWorker(worker);
 }
 
-void Mediator::RemoveWorker(const Unit* worker)
+RemoveWorkerResult Mediator::RemoveWorker(const Unit* worker)
 {
-	worker_manager.RemoveWorker(worker);
+	return worker_manager.RemoveWorker(worker);
 }
 
 void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
