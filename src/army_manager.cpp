@@ -198,7 +198,6 @@ void ArmyManager::RunArmyGroups()
 		{
 			army_groups_to_delete.erase(std::remove(army_groups_to_delete.begin(), army_groups_to_delete.end(), army_groups[i]), army_groups_to_delete.end());
 			DeleteArmyGroup(army_groups[i]);
-			army_groups.erase(army_groups.begin() + i);
 			i--;
 			BalanceUnits();
 			continue;
@@ -378,6 +377,7 @@ void ArmyManager::DeleteArmyGroup(ArmyGroup* army)
 	Units unassigned_units;
 	unassigned_units.insert(unassigned_units.end(), army->all_units.begin(), army->all_units.end());
 	unassigned_units.insert(unassigned_units.end(), army->new_units.begin(), army->new_units.end());
+	army_groups.erase(std::remove(army_groups.begin(), army_groups.end(), army), army_groups.end());
 	delete army;
 
 	for (const auto& unit : unassigned_units)
