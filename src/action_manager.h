@@ -17,13 +17,13 @@ class Mediator;
 
 struct ActionArgData
 {
-	int index;
+	int index = 0;
 	const Unit* unit = NULL;
 	UNIT_TYPEID unitId;
 	std::vector<UNIT_TYPEID> unitIds;
 	UPGRADE_ID upgradeId;
-	Point2D position;
-	ArmyGroup* army_group;
+	Point2D position = Point2D(0, 0);
+	ArmyGroup* army_group = NULL;
 	ActionArgData() {}
 	ActionArgData(const Unit* x, UNIT_TYPEID y, Point2D z)
 	{
