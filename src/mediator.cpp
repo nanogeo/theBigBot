@@ -657,6 +657,8 @@ Point2D Mediator::GetNaturalDefensiveLocation(UNIT_TYPEID unit_type)
 	}
 	if (unit_type == PYLON)
 		return Utility::PointBetween(agent->locations->nexi_locations[1], agent->locations->natural_door_closed, 4);
+	
+	return Point2D(0, 0);
 }
 
 Point2D Mediator::GetFirstPylonLocation()
@@ -971,7 +973,13 @@ void Mediator::AddToDefense(Point2D base_location, int amount)
 
 void Mediator::BuildDefensiveBuilding(UNIT_TYPEID type, Point2D location)
 {
-	Point2D pos = FindLocation(BATTERY, location);
+	Point2D pos = Point2D(0, 0);
+	if (location == GetNaturalLocation())
+	{
+		pos = GetNaturalDefensiveLocation(type);
+	}
+	if (pos == Point2D(0, 0))
+		Point2D pos = FindLocation(BATTERY, location);
 
 	const Unit* builder = GetBuilder(pos);
 	if (builder == NULL)
