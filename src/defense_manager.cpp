@@ -88,6 +88,8 @@ void DefenseManager::UpdateOngoingAttacks()
 
 			if (attack.location == mediator->GetNaturalLocation() && attack.status <= -50 && attack.pulled_workers.size() == 0)
 			{
+				// BATTERY_OVERCHARGE
+				UseBatteryOvercharge(attack.location);
 				// make a new battery
 				mediator->BuildDefensiveBuilding(BATTERY, attack.location);
 				// pull workers
@@ -330,6 +332,36 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 		total_dps -= Utility::GetDPS(unit);
 	}
 	return total_dps; // simulated fight tied or took too long
+}
+
+void DefenseManager::UseBatteryOvercharge(Point2D location)  // BATTERY_OVERCHARGE
+{
+	if (mediator->GetCurrentTime() - last_time_overcharge_used <= 60)
+		return;
+
+	Units fighting_units = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self));
+	Units batteries = mediator->GetUnits(Unit::Alliance::Self, IsUnit(BATTERY));
+	const Unit* nexus = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)), location);
+
+	if (nexus == NULL || Distance2D(nexus->pos, location) > 5) // arbitrary distance
+		return;
+
+	for (int i = batteries.size() - 1; i >= 0; i--)
+	{
+		if (Distance2D(batteries[i]->pos, nexus->pos) > 10.5)
+			batteries.erase(batteries.begin() + i);
+	}
+
+	if (batteries.size() == 0)
+		return;
+
+	std::sort(batteries.begin(), batteries.end(), [fighting_units](const Unit*& a, const Unit*& b) -> bool
+	{
+		return Utility::GetUnitsWithin(fighting_units, a->pos, 6).size() > Utility::GetUnitsWithin(fighting_units, b->pos, 6).size();
+	});
+
+	mediator->SetUnitCommand(nexus, ABILITY_ID::BATTERYOVERCHARGE, batteries[0]);
+	last_time_overcharge_used = mediator->GetCurrentTime();
 }
 
 }

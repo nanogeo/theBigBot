@@ -33,6 +33,7 @@ public:
 	bool reset_warpgate_production = false;
 	bool reset_robo_production = false;
 	bool reset_stargate_production = false;
+	float last_time_overcharge_used = 0; // BATTERY_OVERCHARGE
 
 	DefenseManager(Mediator* mediator)
 	{
@@ -43,6 +44,8 @@ public:
 	void CheckForAttacks();
 	void UpdateOngoingAttacks();
 	float JudgeFight(Units, Units, float, float, bool);
+
+	void UseBatteryOvercharge(Point2D);  // BATTERY_OVERCHARGE
 };
 
 }
