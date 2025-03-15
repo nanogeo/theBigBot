@@ -600,11 +600,15 @@ void WorkerManager::AddNewBase()
 void WorkerManager::RemoveBase(const Unit* nexus)
 {
 	Units minerals = mediator->GetUnits(IsMineralPatch());
-	for (const auto& mineral_field : mineral_patches)
+	for (auto itr = mineral_patches.begin(); itr != mineral_patches.end();)
 	{
-		if (Distance2D(nexus->pos, mineral_field.first->pos) < 10)
+		if (Distance2D(nexus->pos, itr->first->pos) < 10)
 		{
-			RemoveMineralPatch(mineral_field.first);
+			RemoveMineralPatch((itr++)->first);
+		}
+		else
+		{
+			itr++;
 		}
 	}
 	// TODO remove assimilators but make sure to add them back if if base gets rebuilt
