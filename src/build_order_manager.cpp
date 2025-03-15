@@ -861,7 +861,7 @@ bool BuildOrderManager::BuildNaturalDefensiveBuilding(BuildOrderResultArgData da
 bool BuildOrderManager::ReturnToOracleGatewaymanPvZ(BuildOrderResultArgData data)
 {
 	SetOracleGatewaymanPvZ();
-	build_order_step = 20;
+	build_order_step = 21;
 	return true;
 }
 
@@ -1050,7 +1050,7 @@ void BuildOrderManager::SetEarlyPoolInterrupt()
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::ChronoBuilding,						Result(STARGATE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::ReturnToOracleGatewaymanPvZ,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::ReturnToOracleGatewaymanPvZ,		Result()),
 	};
 }
 
@@ -1181,6 +1181,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::TrainOracle,						Result(STARGATE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(173.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(186.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(190.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(191.0f),			&BuildOrderManager::ChronoBuilding,						Result(STARGATE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(202.0f),			&BuildOrderManager::TrainOracle,						Result(STARGATE)),
 
