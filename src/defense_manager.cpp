@@ -88,17 +88,19 @@ void DefenseManager::UpdateOngoingAttacks()
 
 			if (attack.location == mediator->GetNaturalLocation() && attack.status <= -50 && attack.pulled_workers.size() == 0)
 			{
+				// make a new battery
+				mediator->BuildDefensiveBuilding(BATTERY, attack.location);
 				// pull workers
 				for (const auto& worker : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PROBE)), attack.location, 10))
 				{
-					mediator->RemoveWorker(worker);
+					if (mediator->RemoveWorker(worker) == RemoveWorkerResult::NOT_FOUND)
+						continue;
 					attack.pulled_workers.push_back(worker);
 					ArmyGroup* army_group = mediator->GetArmyGroupDefendingBase(attack.location);
 					army_group->AddUnit(worker);
 				}
 				mediator->AddToDefense(attack.location, attack.pulled_workers.size());
 
-				mediator->BuildDefensiveBuilding(BATTERY, attack.location);
 			}
 
 			// increase desired defenders
