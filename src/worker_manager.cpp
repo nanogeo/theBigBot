@@ -622,7 +622,10 @@ void WorkerManager::DistributeWorkers()
 	Units workers;
 	for (const auto &worker : mineral_patches_reversed)
 	{
-		workers.push_back(worker.first);
+		if (worker.first != NULL)
+			workers.push_back(worker.first);
+		else
+			std::cerr << "found null worker on minerals" << std::endl;
 	}
 	for (const auto &worker : workers)
 	{
@@ -692,7 +695,10 @@ void WorkerManager::DistributeWorkers()
 	Units gas_workers;
 	for (const auto &worker : assimilators_reversed)
 	{
-		gas_workers.push_back(worker.first);
+		if (worker.first != NULL)
+			gas_workers.push_back(worker.first);
+		else
+			std::cerr << "found null worker on gas" << std::endl;
 	}
 	for (const auto &worker : gas_workers)
 	{
