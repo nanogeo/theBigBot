@@ -212,14 +212,16 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 
 			if (Utility::IsMelee(enemy_units[i]->unit_type)) // account for melee units needing to reach their target and only a certain amount can attack at once
 			{
-				if (sim_city && melee_attacks_this_round > 1)
+				if (sim_city)
 				{
-					dps = 0;
+					if (melee_attacks_this_round > 1)
+						dps = 0;
+					else
+						melee_attacks_this_round++;
 				}
 				else
 				{
-					melee_attacks_this_round++;
-					dps /= 2;
+					dps /= 1.5;
 				}
 			}
 
@@ -243,7 +245,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 
 		for (int i = friendly_units.size() - 1; i >= 0; i--)
 		{
-			if (friendly_units[i]->unit_type == ORACLE && friendly_units[i]->energy / 2 <= 40 - max_runs)
+			if (friendly_units[i]->unit_type == ORACLE && (friendly_units[i]->energy - 25) / 2 <= 20 - max_runs)
 				continue;
 
 			float dps = 0;
@@ -267,7 +269,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 				friendly_damage_done = true;
 
 			if (Utility::IsMelee(friendly_units[i]->unit_type)) // account for melee units needing to reach their target and only a certain amount can attack at once
-				dps /= 2;
+				dps /= 1.5;
 
 			if (enemy_battery_energy > 0)
 			{
