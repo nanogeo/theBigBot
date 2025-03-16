@@ -1511,6 +1511,8 @@ namespace sc2 {
 
 		if (all_units.size() == 0)
 		{
+			if (new_units.size() == 0 && standby_units.size() == 0)
+				mediator->MarkArmyGroupForDeletion(this);
 			return 0;
 		}
 
@@ -1534,6 +1536,12 @@ namespace sc2 {
 				if (std::find(types.begin(), types.end(), unit->unit_type) != types.end())
 					basic_units.push_back(unit);
 			}
+		}
+
+		if (new_units.size() == 0 && basic_units.size() == 0 && standby_units.size() == 0)
+		{
+			mediator->MarkArmyGroupForDeletion(this);
+			return 0;
 		}
 
 		OraclesDefendArmy(basic_units);
