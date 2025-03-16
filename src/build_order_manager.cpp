@@ -361,10 +361,11 @@ bool BuildOrderManager::ResearchBlink(BuildOrderResultArgData data)
 {
 	for (const auto &twilight : mediator->GetUnits(IsFinishedUnit(TWILIGHT)))
 	{
+		if (twilight->orders.size() > 0 && twilight->orders[0].ability_id == ABILITY_ID::RESEARCH_BLINK)
+			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::BLINKTECH) && twilight->orders.size() == 0)
 		{
 			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_BLINK);
-			return true;
 		}
 	}
 	return false;
@@ -374,10 +375,11 @@ bool BuildOrderManager::ResearchCharge(BuildOrderResultArgData data)
 {
 	for (const auto &twilight : mediator->GetUnits(IsFinishedUnit(TWILIGHT)))
 	{
+		if (twilight->orders.size() > 0 && twilight->orders[0].ability_id == ABILITY_ID::RESEARCH_CHARGE)
+			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::CHARGE) && twilight->orders.size() == 0)
 		{
 			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_CHARGE);
-			return true;
 		}
 	}
 	return false;
@@ -387,10 +389,11 @@ bool BuildOrderManager::ResearchGlaives(BuildOrderResultArgData data)
 {
 	for (const auto &twilight : mediator->GetUnits(IsFinishedUnit(TWILIGHT)))
 	{
+		if (twilight->orders.size() > 0 && twilight->orders[0].ability_id == ABILITY_ID::RESEARCH_ADEPTRESONATINGGLAIVES)
+			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::ADEPTPIERCINGATTACK) && twilight->orders.size() == 0)
 		{
 			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_ADEPTRESONATINGGLAIVES);
-			return true;
 		}
 	}
 	return false;
@@ -400,10 +403,11 @@ bool BuildOrderManager::ResearchDTBlink(BuildOrderResultArgData data)
 {
 	for (const auto &dark_shrine : mediator->GetUnits(IsFinishedUnit(DARK_SHRINE)))
 	{
+		if (dark_shrine->orders.size() > 0 && dark_shrine->orders[0].ability_id == ABILITY_ID::RESEARCH_SHADOWSTRIKE)
+			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::DARKTEMPLARBLINKUPGRADE) && dark_shrine->orders.size() == 0)
 		{
 			mediator->SetUnitCommand(dark_shrine, ABILITY_ID::RESEARCH_SHADOWSTRIKE);
-			return true;
 		}
 	}
 	return false;
@@ -413,10 +417,11 @@ bool BuildOrderManager::ResearchAttackOne(BuildOrderResultArgData data)
 {
 	for (const auto &forge : mediator->GetUnits(IsFinishedUnit(FORGE)))
 	{
+		if (forge->orders.size() > 0 && forge->orders[0].ability_id == ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1)
+			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1))
 		{
 			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1);
-			return true;
 		}
 	}
 	return false;
