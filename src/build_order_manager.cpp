@@ -417,7 +417,7 @@ bool BuildOrderManager::ResearchAttackOne(BuildOrderResultArgData data)
 {
 	for (const auto &forge : mediator->GetUnits(IsFinishedUnit(FORGE)))
 	{
-		if (forge->orders.size() > 0 && forge->orders[0].ability_id == ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1)
+		if (forge->orders.size() > 0 && forge->orders[0].ability_id == ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS)
 			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1))
 		{
@@ -495,31 +495,36 @@ bool BuildOrderManager::BuildProxy(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ContinueBuildingPylons(BuildOrderResultArgData data)
 {
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
+	if (!mediator->HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
 	return true;
 }
 
 bool BuildOrderManager::ContinueMakingWorkers(BuildOrderResultArgData data)
 {
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData(data.amount)));
+	if (!mediator->HasActionOfType(&ActionManager::ActionContinueMakingWorkers))
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData(data.amount)));
 	return true;
 }
 
 bool BuildOrderManager::ContinueUpgrades(BuildOrderResultArgData data)
 {
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueUpgrades, new ActionArgData()));
+	if (!mediator->HasActionOfType(&ActionManager::ActionContinueUpgrades))
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueUpgrades, new ActionArgData()));
 	return true;
 }
 
 bool BuildOrderManager::ContinueChronos(BuildOrderResultArgData data)
 {
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueChronos, new ActionArgData()));
+	if (!mediator->HasActionOfType(&ActionManager::ActionContinueChronos))
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueChronos, new ActionArgData()));
 	return true;
 }
 
 bool BuildOrderManager::ContinueExpanding(BuildOrderResultArgData data)
 {
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueExpanding, new ActionArgData()));
+	if (!mediator->HasActionOfType(&ActionManager::ActionContinueExpanding))
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueExpanding, new ActionArgData()));
 	return true;
 }
 

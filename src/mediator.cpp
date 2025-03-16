@@ -822,6 +822,16 @@ int Mediator::GetNumBuildActions(UNIT_TYPEID unit_type)
 	return actions;
 }
 
+bool Mediator::HasActionOfType(bool(sc2::ActionManager::* type)(ActionArgData*))
+{
+	for (const auto& action : action_manager.active_actions)
+	{
+		if (action->action == type)
+			return true;
+	}
+	return false;
+}
+
 ScoutInfoTerran Mediator::GetScoutInfoTerran()
 {
 	return agent->scout_info_terran;
