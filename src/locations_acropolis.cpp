@@ -189,7 +189,7 @@ namespace sc2 {
 
 		natural_scout_path = { P(150, 52),
 								P(154, 63),
-								P(142, 138), };
+								P(142, 68), };
 
 		possible_3rds = { P(143.5, 86.5),
 						P(117.5, 60.5), };
