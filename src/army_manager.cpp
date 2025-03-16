@@ -62,7 +62,7 @@ void ArmyManager::CreateZergArmyTemplates()
 
 	std::map<UNIT_TYPEID, int> oracle_harass_req;
 	oracle_harass_req[ORACLE] = 2;
-	ArmyTemplate oracle_harass = ArmyTemplate(oracle_harass_req, 2, ArmyRole::oracle_harass, 2, 2);
+	ArmyTemplate oracle_harass = ArmyTemplate(oracle_harass_req, 20, ArmyRole::oracle_harass, 2, 2);
 	army_templates.push_back(oracle_harass);
 }
 
