@@ -150,7 +150,13 @@ namespace sc2 {
 
 		attack_path_short_line = PathManager(attack_path_short);
 
-		attack_path = { P(68, 132),
+		attack_path = { P(114.1, 127.7),
+						P(109.7, 131.5),
+						P(99.4, 133.8),
+						P(95.3, 129.7),
+						P(83.3, 129),
+						P(79.2, 132.2),
+						P(68, 132),
 						P(62, 126),
 						P(48, 116),
 						P(45, 112),

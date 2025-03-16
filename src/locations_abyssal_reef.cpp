@@ -175,7 +175,11 @@ namespace sc2 {
 
 		attack_path_special_line = PathManager(attack_path_special);
 
-		attack_path = { P(81, 38),
+		attack_path = { P(121, 47.3),
+						P(115.6, 47.3),
+						P(109.3, 47),
+						P(104.9, 42.7),
+						P(81, 38),
 						P(76, 41),
 						P(62, 55),
 						P(54, 60),
