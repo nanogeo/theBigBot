@@ -400,7 +400,10 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 			const Unit* unit = state_machine->attached_army_group->standby_units[i];
 			if (Distance2D(unit->pos, state_machine->attached_army_group->standby_pos) > 2)
 			{
-				agent->Actions()->UnitCommand(unit, ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos);
+				if (Distance2D(unit->pos, state_machine->attached_army_group->standby_pos) + 1 > Distance2D(state_machine->prism->pos, state_machine->attached_army_group->standby_pos))
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::SMART, state_machine->prism);
+				else
+					agent->Actions()->UnitCommand(unit, ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos);
 				continue;
 			}
 			if (agent->mediator.GetCurrentTime() > state_machine->attached_army_group->last_time_blinked[unit] + 7)
