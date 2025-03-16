@@ -65,6 +65,12 @@ void ScoutZScoutMain::ExitState()
 
 State* ScoutZScoutMain::TestTransitions()
 {
+	if (agent->mediator.scouting_manager.spawning_pool_time > 0 &&
+		agent->mediator.GetCurrentTime() > agent->mediator.scouting_manager.spawning_pool_time + 60)
+	{
+		agent->mediator.MarkStateMachineForDeletion(state_machine);
+		return NULL;
+	}
 	if (state_machine->index >= state_machine->main_scout_path.size())
 		return new ScoutZScoutNatural(agent, state_machine);
 	return NULL;
@@ -103,6 +109,12 @@ void ScoutZScoutNatural::ExitState()
 
 State* ScoutZScoutNatural::TestTransitions()
 {
+	if (agent->mediator.scouting_manager.spawning_pool_time > 0 &&
+		agent->mediator.GetCurrentTime() > agent->mediator.scouting_manager.spawning_pool_time + 60)
+	{
+		agent->mediator.MarkStateMachineForDeletion(state_machine);
+		return NULL;
+	}
 	if (state_machine->index >= state_machine->natural_scout_path.size())
 		return new ScoutZLookFor3rd(agent, state_machine);
 	return NULL;
@@ -168,6 +180,10 @@ ScoutZergStateMachine::ScoutZergStateMachine(TheBigBot* agent, std::string name,
     current_state->EnterState();
 }
 
+ScoutZergStateMachine::~ScoutZergStateMachine()
+{
+	agent->mediator.worker_manager.PlaceWorker(scout);
+}
 
 void ScoutZergStateMachine::CheckScoutingInfo()
 {

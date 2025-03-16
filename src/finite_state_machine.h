@@ -75,7 +75,6 @@ public:
         return name + " - " + current_state->toString();
     }
 
-    void CloseStateMachine();
     virtual bool AddUnit(const Unit*) { return false; }
     virtual void RemoveUnit(const Unit*) {};
 

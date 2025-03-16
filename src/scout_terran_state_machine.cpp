@@ -223,7 +223,10 @@ void ScoutTReturnToBase::ExitState()
 State* ScoutTReturnToBase::TestTransitions()
 {
 	if (Distance2D(state_machine->scout->pos, agent->locations->start_location) <= 20)
-		state_machine->CloseStateMachine();
+	{
+		agent->mediator.MarkStateMachineForDeletion(state_machine);
+		return NULL;
+	}
 	return NULL;
 }
 
@@ -234,13 +237,10 @@ std::string ScoutTReturnToBase::toString()
 
 #pragma endregion
 
-void ScoutTerranStateMachine::CloseStateMachine()
+
+ScoutTerranStateMachine::~ScoutTerranStateMachine()
 {
-	delete current_state;
-	current_state = NULL;
-	current_state = NULL;
 	agent->mediator.worker_manager.PlaceWorker(scout);
-	agent->mediator.RemoveStateMachine(this);
 }
 
 void ScoutTerranStateMachine::CheckScoutingInfo()

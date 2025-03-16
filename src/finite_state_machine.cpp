@@ -45,12 +45,6 @@ std::string State::toString()
 	return "State";
 }
 
-void StateMachine::CloseStateMachine()
-{
-	delete current_state;
-	current_state = NULL;
-	agent->mediator.RemoveStateMachine(this);
-}
 
 
 

@@ -122,13 +122,13 @@ public:
         current_state->EnterState();
     }
 
+    ~ScoutTerranStateMachine();
+
     void RunStateMachine()
     {
         StateMachine::RunStateMachine();
         CheckScoutingInfo();
     }
-
-    void CloseStateMachine();
 
     void CheckScoutingInfo();
 };
