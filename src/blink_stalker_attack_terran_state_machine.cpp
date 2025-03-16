@@ -403,16 +403,13 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 				agent->Actions()->UnitCommand(unit, ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos);
 				continue;
 			}
-			for (const auto& ability : agent->Query()->GetAbilitiesForUnit(unit).abilities)
+			if (agent->mediator.GetCurrentTime() > state_machine->attached_army_group->last_time_blinked[unit] + 7)
 			{
-				if (ability.ability_id == ABILITY_ID::EFFECT_BLINK)
-				{
-					agent->Actions()->UnitCommand(unit, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos);
-					state_machine->attached_army_group->RemoveUnit(unit);
-					state_machine->attached_army_group->AddNewUnit(unit);
-					i--;
-					break;
-				}
+				agent->Actions()->UnitCommand(unit, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos);
+				state_machine->attached_army_group->RemoveUnit(unit);
+				state_machine->attached_army_group->AddNewUnit(unit);
+				i--;
+				break;
 			}
 		}
 	}
