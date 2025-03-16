@@ -369,14 +369,16 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 				stalkers_in_range.push_back(stalker);
 			}
 		}
-		if (stalkers_in_range.size() * (unit->unit_type == BATTLECRUISER ? 15 : 17) >= unit->health)
+		if (stalkers_in_range.size() == 0)
+			continue;
+		if (stalkers_in_range.size() * Utility::GetDamage(stalkers_in_range[0], unit) >= unit->health)
 		{
 			target = unit;
 			return new BlinkStalkerAttackTerranSnipeUnit(agent, state_machine, target);
 		}
 	}
 	int attack_line_status = state_machine->attached_army_group->AttackLine(.2, 7, TERRAN_PRIO, true);
-	if (attack_line_status == 1 || attack_line_status == 2 || state_machine->attached_army_group->new_units.size() > state_machine->stalkers.size() * 1.5)
+	if (attack_line_status == 1 || attack_line_status == 2 || state_machine->attached_army_group->new_units.size() > state_machine->stalkers.size())
 	{
 		if (state_machine->attacking_main)
 		{
