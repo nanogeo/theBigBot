@@ -958,15 +958,18 @@ namespace sc2 {
 					Distance2D(door_closed_pos, Utility::ClosestTo(mediator->GetUnits(IsUnit(NEXUS)), guard->pos)->pos))
 			{
 				mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to);
+				mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_HOLDPOSITION, true);
 			}
 			else
 			{
 				mediator->SetUnitCommand(guard, ABILITY_ID::ATTACK_ATTACK, closest_to_guard);
+				mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_HOLDPOSITION, true);
 			}
 		}
 		else
 		{
 			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to);
+			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_HOLDPOSITION, true);
 		}
 	}
 
