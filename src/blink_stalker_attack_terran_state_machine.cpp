@@ -300,6 +300,8 @@ void BlinkStalkerAttackTerranBlinkUp::ExitState()
 
 State* BlinkStalkerAttackTerranBlinkUp::TestTransitions()
 {
+	std::cerr << "stb: " << stalkers_to_blink.size() << " s: " + state_machine->attached_army_group->stalkers.size() << std::endl;
+
 	if (stalkers_to_blink.size() == state_machine->attached_army_group->stalkers.size() && 
 		Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), Utility::MedianCenter(stalkers_to_blink)) < 10)
 	{
