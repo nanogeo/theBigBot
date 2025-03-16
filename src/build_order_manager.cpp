@@ -42,6 +42,22 @@ void BuildOrderManager::CheckBuildOrder()
 	}
 }
 
+void BuildOrderManager::PauseBuildOrder()
+{
+	run_build_order = false;
+
+	if (!mediator->HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
+
+	if (!mediator->HasActionOfType(&ActionManager::ActionContinueChronos))
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueChronos, new ActionArgData()));
+}
+
+void BuildOrderManager::UnpauseBuildOrder()
+{
+	run_build_order = true;
+}
+
 bool BuildOrderManager::TimePassed(Condition data)
 {
 	return mediator->GetGameLoop() / 22.4 >= data.time;

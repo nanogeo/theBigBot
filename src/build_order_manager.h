@@ -104,6 +104,8 @@ public:
 	}
 
 	void CheckBuildOrder();
+	void PauseBuildOrder();
+	void UnpauseBuildOrder();
 	// Build order condition functions
 	bool TimePassed(BuildOrderConditionArgData);
 	bool NumWorkers(BuildOrderConditionArgData);

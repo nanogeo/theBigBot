@@ -402,12 +402,13 @@ void Mediator::SetBuildOrder(BuildOrder build)
 
 void Mediator::PauseBuildOrder()
 {
-	build_order_manager.run_build_order = false;
+	build_order_manager.PauseBuildOrder();
+
 }
 
 void Mediator::UnPauseBuildOrder()
 {
-	build_order_manager.run_build_order = true;
+	build_order_manager.UnpauseBuildOrder();
 }
 
 // TODO create locations manager
