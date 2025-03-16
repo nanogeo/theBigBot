@@ -1478,19 +1478,18 @@ namespace sc2 {
 			const Unit* unit = new_units[i];
 			if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
 			{
-				Point2D closest = Utility::ClosestTo(attack_path, unit->pos);
-				for (int j = find(attack_path.begin(), attack_path.end(), closest) - attack_path.begin(); j < attack_path.size(); j++)
+				for (const auto &point : attack_path)
 				{
 					if (unit->unit_type == PRISM)
 					{
 						if (all_units.size() == 0)
-							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, attack_path[j], true);
+							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, point, true);
 						else
 							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(all_units));
 					}
 					else
 					{
-						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, attack_path[j], true);
+						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
 					}
 				}
 			}
