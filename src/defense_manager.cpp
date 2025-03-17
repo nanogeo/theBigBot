@@ -13,7 +13,7 @@ namespace sc2 {
 
 void DefenseManager::CheckForAttacks()
 {
-	for (const auto& base : mediator->GetUnits(IsUnit(NEXUS)))
+	for (const auto& base : mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)))
 	{
 		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), base->pos, 20);
 		ArmyGroup* defense_group = mediator->GetArmyGroupDefendingBase(base->pos);
