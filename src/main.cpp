@@ -17,7 +17,7 @@
 
 namespace
 {
-
+#ifdef __linux__
 // General signal handler
 void signalHandler(int signal, siginfo_t* info, void* context) {
     std::cerr << "Caught signal: " << signal << std::endl;
@@ -44,7 +44,7 @@ void signalHandler(int signal, siginfo_t* info, void* context) {
     // Exit after catching the signal
     std::exit(EXIT_FAILURE);
 }
-
+#endif
 
 struct Options
 {
@@ -89,6 +89,7 @@ void ParseArguments(int argc, char* argv[], Options* options_)
 
 int main(int argc, char* argv[])
 {
+#ifdef __linux__
     struct sigaction sa;
     sa.sa_flags = SA_SIGINFO; // Use siginfo_t
     sa.sa_sigaction = signalHandler; // Register signal handler
@@ -111,7 +112,7 @@ int main(int argc, char* argv[])
         perror("sigaction");
         return 1;
     }
-
+#endif
     Options options;
     ParseArguments(argc, argv, &options);
 
