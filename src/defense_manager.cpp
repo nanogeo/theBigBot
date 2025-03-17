@@ -62,7 +62,7 @@ void DefenseManager::UpdateOngoingAttacks()
 		{
 			scary_attack = true;
 			// pause build
-			mediator->PauseBuildOrder();
+			//mediator->PauseBuildOrder();
 
 			// warp in or make units from gates
 			if (mediator->CheckUpgrade(UPGRADE_ID::WARPGATERESEARCH))
