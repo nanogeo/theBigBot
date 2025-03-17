@@ -10,8 +10,7 @@ namespace sc2 {
         if (std::find(state_machines_to_delete.begin(), state_machines_to_delete.end(), active_state_machines[i]) != state_machines_to_delete.end())
         {
             state_machines_to_delete.erase(std::remove(state_machines_to_delete.begin(), state_machines_to_delete.end(), active_state_machines[i]), state_machines_to_delete.end());
-            delete active_state_machines[i];
-            active_state_machines.erase(active_state_machines.begin() + i);
+            RemoveStateMachine(active_state_machines[i]);
             i--;
         }
         else
@@ -28,7 +27,8 @@ namespace sc2 {
 
 void FiniteStateMachineManager::RemoveStateMachine(StateMachine* state_machine)
 {
-	active_state_machines.erase(std::remove(active_state_machines.begin(), active_state_machines.end(), state_machine), active_state_machines.end());
+	active_state_machines.erase(std::remove(active_state_machines.begin(), active_state_machines.end(), state_machine));
+    delete state_machine;
 }
 
 void FiniteStateMachineManager::MarkStateMachineForDeletion(StateMachine* state_machine)

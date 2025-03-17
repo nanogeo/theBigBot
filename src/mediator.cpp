@@ -970,11 +970,15 @@ void Mediator::CreateAdeptBaseDefenseTerranFSM()
 void Mediator::MarkStateMachineForDeletion(StateMachine* state_machine)
 {
 	finite_state_machine_manager.MarkStateMachineForDeletion(state_machine);
+	if (state_machine->attached_army_group != NULL)
+		army_manager.MarkArmyGroupForDeletion(state_machine->attached_army_group);
 }
 
 void Mediator::MarkArmyGroupForDeletion(ArmyGroup* army_group)
 {
 	army_manager.MarkArmyGroupForDeletion(army_group);
+	if (army_group->state_machine != NULL)
+		finite_state_machine_manager.MarkStateMachineForDeletion(army_group->state_machine);
 }
 
 void Mediator::DefendThirdBaseZerg()
