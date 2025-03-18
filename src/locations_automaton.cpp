@@ -62,7 +62,7 @@ namespace sc2 {
 		first_pylon_location_terran = P(137, 126);
 
 		gateway_locations = { P(153.5, 129.5),
-							P(156.5, 129.5),
+							P(152.5, 126.5),
 							P(136.5, 123.5),
 							P(142.5, 127.5),
 							P(139.5, 124.5),
@@ -103,7 +103,7 @@ namespace sc2 {
 									P(157.5, 71.5) };
 
 
-		cyber_core_locations = { P(152.5, 126.5),
+		cyber_core_locations = { P(156.5, 129.5),
 									P(139.75, 127.25),
 									P(136.5, 140.5) };
 
