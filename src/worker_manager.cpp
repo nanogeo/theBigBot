@@ -141,6 +141,27 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 
 void WorkerManager::PlaceWorker(const Unit* worker)
 {
+	if ((immediatelySaturateGasses || 
+		(immediatelySemiSaturateGasses && gas_spaces.size() > mediator->GetUnits(Unit::Alliance::Self, IsUnit(ASSIMILATOR)).size()))
+		&& gas_spaces.size() > removed_gas_miners)
+	{
+		float distance = INFINITY;
+		mineral_patch_space* closest = NULL;
+		for (mineral_patch_space* &space : gas_spaces)
+		{
+			float dist = Distance2D(worker->pos, space->mineral_patch->pos);
+			if (closest == NULL || dist < distance)
+			{
+				distance = dist;
+				closest = space;
+			}
+		}
+		*(closest->worker) = worker;
+		NewPlaceWorkerInGas(worker, closest->mineral_patch);
+		gas_spaces.erase(std::remove(gas_spaces.begin(), gas_spaces.end(), closest), gas_spaces.end());
+
+		return;
+	}
 	if (first_2_mineral_patch_spaces.size() > 0)
 	{
 		float distance = INFINITY;
