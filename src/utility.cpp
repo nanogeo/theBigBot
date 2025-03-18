@@ -2548,7 +2548,7 @@ bool Utility::CanAfford(UNIT_TYPEID unit, int amount, const ObservationInterface
 		cost = UnitCost(125, 50, 2);
 		break;
 	case UNIT_TYPEID::PROTOSS_SENTRY:
-		cost = UnitCost(50, 150, 2);
+		cost = UnitCost(50, 100, 2);
 		break;
 	case UNIT_TYPEID::PROTOSS_ADEPT:
 		cost = UnitCost(100, 25, 2);
