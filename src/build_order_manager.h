@@ -84,7 +84,8 @@ enum BuildOrder {
 	proxy_double_robo,
 	recessed_cannon_rush,
 	cannon_rush_terran,
-	three_gate_robo
+	three_gate_robo,
+	pvp_openner
 };
 
 
@@ -210,6 +211,7 @@ public:
 	void SetProxyDoubleRobo();
 	void SetCannonRushTerran();
 	void SetThreeGateRobo();
+	void SetPvPOpenner();
 
 	void SetRecessedCannonRush();
 

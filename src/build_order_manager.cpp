@@ -1037,6 +1037,9 @@ void BuildOrderManager::SetBuildOrder(BuildOrder build)
 	case BuildOrder::cannon_rush_terran:
 		SetCannonRushTerran();
 		break;
+	case BuildOrder::pvp_openner:
+		SetPvPOpenner();
+		break;
 	default:
 		//std::cout << "Error invalid build order in SetBuildOrder" << std::endl;
 		break;
@@ -1279,6 +1282,20 @@ void BuildOrderManager::SetThreeGateRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::ReadyToScour,			Condition(480.0f),			&BuildOrderManager::ScourMap,							Result()),
+	};
+}
+
+void BuildOrderManager::SetPvPOpenner()
+{
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(8.5f),			&BuildOrderManager::BuildFirstPylon,					Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::Scout,								Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(27.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(33.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
+					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::ImmediatelySemiSaturateGasses,		Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result(0)),
+					Data(&BuildOrderManager::TimePassed,			Condition(55.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					
 	};
 }
 

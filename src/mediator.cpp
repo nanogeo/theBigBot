@@ -45,7 +45,7 @@ void Mediator::SetUpManagers(bool debug)
 		{
 		case Race::Protoss:
 			SendChat("Tag: race_protoss", ChatChannel::Team);
-			SetBuildOrder(BuildOrder::three_gate_robo);
+			SetBuildOrder(BuildOrder::pvp_openner);
 			break;
 		case Race::Terran:
 			SendChat("Tag: race_terran", ChatChannel::Team);
@@ -315,7 +315,7 @@ int Mediator::NumFar3rdWorkers()
 
 bool Mediator::SendScout()
 {
-	Point2D pos = GetEnemyStartLocation();
+	Point2D pos = GetNaturalLocation();
 	const Unit* scouter = GetBuilder(pos);
 	if (scouter == NULL)
 	{
