@@ -851,7 +851,7 @@ bool BuildOrderManager::CannonRushAttack(BuildOrderResultArgData data)
 
 bool BuildOrderManager::SendAllInAttack(BuildOrderResultArgData data)
 {
-	mediator->CreateArmyGroup(ArmyRole::attack, { ZEALOT, ADEPT, SENTRY, STALKER, HIGH_TEMPLAR, ARCHON, IMMORTAL, PRISM, COLOSSUS, DISRUPTOR, VOID_RAY, TEMPEST, CARRIER }, 10, 20);
+	mediator->CreateArmyGroup(ArmyRole::attack, { ZEALOT, ADEPT, SENTRY, STALKER, HIGH_TEMPLAR, ARCHON, IMMORTAL, PRISM, COLOSSUS, DISRUPTOR, VOID_RAY, TEMPEST, CARRIER }, 15, 30);
 	return true;
 }
 
@@ -1003,7 +1003,7 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
 {
 	build_order_step = 0;
-	Set3GateProxyRobo();
+	Set2GateProxyRobo();
 	switch (mediator->scouting_manager.enemy_unit_counts[GATEWAY])
 	{
 	case 0:
@@ -1365,7 +1365,7 @@ void BuildOrderManager::SetPvPOpenner()
 	};
 }
 
-void BuildOrderManager::Set3GateProxyRobo()
+void BuildOrderManager::Set2GateProxyRobo()
 {
 	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(73.0f),			&BuildOrderManager::BuildBuilding,						Result(CYBERCORE)),
@@ -1373,10 +1373,11 @@ void BuildOrderManager::Set3GateProxyRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(80.0f),			&BuildOrderManager::RemoveScoutToProxy,					Result(ROBO, 0)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
-					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(117.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(146.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(153.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(153.0f),			&BuildOrderManager::SendAllInAttack,					Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::TrainImmortal,						Result(IMMORTAL, 1)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(173.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
@@ -1389,6 +1390,7 @@ void BuildOrderManager::Set3GateProxyRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetUnitProduction,					Result(IMMORTAL)),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(STALKER)),
+					Data(&BuildOrderManager::ReadyToScour,			Condition(300.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
 
