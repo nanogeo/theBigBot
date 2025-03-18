@@ -17,6 +17,7 @@
 #include "oracle_harass_state_machine.h"
 #include "scout_terran_state_machine.h"
 #include "scout_zerg_state_machine.h"
+#include "scout_protoss_state_machine.h"
 #include "stalker_base_defense_terran_state_machine.h"
 
 
@@ -339,9 +340,9 @@ bool Mediator::SendScout()
 		finite_state_machine_manager.AddStateMachine(scout_fsm);
 		break;
 	}
-	case Race::Protoss: // TODO make a dedicated protoss scout state machine
+	case Race::Protoss:
 	{
-		ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(agent, "Scout Protoss", scouter, agent->locations->initial_scout_pos,
+		ScoutProtossStateMachine* scout_fsm = new ScoutProtossStateMachine(agent, "Scout Protoss", scouter, agent->locations->initial_scout_pos,
 			agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural);
 		finite_state_machine_manager.AddStateMachine(scout_fsm);
 		break;
@@ -930,7 +931,7 @@ bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)
 		state_machine = GetStateMachineByName("Scout Protoss");
 		if (state_machine != NULL)
 		{
-			scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+			scout = ((ScoutProtossStateMachine*)state_machine)->scout;
 		}
 		else
 		{
