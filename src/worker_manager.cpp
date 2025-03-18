@@ -73,14 +73,14 @@ const Unit* WorkerManager::GetWorker()
 	{
 		for (const auto &field : far_patches)
 		{
-			if (field.second.workers[1] != NULL)
+			if (field.second.workers[1] != NULL && IsCarryingMinerals(*field.second.workers[1]) == false)
 			{
 				return field.second.workers[1];
 			}
 		}
 		for (const auto &field : far_patches)
 		{
-			if (field.second.workers[0] != NULL)
+			if (field.second.workers[0] != NULL && IsCarryingMinerals(*field.second.workers[0]) == false)
 			{
 				return field.second.workers[0];
 			}
@@ -91,14 +91,14 @@ const Unit* WorkerManager::GetWorker()
 	{
 		for (const auto &field : close_patches)
 		{
-			if (field.second.workers[1] != NULL)
+			if (field.second.workers[1] != NULL && IsCarryingMinerals(*field.second.workers[1]) == false)
 			{
 				return field.second.workers[1];
 			}
 		}
 		for (const auto &field : close_patches)
 		{
-			if (field.second.workers[0] != NULL)
+			if (field.second.workers[0] != NULL && IsCarryingMinerals(*field.second.workers[0]) == false)
 			{
 				return field.second.workers[0];
 			}
@@ -114,11 +114,13 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 	Units mineral_fields = mediator->GetUnits(IsMineralPatch());
 	Units mineral_patches_reversed_keys;
 	Units far_only_mineral_patches_reversed_keys;
-	for (const auto &patch : mineral_patches_reversed)
+	for (const auto &worker : mineral_patches_reversed)
 	{
-		if (!mineral_patches[mineral_patches_reversed[patch.first].mineral_tag].is_close)
-			far_only_mineral_patches_reversed_keys.push_back(patch.first);
-		mineral_patches_reversed_keys.push_back(patch.first);
+		if (IsCarryingMinerals(*worker.first))
+			continue;
+		if (!mineral_patches[mineral_patches_reversed[worker.first].mineral_tag].is_close)
+			far_only_mineral_patches_reversed_keys.push_back(worker.first);
+		mineral_patches_reversed_keys.push_back(worker.first);
 	}
 	const Unit* closest = NULL;
 	if (far_only_mineral_patches_reversed_keys.size() > 0) 
