@@ -132,8 +132,10 @@ public:
 	bool TrainStalker(BuildOrderResultArgData);
 	bool TrainAdept(BuildOrderResultArgData);
 	bool TrainZealot(BuildOrderResultArgData);
+	bool TrainSentry(BuildOrderResultArgData);
 	bool TrainOracle(BuildOrderResultArgData);
 	bool TrainPrism(BuildOrderResultArgData);
+	bool TrainImmortal(BuildOrderResultArgData);
 	bool TrainObserver(BuildOrderResultArgData);
 	bool ChronoBuilding(BuildOrderResultArgData);
 	bool ResearchWarpgate(BuildOrderResultArgData);
@@ -192,6 +194,7 @@ public:
 	bool AddToNaturalDefense(BuildOrderResultArgData);
 	bool CheckTankCount(BuildOrderResultArgData);
 	bool CheckForProxyRax(BuildOrderResultArgData);
+	bool CheckProtossOpenning(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string
@@ -212,6 +215,8 @@ public:
 	void SetCannonRushTerran();
 	void SetThreeGateRobo();
 	void SetPvPOpenner();
+	void Set3GateProxyRobo();
+	void Set1GateExpand();
 
 	void SetRecessedCannonRush();
 
@@ -355,7 +360,35 @@ struct BuildOrderData
 		}
 		else if (result == &BuildOrderManager::TrainStalker)
 		{
-			str += "build a stalker";
+			str += "build ";
+			str += result_arg.amount;
+			str += " stalker";
+			if (result_arg.amount > 1)
+				str += 's';
+		}
+		else if (result == &BuildOrderManager::TrainAdept)
+		{
+			str += "build ";
+			str += result_arg.amount;
+			str += " adept";
+			if (result_arg.amount > 1)
+				str += 's';
+		}
+		else if (result == &BuildOrderManager::TrainZealot)
+		{
+			str += "build ";
+			str += result_arg.amount;
+			str += " zealot";
+			if (result_arg.amount > 1)
+				str += 's';
+		}
+		else if (result == &BuildOrderManager::TrainSentry)
+		{
+			str += "build ";
+			str += result_arg.amount;
+			str += " sentry";
+			if (result_arg.amount > 1)
+				str += 's';
 		}
 		else if (result == &BuildOrderManager::TrainAdept)
 		{
@@ -372,6 +405,10 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::TrainPrism)
 		{
 			str += "build a warp prism";
+		}
+		else if (result == &BuildOrderManager::TrainImmortal)
+		{
+			str += "build an immortal";
 		}
 		else if (result == &BuildOrderManager::ChronoBuilding)
 		{
@@ -612,6 +649,10 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::CheckForProxyRax)
 		{
 			str += "check for proxy rax";
+		}
+		else if (result == &BuildOrderManager::CheckProtossOpenning)
+		{
+			str += "check protoss openning";
 		}
 
 		return str;
