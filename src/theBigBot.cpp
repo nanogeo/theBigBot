@@ -520,12 +520,15 @@ namespace sc2 {
     {
         switch (type)
         {
-        case UNIT_TYPEID::PROTOSS_PYLON:
+        case PYLON:
             return locations->proxy_pylon_locations;
             break;
-        case UNIT_TYPEID::PROTOSS_GATEWAY:
+        case GATEWAY:
             return locations->proxy_gateway_locations;
             break;
+		case ROBO:
+		case STARGATE:
+			return locations->proxy_tech_locations;
         default:
             //std::cout << "Error invalid type id in GetProxyLocations" << std::endl;
             return std::vector<Point2D>();
