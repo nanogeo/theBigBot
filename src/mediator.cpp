@@ -74,7 +74,9 @@ void Mediator::RunManagers()
 	if (agent->Observation()->GetGameLoop() % 20 == 0)
 		defense_manager.UpdateOngoingAttacks();
 
-	worker_manager.DistributeWorkers();
+	if (agent->Observation()->GetGameLoop() > 40)
+		worker_manager.DistributeWorkers();
+	
 	if (worker_manager.new_base != NULL)
 	{
 		//std::cout << "add new base\n";

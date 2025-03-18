@@ -311,8 +311,6 @@ void WorkerManager::PlaceWorkerOnMinerals(const Unit* worker, const Unit* minera
 	data.drop_off_point = drop_off_point;
 	data.pick_up_point = pick_up_point;
 	mineral_patches_reversed[worker] = data;
-	mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, pick_up_point);
-	mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER_PROBE, mineral, true);
 }
 
 void WorkerManager::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* mineral)
@@ -496,12 +494,16 @@ RemoveWorkerResult WorkerManager::RemoveWorker(const Unit* worker)
 void WorkerManager::SplitWorkers()
 {
 	Units workers = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PROBE));
-	Units patches;
+	Units close_patches;
+	Units far_patches;
 	for (const auto &mineral_patch : mineral_patches)
 	{
-		patches.push_back(mineral_patch.first);
+		if (mineral_patch.second.is_close)
+			close_patches.push_back(mineral_patch.first);
+		else
+			far_patches.push_back(mineral_patch.first);
 	}
-	for (const auto &patch : patches)
+	for (const auto &patch : close_patches)
 	{
 		const Unit* closest_worker = Utility::ClosestTo(workers, patch->pos);
 		PlaceWorkerOnMinerals(closest_worker, patch, 0);
@@ -515,22 +517,38 @@ void WorkerManager::SplitWorkers()
 		}
 		workers.erase(std::remove(workers.begin(), workers.end(), closest_worker), workers.end());
 	}
-	for (const auto &patch : patches)
+	for (const auto& patch : far_patches)
 	{
-		if (patch->mineral_contents == 1800)
+		const Unit* closest_worker = Utility::ClosestTo(workers, patch->pos);
+		PlaceWorkerOnMinerals(closest_worker, patch, 0);
+		for (mineral_patch_space*& space : first_2_mineral_patch_spaces)
 		{
-			const Unit* closest_worker = Utility::ClosestTo(workers, patch->pos);
-			PlaceWorkerOnMinerals(closest_worker, patch, 1);
-			for (mineral_patch_space* &space : first_2_mineral_patch_spaces)
+			if (patch == space->mineral_patch)
 			{
-				if (patch == space->mineral_patch)
-				{
-					first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), space), first_2_mineral_patch_spaces.end());
-					break;
-				}
+				first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), space), first_2_mineral_patch_spaces.end());
+				break;
 			}
-			workers.erase(std::remove(workers.begin(), workers.end(), closest_worker), workers.end());
 		}
+		workers.erase(std::remove(workers.begin(), workers.end(), closest_worker), workers.end());
+	}
+	for (const auto& patch : close_patches)
+	{
+		const Unit* closest_worker = Utility::FurthestFrom(workers, patch->pos);
+		PlaceWorkerOnMinerals(closest_worker, patch, 1);
+		for (mineral_patch_space*& space : first_2_mineral_patch_spaces)
+		{
+			if (patch == space->mineral_patch)
+			{
+				first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), space), first_2_mineral_patch_spaces.end());
+				break;
+			}
+		}
+		workers.erase(std::remove(workers.begin(), workers.end(), closest_worker), workers.end());
+	}
+
+	for (const auto& worker : mineral_patches_reversed)
+	{
+		mediator->SetUnitCommand(worker.first, ABILITY_ID::SMART, worker.second.mineral_tag);
 	}
 }
 
@@ -671,11 +689,13 @@ void WorkerManager::DistributeWorkers()
 		}
 		else if (!IsCarryingMinerals(*worker) && worker->orders.size() <= 1)
 		{
-			const Unit *mineral_patch = mineral_patches_reversed[worker].mineral_tag;
+			const Unit* mineral_patch = mineral_patches_reversed[worker].mineral_tag;
+
 			if (mineral_patch != NULL)
 			{
 				if (Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) > .5 && 
-					Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) < 2)
+					Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) < 2 && 
+					Distance2D(worker->pos, mineral_patches_reversed[worker].mineral_tag->pos) > 1.325)
 				{
 					mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, mineral_patches_reversed[worker].pick_up_point);
 					mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER, mineral_patches_reversed[worker].mineral_tag, true);
