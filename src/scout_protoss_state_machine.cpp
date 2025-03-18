@@ -149,7 +149,7 @@ void ScoutPScoutNatural::ExitState()
 
 State* ScoutPScoutNatural::TestTransitions()
 {
-	if (Distance2D(state_machine->scout->pos, agent->mediator.GetEnemyNaturalLocation()) < 6)
+	if (Distance2D(state_machine->scout->pos, agent->mediator.GetEnemyNaturalLocation()) < 8)
 	{
 		return new ScoutPScoutMain(agent, state_machine, agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() != 0);
 	}
