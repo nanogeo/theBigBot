@@ -1480,40 +1480,103 @@ namespace sc2 {
 	// returns: 0 - normal operation, 1 - all units dead or in standby, 2 - reached the end of the attack path
 	int ArmyGroup::AttackLine(float dispersion, float target_range, std::vector<std::vector<UNIT_TYPEID>> target_priority, bool limit_advance)
 	{
-		for (int i = 0; i < new_units.size(); i++)
+		if (mediator->GetEnemyRace() == Race::Zerg)
 		{
-			const Unit* unit = new_units[i];
-			if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
+			for (int i = 0; i < new_units.size(); i++)
 			{
-				for (const auto &point : attack_path)
+				const Unit* unit = new_units[i];
+				if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
 				{
-					if (unit->unit_type == PRISM)
+					for (const auto& point : attack_path)
 					{
-						if (all_units.size() == 0)
-							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, point, true);
+						if (unit->unit_type == PRISM)
+						{
+							if (all_units.size() == 0)
+								mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, point, true);
+							else
+								mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(all_units));
+						}
 						else
-							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(all_units));
-					}
-					else
-					{
-						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
+						{
+							mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, true);
+						}
 					}
 				}
-			}
-			if ((all_units.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(all_units)) < 5) || (all_units.size() == 0 && Utility::DistanceToClosest(attack_path, unit->pos) < 2))
-			{
-				if (state_machine)
+				if ((all_units.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(all_units)) < 5) || (all_units.size() == 0 && Utility::DistanceToClosest(attack_path, unit->pos) < 2))
 				{
-					if (state_machine->AddUnit(unit))
+					if (state_machine)
+					{
+						if (state_machine->AddUnit(unit))
+						{
+							AddUnit(unit);
+							i--;
+						}
+					}
+					else
 					{
 						AddUnit(unit);
 						i--;
 					}
 				}
-				else 
+			}
+		}
+		else
+		{
+			for (int i = 0; i < new_units.size(); i++)
+			{
+				const Unit* unit = new_units[i];
+				if (all_units.size() == 0)
 				{
-					AddUnit(unit);
-					i--;
+					if (Distance2D(attack_path[0], unit->pos) < 2)
+					{
+						if (state_machine)
+						{
+							if (state_machine->AddUnit(unit))
+							{
+								AddUnit(unit);
+								i--;
+							}
+						}
+						else
+						{
+							AddUnit(unit);
+							i--;
+						}
+					}
+					else
+					{
+						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, attack_path[0]);
+					}
+				}
+				if (all_units.size() > 0)
+				{
+					if (Distance2D(unit->pos, Utility::MedianCenter(all_units)) < 5)
+					{
+						if (state_machine)
+						{
+							if (state_machine->AddUnit(unit))
+							{
+								AddUnit(unit);
+								i--;
+							}
+						}
+						else
+						{
+							AddUnit(unit);
+							i--;
+						}
+					}
+					else if (unit->weapon_cooldown == 0)
+					{
+						if (unit->unit_type == PRISM)
+							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(all_units));
+						else
+							mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, Utility::MedianCenter(all_units));
+					}
+					else
+					{
+						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(all_units));
+					}
 				}
 			}
 		}
