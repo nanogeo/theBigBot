@@ -201,7 +201,7 @@ std::string ScoutPReturnToBase::toString()
 
 ScoutProtossStateMachine::~ScoutProtossStateMachine()
 {
-	agent->mediator.worker_manager.PlaceWorker(scout);
+	
 }
 
 
