@@ -117,6 +117,7 @@ public:
 	void ContinueExpanding();
 	bool TrainFromProxyRobo();
 	int GetNumBuildActions(UNIT_TYPEID);
+	void AddAction(bool(sc2::ActionManager::* action)(ActionArgData*), ActionArgData*);
 	bool HasActionOfType(bool(sc2::ActionManager::* action)(ActionArgData*));
 
 	ScoutInfoTerran GetScoutInfoTerran();

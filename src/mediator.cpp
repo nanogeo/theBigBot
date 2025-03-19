@@ -810,6 +810,13 @@ bool Mediator::TrainFromProxyRobo()
 	return false;
 }
 
+void Mediator::AddAction(bool(sc2::ActionManager::* action)(ActionArgData*), ActionArgData* data)
+{
+	if (!HasActionOfType(action))
+		action_manager.active_actions.push_back(new ActionData(action, data));
+
+}
+
 int Mediator::GetNumBuildActions(UNIT_TYPEID unit_type)
 {
 	int actions = 0;

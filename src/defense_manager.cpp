@@ -90,6 +90,7 @@ void DefenseManager::UpdateOngoingAttacks()
 			{
 				// BATTERY_OVERCHARGE
 				UseBatteryOvercharge(attack.location);
+				mediator->AddAction(&ActionManager::ActionContinueBuildingPylons, new ActionArgData());
 				// make a new battery
 				if (mediator->GetNumBuildActions(BATTERY) == 0)
 					mediator->BuildDefensiveBuilding(BATTERY, attack.location);
