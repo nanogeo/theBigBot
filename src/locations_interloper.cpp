@@ -115,13 +115,13 @@ namespace sc2 {
 							P(118.5, 31.5),
 							P(117.5, 36.5) };
 
-		proxy_pylon_locations = { P(70, 109),
+		proxy_pylon_locations = { P(77, 105),
 									P(45, 72) };
 
-		proxy_gateway_locations = { P(72.5, 108.5),
+		proxy_gateway_locations = { P(79.5, 104.5),
 									P(46.5, 69.5) };
 
-		proxy_tech_locations = { P(70.5, 111.5),
+		proxy_tech_locations = { P(77.5, 107.5),
 									P(47.5, 72.5) };
 
 		defensive_natural_battery_locations = { P(116, 61),
@@ -129,7 +129,7 @@ namespace sc2 {
 												P(118, 56),
 												P(120, 60) };
 
-		attack_path_short = { P(117, 57),
+		attack_path_short = {	P(117, 57),
 								P(113, 59),
 								P(107, 64),
 								P(108, 71),
@@ -171,7 +171,28 @@ namespace sc2 {
 
 		attack_path_line = PathManager(attack_path);
 		
-		
+		attack_path_special = { P(117, 57),
+								P(113, 59),
+								P(107, 64),
+								P(108, 71),
+								P(105.5, 78),
+								P(100.5, 80.5),
+								P(94.5, 89.5),
+								P(94, 96),
+								P(91.5, 103),
+								P(85.5, 107.5),
+								P(69, 115.5),
+								P(65.5, 118.5),
+								P(56, 119),
+								P(47.5, 112.5),
+								P(40.5, 110),
+								P(35, 111),
+								P(32, 120),
+								P(35, 123),
+								P(31, 135.5),
+								P(22, 141.5) };
+
+		attack_path_special_line = PathManager(attack_path_special);
 
 		high_ground_index = 5;
 

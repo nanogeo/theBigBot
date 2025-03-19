@@ -1178,7 +1178,7 @@ std::vector<Point2D> Mediator::GetDirectAttackPath()
 
 PathManager Mediator::GetStalkerAttackLine()
 {
-	if (GetMapName() == "Abyssal Reef AIE")
+	if (GetMapName() == "Abyssal Reef AIE" || GetMapName() == "Interloper AIE")
 		return agent->locations->attack_path_special_line;
 	else
 		return agent->locations->attack_path_short_line;
