@@ -115,9 +115,9 @@ State* ScoutPScoutMain::TestTransitions()
 	if (scouted_pylon == false && agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() > 0)
 		return new ScoutPScoutPylon(agent, state_machine);
 	if (state_machine->index >= state_machine->main_scout_path.size())
-	{
 		return new ScoutPScoutNatural(agent, state_machine);
-	}
+	if (agent->mediator.GetCurrentTime() > 120)
+		return new ScoutPReturnToBase(agent, state_machine);
 	return NULL;
 }
 

@@ -1370,7 +1370,8 @@ void BuildOrderManager::Set2GateProxyRobo()
 	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(73.0f),			&BuildOrderManager::BuildBuilding,						Result(CYBERCORE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(75.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(80.0f),			&BuildOrderManager::RemoveScoutToProxy,					Result(ROBO, 0)),
+					Data(&BuildOrderManager::TimePassed,			Condition(80.0f),			&BuildOrderManager::BuildProxyMulti,					Result({PYLON, ROBO})),
+					//Data(&BuildOrderManager::TimePassed,			Condition(80.0f),			&BuildOrderManager::RemoveScoutToProxy,					Result(ROBO, 0)), // TODO swap this back for better opponents
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(117.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
