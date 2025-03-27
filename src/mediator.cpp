@@ -68,6 +68,9 @@ void Mediator::SetUpManagers(bool debug)
 
 void Mediator::RunManagers()
 {
+	ability_manager.UpdateStalkerInfo();
+	ability_manager.UpdateOracleInfo();
+
 	scouting_manager.UpdateInfo();
 
 	defense_manager.CheckForAttacks();
@@ -1268,6 +1271,26 @@ Point2D Mediator::GetUnitPosition(const Unit* unit)
 	return Point2D(0, 0);
 }
 
+bool Mediator::IsStalkerBlinkOffCooldown(const Unit* unit)
+{
+	return ability_manager.IsStalkerBlinkOffCooldown(unit);
+}
+
+void Mediator::SetStalkerOrder(const Unit* unit)
+{
+	ability_manager.SetStalkerOrder(unit);
+}
+
+bool Mediator::IsOracleBeamActive(const Unit* unit)
+{
+	return ability_manager.IsOracleBeamOn(unit);
+}
+
+void Mediator::SetOracleOrder(const Unit* unit, ABILITY_ID ability)
+{
+	ability_manager.SetOracleOrder(unit, ability);
+}
+
 // TODO make these boolean if the command is invalid
 void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, bool queued_command)
 {
@@ -1336,6 +1359,7 @@ void Mediator::OnUnitCreated(const Unit* unit)
 		{
 			army_manager.FindArmyGroupForUnit(unit);
 		}
+		ability_manager.OnUnitCreated(unit);
 	}
 }
 void Mediator::OnUnitEnterVision(const Unit*)
@@ -1349,6 +1373,7 @@ void Mediator::OnUnitDamaged(const Unit* unit, float health_damage, float shield
 void Mediator::OnUnitDestroyed(const Unit* unit)
 {
 	worker_manager.OnUnitDestroyed(unit);
+	ability_manager.OnUnitDestroyed(unit);
 
 	if (std::find(ALL_ARMY_UNITS.begin(), ALL_ARMY_UNITS.end(), unit->unit_type) != ALL_ARMY_UNITS.end())
 	{
@@ -1364,6 +1389,7 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 void Mediator::OnUpgradeCompleted(UPGRADE_ID upgrade)
 {
 	upgrade_manager.OnUpgradeCompleted(upgrade);
+	ability_manager.OnUpgradeCompleted(upgrade);
 }
 
 

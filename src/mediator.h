@@ -15,6 +15,7 @@
 #include "unit_production_manager.h"
 #include "scouting_manager.h"
 #include "defense_manager.h"
+#include "ability_manager.h"
 
 #include "definitions.h"
 
@@ -35,7 +36,8 @@ public:
 		army_manager(this),
 		unit_production_manager(this),
 		scouting_manager(this),
-		defense_manager(this)
+		defense_manager(this),
+		ability_manager(this)
 	{
 		this->agent = agent;
 	}
@@ -52,6 +54,7 @@ public:
 	UnitProductionManager unit_production_manager;
 	ScoutingManager scouting_manager;
 	DefenseManager defense_manager;
+	AbilityManager ability_manager;
 
 
 public:
@@ -181,6 +184,10 @@ public:
 	AvailableAbilities GetAbilitiesForUnit(const Unit*);
 	Point2D GetUnitPosition(const Unit*);
 
+	bool IsStalkerBlinkOffCooldown(const Unit*);
+	void SetStalkerOrder(const Unit*);
+	bool IsOracleBeamActive(const Unit*);
+	void SetOracleOrder(const Unit*, ABILITY_ID);
 
 	void SetUnitCommand(const Unit* unit, AbilityID ability, bool queued_command = false);
 	void SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, bool queued_command = false);

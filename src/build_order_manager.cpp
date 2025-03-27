@@ -1027,22 +1027,34 @@ bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
 
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
-	mediator->agent->Debug()->DebugCreateUnit(STALKER, mediator->agent->locations->attack_path[1], 2, 10);
-	mediator->agent->Debug()->DebugCreateUnit(PRISM, mediator->agent->locations->attack_path[1], 2, 1);
-	mediator->agent->Debug()->DebugCreateUnit(MARINE, mediator->agent->locations->attack_path[2], 1, 18);
-	mediator->agent->Debug()->DebugCreateUnit(MARAUDER, mediator->agent->locations->attack_path[2], 1, 6);
-	mediator->agent->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, mediator->agent->locations->attack_path[2], 1, 1);
+	//mediator->agent->Debug()->DebugCreateUnit(ORACLE, mediator->agent->locations->attack_path[0], 2, 1);
+	//mediator->agent->Debug()->DebugCreateUnit(ADEPT, mediator->agent->locations->attack_path[0], 2, 1);
+	//mediator->agent->Debug()->DebugCreateUnit(MARINE, mediator->agent->locations->attack_path[2], 1, 12);
+	//mediator->agent->Debug()->DebugCreateUnit(MARAUDER, mediator->agent->locations->attack_path[2], 1, 6);
+	//mediator->agent->Debug()->DebugCreateUnit(ZERGLING, mediator->agent->locations->attack_path[2], 1, 3);
+	//mediator->agent->Debug()->DebugCreateUnit(ROACH, mediator->agent->locations->attack_path[2], 1, 2);
+	//mediator->agent->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, mediator->agent->locations->attack_path[2], 1, 1);
 	//mediator->agent->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, mediator->agent->locations->attack_path[2], 1, 6);
-	mediator->agent->Debug()->DebugGiveAllUpgrades();
+	// 
+	mediator->agent->Debug()->DebugCreateUnit(ORACLE, mediator->GetStartLocation(), 1, 1);
+	mediator->agent->Debug()->DebugCreateUnit(ADEPT, mediator->GetStartLocation(), 1, 1);
+	mediator->agent->Debug()->DebugCreateUnit(ZERGLING, Utility::PointBetween(mediator->GetStartLocation(), mediator->GetEnemyStartLocation(), 30), 2, 40);
+	mediator->agent->Debug()->DebugCreateUnit(ROACH, Utility::PointBetween(mediator->GetStartLocation(), mediator->GetEnemyStartLocation(), 30), 2, 0);
+	//mediator->agent->Debug()->DebugGiveAllUpgrades();
 	mediator->agent->Debug()->DebugShowMap();
+	mediator->agent->Debug()->DebugEnemyControl();
 	return true;
 }
 
 bool BuildOrderManager::AttackLine(BuildOrderResultArgData data)
 {
-	ArmyGroup* army = mediator->CreateArmyGroup(ArmyRole::pressure, { STALKER, PRISM }, 20, 20);
-	army->standby_pos = mediator->agent->locations->attack_path[0];
-	army->using_standby = false;
+	Units eUnits = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
+	Units fUnits = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self));
+	
+	mediator->defense_manager.JudgeFight(eUnits, fUnits, 0, 300, true);
+	//ArmyGroup* army = mediator->CreateArmyGroup(ArmyRole::simple_attack, { ADEPT, STALKER, PRISM }, 3, 20);
+	//army->standby_pos = mediator->agent->locations->attack_path[0];
+	//army->using_standby = false;
 	return true;
 }
 
@@ -1368,9 +1380,9 @@ void BuildOrderManager::SetPvPOpenner()
 void BuildOrderManager::Set2GateProxyRobo()
 {
 	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::BuildProxyMulti,					Result({PYLON, ROBO})),
 					Data(&BuildOrderManager::TimePassed,			Condition(73.0f),			&BuildOrderManager::BuildBuilding,						Result(CYBERCORE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(75.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(80.0f),			&BuildOrderManager::BuildProxyMulti,					Result({PYLON, ROBO})),
 					//Data(&BuildOrderManager::TimePassed,			Condition(80.0f),			&BuildOrderManager::RemoveScoutToProxy,					Result(ROBO, 0)), // TODO swap this back for better opponents
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),

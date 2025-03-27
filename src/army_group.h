@@ -105,7 +105,6 @@ public:
 	Point2D standby_pos;
 	Units standby_units;
 
-	std::map<const Unit*, float> last_time_blinked;
 
 	int event_id;
 	std::vector<UNIT_TYPEID> unit_types;
@@ -117,7 +116,6 @@ public:
 	std::map<const Unit*, float> time_last_attacked;
 	std::map<const Unit*, bool> has_attacked;
 	std::map<const Unit*, uint64_t> target;
-	std::map<const Unit*, bool> is_beam_active;
 	std::map<const Unit*, bool> casting;
 	std::map<const Unit*, float> casting_energy;
 

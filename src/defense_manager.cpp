@@ -246,8 +246,6 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 
 		for (int i = friendly_units.size() - 1; i >= 0; i--)
 		{
-			if (friendly_units[i]->unit_type == ORACLE && (friendly_units[i]->energy - 25) / 2 <= 20 - max_runs)
-				continue;
 
 			float dps = 0;
 			const Unit* curr_target = NULL;
@@ -265,6 +263,19 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 			if (curr_target == NULL) // couldnt find target to attack
 				continue;
 
+			if (friendly_units[i]->unit_type == ORACLE)
+			{
+				if (mediator->IsOracleBeamActive(friendly_units[i]))
+				{
+					if ((friendly_units[i]->energy / 2) - (20 - max_runs) <= 0)
+						dps = 0;
+				}
+				else if (friendly_units[i]->energy >= 40) // TODO maybe dont take into account this 40 energy cutoff to switch the oracle on?
+				{
+					if (((friendly_units[i]->energy - 25) / 2) - (20 - max_runs) <= 0)
+						dps = 0;
+				}
+			}
 
 			if (dps > 0)
 				friendly_damage_done = true;

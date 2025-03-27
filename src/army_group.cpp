@@ -168,7 +168,6 @@ namespace sc2 {
 			break;
 		case UNIT_TYPEID::PROTOSS_STALKER:
 			stalkers.push_back(unit);
-			last_time_blinked[unit] = 0;
 			break;
 		case UNIT_TYPEID::PROTOSS_ADEPT:
 			adepts.push_back(unit);
@@ -210,7 +209,6 @@ namespace sc2 {
 			oracles.push_back(unit);
 			time_last_attacked[unit] = 0;
 			has_attacked[unit] = true;
-			is_beam_active[unit] = false;
 			casting[unit] = false;
 			casting_energy[unit] = 0;
 			break;
@@ -255,21 +253,8 @@ namespace sc2 {
 			units = &zealots;
 			break;
 		case STALKER:
-		{
-			units = &stalkers; // TODO why do i need this
-			auto index = std::find(stalkers.begin(), stalkers.end(), unit);
-			if (index == stalkers.end())
-			{
-				//std::cout << "Error trying to remove stalker not in stalkers in RemoveUnit\n";
-			}
-			else
-			{
-				stalkers.erase(std::remove(stalkers.begin(), stalkers.end(), unit), stalkers.end());
-				if (last_time_blinked.count(unit))
-					last_time_blinked.erase(unit);
-			}
+			units = &stalkers;
 			break;
-		}
 		case ADEPT:
 			units = &adepts;
 			break;
@@ -831,15 +816,7 @@ namespace sc2 {
 			int danger = mediator->agent->IncomingDamage(Funit);
 			if (danger)
 			{
-				bool blink_ready = false;
-				for (const auto &abiliy : mediator->agent->Query()->GetAbilitiesForUnit(Funit).abilities)
-				{
-					if (abiliy.ability_id == ABILITY_ID::EFFECT_BLINK)
-					{
-						blink_ready = true;
-						break;
-					}
-				}
+				bool blink_ready = mediator->IsStalkerBlinkOffCooldown(Funit);
 				if (blink_ready && (danger > Funit->shield || danger > (Funit->shield_max / 2)))
 				{
 					mediator->SetUnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4));
@@ -1060,7 +1037,7 @@ namespace sc2 {
 			int num_active_units = all_units.size() - oracles.size();
 			for (const auto& oracle : oracles)
 			{
-				if (is_beam_active[oracle])
+				if (mediator->IsOracleBeamActive(oracle))
 					num_active_units++;
 			}
 
@@ -1068,7 +1045,7 @@ namespace sc2 {
 			{
 				float now = mediator->GetCurrentTime();
 				bool weapon_ready = now - time_last_attacked[oracle] > .61;
-				bool beam_active = is_beam_active[oracle];
+				bool beam_active = mediator->IsOracleBeamActive(oracle);
 				bool beam_activatable = false;
 
 				if (!beam_active && oracle->energy >= 40 && enemy_ground_units.size() > num_active_units * 2)
@@ -1077,11 +1054,7 @@ namespace sc2 {
 				const Unit* closest_unit = Utility::ClosestTo(enemy_ground_units, oracle->pos);
 				if (beam_active)
 				{
-					if (oracle->energy <= 2)
-					{
-						is_beam_active[oracle] = false;
-					}
-					else if (Distance2D(oracle->pos, closest_unit->pos) > 4)
+					if (Distance2D(oracle->pos, closest_unit->pos) > 4)
 					{
 						float dist = Distance2D(oracle->pos, closest_unit->pos);
 						mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), false);
@@ -1111,7 +1084,6 @@ namespace sc2 {
 					if (Distance2D(oracle->pos, closest_unit->pos) < 2)
 					{
 						mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
-						is_beam_active[oracle] = true;
 					}
 					else
 					{
@@ -1132,10 +1104,9 @@ namespace sc2 {
 		{
 			for (const auto& oracle : oracles)
 			{
-				if (is_beam_active[oracle])
+				if (mediator->IsOracleBeamActive(oracle))
 				{
 					mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
-					is_beam_active[oracle] = false;
 					continue;
 				}
 
@@ -1783,14 +1754,14 @@ namespace sc2 {
 		{
 			int num_stalkers_with_blink = 0;
 			float now = mediator->GetGameLoop() / 22.4;
-			for (const auto& last_blink_time : last_time_blinked)
+			for (const auto& stalker : stalkers)
 			{
-				if (now - last_blink_time.second > 7)
+				if (mediator->IsStalkerBlinkOffCooldown(stalker))
 					num_stalkers_with_blink++;
 			}
 			float percent_stalkers_with_blink = 1;
-			if (last_time_blinked.size() > 0)
-				percent_stalkers_with_blink = static_cast<float>(num_stalkers_with_blink) / static_cast<float>(last_time_blinked.size());
+			if (stalkers.size() > 0)
+				percent_stalkers_with_blink = static_cast<float>(num_stalkers_with_blink) / static_cast<float>(stalkers.size());
 
 			int num_oracles_needed = 0;
 
@@ -1812,9 +1783,9 @@ namespace sc2 {
 			num_oracles_needed = std::min(num_oracles_needed, 3);
 
 			int num_oracles_active = 0;
-			for (const auto& beam_active : is_beam_active)
+			for (const auto& oracle : oracles)
 			{
-				if (beam_active.second)
+				if (mediator->IsOracleBeamActive(oracle))
 					num_oracles_active++;
 			}
 			/*
@@ -1847,9 +1818,8 @@ namespace sc2 {
 						break;
 					if (oracle->energy > 10 && Utility::DistanceToClosest(enemy_lings, oracle->pos) > 5)
 					{
-						if (is_beam_active.count(oracle) && is_beam_active[oracle] == true)
+						if (mediator->IsOracleBeamActive(oracle))
 						{
-							is_beam_active[oracle] = false;
 							mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 							num_oracles_active--;
 						}
@@ -1869,9 +1839,8 @@ namespace sc2 {
 						break;
 					if (oracle->energy > 40)
 					{
-						if (is_beam_active.count(oracle) && is_beam_active[oracle] == false)
+						if (mediator->IsOracleBeamActive(oracle) == false)
 						{
-							is_beam_active[oracle] = true;
 							mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
 							num_oracles_active++;
 						}
@@ -1890,9 +1859,8 @@ namespace sc2 {
 			{
 				if (oracle->energy > 10 && (enemy_lings.size() == 0 || Utility::DistanceToClosest(enemy_lings, oracle->pos)))
 				{
-					if (is_beam_active.count(oracle) && is_beam_active[oracle] == true)
+					if (mediator->IsOracleBeamActive(oracle))
 					{
-						is_beam_active[oracle] = false;
 						mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 					}
 				}
@@ -1913,7 +1881,7 @@ namespace sc2 {
 					continue;
 				}
 			}
-			if (is_beam_active[oracle] == false)
+			if (mediator->IsOracleBeamActive(oracle) == false)
 			{
 				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center);
 				continue;
@@ -1954,12 +1922,6 @@ namespace sc2 {
 			{
 				//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
 			}
-		}
-		// update beam status for tired oracles
-		for (const auto& oracle : oracles)
-		{
-			if (oracle->energy <= 2)
-				is_beam_active[oracle] = false;
 		}
 	}
 
@@ -2353,7 +2315,7 @@ namespace sc2 {
 				if (request.first->unit_type == STALKER && request.second.unit_prio >= 2)
 				{
 					float now = mediator->GetGameLoop() / 22.4;
-					bool blink_off_cooldown = now - last_time_blinked[request.first] > 7;
+					bool blink_off_cooldown = mediator->IsStalkerBlinkOffCooldown(request.first);
 
 					if (mediator->upgrade_manager.has_blink && blink_off_cooldown)
 					{
@@ -2361,7 +2323,6 @@ namespace sc2 {
 						mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, standby_pos); // TODO adjustable blink distance
 
 						attack_status[request.first] = false;
-						last_time_blinked[request.first] = now;
 					}
 				}
 				break;

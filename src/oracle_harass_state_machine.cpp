@@ -30,7 +30,7 @@ void OracleDefendLocation::TickState()
 		{
 			float now = agent->Observation()->GetGameLoop() / 22.4;
 			bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .61;
-			bool beam_active = state_machine->is_beam_active[oracle];
+			bool beam_active = agent->mediator.IsOracleBeamActive(oracle);
 			bool beam_activatable = false;
 
 			if (!beam_active && oracle->energy >= 40)
@@ -66,7 +66,6 @@ void OracleDefendLocation::TickState()
 				if (Distance2D(oracle->pos, closest_unit->pos) < 3)
 				{
 					agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
-					state_machine->is_beam_active[oracle] = true;
 				}
 				else
 				{
@@ -87,10 +86,9 @@ void OracleDefendLocation::TickState()
 	{
 		for (const auto &oracle : state_machine->oracles)
 		{
-			if (state_machine->is_beam_active[oracle])
+			if (agent->mediator.IsOracleBeamActive(oracle))
 			{
 				agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
-				state_machine->is_beam_active[oracle] = false;
 			}
 
 			if (Distance2D(oracle->pos, denfensive_position) > 1)
@@ -219,7 +217,7 @@ void OracleDefendLine::TickState()
 		{
 			float now = agent->Observation()->GetGameLoop() / 22.4;
 			bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .61;
-			bool beam_active = state_machine->is_beam_active[oracle];
+			bool beam_active = agent->mediator.IsOracleBeamActive(oracle);
 			bool beam_activatable = false;
 
 			if (!beam_active && oracle->energy >= 40 && enemy_units.size() > 5)
@@ -258,7 +256,6 @@ void OracleDefendLine::TickState()
 				if (Distance2D(oracle->pos, closest_unit->pos) < 2)
 				{
 					agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
-					state_machine->is_beam_active[oracle] = true;
 				}
 				else
 				{
@@ -279,10 +276,9 @@ void OracleDefendLine::TickState()
 	{
 		for (const auto& oracle : state_machine->oracles)
 		{
-			if (state_machine->is_beam_active[oracle])
+			if (agent->mediator.IsOracleBeamActive(oracle))
 			{
 				agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
-				state_machine->is_beam_active[oracle] = false;
 				continue;
 			}
 
@@ -517,14 +513,14 @@ void OracleDefendArmyGroup::TickState()
 	{
 		int num_stalkers_with_blink = 0;
 		float now = agent->Observation()->GetGameLoop() / 22.4;
-		for (const auto &last_blink_time : state_machine->attached_army_group->last_time_blinked)
+		for (const auto &stalker : state_machine->attached_army_group->stalkers)
 		{
-			if (now - last_blink_time.second > 7)
+			if (agent->mediator.IsStalkerBlinkOffCooldown(stalker))
 				num_stalkers_with_blink++;
 		}
 		float percent_stalkers_with_blink = 1;
-		if (state_machine->attached_army_group->last_time_blinked.size() > 0)
-			percent_stalkers_with_blink = static_cast<float>(num_stalkers_with_blink) / static_cast<float>(state_machine->attached_army_group->last_time_blinked.size());
+		if (state_machine->attached_army_group->stalkers.size() > 0)
+			percent_stalkers_with_blink = static_cast<float>(num_stalkers_with_blink) / static_cast<float>(state_machine->attached_army_group->stalkers.size());
 
 		int num_oracles_needed = 0;
 
@@ -546,9 +542,9 @@ void OracleDefendArmyGroup::TickState()
 		num_oracles_needed = std::min(num_oracles_needed, 3);
 
 		int num_oracles_active = 0;
-		for (const auto &beam_active : state_machine->is_beam_active)
+		for (const auto &oracle : state_machine->oracles)
 		{
-			if (beam_active.second)
+			if (agent->mediator.IsOracleBeamActive(oracle))
 				num_oracles_active++;
 		}
 		/*
@@ -581,9 +577,8 @@ void OracleDefendArmyGroup::TickState()
 					break;
 				if (oracle->energy > 10 && Utility::DistanceToClosest(enemy_lings, oracle->pos) > 5)
 				{
-					if (state_machine->is_beam_active.count(oracle) && state_machine->is_beam_active[oracle] == true)
+					if (agent->mediator.IsOracleBeamActive(oracle))
 					{
-						state_machine->is_beam_active[oracle] = false;
 						agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 						num_oracles_active--;
 					}
@@ -603,9 +598,8 @@ void OracleDefendArmyGroup::TickState()
 					break;
 				if (oracle->energy > 40)
 				{
-					if (state_machine->is_beam_active.count(oracle) && state_machine->is_beam_active[oracle] == false)
+					if (agent->mediator.IsOracleBeamActive(oracle) == false)
 					{
-						state_machine->is_beam_active[oracle] = true;
 						agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
 						num_oracles_active++;
 					}
@@ -624,9 +618,8 @@ void OracleDefendArmyGroup::TickState()
 		{
 			if (oracle->energy > 10 && (enemy_lings.size() == 0 || Utility::DistanceToClosest(enemy_lings, oracle->pos)))
 			{
-				if (state_machine->is_beam_active.count(oracle) && state_machine->is_beam_active[oracle] == true)
+				if (agent->mediator.IsOracleBeamActive(oracle))
 				{
-					state_machine->is_beam_active[oracle] = false;
 					agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 				}
 			}
@@ -647,7 +640,7 @@ void OracleDefendArmyGroup::TickState()
 				continue;
 			}
 		}
-		if (state_machine->is_beam_active[oracle] == false)
+		if (agent->mediator.IsOracleBeamActive(oracle) == false)
 		{
 			agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center);
 			continue;
@@ -688,12 +681,6 @@ void OracleDefendArmyGroup::TickState()
 		{
 			//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
 		}
-	}
-	// update beam status for tired oracles
-	for (const auto &oracle : state_machine->oracles)
-	{
-		if (oracle->energy <= 2)
-			state_machine->is_beam_active[oracle] = false;
 	}
 
 }
@@ -1153,7 +1140,6 @@ OracleHarassStateMachine::OracleHarassStateMachine(TheBigBot* agent, Units oracl
 	{
 		time_last_attacked[oracles[i]] = 0;
 		has_attacked[oracles[i]] = true;
-		is_beam_active[oracles[i]] = false;
 		casting[oracles[i]] = false;
 		casting_energy[oracles[i]] = 0;
 	}
@@ -1188,7 +1174,6 @@ OracleHarassStateMachine::OracleHarassStateMachine(TheBigBot* agent, Units oracl
 	{
 		time_last_attacked[oracles[i]] = 0;
 		has_attacked[oracles[i]] = true;
-		is_beam_active[oracles[i]] = false;
 		casting[oracles[i]] = false;
 		casting_energy[oracles[i]] = 0;
 	}
@@ -1205,7 +1190,6 @@ void OracleHarassStateMachine::AddOracle(const Unit* oracle)
 	oracles.push_back(oracle);
 	time_last_attacked[oracle] = 0;
 	has_attacked[oracle] = true;
-	is_beam_active[oracle] = false;
 	casting[oracle] = false;
 	casting_energy[oracle] = 0;
 }

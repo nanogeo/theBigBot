@@ -260,25 +260,16 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos);
 	for (int i = 0; i < stalkers_to_blink.size(); i++)
 	{
-		bool blinked = true;
-		for (const auto& ability : agent->Query()->GetAbilitiesForUnit(stalkers_to_blink[i]).abilities)
+		if (stalkers_to_blink[i]->pos.z - .1 < agent->ToPoint3D(state_machine->blink_down_pos).z && // TODO write utility function to check same height
+			stalkers_to_blink[i]->pos.z + .1 > agent->ToPoint3D(state_machine->blink_down_pos).z)
 		{
-			if (ability.ability_id == ABILITY_ID::EFFECT_BLINK)
-			{
-				blinked = false;
-				break;
-			}
-		}
-		if (blinked && Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_down_pos) < Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_up_pos))
-		{
-			state_machine->attached_army_group->last_time_blinked[stalkers_to_blink[i]] = agent->Observation()->GetGameLoop();
 			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
 			i--;
 			continue;
 		}
 		if (Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_up_pos) < 2)
 		{
-			agent->Actions()->UnitCommand(stalkers_to_blink[i], ABILITY_ID::EFFECT_BLINK, state_machine->blink_down_pos);
+			agent->mediator.SetUnitCommand(stalkers_to_blink[i], ABILITY_ID::EFFECT_BLINK, state_machine->blink_down_pos);
 		}
 		else
 		{
@@ -364,8 +355,8 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 		{
 			if (stalker->weapon_cooldown > 0)
 				continue;
-			bool blink_off_cooldown = now - state_machine->attached_army_group->last_time_blinked[stalker] > 7;
-			if ((blink_off_cooldown && Distance2D(stalker->pos, unit->pos) < Utility::RealRange(stalker, unit) + 8) ||
+
+			if ((agent->mediator.IsStalkerBlinkOffCooldown(stalker) && Distance2D(stalker->pos, unit->pos) < Utility::RealRange(stalker, unit) + 8) ||
 				(Distance2D(stalker->pos, unit->pos) < Utility::RealRange(stalker, unit)))
 			{
 				stalkers_in_range.push_back(stalker);
@@ -408,9 +399,9 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 					agent->Actions()->UnitCommand(unit, ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos);
 				continue;
 			}
-			if (agent->mediator.GetCurrentTime() > state_machine->attached_army_group->last_time_blinked[unit] + 7)
+			if (agent->mediator.IsStalkerBlinkOffCooldown(unit))
 			{
-				agent->Actions()->UnitCommand(unit, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos);
+				agent->mediator.SetUnitCommand(unit, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos);
 				state_machine->attached_army_group->RemoveUnit(unit);
 				state_machine->attached_army_group->AddNewUnit(unit);
 				i--;
@@ -468,11 +459,10 @@ void BlinkStalkerAttackTerranSnipeUnit::EnterState()
 	{
 		if (stalker->weapon_cooldown == 0)
 		{
-			bool blink_off_cooldown = now - state_machine->attached_army_group->last_time_blinked[stalker] > 7;
-			if (blink_off_cooldown)
+			if (agent->mediator.IsStalkerBlinkOffCooldown(stalker))
 			{
-				agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, target->pos);
-				agent->Actions()->UnitCommand(stalker, ABILITY_ID::ATTACK_ATTACK, target, true);
+				agent->mediator.SetUnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, target->pos);
+				agent->mediator.SetUnitCommand(stalker, ABILITY_ID::ATTACK_ATTACK, target, true);
 			}
 			else
 			{
@@ -520,7 +510,6 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 
 	for (int i = 0; i < stalkers_to_blink.size(); i++)
 	{
-		bool blink_ready = false;
 		const Unit* stalker = stalkers_to_blink[i];
 		if (stalker->is_alive == false)
 		{
@@ -528,26 +517,20 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 			i--;
 			continue;
 		}
-		for (const auto& ability : agent->Query()->GetAbilitiesForUnit(stalker).abilities)
-		{
-			if (ability.ability_id == ABILITY_ID::EFFECT_BLINK)
-			{
-				blink_ready = true;
-				break;
-			}
-		}
-		if (Distance2D(stalker->pos, state_machine->blink_up_pos) < 3)
+		else if (stalkers_to_blink[i]->pos.z - .1 < agent->ToPoint3D(state_machine->blink_up_pos).z && // TODO write utility function to check same height
+			stalkers_to_blink[i]->pos.z + .1 > agent->ToPoint3D(state_machine->blink_up_pos).z)
 		{
 			state_machine->attached_army_group->RemoveUnit(stalker);
 			state_machine->attached_army_group->AddNewUnit(stalker);
+			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
 			i--;
 			continue;
 		}
-		if (Distance2D(stalker->pos, state_machine->blink_down_pos) < 2)
+		else if (Distance2D(stalker->pos, state_machine->blink_down_pos) < 2)
 		{
-			if (blink_ready)
+			if (agent->mediator.IsStalkerBlinkOffCooldown(stalkers_to_blink[i]))
 			{
-				agent->Actions()->UnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos);
+				agent->mediator.SetUnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos);
 			}
 			else
 			{

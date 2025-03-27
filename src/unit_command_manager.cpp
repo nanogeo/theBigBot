@@ -9,7 +9,7 @@
 
 namespace sc2
 {
-
+	// TODO do not queue blink or oracle beam etc or deal with it
 
 void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, bool queued_command)
 {
@@ -155,6 +155,11 @@ void UnitCommandManager::ParseUnitCommands()
 		{
 			if (itr->second.target_tag == NULL)
 			{
+				if (itr->second.ability.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMON)
+					mediator->SetOracleOrder(itr->first, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
+				if (itr->second.ability.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMOFF)
+					mediator->SetOracleOrder(itr->first, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability);
 #ifndef BUILD_FOR_LADDER
 				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, 0, " << std::endl;
@@ -170,6 +175,9 @@ void UnitCommandManager::ParseUnitCommands()
 		}
 		else
 		{
+			if (itr->second.ability.ToType() == ABILITY_ID::EFFECT_BLINK)
+				mediator->SetStalkerOrder(itr->first);
+
 			agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target_point);
 #ifndef BUILD_FOR_LADDER
 			file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", " << itr->second.target_point.x << " " << itr->second.target_point.y << ", 0, " << std::endl;
