@@ -20,11 +20,15 @@ void AbilityManager::UpdateOracleInfo()
 			switch (oracle_order[oracle.first])
 			{
 			case ABILITY_ID::BEHAVIOR_PULSARBEAMON:
-				if (oracle.first->energy <= oracle.second - 25)
+				if (oracle.first->energy <= oracle.second - 24) // not 25 because energy is a float for some reason
+				{
 					oracle_beam_status[oracle.first] = true;
+					oracle_order.erase(oracle.first);
+				}
 				break;
 			case ABILITY_ID::BEHAVIOR_PULSARBEAMOFF:
 				oracle_beam_status[oracle.first] = false;
+				oracle_order.erase(oracle.first);
 				break;
 			}
 		}

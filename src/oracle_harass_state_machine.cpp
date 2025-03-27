@@ -65,7 +65,7 @@ void OracleDefendLocation::TickState()
 			{
 				if (Distance2D(oracle->pos, closest_unit->pos) < 3)
 				{
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
+					agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
 				}
 				else
 				{
@@ -88,7 +88,7 @@ void OracleDefendLocation::TickState()
 		{
 			if (agent->mediator.IsOracleBeamActive(oracle))
 			{
-				agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+				agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 			}
 
 			if (Distance2D(oracle->pos, denfensive_position) > 1)
@@ -121,7 +121,7 @@ void OracleDefendLocation::ExitState()
 	for (const auto &oracle : state_machine->oracles)
 	{
 		// remove event onUnitDamaged
-		agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+		agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 	}
 	agent->RemoveListenerToOnUnitDamagedEvent(event_id);
 	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
@@ -255,7 +255,7 @@ void OracleDefendLine::TickState()
 			{
 				if (Distance2D(oracle->pos, closest_unit->pos) < 2)
 				{
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
+					agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
 				}
 				else
 				{
@@ -278,7 +278,7 @@ void OracleDefendLine::TickState()
 		{
 			if (agent->mediator.IsOracleBeamActive(oracle))
 			{
-				agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+				agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 				continue;
 			}
 
@@ -338,7 +338,7 @@ void OracleDefendLine::ExitState()
 	for (const auto& oracle : state_machine->oracles)
 	{
 		// remove event onUnitDamaged
-		agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+		agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 	}
 	agent->RemoveListenerToOnUnitDamagedEvent(event_id);
 	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
@@ -579,7 +579,7 @@ void OracleDefendArmyGroup::TickState()
 				{
 					if (agent->mediator.IsOracleBeamActive(oracle))
 					{
-						agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+						agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 						num_oracles_active--;
 					}
 				}
@@ -600,7 +600,7 @@ void OracleDefendArmyGroup::TickState()
 				{
 					if (agent->mediator.IsOracleBeamActive(oracle) == false)
 					{
-						agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
+						agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
 						num_oracles_active++;
 					}
 				}
@@ -620,7 +620,7 @@ void OracleDefendArmyGroup::TickState()
 			{
 				if (agent->mediator.IsOracleBeamActive(oracle))
 				{
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+					agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 				}
 			}
 		}
@@ -702,7 +702,7 @@ void OracleDefendArmyGroup::ExitState()
 {
 	for (const auto &oracle : state_machine->oracles)
 	{
-		agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+		agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 	}
 	agent->RemoveListenerToOnUnitDamagedEvent(event_id);
 	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
@@ -883,7 +883,7 @@ std::string OracleHarassAttackMineralLine::toString()
 
 void OracleHarassAttackMineralLine::EnterState()
 {
-	agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
+	agent->mediator.SetUnitsCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
 
 	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
 		this->OnUnitDestroyedListener(unit);
@@ -1042,7 +1042,7 @@ void OracleHarassAttackMineralLine::TickState()
 
 void OracleHarassAttackMineralLine::ExitState()
 {
-	agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+	agent->mediator.SetUnitsCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
 }
 
@@ -1078,7 +1078,7 @@ std::string OracleHarassReturnToBase::toString()
 
 void OracleHarassReturnToBase::EnterState()
 {
-	agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+	agent->mediator.SetUnitsCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
 	for (int i = 0; i < exfil_path.size(); i++)
 	{
 		agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exfil_path[i], i > 0);
