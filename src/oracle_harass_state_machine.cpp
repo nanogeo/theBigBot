@@ -65,7 +65,7 @@ void OracleDefendLocation::TickState()
 			{
 				if (Distance2D(oracle->pos, closest_unit->pos) < 3)
 				{
-					agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
+					agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
 				}
 				else
 				{
@@ -445,7 +445,7 @@ void OracleDefendArmyGroup::TickState()
 	bool revelation_cast = false;
 	for (const auto &oracle : state_machine->oracles)
 	{
-		if (state_machine->casting[oracle])
+		if (agent->mediator.IsOracleCasting(oracle))
 		{
 			revelation_cast = true;
 			break;
@@ -486,16 +486,12 @@ void OracleDefendArmyGroup::TickState()
 			if (highest_over_75 != NULL)
 			{
 				agent->Actions()->UnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
-				state_machine->casting[highest_over_75] = true;
-				state_machine->casting_energy[highest_over_75] = highest_over_75->energy;
 				//agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
 
 			}
 			else if (lowest_over_25 != NULL)
 			{
 				agent->Actions()->UnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
-				state_machine->casting[lowest_over_25] = true;
-				state_machine->casting_energy[lowest_over_25] = lowest_over_25->energy;
 				//agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
 			}
 		}
@@ -629,16 +625,9 @@ void OracleDefendArmyGroup::TickState()
 	// add event listeners for oracle
 	for (const auto &oracle : state_machine->oracles)
 	{
-		if (state_machine->casting[oracle])
+		if (agent->mediator.IsOracleCasting(oracle))
 		{
-			if (state_machine->casting_energy[oracle] > oracle->energy || state_machine->casting_energy[oracle] + 5 < oracle->energy)
-			{
-				state_machine->casting[oracle] = false;
-			}
-			else
-			{
-				continue;
-			}
+			continue;
 		}
 		if (agent->mediator.IsOracleBeamActive(oracle) == false)
 		{
@@ -1140,8 +1129,6 @@ OracleHarassStateMachine::OracleHarassStateMachine(TheBigBot* agent, Units oracl
 	{
 		time_last_attacked[oracles[i]] = 0;
 		has_attacked[oracles[i]] = true;
-		casting[oracles[i]] = false;
-		casting_energy[oracles[i]] = 0;
 	}
 	current_state->EnterState();
 }
@@ -1174,8 +1161,6 @@ OracleHarassStateMachine::OracleHarassStateMachine(TheBigBot* agent, Units oracl
 	{
 		time_last_attacked[oracles[i]] = 0;
 		has_attacked[oracles[i]] = true;
-		casting[oracles[i]] = false;
-		casting_energy[oracles[i]] = 0;
 	}
 	current_state->EnterState();
 }
@@ -1190,8 +1175,6 @@ void OracleHarassStateMachine::AddOracle(const Unit* oracle)
 	oracles.push_back(oracle);
 	time_last_attacked[oracle] = 0;
 	has_attacked[oracle] = true;
-	casting[oracle] = false;
-	casting_energy[oracle] = 0;
 }
 
 bool OracleHarassStateMachine::AddUnit(const Unit* unit)

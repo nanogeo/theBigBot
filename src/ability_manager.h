@@ -24,8 +24,11 @@ public:
 	std::map<const Unit*, bool> oracle_beam_status;
 	std::map<const Unit*, int> previous_oracle_energy;
 	std::map<const Unit*, ABILITY_ID> oracle_order;
-	//std::map<const Unit*, bool> oracle_revelation_off_cooldown;
-	//std::map<const Unit*, float> last_time_oracle_revealed;
+	std::map<const Unit*, bool> oracle_casting;
+	std::map<const Unit*, bool> oracle_revelation_off_cooldown;
+	std::map<const Unit*, float> last_time_oracle_revealed;
+	// TODO maybe add oracle attack tracker
+
 	// stalkers
 	std::map<const Unit*, Point2D> previous_stalker_position;
 	std::map<const Unit*, int> stalkers_ordered_to_blink;
@@ -39,6 +42,7 @@ public:
 	}
 
 	bool IsOracleBeamOn(const Unit*);
+	bool IsOracleCasting(const Unit*);
 	void UpdateOracleInfo();
 	void SetOracleOrder(const Unit*, ABILITY_ID);
 	void TurnOffOracle(const Unit*);

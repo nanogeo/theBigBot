@@ -209,8 +209,6 @@ namespace sc2 {
 			oracles.push_back(unit);
 			time_last_attacked[unit] = 0;
 			has_attacked[unit] = true;
-			casting[unit] = false;
-			casting_energy[unit] = 0;
 			break;
 		case UNIT_TYPEID::PROTOSS_CARRIER:
 			carriers.push_back(unit);
@@ -1686,7 +1684,7 @@ namespace sc2 {
 		bool revelation_cast = false;
 		for (const auto& oracle : oracles)
 		{
-			if (casting[oracle])
+			if (mediator->IsOracleCasting(oracle))
 			{
 				revelation_cast = true;
 				break;
@@ -1727,16 +1725,12 @@ namespace sc2 {
 				if (highest_over_75 != NULL)
 				{
 					mediator->SetUnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
-					casting[highest_over_75] = true;
-					casting_energy[highest_over_75] = highest_over_75->energy;
 					//agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
 
 				}
 				else if (lowest_over_25 != NULL)
 				{
 					mediator->SetUnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
-					casting[lowest_over_25] = true;
-					casting_energy[lowest_over_25] = lowest_over_25->energy;
 					//agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
 				}
 			}
@@ -1870,16 +1864,9 @@ namespace sc2 {
 		// add event listeners for oracle
 		for (const auto& oracle : oracles)
 		{
-			if (casting[oracle])
+			if (mediator->IsOracleCasting(oracle))
 			{
-				if (casting_energy[oracle] > oracle->energy || casting_energy[oracle] + 5 < oracle->energy)
-				{
-					casting[oracle] = false;
-				}
-				else
-				{
-					continue;
-				}
+				continue;
 			}
 			if (mediator->IsOracleBeamActive(oracle) == false)
 			{

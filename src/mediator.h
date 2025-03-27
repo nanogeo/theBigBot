@@ -188,6 +188,7 @@ public:
 	void SetStalkerOrder(const Unit*);
 	bool IsOracleBeamActive(const Unit*);
 	void SetOracleOrder(const Unit*, ABILITY_ID);
+	bool IsOracleCasting(const Unit*);
 
 	void SetUnitCommand(const Unit* unit, AbilityID ability, bool queued_command = false);
 	void SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, bool queued_command = false);

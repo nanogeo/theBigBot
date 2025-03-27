@@ -11,10 +11,22 @@ bool AbilityManager::IsOracleBeamOn(const Unit* unit)
 	return oracle_beam_status[unit];
 }
 
+bool AbilityManager::IsOracleCasting(const Unit* unit)
+{
+	return oracle_casting[unit];
+}
+
 void AbilityManager::UpdateOracleInfo() 
 {
+	if (previous_oracle_energy.empty())
+		return;
 	for (auto &oracle : previous_oracle_energy)
 	{
+		// check revelation cooldown
+		if (last_time_oracle_revealed[oracle.first] + 10 <= mediator->GetCurrentTime())
+		{
+			oracle_revelation_off_cooldown[oracle.first] = true;
+		}
 		if (oracle_order.count(oracle.first) > 0)
 		{
 			switch (oracle_order[oracle.first])
@@ -29,6 +41,14 @@ void AbilityManager::UpdateOracleInfo()
 			case ABILITY_ID::BEHAVIOR_PULSARBEAMOFF:
 				oracle_beam_status[oracle.first] = false;
 				oracle_order.erase(oracle.first);
+				break;
+			case ABILITY_ID::EFFECT_ORACLEREVELATION:
+				if (oracle.first->energy <= oracle.second - 25)
+				{
+					oracle_casting[oracle.first] = false;
+					oracle_order.erase(oracle.first);
+					last_time_oracle_revealed[oracle.first] = mediator->GetCurrentTime();
+				}
 				break;
 			}
 		}
@@ -48,6 +68,8 @@ void AbilityManager::TurnOffOracle(const Unit* unit)
 void AbilityManager::SetOracleOrder(const Unit* unit, ABILITY_ID ability)
 {
 	oracle_order[unit] = ability;
+	if (ability == ABILITY_ID::EFFECT_ORACLEREVELATION)
+		oracle_casting[unit] = true;
 }
 
 bool AbilityManager::IsStalkerBlinkOffCooldown(const Unit* unit)
@@ -95,8 +117,9 @@ void AbilityManager::OnUnitCreated(const Unit* unit)
 	case ORACLE:
 		oracle_beam_status[unit] = false;
 		previous_oracle_energy[unit] = unit->energy;
-		//oracle_revelation_off_cooldown[unit] = true;
-		//last_time_oracle_revealed[unit] = 0;
+		oracle_casting[unit] = false;
+		oracle_revelation_off_cooldown[unit] = true;
+		last_time_oracle_revealed[unit] = 0;
 		break;
 	case STALKER:
 		std::cout << "Class instance address: " << this << std::endl;
@@ -121,8 +144,9 @@ void AbilityManager::OnUnitDestroyed(const Unit* unit)
 		oracle_beam_status.erase(unit);
 		previous_oracle_energy.erase(unit);
 		oracle_order.erase(unit);
-		//oracle_revelation_off_cooldown.erase(unit);
-		//last_time_oracle_revealed.erase(unit);
+		oracle_casting.erase(unit);
+		oracle_revelation_off_cooldown.erase(unit);
+		last_time_oracle_revealed.erase(unit);
 		break;
 	case STALKER:
 		previous_stalker_position.erase(unit);

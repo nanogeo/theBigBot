@@ -157,8 +157,10 @@ void UnitCommandManager::ParseUnitCommands()
 			{
 				if (itr->second.ability.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMON)
 					mediator->SetOracleOrder(itr->first, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
-				if (itr->second.ability.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMOFF)
+				else if (itr->second.ability.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMOFF)
 					mediator->SetOracleOrder(itr->first, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
+				else if (itr->second.ability.ToType() == ABILITY_ID::EFFECT_ORACLEREVELATION)
+					mediator->SetOracleOrder(itr->first, ABILITY_ID::EFFECT_ORACLEREVELATION);
 
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability);
 #ifndef BUILD_FOR_LADDER

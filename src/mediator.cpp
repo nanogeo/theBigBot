@@ -1291,6 +1291,11 @@ void Mediator::SetOracleOrder(const Unit* unit, ABILITY_ID ability)
 	ability_manager.SetOracleOrder(unit, ability);
 }
 
+bool Mediator::IsOracleCasting(const Unit* unit)
+{
+	return ability_manager.IsOracleCasting(unit);
+}
+
 // TODO make these boolean if the command is invalid
 void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, bool queued_command)
 {

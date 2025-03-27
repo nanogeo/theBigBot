@@ -158,8 +158,6 @@ public:
 	std::map<const Unit*, float> time_last_attacked;
 	std::map<const Unit*, bool> has_attacked;
 	std::map<const Unit*, uint64_t> target;
-	std::map<const Unit*, bool> casting;
-	std::map<const Unit*, float> casting_energy;
 	bool harass_direction = true;
 	int harass_index = 0;
 	int event_id;
