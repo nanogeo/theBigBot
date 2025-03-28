@@ -15,11 +15,15 @@
 #include <csignal>
 #include <cstdlib>
 
-namespace
-{
 #ifdef __linux__
+
+#include <execinfo.h>
+#include <signal.h>
+#include <unistd.h>
+
 // General signal handler
-void signalHandler(int signal, siginfo_t* info, void* context) {
+void signalHandler(int signal, siginfo_t* info, void* context) 
+{
     std::cerr << "Caught signal: " << signal << std::endl;
 
     // Handle specific signal types
@@ -40,6 +44,14 @@ void signalHandler(int signal, siginfo_t* info, void* context) {
         std::cerr << "Caught other signal" << std::endl;
         break;
     }
+
+    void* array[10];
+    size_t size;
+
+    // get void*'s for all entries on the stack
+    size = backtrace(array, 10);
+
+    backtrace_symbols_fd(array, size, STDERR_FILENO);
 
     // Exit after catching the signal
     std::exit(EXIT_FAILURE);
@@ -85,7 +97,6 @@ void ParseArguments(int argc, char* argv[], Options* options_)
     arg_parser.Get("LadderServer", options_->ServerAddress);
 }
 
-}  // namespace
 
 int main(int argc, char* argv[])
 {
