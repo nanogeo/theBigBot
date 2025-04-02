@@ -45,14 +45,14 @@ struct assimilator_data
 
 struct mineral_patch_reversed_data
 {
-	const Unit* mineral_tag;
+	const Unit* mineral = NULL;
 	Point2D drop_off_point;
 	Point2D pick_up_point;
 };
 
 struct assimilator_reversed_data
 {
-	const Unit* assimilator_tag;
+	const Unit* assimilator = NULL;
 	Point2D drop_off_point;
 	Point2D pick_up_point;
 };

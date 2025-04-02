@@ -117,7 +117,7 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 	{
 		if (IsCarryingMinerals(*worker.first))
 			continue;
-		if (!mineral_patches[mineral_patches_reversed[worker.first].mineral_tag].is_close)
+		if (!mineral_patches[mineral_patches_reversed[worker.first].mineral].is_close)
 			far_only_mineral_patches_reversed_keys.push_back(worker.first);
 		mineral_patches_reversed_keys.push_back(worker.first);
 	}
@@ -155,6 +155,11 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 				closest = space;
 			}
 		}
+		if (closest == NULL)
+		{
+			std::cerr << "Error: NULL in gas_spaces" << std::endl;
+			return;
+		}
 		*(closest->worker) = worker;
 		NewPlaceWorkerInGas(worker, closest->mineral_patch);
 		gas_spaces.erase(std::remove(gas_spaces.begin(), gas_spaces.end(), closest), gas_spaces.end());
@@ -187,11 +192,16 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 			NewPlaceWorkerOnMinerals(worker, closest_c->mineral_patch);
 			first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), closest_c), first_2_mineral_patch_spaces.end());
 		}
-		else
+		else if (closest != NULL)
 		{
 			(*closest->worker) = worker;
 			NewPlaceWorkerOnMinerals(worker, closest->mineral_patch);
 			first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), closest), first_2_mineral_patch_spaces.end());
+		}
+		else
+		{
+			std::cerr << "Error: NULL in first_2_mineral_patch_spaces" << std::endl;
+			return;
 		}
 		return;
 	}
@@ -207,6 +217,11 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 				distance = dist;
 				closest = space;
 			}
+		}
+		if (closest == NULL)
+		{
+			std::cerr << "Error: NULL in gas_spaces" << std::endl;
+			return;
 		}
 		*(closest->worker) = worker;
 		NewPlaceWorkerInGas(worker, closest->mineral_patch);
@@ -226,6 +241,11 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 				distance = dist;
 				closest = space;
 			}
+		}
+		if (closest == NULL)
+		{
+			std::cerr << "Error: NULL in far_3_mineral_patch_spaces" << std::endl;
+			return;
 		}
 		*(closest->worker) = worker;
 		NewPlaceWorkerOnMinerals(worker, closest->mineral_patch);
@@ -247,6 +267,11 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 				distance = dist;
 				closest = space;
 			}
+		}
+		if (closest == NULL)
+		{
+			std::cerr << "Error: NULL in close_3_mineral_patch_spaces" << std::endl;
+			return;
 		}
 		(*closest->worker) = worker;
 		NewPlaceWorkerOnMinerals(worker, closest->mineral_patch);
@@ -272,7 +297,7 @@ void WorkerManager::PlaceWorkerInGas(const Unit* worker, const Unit* gas, int in
 	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2;
 	Point2D pick_up_point = assimilator_position - normal_vector * 2.1;
 	assimilator_reversed_data data;
-	data.assimilator_tag = gas;
+	data.assimilator = gas;
 	data.drop_off_point = drop_off_point;
 	data.pick_up_point = pick_up_point;
 	assimilators_reversed[worker] = data;
@@ -292,7 +317,7 @@ void WorkerManager::NewPlaceWorkerInGas(const Unit* worker, const Unit* gas)
 	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2;
 	Point2D pick_up_point = assimilator_position - normal_vector * 2.1;
 	assimilator_reversed_data data;
-	data.assimilator_tag = gas;
+	data.assimilator = gas;
 	data.drop_off_point = drop_off_point;
 	data.pick_up_point = pick_up_point;
 	assimilators_reversed[worker] = data;
@@ -329,7 +354,7 @@ void WorkerManager::PlaceWorkerOnMinerals(const Unit* worker, const Unit* minera
 	}
 
 	mineral_patch_reversed_data data;
-	data.mineral_tag = mineral;
+	data.mineral = mineral;
 	data.drop_off_point = drop_off_point;
 	data.pick_up_point = pick_up_point;
 	mineral_patches_reversed[worker] = data;
@@ -365,7 +390,7 @@ void WorkerManager::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* min
 	}
 
 	mineral_patch_reversed_data data;
-	data.mineral_tag = mineral;
+	data.mineral = mineral;
 	data.drop_off_point = drop_off_point;
 	data.pick_up_point = pick_up_point;
 	mineral_patches_reversed[worker] = data;
@@ -379,7 +404,7 @@ RemoveWorkerResult WorkerManager::RemoveWorker(const Unit* worker)
 	};*/
 	if (mineral_patches_reversed.find(worker) != mineral_patches_reversed.end())
 	{
-		const Unit* mineral = mineral_patches_reversed[worker].mineral_tag;
+		const Unit* mineral = mineral_patches_reversed[worker].mineral;
 		mineral_patches_reversed.erase(worker);
 		bool is_close = mineral_patches[mineral].is_close;
 
@@ -461,7 +486,7 @@ RemoveWorkerResult WorkerManager::RemoveWorker(const Unit* worker)
 	}
 	else if (assimilators_reversed.find(worker) != assimilators_reversed.end())
 	{
-		const Unit* assimilator = assimilators_reversed[worker].assimilator_tag;
+		const Unit* assimilator = assimilators_reversed[worker].assimilator;
 		assimilators_reversed.erase(worker);
 		if (assimilators[assimilator].workers[0] == worker)
 		{
@@ -570,7 +595,7 @@ void WorkerManager::SplitWorkers()
 
 	for (const auto& worker : mineral_patches_reversed)
 	{
-		mediator->SetUnitCommand(worker.first, ABILITY_ID::SMART, worker.second.mineral_tag);
+		mediator->SetUnitCommand(worker.first, ABILITY_ID::SMART, worker.second.mineral);
 	}
 }
 
@@ -670,7 +695,7 @@ void WorkerManager::DistributeWorkers()
 	for (const auto &worker : workers)
 	{
 		mediator->agent->Debug()->DebugSphereOut(mediator->ToPoint3D(mineral_patches_reversed[worker].pick_up_point), .25, Color(255, 0, 0));
-		mediator->agent->Debug()->DebugSphereOut(mineral_patches_reversed[worker].mineral_tag->pos, 1.325, Color(255, 255, 0));
+		mediator->agent->Debug()->DebugSphereOut(mineral_patches_reversed[worker].mineral->pos, 1.325, Color(255, 255, 0));
 		if (worker->weapon_cooldown == 0)
 		{
 			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), worker->pos);
@@ -711,20 +736,20 @@ void WorkerManager::DistributeWorkers()
 		}
 		else if (!IsCarryingMinerals(*worker) && worker->orders.size() <= 1)
 		{
-			const Unit* mineral_patch = mineral_patches_reversed[worker].mineral_tag;
+			const Unit* mineral_patch = mineral_patches_reversed[worker].mineral;
 
 			if (mineral_patch != NULL)
 			{
 				if (Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) > .5 && 
 					Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) < 2 && 
-					Distance2D(worker->pos, mineral_patches_reversed[worker].mineral_tag->pos) > 1.325)
+					Distance2D(worker->pos, mineral_patches_reversed[worker].mineral->pos) > 1.325)
 				{
 					mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, mineral_patches_reversed[worker].pick_up_point);
-					mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER, mineral_patches_reversed[worker].mineral_tag, true);
+					mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER, mineral_patches_reversed[worker].mineral, true);
 				}
 				else if (Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) >= 2)
 				{
-					mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER, mineral_patches_reversed[worker].mineral_tag);
+					mediator->SetUnitCommand(worker, ABILITY_ID::HARVEST_GATHER, mineral_patches_reversed[worker].mineral);
 				}
 			}
 			else
@@ -753,7 +778,7 @@ void WorkerManager::DistributeWorkers()
 				continue;
 			}
 		}
-		const Unit* assimilator = assimilators_reversed[worker].assimilator_tag;
+		const Unit* assimilator = assimilators_reversed[worker].assimilator;
 		if (assimilators[assimilator].workers[2] != NULL)
 		{
 			// 3 workers assigned to gas
@@ -800,18 +825,18 @@ void WorkerManager::DistributeWorkers()
 		}
 		else if (!IsCarryingVespene(*worker) && worker->orders.size() <= 1)
 		{
-			const Unit* mineral_patch = assimilators_reversed[worker].assimilator_tag;
+			const Unit* mineral_patch = assimilators_reversed[worker].assimilator;
 			if (mineral_patch != NULL)
 			{
 				if (Distance2D(worker->pos, assimilators_reversed[worker].pick_up_point) > .5 &&
 					Distance2D(worker->pos, assimilators_reversed[worker].pick_up_point) < 2)
 				{
 					mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, assimilators_reversed[worker].pick_up_point);
-					mediator->SetUnitCommand(worker, ABILITY_ID::SMART, assimilators_reversed[worker].assimilator_tag, true);
+					mediator->SetUnitCommand(worker, ABILITY_ID::SMART, assimilators_reversed[worker].assimilator, true);
 				}
 				else if (Distance2D(worker->pos, assimilators_reversed[worker].pick_up_point) >= 2)
 				{
-					mediator->SetUnitCommand(worker, ABILITY_ID::SMART, assimilators_reversed[worker].assimilator_tag);
+					mediator->SetUnitCommand(worker, ABILITY_ID::SMART, assimilators_reversed[worker].assimilator);
 				}
 			}
 			else
