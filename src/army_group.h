@@ -21,8 +21,9 @@ class Mediator;
 struct UnitDanger
 {
 	// 1: lethal damage, 2: damage value* > 40, 3: damage > 0
-	int unit_prio;
-	float damage_value;
+	// TODO make enum
+	int unit_prio = 4;
+	float damage_value = 0;
 	UnitDanger() {}
 	UnitDanger(int unit_prio, float damage_value)
 	{
@@ -47,7 +48,7 @@ struct UnitDanger
 
 struct PrismCargo
 {
-	const Unit* prism;
+	const Unit* prism = NULL;
 	bool confirmed = false;
 	PrismCargo() {};
 	PrismCargo(const Unit* prism)
@@ -59,7 +60,7 @@ struct PrismCargo
 class ArmyGroup
 {
 public:
-	Mediator* mediator;
+	Mediator* mediator = NULL;
 	ArmyRole role;
 	StateMachine* state_machine = nullptr;
 

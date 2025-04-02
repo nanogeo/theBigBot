@@ -1,4 +1,4 @@
-#pragma once
+
 #include "scouting_manager.h"
 #include "mediator.h"
 #include "definitions.h"

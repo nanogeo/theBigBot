@@ -1,4 +1,3 @@
-#pragma once
 
 #include "scout_zerg_state_machine.h"
 #include "theBigBot.h"

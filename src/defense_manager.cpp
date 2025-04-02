@@ -1,4 +1,6 @@
-#pragma once
+
+#include <iostream>
+#include <map>
 
 #include "mediator.h"
 #include "defense_manager.h"

@@ -1,4 +1,4 @@
-#pragma once
+
 #include "nav_mesh_pathfinding.h"
 
 #include <iostream>

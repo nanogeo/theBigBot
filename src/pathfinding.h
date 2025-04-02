@@ -10,8 +10,8 @@ struct Node
 {
     Point2D pos;
     std::vector<Node*> connections;
-    bool is_exit;
-    bool is_base;
+    bool is_exit = false;
+    bool is_base = false;
 
 };
 

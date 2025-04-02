@@ -16,9 +16,9 @@ class Mediator;
 
 struct BuildOrderConditionArgData
 {
-	float time;
-	UNIT_TYPEID unitId;
-	int amount;
+	float time = 0;
+	UNIT_TYPEID unitId = UNIT_TYPEID::INVALID;
+	int amount = 0;
 	BuildOrderConditionArgData() {};
 	BuildOrderConditionArgData(float x)
 	{
@@ -41,10 +41,10 @@ struct BuildOrderConditionArgData
 
 struct BuildOrderResultArgData
 {
-	UPGRADE_ID upgradeId;
-	UNIT_TYPEID unitId;
+	UPGRADE_ID upgradeId = UPGRADE_ID::INVALID;
+	UNIT_TYPEID unitId = UNIT_TYPEID::INVALID;
 	std::vector<UNIT_TYPEID> unitIds;
-	int amount;
+	int amount = 0;
 	BuildOrderResultArgData() {};
 	BuildOrderResultArgData(UPGRADE_ID x)
 	{
@@ -361,7 +361,7 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::TrainStalker)
 		{
 			str += "build ";
-			str += result_arg.amount;
+			str += std::to_string(result_arg.amount);
 			str += " stalker";
 			if (result_arg.amount > 1)
 				str += 's';
@@ -369,7 +369,7 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::TrainAdept)
 		{
 			str += "build ";
-			str += result_arg.amount;
+			str += std::to_string(result_arg.amount);
 			str += " adept";
 			if (result_arg.amount > 1)
 				str += 's';
@@ -377,7 +377,7 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::TrainZealot)
 		{
 			str += "build ";
-			str += result_arg.amount;
+			str += std::to_string(result_arg.amount);
 			str += " zealot";
 			if (result_arg.amount > 1)
 				str += 's';
@@ -385,7 +385,7 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::TrainSentry)
 		{
 			str += "build ";
-			str += result_arg.amount;
+			str += std::to_string(result_arg.amount);
 			str += " sentry";
 			if (result_arg.amount > 1)
 				str += 's';
@@ -393,7 +393,7 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::TrainAdept)
 		{
 			str += "build ";
-			str += result_arg.amount;
+			str += std::to_string(result_arg.amount);
 			str += " adept";
 			if (result_arg.amount > 1)
 				str += 's';

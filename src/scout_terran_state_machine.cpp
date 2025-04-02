@@ -1,4 +1,3 @@
-#pragma once
 
 #include "scout_terran_state_machine.h"
 #include "theBigBot.h"

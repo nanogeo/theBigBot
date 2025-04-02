@@ -1,4 +1,4 @@
-#pragma once
+
 #include "locations.h"
 #include "theBigBot.h"
 #include "path_manager.h"

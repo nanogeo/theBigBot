@@ -19,9 +19,9 @@ struct ActionArgData
 {
 	int index = 0;
 	const Unit* unit = NULL;
-	UNIT_TYPEID unitId;
+	UNIT_TYPEID unitId = UNIT_TYPEID::INVALID;
 	std::vector<UNIT_TYPEID> unitIds;
-	UPGRADE_ID upgradeId;
+	UPGRADE_ID upgradeId = UPGRADE_ID::INVALID;
 	Point2D position = Point2D(0, 0);
 	ArmyGroup* army_group = NULL;
 	ActionArgData() {}

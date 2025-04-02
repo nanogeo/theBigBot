@@ -1,4 +1,6 @@
-#pragma once
+
+#include <iostream>
+
 #include "army_manager.h"
 #include "mediator.h"
 #include "theBigBot.h"

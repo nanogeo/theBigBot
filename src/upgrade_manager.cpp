@@ -1,4 +1,4 @@
-#pragma once
+
 #include "definitions.h"
 #include "upgrade_manager.h"
 

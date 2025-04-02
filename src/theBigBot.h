@@ -79,58 +79,6 @@ struct LiberatorZone
 	}
 };
 
-struct Army
-{
-    Units observers;
-	Units immortals;
-	Units prisms;
-	Units stalkers;
-	Units oracles;
-	std::vector<Point2D> attack_path;
-    int current_attack_index;
-    int high_ground_index;
-    Army() {};
-    Army(std::vector<Point2D> path, int index)
-    {
-        attack_path = path;
-        current_attack_index = 2;
-        high_ground_index = index;
-    }
-    Army(Units obs, Units immortals, Units prisms, Units stalkers,
-		Units oracles, std::vector<Point2D> path, int index)
-    {
-        observers = obs;
-        immortals = immortals;
-        prisms = prisms;
-        stalkers = stalkers;
-        oracles = oracles;
-        attack_path = path;
-        current_attack_index = 3;
-        high_ground_index = index;
-    }
-	Army(Units all_units, std::vector<Point2D> path, int index)
-	{
-		for (const auto &unit : all_units)
-		{
-			if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_OBSERVER)
-				observers.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_IMMORTAL)
-				immortals.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_WARPPRISM)
-				prisms.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_STALKER)
-				stalkers.push_back(unit);
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::PROTOSS_ORACLE)
-				oracles.push_back(unit);
-		}
-        attack_path = path;
-        current_attack_index = 3;
-        high_ground_index = index;
-	}
-};
-
-
-
 
 
 struct EnemyAttack

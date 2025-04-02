@@ -1,4 +1,3 @@
-#pragma once
 
 #include "oracle_harass_state_machine.h"
 #include "theBigBot.h"

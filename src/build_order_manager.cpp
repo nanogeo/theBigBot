@@ -1,3 +1,6 @@
+
+#include <iostream>
+
 #include "build_order_manager.h"
 #include "utility.h"
 #include "locations.h"

@@ -1,4 +1,3 @@
-#pragma once
 
 #include "adept_base_defense_terran_state_machine.h"
 #include "theBigBot.h"

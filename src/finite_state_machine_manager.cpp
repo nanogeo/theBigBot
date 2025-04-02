@@ -1,4 +1,4 @@
-#pragma once
+
 #include "finite_state_machine_manager.h"
 
 namespace sc2 {

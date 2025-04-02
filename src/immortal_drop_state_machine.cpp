@@ -1,4 +1,3 @@
-#pragma once
 
 #include "immortal_drop_state_machine.h"
 #include "theBigBot.h"

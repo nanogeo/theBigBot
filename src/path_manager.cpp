@@ -468,7 +468,7 @@ Point2D PathManager::FindClosestPoint(Point2D point)
 
 int PathManager::FindClosestSegmentIndex(Point2D point)
 {
-	int closest;
+	int closest = 0;
 	double distance_to_closest = INFINITY;
 
 	for (int i = 0; i < segments.size(); i++)
@@ -747,17 +747,17 @@ LineSegment* PathManager::FitLineSegment(Point2D p1, Point2D p2, Point2D p3, Poi
 	{
 		if (curve_x_loss < line_x_loss)
 		{
-			return new LineSegmentCurveX(curve_x_a, curve_x_b, curve_x_c, p1.x, p2.x, false, Point2D(0, 0), false);
+			return new LineSegmentCurveX(curve_x_a, curve_x_b, curve_x_c, p1.x, p2.x, false, Point2D(0, 0));
 		}
 		else
 		{
 			if (abs(p1.x - p2.x) > abs(p1.y - p2.y))
 			{
-				return new LineSegmentLinearX(line_x_a, line_x_b, p1.x, p2.x, false, Point2D(0, 0), false);
+				return new LineSegmentLinearX(line_x_a, line_x_b, p1.x, p2.x, false, Point2D(0, 0));
 			}
 			else
 			{
-				return new LineSegmentLinearY(line_y_a, line_y_b, p1.y, p2.y, false, Point2D(0, 0), false);
+				return new LineSegmentLinearY(line_y_a, line_y_b, p1.y, p2.y, false, Point2D(0, 0));
 			}
 		}
 	}
@@ -765,17 +765,17 @@ LineSegment* PathManager::FitLineSegment(Point2D p1, Point2D p2, Point2D p3, Poi
 	{
 		if (curve_x_loss < line_x_loss)
 		{
-			return new LineSegmentCurveY(curve_y_a, curve_y_b, curve_y_c, p1.y, p2.y, false, Point2D(0, 0), false);
+			return new LineSegmentCurveY(curve_y_a, curve_y_b, curve_y_c, p1.y, p2.y, false, Point2D(0, 0));
 		}
 		else
 		{
 			if (abs(p1.x - p2.x) > abs(p1.y - p2.y))
 			{
-				return new LineSegmentLinearX(line_x_a, line_x_b, p1.x, p2.x, false, Point2D(0, 0), false);
+				return new LineSegmentLinearX(line_x_a, line_x_b, p1.x, p2.x, false, Point2D(0, 0));
 			}
 			else
 			{
-				return new LineSegmentLinearY(line_y_a, line_y_b, p1.y, p2.y, false, Point2D(0, 0), false);
+				return new LineSegmentLinearY(line_y_a, line_y_b, p1.y, p2.y, false, Point2D(0, 0));
 			}
 		}
 	}

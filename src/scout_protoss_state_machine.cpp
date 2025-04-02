@@ -1,4 +1,3 @@
-#pragma once
 
 #include "scout_protoss_state_machine.h"
 #include "theBigBot.h"

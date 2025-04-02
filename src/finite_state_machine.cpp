@@ -1,21 +1,7 @@
-#pragma once
+
 #include "finite_state_machine.h"
-#include "locations.h"
-#include "utility.h"
-#include "definitions.h"
-
-#include <iostream>
-#include <fstream>
-#include <chrono>
-#include <string>
-#include <math.h>
 
 
-#include "sc2api/sc2_api.h"
-#include "sc2api/sc2_unit_filters.h"
-#include "sc2lib/sc2_lib.h"
-
-#include "theBigBot.h"
 
 namespace sc2 {
 

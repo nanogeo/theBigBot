@@ -119,11 +119,6 @@ public:
 	PathManager attack_path_special_line;
     int high_ground_index;
 	int high_ground_index_alt;
-    Graph* air_graph; // unused
-	std::vector<std::vector<Point2D>> enemy_mineral_lines; // unused
-
-    std::vector<Point2D> warp_prism_locations; // unused
-	std::vector<Point2D> immortal_drop_prism_locations; // unused
 
     Point2D initial_scout_pos;
     std::vector<Point2D> main_scout_path;
@@ -133,14 +128,6 @@ public:
 
 	OraclePath oracle_path;
 
-	Point2D first_pylon_cannon_rush; // unused
-	std::vector<Point2D> pylon_locations_cannon_rush; // unused
-	std::vector<Point2D> gateway_locations_cannon_rush; // unused
-	std::vector<Point2D> cannon_locations_cannon_rush; // unused
-	std::vector<Point2D> shield_battery_locations_cannon_rush; // unused
-	std::vector<Point2D> robo_locations_cannon_rush; // unused
-	std::vector<Point2D> tech_locations_cannon_rush; // unused
-	std::vector<Point2D> gas_steal_locations_cannon_rush; // unused
 
 	Point2D third_base_pylon_gap;
 	Point2D natural_door_closed;
@@ -148,10 +135,6 @@ public:
 
 	Point2D main_early_dead_space;
 	std::vector<Point2D> natural_front;
-	Point2D base_defense_front; // unused
-	Point2D base_defense_main; // unused
-	Point2D base_defense_nat; // unused
-	Point2D base_defense_center; // unused
 
 	Point2D adept_scout_shade;
 	Point2D adept_scout_runaway;

@@ -1,4 +1,4 @@
-#pragma once
+
 #include "pathfinding.h"
 
 #include <iostream>

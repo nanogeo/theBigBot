@@ -21,7 +21,7 @@ namespace sc2
 		std::vector<Point2D> GetPoints() const
 		{
 			std::vector<Point2D> points;
-			for (int i = min; i <= max; i++)
+			for (double i = min; i <= max; i++)
 			{
 				points.push_back(EvaluateAt(i));
 			}
@@ -33,36 +33,22 @@ class LineSegmentLinearX : public LineSegment
 {
 	// ax+b {min<=x<=max}
 public:
-	LineSegmentLinearX(double a, double b, double min, double max, bool swap, Point2D center_point, bool rotated)
+	LineSegmentLinearX(double a, double b, double min, double max, bool swap, Point2D center_point)
 	{
 		if (swap)
 		{
-			if (rotated)
+			if (center_point.x != 0)
 			{
-				Point2D intercept = Point2D(-1 * b / a, 0);
-				Point2D flipped_intercept = Point2D((2 * center_point.x) - intercept.x, 2 * center_point.y);
-				this->a = a;
-				this->b = flipped_intercept.y - (a * flipped_intercept.x);
-				this->start = (2 * center_point.x) - max;
-				this->end = (2 * center_point.x - min);
+				this->a = -1 * a;
+				this->b = (center_point.x * a) + b;
+				this->start = center_point.x - max;
+				this->end = center_point.x - min;
 				this->min = std::min(min, max);
 				this->max = std::max(min, max);
 			}
 			else
 			{
-				if (center_point.x != 0)
-				{
-					this->a = -1 * a;
-					this->b = (center_point.x * a) + b;
-					this->start = center_point.x - max;
-					this->end = center_point.x - min;
-					this->min = std::min(min, max);
-					this->max = std::max(min, max);
-				}
-				else
-				{
-					// TODO for maps fliped on x axis
-				}
+				// TODO for maps fliped on x axis
 			}
 		}
 		else
@@ -86,7 +72,7 @@ class LineSegmentLinearY : public LineSegment
 {
 	// ay+b {min<=x<=max}
 public:
-	LineSegmentLinearY(double a, double b, double min, double max, bool swap, Point2D center_point, bool rotated)
+	LineSegmentLinearY(double a, double b, double min, double max, bool swap, Point2D center_point)
 	{
 		if (swap)
 		{
@@ -120,39 +106,23 @@ class LineSegmentCurveX : public LineSegment
 {
 	// ax^2+bx+c {min<=x<=max}
 public:
-	LineSegmentCurveX(double a, double b, double c, double min, double max, bool swap, Point2D center_point, bool rotated)
+	LineSegmentCurveX(double a, double b, double c, double min, double max, bool swap, Point2D center_point)
 	{
 		if (swap)
 		{
-			if (rotated)
+			if (center_point.x != 0)
 			{
-				float h = -1 * b / (2 * a);
-				float k = c - (a * pow(h, 2));
-				Point2D flipped_vertex = Point2D((2 * center_point.x) - h, (2 * center_point.y) - k);
-				this->a = -1 * a;
-				this->b = 2 * a * flipped_vertex.x;
-				this->c = flipped_vertex.y - (a * pow(flipped_vertex.x, 2));
-				this->start = (2 * center_point.x) - max;
-				this->end = (2 * center_point.x - min);
+				this->a = a;
+				this->b = -2 * a * (center_point.x + (b / (2 * a)));
+				this->c = a * pow(-1 * b / (2 * a), 2) - (pow(b, 2) / (2 * a)) + c + (a * pow(center_point.x + (b / (2 * a)), 2));
+				this->start = center_point.x - max;
+				this->end = center_point.x - min;
 				this->min = std::min(min, max);
 				this->max = std::max(min, max);
 			}
 			else
 			{
-				if (center_point.x != 0)
-				{
-					this->a = a;
-					this->b = -2 * a * (center_point.x + (b / (2 * a)));
-					this->c = a * pow(-1 * b / (2 * a), 2) - (pow(b, 2) / (2 * a)) + c + (a * pow(center_point.x + (b / (2 * a)), 2));
-					this->start = center_point.x - max;
-					this->end = center_point.x - min;
-					this->min = std::min(min, max);
-					this->max = std::max(min, max);
-				}
-				else
-				{
-					// TODO for maps fliped on x axis
-				}
+				// TODO for maps fliped on x axis
 			}
 		}
 		else
@@ -177,7 +147,7 @@ class LineSegmentCurveY : public LineSegment
 {
 	// ay^2+by+c {min<=x<=max}
 public:
-	LineSegmentCurveY(double a, double b, double c, double min, double max, bool swap, Point2D center_point, bool rotated)
+	LineSegmentCurveY(double a, double b, double c, double min, double max, bool swap, Point2D center_point)
 	{
 		if (swap)
 		{
@@ -216,13 +186,13 @@ class PathManager
 public:
 	std::vector<LineSegment*> segments;
 	PathManager() {};
-	PathManager(std::vector<LineSegment*> segments, bool x_based, bool pos_direction)
+	PathManager(std::vector<LineSegment*> segments)
 	{
 		this->segments = segments;
 	}
 	PathManager(std::vector<Point2D> points)
 	{
-		for (int i = 0; i < points.size() - 1; i += 2)
+		for (long unsigned int i = 0; i < points.size() - 1; i += 2)
 		{
 			// line between potins i , i+1
 			if (abs(points[i].x - points[i + 1].x) > abs(points[i].y - points[i + 1].y))
@@ -232,7 +202,7 @@ public:
 				double line_x_a = slope;
 				double line_x_b = points[i].y - (slope * points[i].x);
 
-				segments.push_back(new LineSegmentLinearX(line_x_a, line_x_b, points[i].x, points[i + 1].x, false, Point2D(0, 0), false));
+				segments.push_back(new LineSegmentLinearX(line_x_a, line_x_b, points[i].x, points[i + 1].x, false, Point2D(0, 0)));
 			}
 			else
 			{
@@ -241,7 +211,7 @@ public:
 				double line_y_a = slope;
 				double line_y_b = points[i].x - (slope * points[i].y);
 
-				segments.push_back(new LineSegmentLinearY(line_y_a, line_y_b, points[i].y, points[i + 1].y, false, Point2D(0, 0), false));
+				segments.push_back(new LineSegmentLinearY(line_y_a, line_y_b, points[i].y, points[i + 1].y, false, Point2D(0, 0)));
 			}
 			if (i + 3 >= points.size())
 				break;
