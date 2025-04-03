@@ -60,11 +60,6 @@ namespace sc2 {
 							P(145, 39),
 							P(126, 29) };
 
-		pylon_locations_cannon_rush = { P(46, 90),
-										P(47, 92),
-										P(51, 100),
-										P(54, 94) };
-
 		first_pylon_location_zerg = P(141, 65);
 		first_pylon_location_protoss = P(135, 47);
 		first_pylon_location_terran = P(131, 45);
@@ -216,38 +211,6 @@ namespace sc2 {
 			{3, 4, 7, 8, 10}
 		};
 
-		air_graph = new Graph(air_path, links);
-
-
-		 enemy_mineral_lines = { {P(40.5, 131.5), P(32, 131),P(42, 139)},
-																{P(38.5, 102.5), P(38, 95),P(31.5, 105.5)},
-																{P(36.5, 69.5), P(32, 63),P(32, 76)},
-																{P(64.5, 110.5), P(57.5, 107.5),P(65, 118)},
-																{P(35.5, 38.5), P(36, 32),P(28.5, 41.5)},
-																{P(79.5, 136.5), P(71, 136),P(82.5, 143.5)},
-																{P(59.5, 43.5), P(59, 36),P(52.5, 46.5)} };
-
-
-		warp_prism_locations = { P(50, 60),
-								P(76, 86),
-								P(62, 131),
-								P(76, 86) };
-
-		immortal_drop_prism_locations = { P(52, 137),
-											P(41, 141),
-											P(33, 137),
-											P(31, 128),
-											P(33, 120),
-											P(33, 111),
-											P(29, 103),
-											P(32, 96),
-											P(38, 91),
-											P(46, 91),
-											P(51, 99),
-											P(50, 107),
-											P(51, 114),
-											P(54, 123),
-											P(55, 131) };
 
 		initial_scout_pos = P(44, 114);
 
@@ -288,42 +251,6 @@ namespace sc2 {
 		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
 
 
-
-
-		first_pylon_cannon_rush = P(137, 47);
-
-		pylon_locations_cannon_rush = { P(46, 90),
-										P(47, 92),
-										P(51, 100),
-										P(54, 94) };
-
-		gateway_locations_cannon_rush = { P(46.5, 94.5),
-										P(47.5, 84.5),
-										P(58.5, 89.5) };
-
-		cannon_locations_cannon_rush = { P(45, 92),
-										P(49, 95),
-										P(50, 98) };
-
-		shield_battery_locations_cannon_rush = { P(49, 93),
-												P(52, 98),
-												P(54, 96),
-												P(52, 96),
-												P(48, 90),
-												P(50, 90) };
-
-		robo_locations_cannon_rush = { P(46.5, 87.5),
-										P(0, 0) };
-
-		tech_locations_cannon_rush = { P(136.5, 49.5),
-										P(139.5, 46.5),
-										P(44.5, 84.5) };
-
-		gas_steal_locations_cannon_rush = { P(0, 0),
-											P(0, 0),
-											P(0, 0),
-											P(0, 0) };
-
 		third_base_pylon_gap = P(147, 97.5);
 		natural_door_closed = P(137.5, 64.5);
 		natural_door_open = P(135.5, 64.5);
@@ -332,10 +259,6 @@ namespace sc2 {
 		natural_front = { P(135, 65),
 							P(140, 70) };
 
-		base_defense_front = P(137, 67);
-		base_defense_main = P(126, 25);
-		base_defense_nat = P(154, 71);
-		base_defense_center = P(137, 44);
 
 		adept_scout_shade = P(50, 94);
 		adept_scout_runaway = P(47, 81);

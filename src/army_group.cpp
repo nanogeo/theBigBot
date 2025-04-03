@@ -133,7 +133,7 @@ namespace sc2 {
 		double line_a = slope;
 		double line_b = start.y - (slope * start.x);
 
-		defense_line = new LineSegmentLinearX(line_a, line_b, start.x, end.x, false, Point2D(0, 0), false);
+		defense_line = new LineSegmentLinearX(line_a, line_b, start.x, end.x, false, Point2D(0, 0));
 
 		this->role = role;
 		for (const auto& type : unit_types)

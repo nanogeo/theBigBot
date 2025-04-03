@@ -433,72 +433,33 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 		}
 	}
 
-	if (build_order_manager.current_build_order == BuildOrder::recessed_cannon_rush)
+	std::vector<UNIT_TYPEID> tech_buildings = { FORGE, TWILIGHT, ROBO, ROBO_BAY, STARGATE, FLEET_BEACON, DARK_SHRINE, TEMPLAR_ARCHIVES };
+	if (std::find(tech_buildings.begin(), tech_buildings.end(), unit_type) != tech_buildings.end())
 	{
-
-		std::vector<UNIT_TYPEID> tech_buildings = { FORGE, TWILIGHT, ROBO, ROBO_BAY, STARGATE, FLEET_BEACON, DARK_SHRINE, TEMPLAR_ARCHIVES };
-		if (std::find(tech_buildings.begin(), tech_buildings.end(), unit_type) != tech_buildings.end())
-		{
-			possible_locations = agent->locations->tech_locations_cannon_rush;
-		}
-		else
-		{
-			switch (unit_type)
-			{
-			case PYLON:
-				possible_locations = agent->locations->pylon_locations_cannon_rush;
-				break;
-			case NEXUS:
-				possible_locations = agent->locations->nexi_locations;
-				break;
-			case GATEWAY:
-				possible_locations = agent->locations->gateway_locations_cannon_rush;
-				break;
-			case ASSIMILATOR:
-				possible_locations = agent->locations->assimilator_locations;
-				break;
-			case CANNON:
-				possible_locations = agent->locations->cannon_locations_cannon_rush;
-				break;
-			case BATTERY:
-				possible_locations = agent->locations->shield_battery_locations_cannon_rush;
-				break;
-			default:
-				//std::cout << "Error invalid type id in GetLocation" << std::endl;
-				return Point2D(0, 0);
-			}
-		}
+		possible_locations = agent->locations->tech_locations;
 	}
 	else
 	{
-		std::vector<UNIT_TYPEID> tech_buildings = { FORGE, TWILIGHT, ROBO, ROBO_BAY, STARGATE, FLEET_BEACON, DARK_SHRINE, TEMPLAR_ARCHIVES };
-		if (std::find(tech_buildings.begin(), tech_buildings.end(), unit_type) != tech_buildings.end())
+		switch (unit_type)
 		{
-			possible_locations = agent->locations->tech_locations;
-		}
-		else
-		{
-			switch (unit_type)
-			{
-			case PYLON:
-				possible_locations = agent->locations->pylon_locations;
-				break;
-			case NEXUS:
-				possible_locations = agent->locations->nexi_locations;
-				break;
-			case GATEWAY:
-				possible_locations = agent->locations->gateway_locations;
-				break;
-			case ASSIMILATOR:
-				possible_locations = agent->locations->assimilator_locations;
-				break;
-			case CYBERCORE:
-				possible_locations = agent->locations->cyber_core_locations;
-				break;
-			default:
-				//std::cout << "Error invalid type id in GetLocation" << std::endl;
-				return Point2D(0, 0);
-			}
+		case PYLON:
+			possible_locations = agent->locations->pylon_locations;
+			break;
+		case NEXUS:
+			possible_locations = agent->locations->nexi_locations;
+			break;
+		case GATEWAY:
+			possible_locations = agent->locations->gateway_locations;
+			break;
+		case ASSIMILATOR:
+			possible_locations = agent->locations->assimilator_locations;
+			break;
+		case CYBERCORE:
+			possible_locations = agent->locations->cyber_core_locations;
+			break;
+		default:
+			//std::cout << "Error invalid type id in GetLocation" << std::endl;
+			return Point2D(0, 0);
 		}
 	}
 

@@ -188,7 +188,7 @@ OracleDefendLine::OracleDefendLine(TheBigBot* agent, OracleHarassStateMachine* s
 	double line_a = slope;
 	double line_b = start.y - (slope * start.x);
 
-	line = new LineSegmentLinearX(line_a, line_b, start.x, end.x, false, Point2D(0, 0), false);
+	line = new LineSegmentLinearX(line_a, line_b, start.x, end.x, false, Point2D(0, 0));
 
 	event_id = agent->GetUniqueId();
 }

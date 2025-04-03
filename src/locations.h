@@ -169,31 +169,6 @@ public:
             SetLightshadeLocations(start_location, build_order);
 			SetLightshadeLocations2(start_location, build_order);
         }
-		else if (map_name == "Equilibrium AIE")
-		{
-			std::cerr << "Set equilibrium locations\n";
-			SetEquilibriumLocations(start_location, build_order);
-		}
-		else if (map_name == "Goldenaura AIE")
-		{
-			SetGoldenauraLocations(start_location, build_order);
-		}
-		else if (map_name == "Hard Lead AIE")
-		{
-			SetHardLeadLocations(start_location, build_order);
-		}
-		else if (map_name == "Oceanborn AIE")
-		{
-			SetOceanbornLocations(start_location, build_order);
-		}
-		else if (map_name == "Site Delta AIE")
-		{
-			SetSiteDeltaLocations(start_location, build_order);
-		}
-		else if (map_name == "GresvanAIE")
-		{
-			SetGresvanLocations(start_location, build_order);
-		}
 		else if (map_name == "Abyssal Reef AIE")
 		{
 			SetAbyssalReefLocations(start_location, build_order);
@@ -232,12 +207,6 @@ public:
 
     void SetLightshadeLocations(Point3D, BuildOrder);
 	void SetLightshadeLocations2(Point3D, BuildOrder);
-	void SetEquilibriumLocations(Point3D, BuildOrder);
-	void SetGoldenauraLocations(Point3D, BuildOrder);
-	void SetHardLeadLocations(Point3D, BuildOrder);
-	void SetOceanbornLocations(Point3D, BuildOrder);
-	void SetSiteDeltaLocations(Point3D, BuildOrder);
-	void SetGresvanLocations(Point3D, BuildOrder);
 	void SetAbyssalReefLocations(Point3D, BuildOrder);
 	void SetAcropolisLocations(Point3D, BuildOrder);
 	void SetAutomatonLocations(Point3D, BuildOrder);
