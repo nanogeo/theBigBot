@@ -2,8 +2,8 @@
 #
 # Copyright (c) 2021-2022 Alexander Kurbatov
 
-file(GLOB bot_sources *.cpp)
-file(GLOB bot_headers *.h)
+file(GLOB_RECURSE bot_sources *.cpp)
+file(GLOB_RECURSE bot_headers *.h)
 
 add_executable(theBigBot ${bot_sources} ${bot_headers})
 
