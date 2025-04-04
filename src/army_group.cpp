@@ -21,7 +21,7 @@
 
 namespace sc2 {
 
-	ArmyGroup::ArmyGroup(Mediator* mediator, PathManager attack_line, std::vector<Point2D> attack_path, ArmyRole role, std::vector<UNIT_TYPEID> unit_types) : persistent_fire_control(mediator->agent)
+	ArmyGroup::ArmyGroup(Mediator* mediator, PathManager attack_line, std::vector<Point2D> attack_path, ArmyRole role, std::vector<UNIT_TYPEID> unit_types)
 	{
 		this->mediator = mediator;
 		event_id = mediator->GetUniqueId();
@@ -45,7 +45,7 @@ namespace sc2 {
 		}
 	}
 
-	ArmyGroup::ArmyGroup(Mediator* mediator, std::vector<Point2D> attack_path, ArmyRole role, std::vector<UNIT_TYPEID> unit_types) : persistent_fire_control(mediator->agent)
+	ArmyGroup::ArmyGroup(Mediator* mediator, std::vector<Point2D> attack_path, ArmyRole role, std::vector<UNIT_TYPEID> unit_types)
 	{
 		this->mediator = mediator;
 		event_id = mediator->GetUniqueId();
@@ -68,7 +68,7 @@ namespace sc2 {
 		}
 	}
 	
-	ArmyGroup::ArmyGroup(Mediator* mediator, ArmyRole role, std::vector<UNIT_TYPEID> unit_types) : persistent_fire_control(mediator->agent)
+	ArmyGroup::ArmyGroup(Mediator* mediator, ArmyRole role, std::vector<UNIT_TYPEID> unit_types)
 	{
 		this->mediator = mediator;
 		event_id = mediator->GetUniqueId();
@@ -90,7 +90,7 @@ namespace sc2 {
 		}
 	}
 
-	ArmyGroup::ArmyGroup(Mediator* mediator, Point2D defense_point, ArmyRole role, std::vector<UNIT_TYPEID> unit_types) : persistent_fire_control(mediator->agent)
+	ArmyGroup::ArmyGroup(Mediator* mediator, Point2D defense_point, ArmyRole role, std::vector<UNIT_TYPEID> unit_types)
 	{
 		this->mediator = mediator;
 		event_id = mediator->GetUniqueId();
@@ -113,7 +113,7 @@ namespace sc2 {
 		}
 	}
 
-	ArmyGroup::ArmyGroup(Mediator* mediator, Point2D start, Point2D end, ArmyRole role, std::vector<UNIT_TYPEID> unit_types) : persistent_fire_control(mediator->agent)
+	ArmyGroup::ArmyGroup(Mediator* mediator, Point2D start, Point2D end, ArmyRole role, std::vector<UNIT_TYPEID> unit_types)
 	{
 		this->mediator = mediator;
 		event_id = mediator->GetUniqueId();
@@ -154,10 +154,7 @@ namespace sc2 {
 			return;
 
 		UNIT_TYPEID type = unit->unit_type.ToType();
-		if (type != UNIT_TYPEID::PROTOSS_WARPPRISM)
-			persistent_fire_control.AddFriendlyUnit(unit);
 
-		attack_status[unit] = false;
 		all_units.push_back(unit);
 		new_units.erase(std::remove(new_units.begin(), new_units.end(), unit), new_units.end());
 
@@ -239,7 +236,6 @@ namespace sc2 {
 		new_units.erase(std::remove(new_units.begin(), new_units.end(), unit), new_units.end());
 		standby_units.erase(std::remove(standby_units.begin(), standby_units.end(), unit), standby_units.end());
 		unit_position_asignments.erase(unit);
-		attack_status.erase(unit);
 
 		if (state_machine != NULL)
 			state_machine->RemoveUnit(unit);
@@ -796,7 +792,8 @@ namespace sc2 {
 				if (prism.second < cargo_size || Distance2D(prism.first->pos, unit->pos) > 5)
 					continue;
 
-				attack_status[unit] = false;
+				mediator->CancelAttack(unit);
+
 				if (unit->orders.size() > 0 && unit->orders[0].ability_id == ABILITY_ID::ATTACK && unit->weapon_cooldown == 0)
 					mediator->SetUnitCommand(unit, ABILITY_ID::SMART, prism.first, true);
 				else
@@ -1205,7 +1202,7 @@ namespace sc2 {
 
 		Units units_ready;
 		Units units_on_cd;
-		for (const auto &tempest : tempests)
+		/*for (const auto &tempest : tempests)
 		{
 			//agent->Debug()->DebugSphereOut(agent->ToPoint3D(tempest->pos), 10, Color(255, 255, 255));
 			if (attack_status[tempest] == false && tempest->weapon_cooldown == 0)
@@ -1227,53 +1224,14 @@ namespace sc2 {
 				if (attack_status[stalker] == true)
 					attack_status[stalker] = false;
 			}
-		}
+		}*/
 
 		if (units_ready.size() > 0)
 		{
-			persistent_fire_control.UpdateEnemyUnitHealth();
-			std::map<const Unit*, const Unit*> attacks = persistent_fire_control.FindAttacks(units_ready, 
-				{ {SIEGE_TANK_SIEGED}, //TODO redo this list
-					{SIEGE_TANK},
-					{WIDOW_MINE},
-					{CYCLONE},
-					{VIKING},
-					{RAVEN},
-					{MEDIVAC},
-					{GHOST},
-					{MARINE, MARAUDER, REAPER, HELLION, HELLBAT, THOR_AP, THOR_AOE, VIKING_LANDED, BANSHEE, BATTLECRUISER, LIBERATOR, LIBERATOR_SIEGED},
-					{SCV, MULE},
-					{BUNKER},
-					{PLANETARY},
-					{MISSILE_TURRET},
-					{BARRACKS_REACTOR, FACTORY_REACTOR, STARPORT_REACTOR},
-					{BARRACKS_TECH_LAB, FACTORY_TECH_LAB, STARPORT_TECH_LAB},
-					{REACTOR, TECH_LAB} }, 0);
-			for (const auto& unit : units_ready)
-			{
-				if (attacks.size() == 0)
-				{
-					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, attack_pos);
-				}
-				if (attacks.count(unit) > 0)
-				{
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, attacks[unit]);
-					attack_status[unit] = true;
-					//agent->Debug()->DebugLineOut(unit->pos, attacks[unit]->pos, Color(0, 255, 0));
-				}
-			}
-			mediator->agent->PrintAttacks(attacks);
+			mediator->AddUnitsToAttackers(units_ready);
+			mediator->SetUnitsCommand(units_ready, ABILITY_ID::GENERAL_MOVE, attack_pos);
 		}
 
-		/*for (const auto& unit : persistent_fire_control.enemy_unit_hp)
-		{
-			agent->Debug()->DebugTextOut(std::to_string(unit.second), unit.first->pos, Color(0, 255, 0), 15);
-		}
-
-		for (const auto& unit : units_on_cd)
-		{
-			mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, retreat_pos);
-		}*/
 	}
 
 	void ArmyGroup::ScourMap()
@@ -2075,7 +2033,7 @@ namespace sc2 {
 
 		for (const auto& unit : units)
 		{
-			if (unit->weapon_cooldown == 0 && attack_status[unit] == false)
+			if (unit->weapon_cooldown == 0 && mediator->GetAttackStatus(unit) == false)
 			{
 				// ignore units inside prisms
 				if (warp_prisms.size() > 0)
@@ -2112,25 +2070,13 @@ namespace sc2 {
 		if (static_cast<float>(units.size()) / static_cast<float>(total_units) >= percent_needed)
 		{
 			// find targets for each unit
-			std::map<const Unit*, const Unit*> found_targets = persistent_fire_control.FindAttacks(units, target_priority, 1);
+			mediator->AddUnitsToAttackers(units);
 			for (const auto& unit : units)
 			{
-				if (found_targets.count(unit) > 0)
-				{
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, found_targets[unit]);
-					if (attack_status[unit])
-					{
-						//std::cout << unit->tag << " second attack order given" << std::endl;
-					}
-					attack_status[unit] = true;
-				}
-				else // if a unit has no target, keep advancing
-				{
-					if (unit_position_asignments.find(unit) != unit_position_asignments.end())
-						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit_position_asignments[unit]);
-					else
-						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit->pos);
-				}
+				if (unit_position_asignments.find(unit) != unit_position_asignments.end())
+					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit_position_asignments[unit]);
+				else
+					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit->pos);
 			}
 		}
 		else
@@ -2150,7 +2096,7 @@ namespace sc2 {
 		std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage;
 		for (const auto& unit : units)
 		{
-			if (attack_status[unit] == false)
+			if (mediator->GetAttackStatus(unit) == false)
 			{
 				float damage = mediator->agent->IncomingDamage(unit);
 				//agent->Debug()->DebugTextOut(std::to_string(damage), unit->pos, Color(255, 255, 255), 16);
@@ -2190,17 +2136,6 @@ namespace sc2 {
 						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, standby_pos, true);
 					}
 				}
-			}
-			else if (unit->weapon_cooldown > 0)
-			{
-				// attack has gone off so reset order status
-				persistent_fire_control.ConfirmAttack(unit, mediator->GetUnit(unit->engaged_target_tag));
-				attack_status[unit] = false;
-			} // TODO maybe reimplement this if necessary
-			else if (unit->orders.size() == 0/* || unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE || unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE*/)
-			{
-				// attack order is no longer valid
-				attack_status[unit] = false;
 			}
 		}
 		return incoming_damage;
@@ -2309,7 +2244,7 @@ namespace sc2 {
 
 						mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, standby_pos); // TODO adjustable blink distance
 
-						attack_status[request.first] = false;
+						mediator->CancelAttack(request.first);
 					}
 				}
 				break;

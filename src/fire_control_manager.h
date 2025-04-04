@@ -9,6 +9,7 @@
 namespace sc2 {
 
 class TheBigBot;
+class Mediator;
 
 struct EnemyUnitInfo;
 
@@ -152,30 +153,36 @@ public:
 	std::map<const Unit*, const Unit*> FindAttacks();
 };
 
-class PersistentFireControl
+
+class FireControlManager
 {
 public:
-	TheBigBot* agent;
-	Units friendly_units;
-	int event_id;
+	Mediator* mediator;
+	Units units_ready_to_attack;
 	std::map<const Unit*, int> enemy_unit_hp;
-	std::vector<OutgoingDamage> outgoing_attacks; // enemy unit, damage, frame
+	std::vector<OutgoingDamage> outgoing_attacks;
+	std::map<const Unit*, bool> attack_status;
 
-	PersistentFireControl() {};
-	PersistentFireControl(TheBigBot*);
-	~PersistentFireControl();
+	FireControlManager(Mediator* mediator)
+	{
+		this->mediator = mediator;
+	}
 
-	void OnUnitTakesDamageListener(const Unit*, float, float);
-	void OnUnitEntersVisionListener(const Unit*);
-	void OnUnitDestroyedListener(const Unit*);
-
-	void AddFriendlyUnit(const Unit*);
-	void ApplyAttack(const Unit*, const Unit*);
-	void ConfirmAttack(const Unit*, const Unit*);
+	void UpdateInfo();
 	void UpdateEnemyUnitHealth();
 
-	std::map<const Unit*, const Unit*> FindAttacks(std::vector<UNIT_TYPEID>);
-	std::map<const Unit*, const Unit*> FindAttacks(Units, std::vector<std::vector<UNIT_TYPEID>>, float);
+	bool GetAttackStatus(const Unit*);
+	void AddUnit(const Unit*);
+	void ApplyAttack(const Unit*, const Unit*);
+	void ConfirmAttack(const Unit*, const Unit*);
+	void CancelAttack(const Unit*);
+
+	void DoAttacks();
+
+	void OnUnitTakesDamage(const Unit*, float, float);
+	void OnUnitEntersVision(const Unit*);
+	void OnUnitDestroyed(const Unit*);
+	void OnUnitCreated(const Unit*);
 
 };
 

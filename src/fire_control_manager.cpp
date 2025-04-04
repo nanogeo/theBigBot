@@ -1,5 +1,5 @@
-
-#include "fire_control.h"
+#pragma once
+#include "fire_control_manager.h"
 #include "utility.h"
 #include "theBigBot.h"
 
@@ -311,218 +311,215 @@ namespace sc2 {
 	}
 
 
-#pragma region PersistentFireControl
 
-	PersistentFireControl::PersistentFireControl(TheBigBot* agent)
+
+
+
+
+void FireControlManager::UpdateInfo()
+{
+	UpdateEnemyUnitHealth();
+
+	for (const auto& status : attack_status)
 	{
-		this->agent = agent;
-
-		event_id = agent->GetUniqueId();
-		std::function<void(const Unit*, float, float)> onUnitTakesDamage = [=](const Unit* unit, float health, float shields) {
-			this->OnUnitTakesDamageListener(unit, health, shields);
-		};
-		agent->AddListenerToOnUnitDamagedEvent(event_id, onUnitTakesDamage);
-
-		std::function<void(const Unit*)> onUnitEntersVision = [=](const Unit* unit) {
-			this->OnUnitEntersVisionListener(unit);
-		};
-		agent->AddListenerToOnUnitEntersVisionEvent(event_id, onUnitEntersVision);
-
-		std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
-			this->OnUnitDestroyedListener(unit);
-		};
-		agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
-	}
-
-	PersistentFireControl::~PersistentFireControl()
-	{
-		agent->RemoveListenerToOnUnitDamagedEvent(event_id);
-		agent->RemoveListenerToOnUnitEntersVisionEvent(event_id);
-		agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
-	}
-
-	void PersistentFireControl::OnUnitTakesDamageListener(const Unit* unit, float health, float shields)
-	{
-		float total_damage = health + shields;
-		for (int i = 0; i < outgoing_attacks.size(); i++)
+		if (status.second && status.first->weapon_cooldown > 0)
 		{
-			if (outgoing_attacks[i].target == unit && outgoing_attacks[i].confirmend)
-			{
-				if (total_damage == outgoing_attacks[i].damage)
-				{
-					outgoing_attacks.erase(outgoing_attacks.begin() + i);
-					return;
-				}
-				else if (total_damage > outgoing_attacks[i].damage)
-				{
-					total_damage -= outgoing_attacks[i].damage;
-					outgoing_attacks.erase(outgoing_attacks.begin() + i);
-					i--;
-				}
-				else if (total_damage < outgoing_attacks[i].damage)
-				{
-					outgoing_attacks[i].damage = outgoing_attacks[i].damage - total_damage;
-					return;
-				}
-			}
+			ConfirmAttack(status.first, mediator->GetUnit(status.first->engaged_target_tag));
+		}
+		else if (status.second && status.first->orders.size() == 0)
+		{
+			attack_status[status.first] = false;
+		}
+	}
+}
+
+void FireControlManager::UpdateEnemyUnitHealth()
+{
+	for (const auto unit_hp : enemy_unit_hp)
+	{
+		if (mediator->GetEnemyRace() == Race::Zerg)
+		{
+			enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 1);
+		}
+		else if (mediator->GetEnemyRace() == Race::Terran && Utility::IsBiological(unit_hp.first->unit_type))
+		{
+			Units medivacs = mediator->GetUnits(IsUnit(MEDIVAC));
+			if (medivacs.size() > 0 && Utility::DistanceToClosest(medivacs, unit_hp.first->pos) < 4)
+				enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 10);
+			else
+				enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield);
+		}
+		else
+		{
+			enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 1);
 		}
 	}
 
-	void PersistentFireControl::OnUnitDestroyedListener(const Unit* unit)
+	for (int i = 0; i < outgoing_attacks.size(); i++)
 	{
-		enemy_unit_hp.erase(unit);
-		for(int i = 0; i < outgoing_attacks.size(); i++)
+		if (outgoing_attacks[i].frame_of_hit < mediator->GetGameLoop())
 		{
-			if (outgoing_attacks[i].target)
+			outgoing_attacks.erase(outgoing_attacks.begin() + i);
+			i--;
+		}
+	}
+
+	for (const auto damage : outgoing_attacks)
+	{
+		enemy_unit_hp[damage.target] = enemy_unit_hp[damage.target] - damage.damage;
+	}
+}
+
+bool FireControlManager::GetAttackStatus(const Unit* unit)
+{
+	return attack_status[unit];
+}
+
+void FireControlManager::AddUnit(const Unit* unit)
+{
+	units_ready_to_attack.push_back(unit);
+}
+
+void FireControlManager::ApplyAttack(const Unit* attacker, const Unit* target)
+{
+	int damage = Utility::GetDamage(attacker, target);
+	enemy_unit_hp[target] = enemy_unit_hp[target] - damage;
+	outgoing_attacks.push_back(OutgoingDamage(attacker, target, damage, mediator->GetGameLoop() + 20)); // TODO calculate frame of hit
+}
+
+void FireControlManager::ConfirmAttack(const Unit* attacker, const Unit* target)
+{
+	attack_status[attacker] = false;
+	bool already_confirmed = false;
+	for (int i = 0; i < outgoing_attacks.size(); i++)
+	{
+		if (outgoing_attacks[i].attacker == attacker)
+		{
+			if (outgoing_attacks[i].target != target || already_confirmed)
 			{
 				outgoing_attacks.erase(outgoing_attacks.begin() + i);
 				i--;
-			}
-		}
-	}
-
-	void PersistentFireControl::OnUnitEntersVisionListener(const Unit* unit)
-	{
-		if (enemy_unit_hp.count(unit) == 0)
-			enemy_unit_hp[unit] = unit->health + unit->shield + 1;
-	}
-
-	void PersistentFireControl::AddFriendlyUnit(const Unit* unit)
-	{
-		friendly_units.push_back(unit);
-	}
-
-	void PersistentFireControl::ApplyAttack(const Unit* attacker, const Unit* target)
-	{
-		int damage = Utility::GetDamage(attacker, target);
-		enemy_unit_hp[target] = enemy_unit_hp[target] - damage;
-		outgoing_attacks.push_back(OutgoingDamage(attacker, target, damage, agent->Observation()->GetGameLoop() + 20)); // TODO calculate frame of hit
-	}
-
-	void PersistentFireControl::ConfirmAttack(const Unit* attacker, const Unit* target)
-	{
-		bool already_confirmed = false;
-		for (int i = 0; i < outgoing_attacks.size(); i++)
-		{
-			if (outgoing_attacks[i].attacker == attacker)
-			{
-				if (outgoing_attacks[i].target != target || already_confirmed)
-				{
-					outgoing_attacks.erase(outgoing_attacks.begin() + i);
-					i--;
-				}
-				else
-				{
-					already_confirmed = true;
-					outgoing_attacks[i].confirmend = true;
-				}
-			}
-		}
-	}
-
-	void PersistentFireControl::UpdateEnemyUnitHealth()
-	{
-		for (const auto unit_hp : enemy_unit_hp)
-		{
-			if (agent->mediator.GetEnemyRace() == Race::Zerg)
-			{
-				enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 1);
-			}
-			else if (agent->mediator.GetEnemyRace() == Race::Terran && Utility::IsBiological(unit_hp.first->unit_type))
-			{
-				Units medivacs = agent->Observation()->GetUnits(IsUnit(MEDIVAC));
-				if (medivacs.size() > 0 && Utility::DistanceToClosest(medivacs, unit_hp.first->pos) < 4)
-					enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 10);
-				else
-					enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield);
 			}
 			else
 			{
-				enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 1);
+				already_confirmed = true;
+				outgoing_attacks[i].confirmend = true;
 			}
 		}
+	}
+}
 
-		for (int i = 0; i < outgoing_attacks.size(); i++)
+void FireControlManager::CancelAttack(const Unit* unit)
+{
+	attack_status[unit] = false;
+}
+
+void FireControlManager::DoAttacks()
+{
+	Units Eunits = mediator->GetUnits(Unit::Alliance::Enemy);
+	for (const auto& cannon : mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(CANNON)))
+	{
+		if (Utility::GetUnitsInRange(Eunits, cannon, 0).size() > 0)
+			units_ready_to_attack.push_back(cannon);
+	}
+	if (units_ready_to_attack.size() == 0)
+		return;
+
+	std::map<const Unit*, std::vector<const Unit*>> unit_targets;
+
+	for (const auto& unit : units_ready_to_attack)
+	{
+		Units units_in_range;
+		float extra_range = 0;
+		bool found_non_building = false;
+		while (!found_non_building && units_in_range.size() == 0 && extra_range <= 2) // vary max extra range
 		{
-			if (outgoing_attacks[i].frame_of_hit < agent->Observation()->GetGameLoop())
+			for (const auto& Eunit : Eunits)
 			{
+				if (enemy_unit_hp[Eunit] <= 0)
+					continue;
+				if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealRange(unit, Eunit) + extra_range)
+				{
+					units_in_range.push_back(Eunit);
+					if (!Eunit->is_building)
+						found_non_building = true;
+				}
+			}
+			extra_range += .5;
+			if (unit->unit_type == CANNON)
+				break;
+		}
+		if (units_in_range.size() > 0)
+			unit_targets[unit] = units_in_range;
+	}
+
+	FireControl fire_control = FireControl(mediator->agent, unit_targets, enemy_unit_hp, mediator->GetPrio());
+	std::map<const Unit*, const Unit*> attacks = fire_control.FindAttacks();
+	for (const auto attack : attacks)
+	{
+		ApplyAttack(attack.first, attack.second);
+		attack_status[attack.first] = true;
+		mediator->SetUnitCommand(attack.first, ABILITY_ID::ATTACK, attack.second);
+	}
+
+	units_ready_to_attack.clear();
+}
+
+void FireControlManager::OnUnitTakesDamage(const Unit* unit, float health, float shields)
+{
+	float total_damage = health + shields;
+	for (int i = 0; i < outgoing_attacks.size(); i++)
+	{
+		if (outgoing_attacks[i].target == unit && outgoing_attacks[i].confirmend)
+		{
+			if (total_damage == outgoing_attacks[i].damage)
+			{
+				outgoing_attacks.erase(outgoing_attacks.begin() + i);
+				return;
+			}
+			else if (total_damage > outgoing_attacks[i].damage)
+			{
+				total_damage -= outgoing_attacks[i].damage;
 				outgoing_attacks.erase(outgoing_attacks.begin() + i);
 				i--;
 			}
-		}
-
-		for (const auto damage : outgoing_attacks)
-		{
-			enemy_unit_hp[damage.target] = enemy_unit_hp[damage.target] - damage.damage;
-		}
-	}
-
-	std::map<const Unit*, const Unit*> PersistentFireControl::FindAttacks(std::vector<UNIT_TYPEID> prio)
-	{
-		std::map<const Unit*, std::vector<const Unit*>> unit_targets;
-		Units Eunits = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
-		
-		for (const auto& unit : friendly_units)
-		{
-			Units units_in_range;
-			for (const auto& Eunit : Eunits)
+			else if (total_damage < outgoing_attacks[i].damage)
 			{
-				if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealRange(unit, Eunit))
-					units_in_range.push_back(Eunit);
+				outgoing_attacks[i].damage = outgoing_attacks[i].damage - total_damage;
+				return;
 			}
-			unit_targets[unit] = units_in_range;
 		}
-
-		FireControl fire_control = FireControl(agent, unit_targets, enemy_unit_hp, prio);
-		std::map<const Unit*, const Unit*> attacks = fire_control.FindAttacks();
-		for (const auto attack : attacks)
-		{
-			ApplyAttack(attack.first, attack.second);
-		}
-		return attacks;
 	}
+}
 
-	std::map<const Unit*, const Unit*> PersistentFireControl::FindAttacks(Units units, std::vector<std::vector<UNIT_TYPEID>> prio, float max_extra_range)
+void FireControlManager::OnUnitEntersVision(const Unit* unit)
+{
+	if (enemy_unit_hp.count(unit) == 0)
+		enemy_unit_hp[unit] = unit->health + unit->shield + 1;
+}
+
+void FireControlManager::OnUnitDestroyed(const Unit* unit)
+{
+	if (enemy_unit_hp.count(unit) > 0)
+		enemy_unit_hp.erase(unit);
+	else if (attack_status.count(unit) > 0)
+		attack_status.erase(unit);
+
+	for (int i = 0; i < outgoing_attacks.size(); i++)
 	{
-		UpdateEnemyUnitHealth();
-		std::map<const Unit*, std::vector<const Unit*>> unit_targets;
-		Units Eunits = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
-
-		for (const auto& unit : units)
+		if (outgoing_attacks[i].target)
 		{
-			Units units_in_range;
-			float extra_range = 0;
-			bool found_non_building = false;
-			while (!found_non_building && units_in_range.size() == 0 && extra_range <= max_extra_range)
-			{
-				for (const auto& Eunit : Eunits)
-				{
-					if (enemy_unit_hp[Eunit] <= 0 || std::find(units_in_range.begin(), units_in_range.end(), Eunit) != units_in_range.end())
-						continue;
-					if (Distance2D(unit->pos, Eunit->pos) <= Utility::RealRange(unit, Eunit) + extra_range)
-					{
-						units_in_range.push_back(Eunit);
-						if (!Eunit->is_building)
-							found_non_building = true;
-					}
-				}
-				extra_range += .5;
-			}
-			unit_targets[unit] = units_in_range;
+			outgoing_attacks.erase(outgoing_attacks.begin() + i);
+			i--;
 		}
-
-		FireControl fire_control = FireControl(agent, unit_targets, enemy_unit_hp, prio);
-		std::map<const Unit*, const Unit*> attacks = fire_control.FindAttacks();
-		for (const auto attack : attacks)
-		{
-			ApplyAttack(attack.first, attack.second);
-		}
-		return attacks;
 	}
+}
 
-
-
-#pragma endregion
+void FireControlManager::OnUnitCreated(const Unit* unit)
+{
+	// TODO check if attacking unit
+	attack_status[unit] = false;
+}
 
 
 }

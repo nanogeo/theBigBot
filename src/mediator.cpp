@@ -70,6 +70,7 @@ void Mediator::RunManagers()
 {
 	ability_manager.UpdateStalkerInfo();
 	ability_manager.UpdateOracleInfo();
+	fire_control_manager.UpdateInfo();
 
 	scouting_manager.UpdateInfo();
 
@@ -104,6 +105,8 @@ void Mediator::RunManagers()
 
 	army_manager.CreateNewArmyGroups();
 	army_manager.RunArmyGroups();
+
+	fire_control_manager.DoAttacks();
 
 	unit_command_manager.ParseUnitCommands();
 
@@ -278,6 +281,21 @@ float Mediator::GetLineDangerLevel(PathManager path)
 bool Mediator::IsVisible(Point2D pos)
 {
 	return agent->Observation()->GetVisibility(pos) == Visibility::Visible;
+}
+
+std::vector<std::vector<UNIT_TYPEID>> Mediator::GetPrio()
+{
+	switch (GetEnemyRace())
+	{
+	case Race::Zerg:
+		return ZERG_PRIO;
+	case Race::Terran:
+		return TERRAN_PRIO;
+	case Race::Protoss:
+		return PROTOSS_PRIO;
+	case Race::Random:
+		return {};
+	}
 }
 
 void Mediator::SendChat(std::string message, ChatChannel channel)
@@ -1255,6 +1273,34 @@ void Mediator::SetOracleOrder(const Unit* unit, ABILITY_ID ability)
 bool Mediator::IsOracleCasting(const Unit* unit)
 {
 	return ability_manager.IsOracleCasting(unit);
+}
+
+void Mediator::AddUnitToAttackers(const Unit* unit)
+{
+	fire_control_manager.AddUnit(unit);
+}
+
+void Mediator::AddUnitsToAttackers(const Units units)
+{
+	for (const auto& unit : units)
+	{
+		fire_control_manager.AddUnit(unit);
+	}
+}
+
+void Mediator::ConfirmAttack(const Unit* attacker, const Unit* target)
+{
+	fire_control_manager.ConfirmAttack(attacker, target);
+}
+
+void Mediator::CancelAttack(const Unit* unit)
+{
+	fire_control_manager.CancelAttack(unit);
+}
+
+bool Mediator::GetAttackStatus(const Unit* unit)
+{
+	return fire_control_manager.GetAttackStatus(unit);
 }
 
 // TODO make these boolean if the command is invalid

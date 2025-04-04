@@ -354,7 +354,6 @@ namespace sc2 {
 			if (std::find(test_army.stalkers.begin(), test_army.stalkers.end(), unit) != test_army.stalkers.end())
 			{
 				test_army.stalkers.erase(std::remove(test_army.stalkers.begin(), test_army.stalkers.end(), unit), test_army.stalkers.end());
-				test_army.attack_status.erase(unit);
 			}
 		}
     }
@@ -1853,24 +1852,24 @@ namespace sc2 {
 	void TheBigBot::DisplayAlliedAttackStatus()
 	{
 		return;
-		for (const auto &unit : test_army.attack_status)
+		for (const auto &unit : test_army.all_units)
 		{
 			Color col1 = Color(255, 0, 0);
-			if (unit.first->weapon_cooldown == 0)
+			if (unit->weapon_cooldown == 0)
 				col1 = Color(255, 255, 0);
 
 			Color col2 = Color(255, 0, 255);
-			if (unit.second == true)
+			if (mediator.GetAttackStatus(unit))
 			{
 				col2 = Color(0, 255, 255);
-				Debug()->DebugTextOut("true", unit.first->pos + Point3D(0, 0, .2), col2, 15);
+				Debug()->DebugTextOut("true", unit->pos + Point3D(0, 0, .2), col2, 15);
 			}
 			else
 			{
-				Debug()->DebugTextOut("false", unit.first->pos + Point3D(0, 0, .2), col2, 15);
+				Debug()->DebugTextOut("false", unit->pos + Point3D(0, 0, .2), col2, 15);
 			}
 
-			Debug()->DebugTextOut(std::to_string(unit.first->weapon_cooldown), unit.first->pos, col1, 15);
+			Debug()->DebugTextOut(std::to_string(unit->weapon_cooldown), unit->pos, col1, 15);
 		}
 	}
 

@@ -16,6 +16,7 @@
 #include "scouting_manager.h"
 #include "defense_manager.h"
 #include "ability_manager.h"
+#include "fire_control_manager.h"
 
 #include "definitions.h"
 
@@ -37,7 +38,8 @@ public:
 		unit_production_manager(this),
 		scouting_manager(this),
 		defense_manager(this),
-		ability_manager(this)
+		ability_manager(this),
+		fire_control_manager(this)
 	{
 		this->agent = agent;
 	}
@@ -55,6 +57,7 @@ public:
 	ScoutingManager scouting_manager;
 	DefenseManager defense_manager;
 	AbilityManager ability_manager;
+	FireControlManager fire_control_manager;
 
 
 public:
@@ -85,6 +88,7 @@ public:
 	const Unit* GetMostRecentBuilding(UNIT_TYPEID);
 	float GetLineDangerLevel(PathManager);
 	bool IsVisible(Point2D);
+	std::vector<std::vector<UNIT_TYPEID>> GetPrio();
 
 	void SendChat(std::string, ChatChannel);
 
@@ -189,6 +193,12 @@ public:
 	bool IsOracleBeamActive(const Unit*);
 	void SetOracleOrder(const Unit*, ABILITY_ID);
 	bool IsOracleCasting(const Unit*);
+
+	void AddUnitToAttackers(const Unit*);
+	void AddUnitsToAttackers(Units);
+	void ConfirmAttack(const Unit*, const Unit*);
+	void CancelAttack(const Unit*);
+	bool GetAttackStatus(const Unit*);
 
 	void SetUnitCommand(const Unit* unit, AbilityID ability, bool queued_command = false);
 	void SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, bool queued_command = false);

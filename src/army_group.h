@@ -85,7 +85,6 @@ public:
 
 	Units new_units;
 
-	std::map<const Unit*, bool> attack_status;
 	Units possibly_confused_units;
 
 	std::vector<Point2D> attack_path;
@@ -118,9 +117,8 @@ public:
 	std::map<const Unit*, bool> has_attacked;
 	std::map<const Unit*, uint64_t> target;
 
-	PersistentFireControl persistent_fire_control;
 
-	ArmyGroup() : persistent_fire_control() {};
+	ArmyGroup() {};
 	ArmyGroup(Mediator*, PathManager, std::vector<Point2D> attack_path, ArmyRole, std::vector<UNIT_TYPEID>);
 	ArmyGroup(Mediator*, std::vector<Point2D>, ArmyRole, std::vector<UNIT_TYPEID>);
 	ArmyGroup(Mediator*, ArmyRole, std::vector<UNIT_TYPEID>);
