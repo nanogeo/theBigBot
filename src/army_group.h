@@ -7,7 +7,6 @@
 
 #include "utility.h"
 #include "path_manager.h"
-#include "fire_control.h"
 #include "finite_state_machine.h"
 #include "definitions.h"
 

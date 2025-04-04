@@ -3,7 +3,6 @@
 #include "finite_state_machine.h"
 #include "pathfinding.h"
 #include "locations.h"
-#include "fire_control.h"
 #include "utility.h"
 #include "build_order_manager.h"
 #include "definitions.h"
