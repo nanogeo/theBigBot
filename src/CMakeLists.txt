@@ -7,6 +7,12 @@ file(GLOB_RECURSE bot_headers *.h)
 
 add_executable(theBigBot ${bot_sources} ${bot_headers})
 
+target_include_directories(theBigBot PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/FiniteStateMachines"
+    "${CMAKE_CURRENT_SOURCE_DIR}/MapLocations"
+)
+
 if (BUILD_FOR_LADDER)
     target_compile_definitions(theBigBot PRIVATE BUILD_FOR_LADDER)
 endif ()
