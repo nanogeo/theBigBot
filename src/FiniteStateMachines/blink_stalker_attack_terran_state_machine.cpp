@@ -261,6 +261,12 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos);
 	for (int i = 0; i < stalkers_to_blink.size(); i++)
 	{
+		if (stalkers_to_blink[i] == NULL) // TODO look into why this is ever the case
+		{
+			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
+			i--;
+			continue;
+		}
 		if (stalkers_to_blink[i]->pos.z - .1 < agent->ToPoint3D(state_machine->blink_down_pos).z && // TODO write utility function to check same height
 			stalkers_to_blink[i]->pos.z + .1 > agent->ToPoint3D(state_machine->blink_down_pos).z)
 		{
@@ -512,6 +518,12 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 	for (int i = 0; i < stalkers_to_blink.size(); i++)
 	{
 		const Unit* stalker = stalkers_to_blink[i];
+		if (stalker == NULL)
+		{
+			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
+			i--;
+			continue;
+		}
 		if (stalker->is_alive == false)
 		{
 			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
