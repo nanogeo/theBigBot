@@ -292,6 +292,8 @@ void WorkerManager::PlaceWorkerInGas(const Unit* worker, const Unit* gas, int in
 	Point2D assimilator_position = gas->pos;
 	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
+	if (closest_nexus == NULL)
+		return;
 	Point2D vector = assimilator_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
 	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2;
@@ -312,6 +314,8 @@ void WorkerManager::NewPlaceWorkerInGas(const Unit* worker, const Unit* gas)
 	Point2D assimilator_position = gas->pos;
 	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
+	if (closest_nexus == NULL)
+		return;
 	Point2D vector = assimilator_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
 	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2;
@@ -333,6 +337,8 @@ void WorkerManager::PlaceWorkerOnMinerals(const Unit* worker, const Unit* minera
 	Point2D mineral_position = mineral->pos;
 	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
+	if (closest_nexus == NULL)
+		return;
 	Point2D vector = mineral_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
 	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2;
@@ -369,6 +375,8 @@ void WorkerManager::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* min
 	Point2D mineral_position = mineral->pos;
 	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
+	if (closest_nexus == NULL)
+		return;
 	Point2D vector = mineral_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
 	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2;
