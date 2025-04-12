@@ -154,6 +154,7 @@ public:
 	void OutsideControl();
 
 	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>, bool = false);
+	int AttackLine(Units, float, float, std::vector<std::vector<UNIT_TYPEID>>, bool = false);
 	void OraclesDefendArmy(Units);
 
 	bool FindUnitPositions(Units, Units, float, float, Point2D);

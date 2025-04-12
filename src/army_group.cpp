@@ -1621,6 +1621,226 @@ namespace sc2 {
 		return return_value;
 	}
 
+	// returns: 0 - normal operation, 1 - all units dead or in standby, 2 - reached the end of the attack path
+	int ArmyGroup::AttackLine(Units units, float dispersion, float target_range, std::vector<std::vector<UNIT_TYPEID>> target_priority, bool limit_advance)
+	{
+		if (mediator->GetEnemyRace() == Race::Zerg)
+		{
+			for (int i = 0; i < new_units.size(); i++)
+			{
+				const Unit* unit = new_units[i];
+				if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
+				{
+					for (const auto& point : attack_path)
+					{
+						if (unit->unit_type == PRISM)
+						{
+							if (units.size() == 0)
+								mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, point, 0, true);
+							else
+								mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(units), 0);
+						}
+						else
+						{
+							mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, 0, true);
+						}
+					}
+				}
+				if ((units.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(units)) < 5) || (units.size() == 0 && Utility::DistanceToClosest(attack_path, unit->pos) < 2))
+				{
+					if (state_machine)
+					{
+						if (state_machine->AddUnit(unit))
+						{
+							AddUnit(unit);
+							i--;
+						}
+					}
+					else
+					{
+						AddUnit(unit);
+						i--;
+					}
+				}
+			}
+		}
+		else
+		{
+			for (int i = 0; i < new_units.size(); i++)
+			{
+				const Unit* unit = new_units[i];
+				if (units.size() == 0)
+				{
+					if (Distance2D(attack_path[0], unit->pos) < 2)
+					{
+						if (state_machine)
+						{
+							if (state_machine->AddUnit(unit))
+							{
+								AddUnit(unit);
+								i--;
+							}
+						}
+						else
+						{
+							AddUnit(unit);
+							i--;
+						}
+					}
+					else
+					{
+						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, attack_path[0], 0);
+					}
+				}
+				if (units.size() > 0)
+				{
+					if (Distance2D(unit->pos, Utility::MedianCenter(units)) < 5)
+					{
+						if (state_machine)
+						{
+							if (state_machine->AddUnit(unit))
+							{
+								AddUnit(unit);
+								i--;
+							}
+						}
+						else
+						{
+							AddUnit(unit);
+							i--;
+						}
+					}
+					else if (unit->weapon_cooldown == 0)
+					{
+						if (unit->unit_type == PRISM)
+							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(units), 0);
+						else
+							mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, Utility::MedianCenter(units), 0);
+					}
+					else
+					{
+						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(units), 0);
+					}
+				}
+			}
+		}
+
+		if (units.size() == 0)
+		{
+			if (new_units.size() == 0 && standby_units.size() == 0)
+				mediator->MarkArmyGroupForDeletion(this);
+			return 0;
+		}
+
+		// Find current units to micro
+		Units basic_units;
+		if (using_standby)
+		{
+			std::vector<UNIT_TYPEID> types = { STALKER, SENTRY, ADEPT, ARCHON, IMMORTAL };
+			for (const auto& unit : units)
+			{
+				if (std::find(types.begin(), types.end(), unit->unit_type) != types.end() &&
+					std::find(standby_units.begin(), standby_units.end(), unit) == standby_units.end())
+					basic_units.push_back(unit);
+			}
+		}
+		else
+		{
+			std::vector<UNIT_TYPEID> types = { STALKER, SENTRY, ADEPT, ARCHON, IMMORTAL };
+			for (const auto& unit : units)
+			{
+				if (std::find(types.begin(), types.end(), unit->unit_type) != types.end())
+					basic_units.push_back(unit);
+			}
+		}
+
+		if (new_units.size() == 0 && basic_units.size() == 0 && standby_units.size() == 0)
+		{
+			mediator->MarkArmyGroupForDeletion(this);
+			return 0;
+		}
+
+		OraclesDefendArmy(basic_units);
+
+		if (static_cast<float>(basic_units.size()) / units.size() < .25)
+			return 1;
+
+		int return_value = 0;
+
+		Point2D limit = attack_path_line.GetEndPoint();
+		if (limit_advance)
+		{
+			limit = FindLimitToAdvance();
+		}
+
+		mediator->agent->Debug()->DebugSphereOut(mediator->ToPoint3D(limit), 1.5, Color(255, 255, 255));
+
+		if (FindUnitPositions(basic_units, warp_prisms, dispersion, target_range, attack_path_line.GetPointFrom(limit, 1, false)))
+			return_value = 2;
+
+		/*for (const auto& pos : agent->locations->attack_path_line.GetPoints())
+		{
+			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos), .5, Color(255, 255, 255));
+		}
+		for (const auto& pos : unit_position_asignments)
+		{
+			agent->Debug()->DebugSphereOut(agent->ToPoint3D(pos.second), .625, Color(255, 0, 0));
+		}*/
+
+
+		// Find units that can attack and those that cant
+		Units units_ready;
+		Units units_not_ready;
+		FindReadyUnits(basic_units, units_ready, units_not_ready);
+
+		float percent_units_needed = .25;
+
+		//if units are shooting then theres a reason to stay
+		if ((double)units_not_ready.size() / (double)basic_units.size() > percent_units_needed)
+			return_value = 0;
+
+
+
+
+		MicroReadyUnits(units_ready, target_priority, percent_units_needed, basic_units.size());
+		std::vector<std::pair<const Unit*, UnitDanger>> units_requesting_pickup = MicroNonReadyUnits(units_not_ready);
+
+		for (const auto& request : units_requesting_pickup)
+		{
+			std::stringstream str;
+			str << request.second.unit_prio << ": " << std::fixed << std::setprecision(1) << request.second.damage_value;
+			//agent->Debug()->DebugTextOut(str.str(), request.first->pos, Color(0, 255, 0), 14);
+		}
+
+		MicroWarpPrisms(units_requesting_pickup);
+
+
+		if (using_standby)
+		{
+			for (int i = 0; i < standby_units.size(); i++)
+			{
+				bool in_cargo = false;
+				for (const auto& cargo : units_in_cargo)
+				{
+					if (cargo.first == standby_units[i])
+					{
+						in_cargo = true;
+						break;
+					}
+				}
+				if (!in_cargo)
+					mediator->SetUnitCommand(standby_units[i], ABILITY_ID::GENERAL_MOVE, standby_pos, 0);
+
+				if (standby_units[i]->shield == standby_units[i]->shield_max)
+				{
+					standby_units.erase(standby_units.begin() + i);
+					i--;
+				}
+			}
+		}
+		return return_value;
+	}
+
 	void ArmyGroup::OraclesDefendArmy(Units basic_units)
 	{
 		if (oracles.size() == 0)

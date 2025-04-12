@@ -83,6 +83,7 @@ class BlinkStalkerAttackTerranSnipeUnit : public State
 public:
 	class BlinkStalkerAttackTerran* state_machine;
 	const Unit* target;
+	float enter_time = 0;
 	BlinkStalkerAttackTerranSnipeUnit(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine, const Unit* target)
 	{
 		this->agent = agent;
@@ -101,11 +102,10 @@ class BlinkStalkerAttackTerranBlinkUp : public State
 public:
 	class BlinkStalkerAttackTerran* state_machine;
 	Units stalkers_to_blink;
-	BlinkStalkerAttackTerranBlinkUp(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine, Units stalkers)
+	BlinkStalkerAttackTerranBlinkUp(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->agent = agent;
 		this->state_machine = state_machine;
-		stalkers_to_blink = stalkers;
 	}
 	virtual std::string toString() override;
 	void TickState() override;
@@ -119,15 +119,16 @@ class BlinkStalkerAttackTerranLeaveHighground : public State
 public:
 	class BlinkStalkerAttackTerran* state_machine;
 	Units stalkers_to_blink;
-	int event_id;
-	BlinkStalkerAttackTerranLeaveHighground(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine, Units stalkers);
+	BlinkStalkerAttackTerranLeaveHighground(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
+	{
+		this->agent = agent;
+		this->state_machine = state_machine;
+	}
 	virtual std::string toString() override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
 	virtual State* TestTransitions() override;
-
-	void RemoveUnit(const Unit*);
 
 };
 
@@ -139,7 +140,9 @@ class BlinkStalkerAttackTerran : public StateMachine
 {
 public:
 	const Unit* prism = NULL;
-	Units stalkers;
+	Units attacking_stalkers;
+	Units standby_stalkers;
+	Units moving_to_standby_stalkers;
 	bool attacking_main = false;
 	Point2D consolidation_pos;
 	Point2D prism_consolidation_pos;
