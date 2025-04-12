@@ -90,8 +90,6 @@ void DefenseManager::UpdateOngoingAttacks()
 
 			if (attack.location == mediator->GetNaturalLocation() && attack.status <= -50 && attack.pulled_workers.size() == 0)
 			{
-				// BATTERY_OVERCHARGE
-				UseBatteryOvercharge(attack.location);
 				mediator->AddAction(&ActionManager::ActionContinueBuildingPylons, new ActionArgData());
 				// make a new battery
 				if (mediator->GetNumBuildActions(BATTERY) == 0)
@@ -107,6 +105,14 @@ void DefenseManager::UpdateOngoingAttacks()
 				}
 				mediator->AddToDefense(attack.location, attack.pulled_workers.size());
 
+			}
+
+			// BATTERY_OVERCHARGE
+			if (mediator->IsBatteryOverchargeOffCooldown() && 
+				attack.status <= -50 && 
+				Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(BATTERY)), attack.location) < 8)
+			{
+				UseBatteryOvercharge(attack.location);
 			}
 
 			// increase desired defenders
