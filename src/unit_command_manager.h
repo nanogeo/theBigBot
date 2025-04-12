@@ -67,6 +67,7 @@ class UnitCommandManager
 public:
 	Mediator* mediator;
     TheBigBot* agent;
+    int consecutive_high_action_frames = 0;
     std::map<const Unit*, UnitCommand> current_commands;
     std::map<const Unit*, std::vector<UnitCommand>> queued_commands;
 

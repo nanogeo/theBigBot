@@ -148,7 +148,7 @@ void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, const U
 
 void UnitCommandManager::ParseUnitCommands()
 {
-
+	int actions_this_frame = 0;
 #ifndef BUILD_FOR_LADDER
 	std::ofstream file;
 	file.open("unit_commands.txt", std::ios::app);
@@ -176,6 +176,7 @@ void UnitCommandManager::ParseUnitCommands()
 					mediator->SetOracleOrder(itr->first, ABILITY_ID::EFFECT_ORACLEREVELATION);
 
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability);
+				actions_this_frame++;
 #ifndef BUILD_FOR_LADDER
 				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, 0, " << std::endl;
 #endif
@@ -188,6 +189,7 @@ void UnitCommandManager::ParseUnitCommands()
 						mediator->SetBatteryOverchargeCooldown();
 				}
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target);
+				actions_this_frame++;
 #ifndef BUILD_FOR_LADDER
 				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, " << itr->second.target->tag << ", " << std::endl;
 #endif
@@ -204,6 +206,7 @@ void UnitCommandManager::ParseUnitCommands()
 			}
 
 			agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target_point);
+			actions_this_frame++;
 #ifndef BUILD_FOR_LADDER
 			file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", " << itr->second.target_point.x << " " << itr->second.target_point.y << ", 0, " << std::endl;
 #endif
@@ -219,15 +222,18 @@ void UnitCommandManager::ParseUnitCommands()
 				if (command.target == NULL)
 				{
 					agent->Actions()->UnitCommand(itr->first, command.ability, true);
+					actions_this_frame++;
 				}
 				else
 				{
 					agent->Actions()->UnitCommand(itr->first, command.ability, command.target, true);
+					actions_this_frame++;
 				}
 			}
 			else
 			{
 				agent->Actions()->UnitCommand(itr->first, command.ability, command.target_point, true);
+				actions_this_frame++;
 			}
 		}
 	}
@@ -235,6 +241,21 @@ void UnitCommandManager::ParseUnitCommands()
 #ifndef BUILD_FOR_LADDER
 	file.close();
 #endif
+
+	if (actions_this_frame > 75)
+		consecutive_high_action_frames++;
+	else
+		consecutive_high_action_frames = 0;
+
+	if (consecutive_high_action_frames > 22)
+	{
+		mediator->SendChat("Tag: high_apm_warning_" + std::to_string(mediator->GetCurrentTime()), ChatChannel::Team);
+	}
+	else if (consecutive_high_action_frames > 45)
+	{
+		mediator->SendChat("Tag: high_apm_interrupt_" + std::to_string(mediator->GetCurrentTime()), ChatChannel::All);
+		mediator->ScourMap();
+	}
 
 	current_commands.clear();
 	queued_commands.clear();
