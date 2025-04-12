@@ -54,6 +54,7 @@ public:
             current_state->ExitState();
             delete current_state;
             current_state = new_state;
+            std::cerr << "Change state " << new_state->toString() << std::endl;
             current_state->EnterState();
         }
 		if (current_state != NULL)
