@@ -170,7 +170,12 @@ void UnitCommandManager::ParseUnitCommands()
 			}
 			else
 			{
-				agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target_tag);
+				if (itr->second.ability.ToType() == ABILITY_ID::BATTERYOVERCHARGE)
+				{
+					if (itr->first->energy >= 50 && Distance2D(itr->first->pos, itr->second.target->pos) < 8)
+						mediator->SetBatteryOverchargeCooldown();
+				}
+				agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target);
 #ifndef BUILD_FOR_LADDER
 				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, " << itr->second.target_tag->tag << ", " << std::endl;
 #endif
@@ -180,6 +185,11 @@ void UnitCommandManager::ParseUnitCommands()
 		{
 			if (itr->second.ability.ToType() == ABILITY_ID::EFFECT_BLINK)
 				mediator->SetStalkerOrder(itr->first);
+			else if (itr->second.ability.ToType() == ABILITY_ID::EFFECT_MASSRECALL_NEXUS)
+			{
+				if (itr->first->energy >= 50)
+					mediator->SetNexusRecallCooldown();
+			}
 
 			agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target_point);
 #ifndef BUILD_FOR_LADDER
