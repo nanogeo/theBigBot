@@ -245,7 +245,7 @@ bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 		{
 			for (int i = 0; i < data.amount; i++)
 			{
-				mediator->SetUnitCommand(gates_ready[i], ABILITY_ID::TRAIN_STALKER);
+				mediator->SetUnitCommand(gates_ready[i], ABILITY_ID::TRAIN_STALKER, 0);
 			}
 			std::cerr << "Stalkers trained at " << mediator->GetGameLoop() / 22.4 << std::endl;
 			return true;
@@ -270,7 +270,7 @@ bool BuildOrderManager::TrainAdept(BuildOrderResultArgData data)
 		{
 			for (int i = 0; i < data.amount; i++)
 			{
-				mediator->SetUnitCommand(gates_ready[i], ABILITY_ID::TRAIN_ADEPT);
+				mediator->SetUnitCommand(gates_ready[i], ABILITY_ID::TRAIN_ADEPT, 0);
 			}
 			return true;
 		}
@@ -286,7 +286,7 @@ bool BuildOrderManager::TrainZealot(BuildOrderResultArgData data)
 		{
 			if (gateway->build_progress == 1 && gateway->orders.size() == 0)
 			{
-				mediator->SetUnitCommand(gateway, ABILITY_ID::TRAIN_ZEALOT);
+				mediator->SetUnitCommand(gateway, ABILITY_ID::TRAIN_ZEALOT, 0);
 				return true;
 			}
 		}
@@ -310,7 +310,7 @@ bool BuildOrderManager::TrainSentry(BuildOrderResultArgData data)
 		{
 			for (int i = 0; i < data.amount; i++)
 			{
-				mediator->SetUnitCommand(gates_ready[i], ABILITY_ID::TRAIN_SENTRY);
+				mediator->SetUnitCommand(gates_ready[i], ABILITY_ID::TRAIN_SENTRY, 0);
 			}
 			return true;
 		}
@@ -326,7 +326,7 @@ bool BuildOrderManager::TrainOracle(BuildOrderResultArgData data)
 		{
 			if (stargate->build_progress == 1 && stargate->orders.size() == 0)
 			{
-				mediator->SetUnitCommand(stargate, ABILITY_ID::TRAIN_ORACLE);
+				mediator->SetUnitCommand(stargate, ABILITY_ID::TRAIN_ORACLE, 0);
 				return true;
 			}
 		}
@@ -342,7 +342,7 @@ bool BuildOrderManager::TrainPrism(BuildOrderResultArgData data)
 		{
 			if (robo->build_progress == 1 && robo->orders.size() == 0)
 			{
-				mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM);
+				mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM, 0);
 				return true;
 			}
 		}
@@ -358,7 +358,7 @@ bool BuildOrderManager::TrainImmortal(BuildOrderResultArgData data)
 		{
 			if (robo->build_progress == 1 && robo->orders.size() == 0)
 			{
-				mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL);
+				mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL, 0);
 				return true;
 			}
 		}
@@ -374,7 +374,7 @@ bool BuildOrderManager::TrainObserver(BuildOrderResultArgData data)
 		{
 			if (robo->build_progress == 1 && robo->orders.size() == 0)
 			{
-				mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_OBSERVER);
+				mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_OBSERVER, 0);
 				mediator->CreateArmyGroup(ArmyRole::observer_scout, { OBSERVER }, 1, 2);
 				return true;
 			}
@@ -393,7 +393,7 @@ bool BuildOrderManager::ChronoBuilding(BuildOrderResultArgData data)
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
 				{
-					mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building);
+					mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building, 0);
 					return true;
 				}
 			}
@@ -410,7 +410,7 @@ bool BuildOrderManager::ResearchWarpgate(BuildOrderResultArgData data)
 			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::WARPGATERESEARCH))
 		{
-			mediator->SetUnitCommand(cyber, ABILITY_ID::RESEARCH_WARPGATE);
+			mediator->SetUnitCommand(cyber, ABILITY_ID::RESEARCH_WARPGATE, 0);
 		}
 	}
 	return false;
@@ -424,7 +424,7 @@ bool BuildOrderManager::ResearchBlink(BuildOrderResultArgData data)
 			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::BLINKTECH) && twilight->orders.size() == 0)
 		{
-			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_BLINK);
+			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_BLINK, 0);
 		}
 	}
 	return false;
@@ -438,7 +438,7 @@ bool BuildOrderManager::ResearchCharge(BuildOrderResultArgData data)
 			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::CHARGE) && twilight->orders.size() == 0)
 		{
-			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_CHARGE);
+			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_CHARGE, 0);
 		}
 	}
 	return false;
@@ -452,7 +452,7 @@ bool BuildOrderManager::ResearchGlaives(BuildOrderResultArgData data)
 			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::ADEPTPIERCINGATTACK) && twilight->orders.size() == 0)
 		{
-			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_ADEPTRESONATINGGLAIVES);
+			mediator->SetUnitCommand(twilight, ABILITY_ID::RESEARCH_ADEPTRESONATINGGLAIVES, 0);
 		}
 	}
 	return false;
@@ -466,7 +466,7 @@ bool BuildOrderManager::ResearchDTBlink(BuildOrderResultArgData data)
 			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::DARKTEMPLARBLINKUPGRADE) && dark_shrine->orders.size() == 0)
 		{
-			mediator->SetUnitCommand(dark_shrine, ABILITY_ID::RESEARCH_SHADOWSTRIKE);
+			mediator->SetUnitCommand(dark_shrine, ABILITY_ID::RESEARCH_SHADOWSTRIKE, 0);
 		}
 	}
 	return false;
@@ -480,7 +480,7 @@ bool BuildOrderManager::ResearchAttackOne(BuildOrderResultArgData data)
 			return true;
 		if (mediator->CanAffordUpgrade(UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1))
 		{
-			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1);
+			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1, 0);
 		}
 	}
 	return false;
@@ -492,7 +492,7 @@ bool BuildOrderManager::ResearchAttackTwo(BuildOrderResultArgData data)
 	{
 		if (forge->orders.size() == 0 && mediator->CanAffordUpgrade(UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2))
 		{
-			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL2);
+			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL2, 0);
 			return true;
 		}
 	}
@@ -505,7 +505,7 @@ bool BuildOrderManager::ResearchShieldsOne(BuildOrderResultArgData data)
 	{
 		if (forge->orders.size() == 0 && mediator->CanAffordUpgrade(UPGRADE_ID::PROTOSSSHIELDSLEVEL1))
 		{
-			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSSHIELDSLEVEL1);
+			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSSHIELDSLEVEL1, 0);
 			return true;
 		}
 	}
@@ -518,7 +518,7 @@ bool BuildOrderManager::ResearchAirAttackOne(BuildOrderResultArgData data)
 	{
 		if (forge->orders.size() == 0 && mediator->CanAffordUpgrade(UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1))
 		{
-			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONSLEVEL1);
+			mediator->SetUnitCommand(forge, ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONSLEVEL1, 0);
 			return true;
 		}
 	}
@@ -714,7 +714,7 @@ bool BuildOrderManager::SafeRallyPoint(BuildOrderResultArgData data)
 	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		Point2D pos = Utility::PointBetween(building->pos, mediator->GetStartLocation(), 2);
-		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos);
+		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos, 0);
 	}
 	return true;
 }

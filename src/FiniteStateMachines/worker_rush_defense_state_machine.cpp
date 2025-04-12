@@ -13,7 +13,7 @@ void WorkerRushDefenseGroupUp::TickState()
 	for (const auto& worker : state_machine->workers)
 	{
 		if (worker->orders.size() < 2)
-			agent->mediator.SetUnitCommand(worker, ABILITY_ID::SMART, state_machine->grouping_mineral_patch);
+			agent->mediator.SetUnitCommand(worker, ABILITY_ID::SMART, state_machine->grouping_mineral_patch, 0);
 	}
 }
 
@@ -21,8 +21,8 @@ void WorkerRushDefenseGroupUp::EnterState()
 {
 	Point2D pos = Utility::PointBetween(state_machine->grouping_mineral_patch->pos,
 		Utility::ClosestTo(agent->mediator.GetUnits(IsUnit(NEXUS)), state_machine->grouping_mineral_patch->pos)->pos, 1);
-	agent->mediator.SetUnitsCommand(state_machine->workers, ABILITY_ID::GENERAL_MOVE, pos);
-	agent->mediator.SetUnitsCommand(state_machine->workers, ABILITY_ID::SMART, state_machine->grouping_mineral_patch, true);
+	agent->mediator.SetUnitsCommand(state_machine->workers, ABILITY_ID::GENERAL_MOVE, pos, 0);
+	agent->mediator.SetUnitsCommand(state_machine->workers, ABILITY_ID::SMART, state_machine->grouping_mineral_patch, 0, true);
 }
 
 void WorkerRushDefenseGroupUp::ExitState()
@@ -64,7 +64,7 @@ void WorkerRushDefenseInitialMove::TickState()
 
 void WorkerRushDefenseInitialMove::EnterState()
 {
-	agent->mediator.SetUnitsCommand(state_machine->workers, ABILITY_ID::SMART, state_machine->attacking_mineral_patch);
+	agent->mediator.SetUnitsCommand(state_machine->workers, ABILITY_ID::SMART, state_machine->attacking_mineral_patch, 0);
 }
 
 void WorkerRushDefenseInitialMove::ExitState()
@@ -107,11 +107,11 @@ void WorkerRushDefenseDefend::TickState()
 		{
 			const Unit* closest_enemy = Utility::ClosestTo(agent->mediator.GetUnits(Unit::Alliance::Enemy), state_machine->workers[i]->pos);
 			if (closest_enemy != NULL)
-				agent->mediator.SetUnitCommand(state_machine->workers[i], ABILITY_ID::ATTACK, closest_enemy);
+				agent->mediator.SetUnitCommand(state_machine->workers[i], ABILITY_ID::ATTACK, closest_enemy, 0);
 		}
 		else
 		{
-			agent->mediator.SetUnitCommand(state_machine->workers[i], ABILITY_ID::SMART, state_machine->grouping_mineral_patch);
+			agent->mediator.SetUnitCommand(state_machine->workers[i], ABILITY_ID::SMART, state_machine->grouping_mineral_patch, 0);
 		}
 	}
 }

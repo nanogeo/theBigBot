@@ -58,7 +58,7 @@ void UnitProductionManager::RunUnitProduction()
 				if (mediator->CanAffordAfter(stargate_production, resources_used_this_frame))
 				{
 					resources_used_this_frame += Utility::GetCost(stargate_production);
-					mediator->SetUnitCommand(stargate, Utility::GetTrainAbility(stargate_production));
+					mediator->SetUnitCommand(stargate, Utility::GetTrainAbility(stargate_production), 0);
 				}
 				else
 				{
@@ -78,7 +78,7 @@ void UnitProductionManager::RunUnitProduction()
 				if (mediator->CanAffordAfter(robo_production, resources_used_this_frame))
 				{
 					resources_used_this_frame += Utility::GetCost(robo_production);
-					mediator->SetUnitCommand(robo, Utility::GetTrainAbility(robo_production));
+					mediator->SetUnitCommand(robo, Utility::GetTrainAbility(robo_production), 0);
 				}
 				else
 				{
@@ -98,7 +98,7 @@ void UnitProductionManager::RunUnitProduction()
 			{
 				if (mediator->CanAffordAfter(warpgate_production, resources_used_this_frame) && spots.size() > 0)
 				{
-					mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(warpgate_production), spots.back());
+					mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(warpgate_production), spots.back(), 0);
 					warpgate_status[warpgate].used = true;
 					warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + round(Utility::GetWarpCooldown(warpgate_production) * 22.4);
 					spots.pop_back();

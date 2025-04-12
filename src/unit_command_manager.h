@@ -13,33 +13,38 @@ struct UnitCommand
 {
     AbilityID ability;
     Point2D target_point;
-    const Unit* target_tag;
+    const Unit* target;
+    int priority;
     UnitCommand()
     {
-        target_tag = NULL;
+        target = NULL;
+        target_point = Point2D(0, 0);
+        priority = 0;
+    }
+    UnitCommand(AbilityID ability, int priority)
+    {
+        this->ability = ability;
+        this->priority = priority;
+        target = NULL;
         target_point = Point2D(0, 0);
     }
-    UnitCommand(AbilityID ability)
+    UnitCommand(AbilityID ability, Point2D target_point, int priority)
     {
         this->ability = ability;
-        target_tag = NULL;
-        target_point = Point2D(0, 0);
+        this->priority = priority;
+        this->target_point = target_point;
+        target = NULL;
     }
-    UnitCommand(AbilityID ability, Point2D target)
+    UnitCommand(AbilityID ability, const Unit* target, int priority)
     {
         this->ability = ability;
-        target_point = target;
-        target_tag = NULL;
-    }
-    UnitCommand(AbilityID ability, const Unit* target)
-    {
-        this->ability = ability;
-        target_tag = target;
+        this->priority = priority;
+        this->target = target;
         target_point = Point2D(0, 0);
     }
     bool operator==(UnitCommand u)
     {
-        if ((target_point == u.target_point && target_tag == u.target_tag))
+        if ((target_point == u.target_point && target == u.target))
         {
             if (ability == ABILITY_ID::SMART && 
                 (u.ability == ABILITY_ID::SMART ||
@@ -71,12 +76,12 @@ public:
         this->agent = agent;
 	}
 
-    void SetUnitCommand(const Unit* unit, AbilityID ability, bool queued_command = false);
-    void SetUnitCommand(const Unit* unit, AbilityID ability, Point2D point, bool queued_command = false);
-    void SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, bool queued_command = false);
-    void SetUnitsCommand(Units units, AbilityID ability, bool queued_command = false);
-    void SetUnitsCommand(Units units, AbilityID ability, Point2D point, bool queued_command = false);
-    void SetUnitsCommand(Units units, AbilityID ability, const Unit* target, bool queued_command = false);
+    void SetUnitCommand(const Unit* unit, AbilityID ability, int priority, bool queued_command = false);
+    void SetUnitCommand(const Unit* unit, AbilityID ability, Point2D point, int priority, bool queued_command = false);
+    void SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, int priority, bool queued_command = false);
+    void SetUnitsCommand(Units units, AbilityID ability, int priority, bool queued_command = false);
+    void SetUnitsCommand(Units units, AbilityID ability, Point2D point, int priority, bool queued_command = false);
+    void SetUnitsCommand(Units units, AbilityID ability, const Unit* target, int priority, bool queued_command = false);
     void ParseUnitCommands();
 };
 

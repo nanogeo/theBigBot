@@ -204,12 +204,12 @@ public:
 	void CancelAttack(const Unit*);
 	bool GetAttackStatus(const Unit*);
 
-	void SetUnitCommand(const Unit* unit, AbilityID ability, bool queued_command = false);
-	void SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, bool queued_command = false);
-	void SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, bool queued_command = false);
-	void SetUnitsCommand(const Units& units, AbilityID ability, bool queued_command = false);
-	void SetUnitsCommand(const Units& units, AbilityID ability, const Point2D& point, bool queued_command = false);
-	void SetUnitsCommand(const Units& units, AbilityID ability, const Unit* target, bool queued_command = false);
+	void SetUnitCommand(const Unit* unit, AbilityID ability, int prio, bool queued_command = false);
+	void SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, int prio, bool queued_command = false);
+	void SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, int prio, bool queued_command = false);
+	void SetUnitsCommand(const Units& units, AbilityID ability, int prio, bool queued_command = false);
+	void SetUnitsCommand(const Units& units, AbilityID ability, const Point2D& point, int prio, bool queued_command = false);
+	void SetUnitsCommand(const Units& units, AbilityID ability, const Unit* target, int prio, bool queued_command = false);
 
 	void OnBuildingConstructionComplete(const Unit*);
 	void OnNeutralUnitCreated(const Unit*);

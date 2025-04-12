@@ -383,7 +383,7 @@ void DefenseManager::UseBatteryOvercharge(Point2D location)  // BATTERY_OVERCHAR
 		return Utility::GetUnitsWithin(fighting_units, a->pos, 6).size() > Utility::GetUnitsWithin(fighting_units, b->pos, 6).size();
 	});
 
-	mediator->SetUnitCommand(nexus, ABILITY_ID::BATTERYOVERCHARGE, batteries[0]);
+	mediator->SetUnitCommand(nexus, ABILITY_ID::BATTERYOVERCHARGE, batteries[0], 0);
 	last_time_overcharge_used = mediator->GetCurrentTime();
 }
 

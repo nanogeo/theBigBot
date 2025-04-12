@@ -12,9 +12,9 @@ namespace sc2
 {
 	// TODO do not queue blink or oracle beam etc or deal with it
 
-void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, bool queued_command)
+void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, int priority, bool queued_command)
 {
-	UnitCommand new_command = UnitCommand(ability);
+	UnitCommand new_command = UnitCommand(ability, priority);
 	if (queued_command)
 	{
 		queued_commands[unit].push_back(new_command);
@@ -35,18 +35,22 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, boo
 				ability == ABILITY_ID::GENERAL_MOVE))
 			return;
 	}
-	if (!current_commands.count(unit)) // new command
+	if (current_commands.count(unit) == 0) // new command
 		current_commands[unit] = new_command;
 	else if (current_commands[unit] == new_command) // duplicate command
 		return;
 	else
+	{
 		// commands conflict
+		if (new_command.priority > current_commands[unit].priority)
+			current_commands[unit] = new_command;
 		return;
+	}
 }
 
-void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Point2D point, bool queued_command)
+void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Point2D point, int priority, bool queued_command)
 {
-	UnitCommand new_command = UnitCommand(ability, point);
+	UnitCommand new_command = UnitCommand(ability, point, priority);
 	if (queued_command)
 	{
 		queued_commands[unit].push_back(new_command);
@@ -69,18 +73,22 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Poi
 	}
 	if (unit->orders.size() == 0 && ability == ABILITY_ID::GENERAL_MOVE && Distance2D(unit->pos, point) < .01) // ignore move commands to the units current position
 		return;
-	if (!current_commands.count(unit)) // new command
+	if (current_commands.count(unit) == 0) // new command
 		current_commands[unit] = new_command;
 	else if (current_commands[unit] == new_command) // duplicate command
 		return;
 	else
+	{
 		// commands conflict
+		if (new_command.priority > current_commands[unit].priority)
+			current_commands[unit] = new_command;
 		return;
+	}
 }
 
-void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, bool queued_command)
+void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, int priority, bool queued_command)
 {
-	UnitCommand new_command = UnitCommand(ability, target);
+	UnitCommand new_command = UnitCommand(ability, target, priority);
 	if (queued_command)
 	{
 		queued_commands[unit].push_back(new_command);
@@ -101,36 +109,40 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, con
 				ability == ABILITY_ID::GENERAL_MOVE)))
 			return;
 	}
-	if (!current_commands.count(unit)) // new command
+	if (current_commands.count(unit) == 0) // new command
 		current_commands[unit] = new_command;
 	else if (current_commands[unit] == new_command) // duplicate command
 		return;
 	else
+	{
 		// commands conflict
+		if (new_command.priority > current_commands[unit].priority)
+			current_commands[unit] = new_command;
 		return;
+	}
 }
 
-void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, bool queued_command)
+void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, int priority, bool queued_command)
 {
 	for (const auto &unit : units)
 	{
-		SetUnitCommand(unit, ability, queued_command);
+		SetUnitCommand(unit, ability, priority, queued_command);
 	}
 }
 
-void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, Point2D point, bool queued_command)
+void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, Point2D point, int priority, bool queued_command)
 {
 	for (const auto& unit : units)
 	{
-		SetUnitCommand(unit, ability, point, queued_command);
+		SetUnitCommand(unit, ability, point, priority, queued_command);
 	}
 }
 
-void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, const Unit* target, bool queued_command)
+void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, const Unit* target, int priority, bool queued_command)
 {
 	for (const auto& unit : units)
 	{
-		SetUnitCommand(unit, ability, target, queued_command);
+		SetUnitCommand(unit, ability, target, priority, queued_command);
 	}
 }
 
@@ -154,7 +166,7 @@ void UnitCommandManager::ParseUnitCommands()
 #endif
 		if (itr->second.target_point == Point2D(0, 0))
 		{
-			if (itr->second.target_tag == NULL)
+			if (itr->second.target == NULL)
 			{
 				if (itr->second.ability.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMON)
 					mediator->SetOracleOrder(itr->first, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
@@ -177,7 +189,7 @@ void UnitCommandManager::ParseUnitCommands()
 				}
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target);
 #ifndef BUILD_FOR_LADDER
-				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, " << itr->second.target_tag->tag << ", " << std::endl;
+				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, " << itr->second.target->tag << ", " << std::endl;
 #endif
 			}
 		}
@@ -204,13 +216,13 @@ void UnitCommandManager::ParseUnitCommands()
 		{
 			if (command.target_point == Point2D(0, 0))
 			{
-				if (command.target_tag == NULL)
+				if (command.target == NULL)
 				{
 					agent->Actions()->UnitCommand(itr->first, command.ability, true);
 				}
 				else
 				{
-					agent->Actions()->UnitCommand(itr->first, command.ability, command.target_tag, true);
+					agent->Actions()->UnitCommand(itr->first, command.ability, command.target, true);
 				}
 			}
 			else
