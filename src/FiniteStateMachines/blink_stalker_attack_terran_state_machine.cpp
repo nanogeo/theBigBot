@@ -536,7 +536,7 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 {
 	agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism, 0);
 	agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->blink_up_pos, 0, true);
-	//agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism_consolidation_pos, true, 0);
+	//agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->prism_consolidation_pos, 0, true);
 
 	for (int i = 0; i < stalkers_to_blink.size(); i++)
 	{
