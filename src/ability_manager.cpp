@@ -110,6 +110,26 @@ void AbilityManager::SetStalkerOrder(const Unit* unit)
 	stalkers_ordered_to_blink[unit] = mediator->GetGameLoop();
 }
 
+bool AbilityManager::NexusRecallOffCooldown()
+{
+	return mediator->GetCurrentTime() > last_time_nexus_recalled + 130;
+}
+
+bool AbilityManager::NexusBatteryOverchargeOffCooldown()
+{
+	return mediator->GetCurrentTime() > last_time_nexus_battery_overcharged + 60;
+}
+
+void AbilityManager::SetNexusRecallCooldown(float time)
+{
+	last_time_nexus_recalled = time;
+}
+
+void AbilityManager::SetBatteryOverchargeCooldown(float time)
+{
+	last_time_nexus_battery_overcharged = time;
+}
+
 void AbilityManager::OnUnitCreated(const Unit* unit)
 {
 	switch (unit->unit_type.ToType())

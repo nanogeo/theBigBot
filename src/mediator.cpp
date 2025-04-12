@@ -1275,6 +1275,26 @@ bool Mediator::IsOracleCasting(const Unit* unit)
 	return ability_manager.IsOracleCasting(unit);
 }
 
+bool Mediator::IsBatteryOverchargeOffCooldown()
+{
+	return ability_manager.NexusBatteryOverchargeOffCooldown();
+}
+
+void Mediator::SetBatteryOverchargeCooldown()
+{
+	ability_manager.SetBatteryOverchargeCooldown(GetCurrentTime());
+}
+
+bool Mediator::IsNexusRecallOffCooldown()
+{
+	return ability_manager.NexusRecallOffCooldown();
+}
+
+void Mediator::SetNexusRecallCooldown()
+{
+	ability_manager.SetNexusRecallCooldown(GetCurrentTime());
+}
+
 void Mediator::AddUnitToAttackers(const Unit* unit)
 {
 	fire_control_manager.AddUnit(unit);
