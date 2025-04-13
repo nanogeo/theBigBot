@@ -276,7 +276,7 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 		}
 		if (Distance2D(stalkers_to_blink[i]->pos, state_machine->blink_up_pos) < 2)
 		{
-			agent->mediator.SetUnitCommand(stalkers_to_blink[i], ABILITY_ID::EFFECT_BLINK, state_machine->blink_down_pos, 0);
+			agent->mediator.SetUnitCommand(stalkers_to_blink[i], ABILITY_ID::EFFECT_BLINK, state_machine->blink_down_pos, 2);
 		}
 		else
 		{
@@ -339,7 +339,7 @@ void BlinkStalkerAttackTerranAttack::TickState()
 				if (Distance2D(stalker->pos, state_machine->blink_down_pos) < 1)
 				{
 					if (agent->mediator.IsStalkerBlinkOffCooldown(stalker))
-						agent->mediator.SetUnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos, 0);
+						agent->mediator.SetUnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos, 2);
 					else
 						agent->mediator.SetUnitCommand(stalker, ABILITY_ID::SMART, state_machine->prism, 0);
 				}
@@ -497,7 +497,7 @@ void BlinkStalkerAttackTerranSnipeUnit::EnterState()
 		{
 			if (agent->mediator.IsStalkerBlinkOffCooldown(stalker))
 			{
-				agent->mediator.SetUnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, target->pos, 0);
+				agent->mediator.SetUnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, target->pos, 2);
 				agent->mediator.SetUnitCommand(stalker, ABILITY_ID::ATTACK_ATTACK, target, 0, true);
 			}
 			else
@@ -553,7 +553,7 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 			if (Distance2D(stalker->pos, state_machine->blink_down_pos) < 1)
 			{
 				if (agent->mediator.IsStalkerBlinkOffCooldown(stalker))
-					agent->mediator.SetUnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos, 0);
+					agent->mediator.SetUnitCommand(stalker, ABILITY_ID::EFFECT_BLINK, state_machine->blink_up_pos, 2);
 				else
 					agent->mediator.SetUnitCommand(stalker, ABILITY_ID::SMART, state_machine->prism, 0);
 			}

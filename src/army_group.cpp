@@ -811,7 +811,7 @@ namespace sc2 {
 				bool blink_ready = mediator->IsStalkerBlinkOffCooldown(Funit);
 				if (blink_ready && (danger > Funit->shield || danger > (Funit->shield_max / 2)))
 				{
-					mediator->SetUnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4), 0);
+					mediator->SetUnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4), 2);
 					mediator->SetUnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), 0, true);
 					//agent->Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
 				}
@@ -2349,7 +2349,7 @@ namespace sc2 {
 					if (unit->shield == 0 || (unit->shield + unit->health) / (unit->shield_max + unit->health_max) < .3) // TODO this threshold should be passed in
 					{
 						standby_units.push_back(unit);
-						mediator->SetUnitCommand(unit, ABILITY_ID::EFFECT_BLINK, standby_pos, 0);
+						mediator->SetUnitCommand(unit, ABILITY_ID::EFFECT_BLINK, standby_pos, 2);
 						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, standby_pos, 0, true);
 					}
 				}
@@ -2459,7 +2459,7 @@ namespace sc2 {
 					if (mediator->upgrade_manager.has_blink && blink_off_cooldown)
 					{
 
-						mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, standby_pos, 0); // TODO adjustable blink distance
+						mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, standby_pos, 2); // TODO adjustable blink distance
 
 						mediator->CancelAttack(request.first);
 					}
