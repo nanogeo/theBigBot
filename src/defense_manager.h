@@ -46,6 +46,7 @@ public:
 	float JudgeFight(Units, Units, float, float, bool);
 
 	void UseBatteryOvercharge(Point2D);  // BATTERY_OVERCHARGE
+	void RemoveOngoingAttackAt(Point2D);
 };
 
 }

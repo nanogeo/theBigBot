@@ -1416,6 +1416,7 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 	if (unit->unit_type == NEXUS)
 	{
 		army_manager.RemoveDefenseGroupAt(unit->pos);
+		defense_manager.RemoveOngoingAttackAt(unit->pos);
 	}
 }
 void Mediator::OnUpgradeCompleted(UPGRADE_ID upgrade)

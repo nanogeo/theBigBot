@@ -26,14 +26,17 @@ void DefenseManager::CheckForAttacks()
 		{
 			std::cerr << "Attack ended at " << base->pos.x << ", " << base->pos.y <<  " at " << mediator->GetCurrentTime() << std::endl;
 			ArmyGroup* army_group = mediator->GetArmyGroupDefendingBase(itr->location);
-			for (const auto& worker : itr->pulled_workers)
+			if (army_group)
 			{
-				army_group->RemoveUnit(worker);
-				if (worker->is_alive)
-					mediator->PlaceWorker(worker);
+				for (const auto& worker : itr->pulled_workers)
+				{
+					army_group->RemoveUnit(worker);
+					if (worker->is_alive)
+						mediator->PlaceWorker(worker);
+				}
+				// reset desired defenses
+				mediator->AddToDefense(itr->location, -1 * army_group->desired_units);
 			}
-			// reset desired defenses
-			mediator->AddToDefense(itr->location, -1 * army_group->desired_units);
 			ongoing_attacks.erase(itr);
 		}
 		else if (close_enemies.size() > 0 && itr == ongoing_attacks.end())
@@ -101,7 +104,8 @@ void DefenseManager::UpdateOngoingAttacks()
 						continue;
 					attack.pulled_workers.push_back(worker);
 					ArmyGroup* army_group = mediator->GetArmyGroupDefendingBase(attack.location);
-					army_group->AddUnit(worker);
+					if (army_group)
+						army_group->AddUnit(worker);
 				}
 				mediator->AddToDefense(attack.location, attack.pulled_workers.size());
 
@@ -385,6 +389,30 @@ void DefenseManager::UseBatteryOvercharge(Point2D location)  // BATTERY_OVERCHAR
 
 	mediator->SetUnitCommand(nexus, ABILITY_ID::BATTERYOVERCHARGE, batteries[0], 0);
 	last_time_overcharge_used = mediator->GetCurrentTime();
+}
+
+void DefenseManager::RemoveOngoingAttackAt(Point2D location)
+{
+	for (int i = 0; i < ongoing_attacks.size(); i++)
+	{
+		if (ongoing_attacks[i].location == location)
+		{
+			ArmyGroup* army_group = mediator->GetArmyGroupDefendingBase(location);
+			if (army_group)
+			{
+				for (const auto& worker : ongoing_attacks[i].pulled_workers)
+				{
+					army_group->RemoveUnit(worker);
+					if (worker->is_alive)
+						mediator->PlaceWorker(worker);
+				}
+				// reset desired defenses
+				mediator->AddToDefense(location, -1 * army_group->desired_units);
+			}
+			ongoing_attacks.erase(ongoing_attacks.begin() + i);
+			i--;
+		}
+	}
 }
 
 }
