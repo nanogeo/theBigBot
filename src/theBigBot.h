@@ -169,6 +169,7 @@ public:
 	Mediator mediator;
     bool debug_mode = false;
 	int frames_passed = 0;
+	int seconds_passed = 0;
     ScoutInfoZerg scout_info_zerg; // TODO create scouting manager
     ScoutInfoTerran scout_info_terran;
     Race enemy_race;
