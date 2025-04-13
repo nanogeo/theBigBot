@@ -2349,7 +2349,13 @@ namespace sc2 {
 					if (unit->shield == 0 || (unit->shield + unit->health) / (unit->shield_max + unit->health_max) < .3) // TODO this threshold should be passed in
 					{
 						standby_units.push_back(unit);
-						mediator->SetUnitCommand(unit, ABILITY_ID::EFFECT_BLINK, standby_pos, 2);
+
+						if (standby_pos == Point2D(0, 0))
+							mediator->SetUnitCommand(unit, ABILITY_ID::EFFECT_BLINK,
+								Utility::PointBetween(unit->pos, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), unit->pos)->pos, -4), 2);
+						else
+							mediator->SetUnitCommand(unit, ABILITY_ID::EFFECT_BLINK, standby_pos, 2); // TODO adjustable blink distance
+
 						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, standby_pos, 0, true);
 					}
 				}
@@ -2458,8 +2464,11 @@ namespace sc2 {
 
 					if (mediator->upgrade_manager.has_blink && blink_off_cooldown)
 					{
-
-						mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, standby_pos, 2); // TODO adjustable blink distance
+						if (standby_pos == Point2D(0, 0))
+							mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK,
+								Utility::PointBetween(request.first->pos, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), request.first->pos)->pos, -4), 2);
+						else
+							mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, standby_pos, 2); // TODO adjustable blink distance
 
 						mediator->CancelAttack(request.first);
 					}
