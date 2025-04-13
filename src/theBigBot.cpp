@@ -154,7 +154,11 @@ namespace sc2 {
 			/*if (!debug_mode)
 				ShowLocations();*/
 
-
+			if ((float)Observation()->GetGameLoop() / 22.4 > seconds_passed)
+			{
+				std::cerr << "Time: " << std::to_string(seconds_passed) << std::endl;
+				seconds_passed++;
+			}
 
 			UpdateEffectPositions();
 
