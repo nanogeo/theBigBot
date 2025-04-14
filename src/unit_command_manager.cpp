@@ -250,6 +250,7 @@ void UnitCommandManager::ParseUnitCommands()
 	{
 		avg_actions += actions;
 	}
+	avg_actions = avg_actions / 10;
 
 	if (actions_this_frame > 70) // ~90,000 apm
 		consecutive_high_action_frames++;
