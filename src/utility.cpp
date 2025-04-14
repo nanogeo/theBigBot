@@ -2151,7 +2151,7 @@ AbilityID Utility::UnitToWarpInAbility(UNIT_TYPEID type)
 	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
 		return ABILITY_ID::TRAINWARP_DARKTEMPLAR;
 	default:
-		return nullptr;
+		return ABILITY_ID::INVALID;
 	}
 }
 

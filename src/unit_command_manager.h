@@ -67,7 +67,8 @@ class UnitCommandManager
 public:
 	Mediator* mediator;
     TheBigBot* agent;
-    std::queue<int> actions_past_ten_frames;
+    std::vector<int> actions_past_ten_frames = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    int consecutive_high_action_frames = 0;
     std::map<const Unit*, UnitCommand> current_commands;
     std::map<const Unit*, std::vector<UnitCommand>> queued_commands;
 
@@ -75,8 +76,6 @@ public:
 	{
 		this->mediator = mediator;
         this->agent = agent;
-        std::deque<int> queue = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        actions_past_ten_frames = std::queue<int>(queue);
 	}
 
     void SetUnitCommand(const Unit* unit, AbilityID ability, int priority, bool queued_command = false);

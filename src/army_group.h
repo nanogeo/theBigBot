@@ -61,7 +61,7 @@ class ArmyGroup
 public:
 	Mediator* mediator = nullptr;
 	ArmyRole role;
-	StateMachine* state_machine = nullptrptr;
+	StateMachine* state_machine = nullptr;
 
 	Units all_units;
 	Units zealots;
