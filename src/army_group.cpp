@@ -229,6 +229,8 @@ namespace sc2 {
 
 	void ArmyGroup::RemoveUnit(const Unit* unit)
 	{
+		if (unit == nullptr)
+			return; // TODO log error and callstack
 		all_units.erase(std::remove(all_units.begin(), all_units.end(), unit), all_units.end());
 		new_units.erase(std::remove(new_units.begin(), new_units.end(), unit), new_units.end());
 		standby_units.erase(std::remove(standby_units.begin(), standby_units.end(), unit), standby_units.end());
