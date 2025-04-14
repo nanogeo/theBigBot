@@ -18,16 +18,16 @@ struct mineral_patch_data
 	mineral_patch_data()
 	{
 		is_close = false;
-		workers[0] = NULL;
-		workers[1] = NULL;
-		workers[2] = NULL;
+		workers[0] = nullptr;
+		workers[1] = nullptr;
+		workers[2] = nullptr;
 	}
 	mineral_patch_data(bool a)
 	{
 		is_close = a;
-		workers[0] = NULL;
-		workers[1] = NULL;
-		workers[2] = NULL;
+		workers[0] = nullptr;
+		workers[1] = nullptr;
+		workers[2] = nullptr;
 	}
 	mineral_patch_data(bool a, Unit* x, Unit* y, Unit* z)
 	{
@@ -45,14 +45,14 @@ struct assimilator_data
 
 struct mineral_patch_reversed_data
 {
-	const Unit* mineral = NULL;
+	const Unit* mineral = nullptr;
 	Point2D drop_off_point;
 	Point2D pick_up_point;
 };
 
 struct assimilator_reversed_data
 {
-	const Unit* assimilator = NULL;
+	const Unit* assimilator = nullptr;
 	Point2D drop_off_point;
 	Point2D pick_up_point;
 };
@@ -93,7 +93,7 @@ public:
 	bool immediatelySaturateGasses = false;
 	bool immediatelySemiSaturateGasses = false;
 
-	const Unit *new_base = NULL;
+	const Unit *new_base = nullptr;
 	bool should_build_workers = true;
 	int removed_gas_miners = 0;
 

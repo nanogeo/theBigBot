@@ -205,7 +205,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 				continue;
 
 			float dps = 0;
-			const Unit* curr_target = NULL;
+			const Unit* curr_target = nullptr;
 			for (int j = friendly_units.size() - 1; j >= 0; j--)
 			{
 				if (friendly_unit_hp[friendly_units[j]] <= 0)
@@ -217,7 +217,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 					break;
 				}
 			}
-			if (curr_target == NULL) // couldnt find target to attack
+			if (curr_target == nullptr) // couldnt find target to attack
 				continue;
 
 			if (dps > 0)
@@ -260,7 +260,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 		{
 
 			float dps = 0;
-			const Unit* curr_target = NULL;
+			const Unit* curr_target = nullptr;
 			for (int j = enemy_units.size() - 1; j >= 0; j--)
 			{
 				if (enemy_unit_hp[enemy_units[j]] <= 0)
@@ -272,7 +272,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 					break;
 				}
 			}
-			if (curr_target == NULL) // couldnt find target to attack
+			if (curr_target == nullptr) // couldnt find target to attack
 				continue;
 
 			if (friendly_units[i]->unit_type == ORACLE)
@@ -370,7 +370,7 @@ void DefenseManager::UseBatteryOvercharge(Point2D location)  // BATTERY_OVERCHAR
 	Units batteries = mediator->GetUnits(Unit::Alliance::Self, IsUnit(BATTERY));
 	const Unit* nexus = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)), location);
 
-	if (nexus == NULL || Distance2D(nexus->pos, location) > 5) // arbitrary distance
+	if (nexus == nullptr || Distance2D(nexus->pos, location) > 5) // arbitrary distance
 		return;
 
 	for (int i = batteries.size() - 1; i >= 0; i--)

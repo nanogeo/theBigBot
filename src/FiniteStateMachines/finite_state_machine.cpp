@@ -23,7 +23,7 @@ void State::ExitState()
 State* State::TestTransitions()
 {
 	//std::cout << "TestTransitions called on base State class";
-	return NULL;
+	return nullptr;
 }
 
 std::string State::toString()

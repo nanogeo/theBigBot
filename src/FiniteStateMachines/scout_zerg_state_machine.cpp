@@ -28,7 +28,7 @@ State* ScoutZInitialMove::TestTransitions()
 {
 	if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 1)
 		return new ScoutZScoutMain(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutZInitialMove::toString()
@@ -68,11 +68,11 @@ State* ScoutZScoutMain::TestTransitions()
 		agent->mediator.GetCurrentTime() > agent->mediator.scouting_manager.spawning_pool_time + 60)
 	{
 		agent->mediator.MarkStateMachineForDeletion(state_machine);
-		return NULL;
+		return nullptr;
 	}
 	if (state_machine->index >= state_machine->main_scout_path.size())
 		return new ScoutZScoutNatural(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutZScoutMain::toString()
@@ -112,11 +112,11 @@ State* ScoutZScoutNatural::TestTransitions()
 		agent->mediator.GetCurrentTime() > agent->mediator.scouting_manager.spawning_pool_time + 60)
 	{
 		agent->mediator.MarkStateMachineForDeletion(state_machine);
-		return NULL;
+		return nullptr;
 	}
 	if (state_machine->index >= state_machine->natural_scout_path.size())
 		return new ScoutZLookFor3rd(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutZScoutNatural::toString()
@@ -154,7 +154,7 @@ State* ScoutZLookFor3rd::TestTransitions()
 {
 	if (state_machine->index >= state_machine->possible_3rds.size())
 		return new ScoutZScoutMain(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutZLookFor3rd::toString()

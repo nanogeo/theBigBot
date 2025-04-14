@@ -11,7 +11,7 @@ namespace sc2 {
 
 void ImmortalDropWaitForImmortals::TickState()
 {
-	if (state_machine->prism == NULL)
+	if (state_machine->prism == nullptr)
 	{
 		for (const auto &prism : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)))
 		{
@@ -19,13 +19,13 @@ void ImmortalDropWaitForImmortals::TickState()
 			break;
 		}
 	}
-	if (state_machine->immortal1 == NULL || state_machine->immortal2 == NULL)
+	if (state_machine->immortal1 == nullptr || state_machine->immortal2 == nullptr)
 	{
 		for (const auto &immortal : agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_IMMORTAL)))
 		{
-			if (state_machine->immortal1 == NULL && immortal != state_machine->immortal2)
+			if (state_machine->immortal1 == nullptr && immortal != state_machine->immortal2)
 				state_machine->immortal1 = immortal;
-			else if (state_machine->immortal2 == NULL && immortal != state_machine->immortal1)
+			else if (state_machine->immortal2 == nullptr && immortal != state_machine->immortal1)
 				state_machine->immortal2 = immortal;
 		}
 	}
@@ -45,9 +45,9 @@ void ImmortalDropWaitForImmortals::ExitState()
 
 State* ImmortalDropWaitForImmortals::TestTransitions()
 {
-	if (state_machine->prism != NULL && state_machine->immortal1 != NULL  && state_machine->immortal2 != NULL)
+	if (state_machine->prism != nullptr && state_machine->immortal1 != nullptr  && state_machine->immortal2 != nullptr)
 		return new ImmortalDropInitialMove(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ImmortalDropWaitForImmortals::toString()
@@ -78,7 +78,7 @@ State* ImmortalDropInitialMove::TestTransitions()
 {
 	if (Distance2D(state_machine->prism->pos, state_machine->entry_pos) < 15)
 		return new ImmortalDropMicroDrop(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ImmortalDropInitialMove::toString()
@@ -112,7 +112,7 @@ State* ImmortalDropMicroDrop::TestTransitions()
 {
 	if (state_machine->prism->cargo_space_taken == 0)
 		return new ImmortalDropMicroDropDropped2(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ImmortalDropMicroDrop::toString()
@@ -161,7 +161,7 @@ State* ImmortalDropMicroDropCarrying1::TestTransitions()
 {
 	if (state_machine->immortal1->weapon_cooldown == 0 && state_machine->immortal2->weapon_cooldown == 0 && state_machine->prism->cargo_space_taken == 0)
 		return new ImmortalDropMicroDropDropped1(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ImmortalDropMicroDropCarrying1::toString()
@@ -210,7 +210,7 @@ State* ImmortalDropMicroDropCarrying2::TestTransitions()
 {
 	if (state_machine->immortal1->weapon_cooldown == 0 && state_machine->immortal2->weapon_cooldown == 0 && state_machine->prism->cargo_space_taken == 0)
 		return new ImmortalDropMicroDropDropped2(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ImmortalDropMicroDropCarrying2::toString()
@@ -261,7 +261,7 @@ State* ImmortalDropMicroDropDropped1::TestTransitions()
 {
 	if (state_machine->prism->cargo_space_taken == 4)
 		return new ImmortalDropMicroDropCarrying2(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ImmortalDropMicroDropDropped1::toString()
@@ -312,7 +312,7 @@ State* ImmortalDropMicroDropDropped2::TestTransitions()
 {
 	if (state_machine->prism->cargo_space_taken == 4)
 		return new ImmortalDropMicroDropCarrying1(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ImmortalDropMicroDropDropped2::toString()

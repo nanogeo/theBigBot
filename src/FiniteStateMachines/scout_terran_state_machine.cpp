@@ -29,7 +29,7 @@ State* ScoutTInitialMove::TestTransitions()
 {
 	if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 1)
 		return new ScoutTScoutMain(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutTInitialMove::toString()
@@ -84,7 +84,7 @@ State* ScoutTScoutMain::TestTransitions()
 			return new ScoutTScoutNatural(agent, state_machine);
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutTScoutMain::toString()
@@ -124,7 +124,7 @@ State* ScoutTScoutNatural::TestTransitions()
 	{
 		return new ScoutTScoutMain(agent, state_machine);
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutTScoutNatural::toString()
@@ -184,7 +184,7 @@ State* ScoutTScoutRax::TestTransitions()
 		}
 		return new ScoutTReturnToBase(agent, state_machine);
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutTScoutRax::toString()
@@ -224,9 +224,9 @@ State* ScoutTReturnToBase::TestTransitions()
 	if (Distance2D(state_machine->scout->pos, agent->locations->start_location) <= 20)
 	{
 		agent->mediator.MarkStateMachineForDeletion(state_machine);
-		return NULL;
+		return nullptr;
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutTReturnToBase::toString()

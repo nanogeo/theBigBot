@@ -132,7 +132,7 @@ bool BuildOrderManager::BuildBuilding(BuildOrderResultArgData data)
 {
 	Point2D pos = mediator->GetLocation(data.unitId);
 	const Unit* builder = mediator->GetBuilder(pos);
-	if (builder == NULL)
+	if (builder == nullptr)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
@@ -146,7 +146,7 @@ bool BuildOrderManager::BuildFirstPylon(BuildOrderResultArgData data)
 	Point2D pos = mediator->GetFirstPylonLocation();
 
 	const Unit* builder = mediator->GetBuilder(pos);
-	if (builder == NULL)
+	if (builder == nullptr)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
@@ -159,7 +159,7 @@ bool BuildOrderManager::BuildBuildingMulti(BuildOrderResultArgData data)
 {
 	Point2D pos = mediator->GetLocation(data.unitIds[0]);
 	const Unit* builder = mediator->GetBuilder(pos);
-	if (builder == NULL)
+	if (builder == nullptr)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
@@ -173,7 +173,7 @@ bool BuildOrderManager::BuildProxyMulti(BuildOrderResultArgData data)
 {
 	Point2D pos = mediator->GetProxyLocation(data.unitIds[0]);
 	const Unit* builder = mediator->GetBuilder(pos);
-	if (builder == NULL)
+	if (builder == nullptr)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
@@ -543,7 +543,7 @@ bool BuildOrderManager::BuildProxy(BuildOrderResultArgData data)
 	Point2D pos = mediator->GetProxyLocation(data.unitId);
 
 	const Unit* builder = mediator->GetBuilder(pos);
-	if (builder == NULL)
+	if (builder == nullptr)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
@@ -659,17 +659,17 @@ bool BuildOrderManager::PullOutOfGas(BuildOrderResultArgData data)
 	Units workers;
 	for (const auto &data : mediator->assimilators)
 	{
-		if (data.second.workers[2] != NULL)
+		if (data.second.workers[2] != nullptr)
 			workers.push_back(data.second.workers[2]);
 	}
 	for (const auto &data : mediator->assimilators)
 	{
-		if (data.second.workers[1] != NULL)
+		if (data.second.workers[1] != nullptr)
 			workers.push_back(data.second.workers[1]);
 	}
 	for (const auto &data : mediator->assimilators)
 	{
-		if (data.second.workers[0] != NULL)
+		if (data.second.workers[0] != nullptr)
 			workers.push_back(data.second.workers[0]);
 	}
 	int num_removed = 0;
@@ -734,13 +734,13 @@ bool BuildOrderManager::UseProxyDoubleRobo(BuildOrderResultArgData data)
 
 bool BuildOrderManager::MicroImmortalDrop(BuildOrderResultArgData data)
 {
-	/*const Unit* immortal1 = NULL;
-	const Unit* immortal2 = NULL;
+	/*const Unit* immortal1 = nullptr;
+	const Unit* immortal2 = nullptr;
 	for (const auto &immortal : mediator->GetUnits(IsFriendlyUnit(IMMORTAL)))
 	{
-		if (immortal1 == NULL)
+		if (immortal1 == nullptr)
 			immortal1 = immortal;
-		else if (immortal2 == NULL)
+		else if (immortal2 == nullptr)
 			immortal2 = immortal;
 	}
 	ImmortalDropStateMachine* immortal_drop_fsm = new ImmortalDropStateMachine(mediator, "Immortal Drop", immortal1, immortal2, mediator->GetUnits(IsFriendlyUnit(PRISM))[0], mediator->GetEnemyStartLocation(), mediator->locations->immortal_drop_prism_locations);
@@ -815,7 +815,7 @@ bool BuildOrderManager::SendCannonRushTerranProbe1(BuildOrderResultArgData data)
 {
 	/*Point2D pos = mediator->GetEnemyStartLocation();
 	const Unit* cannoneer = mediator->GetBuilder(pos);
-	if (cannoneer == NULL)
+	if (cannoneer == nullptr)
 	{
 		//std::cout << "Error could not find builder in SendCannonRushTerranProbe1" << std::endl;
 		return false;
@@ -830,7 +830,7 @@ bool BuildOrderManager::SendCannonRushTerranProbe2(BuildOrderResultArgData data)
 {
 	/*Point2D pos = mediator->GetEnemyStartLocation();
 	const Unit* cannoneer = mediator->GetBuilder(pos);
-	if (cannoneer == NULL)
+	if (cannoneer == nullptr)
 	{
 		//std::cout << "Error could not find builder in SendCannonRushTerranProbe1" << std::endl;
 		return false;
@@ -917,7 +917,7 @@ bool BuildOrderManager::BuildNaturalDefensiveBuilding(BuildOrderResultArgData da
 {
 	Point2D pos = mediator->GetNaturalDefensiveLocation(data.unitId);
 	const Unit* builder = mediator->GetBuilder(pos);
-	if (builder == NULL)
+	if (builder == nullptr)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
@@ -1066,7 +1066,7 @@ bool BuildOrderManager::AttackLine(BuildOrderResultArgData data)
 bool BuildOrderManager::RemoveProbe(BuildOrderResultArgData data)
 {
 	const Unit* builder = mediator->GetBuilder(Point2D(0, 0));
-	if (builder == NULL)
+	if (builder == nullptr)
 	{
 		//std::cout << "Error could not find builder in RemoveProbe" << std::endl;
 		return false;

@@ -166,7 +166,7 @@ void UnitCommandManager::ParseUnitCommands()
 #endif
 		if (itr->second.target_point == Point2D(0, 0))
 		{
-			if (itr->second.target == NULL)
+			if (itr->second.target == nullptr)
 			{
 				if (itr->second.ability.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMON)
 					mediator->SetOracleOrder(itr->first, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
@@ -219,7 +219,7 @@ void UnitCommandManager::ParseUnitCommands()
 		{
 			if (command.target_point == Point2D(0, 0))
 			{
-				if (command.target == NULL)
+				if (command.target == nullptr)
 				{
 					agent->Actions()->UnitCommand(itr->first, command.ability, true);
 					actions_this_frame++;

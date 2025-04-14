@@ -101,12 +101,12 @@ public:
 class AdeptBaseDefenseTerran : public StateMachine
 {
 public:
-	const Unit* adept = NULL;
+	const Unit* adept = nullptr;
 	int frame_shade_used = 0;
 	bool attack_status = false;
-	const Unit* shade = NULL;
+	const Unit* shade = nullptr;
 	Point2D dead_space_spot;
-	const Unit* target = NULL;
+	const Unit* target = nullptr;
 	std::vector<Point2D> front_of_base;
 	int event_id;
 	AdeptBaseDefenseTerran(TheBigBot* agent, std::string name, Point2D dead_space_spot, std::vector<Point2D> front_of_base);

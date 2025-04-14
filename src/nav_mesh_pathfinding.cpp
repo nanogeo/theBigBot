@@ -1230,7 +1230,7 @@ std::vector<Triangle*> NavMesh::ReconstructPath(std::map<Triangle*, Triangle*> c
 {
 	std::vector<Triangle*> path_r;
 	Triangle* current = end;
-	while (current != NULL)
+	while (current != nullptr)
 	{
 		path_r.push_back(current);
 		current = came_from[current];
@@ -1250,7 +1250,7 @@ Triangle* NavMesh::FindClosestTriangle(Point2D pos)
 		if (PointInTriangle(triangle, pos))
 			return triangle;
 	}
-	Triangle* closest = NULL;
+	Triangle* closest = nullptr;
 	float dist = INFINITY;
 	for (const auto &triangle : triangles)
 	{
@@ -1260,7 +1260,7 @@ Triangle* NavMesh::FindClosestTriangle(Point2D pos)
 			dist = Distance2D(pos, triangle->center);
 		}
 	}
-	if (closest == NULL)
+	if (closest == nullptr)
 	{
 		//std::cout << "Error no triangle found in FindClosestTriangle\n";
 	}
@@ -1310,7 +1310,7 @@ std::vector<Triangle*> NavMesh::FindTrianglePath(Triangle* start, Triangle* end)
 
 	heap.push(QTriangle(start, Distance2D(start->center, end->center)));
 	dist_to[start] = 0;
-	came_from[start] = NULL;
+	came_from[start] = nullptr;
 
 	while (!heap.empty())
 	{

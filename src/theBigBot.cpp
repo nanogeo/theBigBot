@@ -733,7 +733,7 @@ namespace sc2 {
         for (const auto &tag : proxy_pylons)
         {
 			const Unit* pylon = Observation()->GetUnit(tag);
-			if (pylon == NULL || pylon->is_alive == false)
+			if (pylon == nullptr || pylon->is_alive == false)
 				continue;
             Point2D pylon_pos = Observation()->GetUnit(tag)->pos;
             for (int i = -6; i <= 6; i += 2)
@@ -1568,11 +1568,11 @@ namespace sc2 {
                 far_patches += "\n";
                 gasses += "\n";
                 close_patches += "close:";
-                if (data.second.workers[0] != NULL)
+                if (data.second.workers[0] != nullptr)
                     close_patches += " X";
-                if (data.second.workers[1] != NULL)
+                if (data.second.workers[1] != nullptr)
                     close_patches += " X";
-                if (data.second.workers[2] != NULL)
+                if (data.second.workers[2] != nullptr)
                     close_patches += " X";
                 close_patches += "\n";
             }
@@ -1583,11 +1583,11 @@ namespace sc2 {
             {
                 gasses += "\n";
                 far_patches += "far:";
-                if (data.second.workers[0] != NULL)
+                if (data.second.workers[0] != nullptr)
                     far_patches += " X";
-                if (data.second.workers[1] != NULL)
+                if (data.second.workers[1] != nullptr)
                     far_patches += " X";
-                if (data.second.workers[2] != NULL)
+                if (data.second.workers[2] != nullptr)
                     far_patches += " X";
                 far_patches += "\n";
             }
@@ -1595,11 +1595,11 @@ namespace sc2 {
         for (const auto &data : mediator.worker_manager.assimilators)
         {
             gasses += "gas:";
-            if (data.second.workers[0] != NULL)
+            if (data.second.workers[0] != nullptr)
                 gasses += " X";
-            if (data.second.workers[1] != NULL)
+            if (data.second.workers[1] != nullptr)
                 gasses += " X";
-            if (data.second.workers[2] != NULL)
+            if (data.second.workers[2] != nullptr)
                 gasses += " X";
             gasses += "\n";
         }
@@ -1631,7 +1631,7 @@ namespace sc2 {
         {
             actions_message += mediator.action_manager.active_actions[i]->toString() + "\n";
             const Unit* unit = mediator.action_manager.active_actions[i]->action_arg->unit;
-            if (unit != NULL)
+            if (unit != nullptr)
                 Debug()->DebugTextOut(mediator.action_manager.active_actions[i]->toString(), unit->pos, Color(0, 255, 0), 20);
         }
         Debug()->DebugTextOut(actions_message, Point2D(.1, 0), Color(0, 255, 0), 20);

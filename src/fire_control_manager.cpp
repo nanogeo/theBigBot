@@ -21,7 +21,7 @@ namespace sc2 {
 			for (const auto &Eunit : Funit.second)
 			{
 				EnemyUnitInfo* info = GetEnemyUnitInfo(Eunit);
-				if (info == NULL)
+				if (info == nullptr)
 				{
 					info = new EnemyUnitInfo();
 					info->unit = Eunit;
@@ -59,7 +59,7 @@ namespace sc2 {
 			for (const auto& Eunit : Funit.second)
 			{
 				EnemyUnitInfo* info = GetEnemyUnitInfo(Eunit);
-				if (info == NULL)
+				if (info == nullptr)
 				{
 					info = new EnemyUnitInfo();
 					info->unit = Eunit;
@@ -97,7 +97,7 @@ namespace sc2 {
 			for (const auto& Eunit : Funit.second)
 			{
 				EnemyUnitInfo* info = GetEnemyUnitInfo(Eunit);
-				if (info == NULL)
+				if (info == nullptr)
 				{
 					info = new EnemyUnitInfo();
 					info->unit = Eunit;
@@ -136,7 +136,7 @@ namespace sc2 {
 			if (unit_info->unit == unit)
 				return unit_info;
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	FriendlyUnitInfo* FireControl::GetFriendlyUnitInfo(const Unit* unit)
@@ -146,7 +146,7 @@ namespace sc2 {
 			if (unit_info->unit == unit)
 				return unit_info;
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	int FireControl::GetDamage(const Unit* Funit, const Unit* Eunit)

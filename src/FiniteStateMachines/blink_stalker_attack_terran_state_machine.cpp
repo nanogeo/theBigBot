@@ -71,7 +71,7 @@ State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 			state_machine->attached_army_group->using_standby = true;
 		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string BlinkStalkerAttackTerranMoveAcross::toString()
@@ -131,7 +131,7 @@ State* BlinkStalkerAttackTerranWarpIn::TestTransitions()
 	//	state_machine->warping_in = false;
 		return new BlinkStalkerAttackTerranMoveAcross(agent, state_machine);
 	//}
-	//return NULL;
+	//return nullptr;
 }
 
 std::string BlinkStalkerAttackTerranWarpIn::toString()
@@ -199,7 +199,7 @@ void BlinkStalkerAttackTerranConsolidate::ExitState()
 State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 {
 	if ((float)state_machine->moving_to_standby_stalkers.size() / (float)state_machine->standby_stalkers.size() > .5)
-		return NULL;
+		return nullptr;
 	if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), state_machine->consolidation_pos) < 12)
 	{
 		state_machine->attacking_main = false;
@@ -208,7 +208,7 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 	if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
 	{
 		if (state_machine->standby_stalkers.size() < 8)
-			return NULL;
+			return nullptr;
 
 		float stalkers_healthy = 0;
 		for (const auto& stalker : state_machine->standby_stalkers) // TODO change to enough stalkers not all
@@ -243,7 +243,7 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 			}
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string BlinkStalkerAttackTerranConsolidate::toString()
@@ -261,7 +261,7 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 	agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->blink_down_pos, 0, true);
 	for (int i = 0; i < stalkers_to_blink.size(); i++)
 	{
-		if (stalkers_to_blink[i] == NULL) // TODO look into why this is ever the case
+		if (stalkers_to_blink[i] == nullptr) // TODO look into why this is ever the case
 		{
 			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
 			i--;
@@ -310,7 +310,7 @@ State* BlinkStalkerAttackTerranBlinkUp::TestTransitions()
 		state_machine->attached_army_group->standby_pos = state_machine->blink_down_pos;
 		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string BlinkStalkerAttackTerranBlinkUp::toString()
@@ -471,7 +471,7 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 std::string BlinkStalkerAttackTerranAttack::toString()
@@ -515,12 +515,12 @@ void BlinkStalkerAttackTerranSnipeUnit::ExitState()
 
 State* BlinkStalkerAttackTerranSnipeUnit::TestTransitions()
 {
-	if (target == NULL || 
+	if (target == nullptr || 
 		target->is_alive == false || 
 		target->display_type != Unit::DisplayType::Visible || 
 		agent->mediator.GetCurrentTime() > enter_time + .5)
 		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string BlinkStalkerAttackTerranSnipeUnit::toString()
@@ -541,7 +541,7 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 	for (int i = 0; i < stalkers_to_blink.size(); i++)
 	{
 		const Unit* stalker = stalkers_to_blink[i];
-		if (stalker == NULL || stalker->is_alive == false)
+		if (stalker == nullptr || stalker->is_alive == false)
 		{
 			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
 			i--;
@@ -585,7 +585,7 @@ State* BlinkStalkerAttackTerranLeaveHighground::TestTransitions()
 {
 	if (stalkers_to_blink.size() == 0)
 		return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string BlinkStalkerAttackTerranLeaveHighground::toString()

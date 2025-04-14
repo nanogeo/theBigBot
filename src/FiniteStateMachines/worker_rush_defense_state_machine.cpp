@@ -44,7 +44,7 @@ State* WorkerRushDefenseGroupUp::TestTransitions()
 	}
 	if (max_dist <= .25)
 		return new WorkerRushDefenseInitialMove(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string WorkerRushDefenseGroupUp::toString()
@@ -75,7 +75,7 @@ void WorkerRushDefenseInitialMove::ExitState()
 State* WorkerRushDefenseInitialMove::TestTransitions()
 {
 	
-	return NULL;
+	return nullptr;
 }
 
 std::string WorkerRushDefenseInitialMove::toString()
@@ -106,7 +106,7 @@ void WorkerRushDefenseDefend::TickState()
 		else if (state_machine->workers[i]->weapon_cooldown == 0)
 		{
 			const Unit* closest_enemy = Utility::ClosestTo(agent->mediator.GetUnits(Unit::Alliance::Enemy), state_machine->workers[i]->pos);
-			if (closest_enemy != NULL)
+			if (closest_enemy != nullptr)
 				agent->mediator.SetUnitCommand(state_machine->workers[i], ABILITY_ID::ATTACK, closest_enemy, 0);
 		}
 		else
@@ -129,7 +129,7 @@ void WorkerRushDefenseDefend::ExitState()
 State* WorkerRushDefenseDefend::TestTransitions()
 {
 	// TODO transition out when enemy leaves or is vanquished
-	return NULL;
+	return nullptr;
 }
 
 std::string WorkerRushDefenseDefend::toString()

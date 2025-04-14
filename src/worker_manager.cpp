@@ -21,7 +21,7 @@ const Unit* WorkerManager::GetWorker()
 	std::map<const Unit*, mineral_patch_data> close_patches;
 	for (const auto &field : mineral_patches)
 	{
-		if (field.second.is_close && field.second.workers[0] != NULL)
+		if (field.second.is_close && field.second.workers[0] != nullptr)
 		{
 			close_patches[field.first] = field.second;
 		}
@@ -29,7 +29,7 @@ const Unit* WorkerManager::GetWorker()
 	std::map<const Unit*, mineral_patch_data> close_oversaturated_patches;
 	for (const auto &field : close_patches)
 	{
-		if (field.second.workers[2] != NULL)
+		if (field.second.workers[2] != nullptr)
 		{
 			close_oversaturated_patches[field.first] = field.second;
 		}
@@ -46,7 +46,7 @@ const Unit* WorkerManager::GetWorker()
 	std::map<const Unit*, mineral_patch_data> far_patches;
 	for (const auto &field : mineral_patches)
 	{
-		if (!field.second.is_close && field.second.workers[0] != NULL)
+		if (!field.second.is_close && field.second.workers[0] != nullptr)
 		{
 			far_patches[field.first] = field.second;
 		}
@@ -54,7 +54,7 @@ const Unit* WorkerManager::GetWorker()
 	std::map<const Unit*, mineral_patch_data> far_oversaturated_patches;
 	for (const auto &field : far_patches)
 	{
-		if (field.second.workers[2] != NULL)
+		if (field.second.workers[2] != nullptr)
 		{
 			far_oversaturated_patches[field.first] = field.second;
 		}
@@ -72,14 +72,14 @@ const Unit* WorkerManager::GetWorker()
 	{
 		for (const auto &field : far_patches)
 		{
-			if (field.second.workers[1] != NULL && IsCarryingMinerals(*field.second.workers[1]) == false)
+			if (field.second.workers[1] != nullptr && IsCarryingMinerals(*field.second.workers[1]) == false)
 			{
 				return field.second.workers[1];
 			}
 		}
 		for (const auto &field : far_patches)
 		{
-			if (field.second.workers[0] != NULL && IsCarryingMinerals(*field.second.workers[0]) == false)
+			if (field.second.workers[0] != nullptr && IsCarryingMinerals(*field.second.workers[0]) == false)
 			{
 				return field.second.workers[0];
 			}
@@ -90,21 +90,21 @@ const Unit* WorkerManager::GetWorker()
 	{
 		for (const auto &field : close_patches)
 		{
-			if (field.second.workers[1] != NULL && IsCarryingMinerals(*field.second.workers[1]) == false)
+			if (field.second.workers[1] != nullptr && IsCarryingMinerals(*field.second.workers[1]) == false)
 			{
 				return field.second.workers[1];
 			}
 		}
 		for (const auto &field : close_patches)
 		{
-			if (field.second.workers[0] != NULL && IsCarryingMinerals(*field.second.workers[0]) == false)
+			if (field.second.workers[0] != nullptr && IsCarryingMinerals(*field.second.workers[0]) == false)
 			{
 				return field.second.workers[0];
 			}
 		}
 	}
 	//std::cout << "Error no available worker found";
-	return NULL;
+	return nullptr;
 }
 
 const Unit* WorkerManager::GetBuilder(Point2D position)
@@ -121,7 +121,7 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 			far_only_mineral_patches_reversed_keys.push_back(worker.first);
 		mineral_patches_reversed_keys.push_back(worker.first);
 	}
-	const Unit* closest = NULL;
+	const Unit* closest = nullptr;
 	if (far_only_mineral_patches_reversed_keys.size() > 0) 
 	{
 		closest = Utility::ClosestTo(far_only_mineral_patches_reversed_keys, position);
@@ -129,13 +129,13 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 	if (mineral_patches_reversed_keys.size() > 0)
 	{
 		const Unit* c = Utility::ClosestTo(mineral_patches_reversed_keys, position);
-		if (closest != NULL && Distance2D(closest->pos, position) < Distance2D(c->pos, position) * 1.2)
+		if (closest != nullptr && Distance2D(closest->pos, position) < Distance2D(c->pos, position) * 1.2)
 			return closest;
 		else
 			return c;
 	}
 	//std::cout << "Error mineral patches reversed is empty in GetBuilder";
-	return NULL;
+	return nullptr;
 }
 
 void WorkerManager::PlaceWorker(const Unit* worker)
@@ -145,19 +145,19 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		&& gas_spaces.size() > removed_gas_miners)
 	{
 		float distance = INFINITY;
-		mineral_patch_space* closest = NULL;
+		mineral_patch_space* closest = nullptr;
 		for (mineral_patch_space* &space : gas_spaces)
 		{
 			float dist = Distance2D(worker->pos, space->mineral_patch->pos);
-			if (closest == NULL || dist < distance)
+			if (closest == nullptr || dist < distance)
 			{
 				distance = dist;
 				closest = space;
 			}
 		}
-		if (closest == NULL)
+		if (closest == nullptr)
 		{
-			std::cerr << "Error: NULL in gas_spaces" << std::endl;
+			std::cerr << "Error: nullptr in gas_spaces" << std::endl;
 			return;
 		}
 		*(closest->worker) = worker;
@@ -169,30 +169,30 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 	if (first_2_mineral_patch_spaces.size() > 0)
 	{
 		float distance = INFINITY;
-		mineral_patch_space* closest = NULL;
+		mineral_patch_space* closest = nullptr;
 		float distance_c = INFINITY;
-		mineral_patch_space* closest_c = NULL;
+		mineral_patch_space* closest_c = nullptr;
 		for (mineral_patch_space* &space : first_2_mineral_patch_spaces)
 		{
 			float dist = Distance2D(worker->pos, space->mineral_patch->pos);
-			if (closest == NULL || dist < distance)
+			if (closest == nullptr || dist < distance)
 			{
 				distance = dist;
 				closest = space;
 			}
-			if (mineral_patches[space->mineral_patch].is_close && (closest_c == NULL || dist < distance_c))
+			if (mineral_patches[space->mineral_patch].is_close && (closest_c == nullptr || dist < distance_c))
 			{
 				distance_c = dist;
 				closest_c = space;
 			}
 		}
-		if (closest_c != NULL)
+		if (closest_c != nullptr)
 		{
 			(*closest_c->worker) = worker;
 			NewPlaceWorkerOnMinerals(worker, closest_c->mineral_patch);
 			first_2_mineral_patch_spaces.erase(std::remove(first_2_mineral_patch_spaces.begin(), first_2_mineral_patch_spaces.end(), closest_c), first_2_mineral_patch_spaces.end());
 		}
-		else if (closest != NULL)
+		else if (closest != nullptr)
 		{
 			(*closest->worker) = worker;
 			NewPlaceWorkerOnMinerals(worker, closest->mineral_patch);
@@ -200,7 +200,7 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		}
 		else
 		{
-			std::cerr << "Error: NULL in first_2_mineral_patch_spaces" << std::endl;
+			std::cerr << "Error: nullptr in first_2_mineral_patch_spaces" << std::endl;
 			return;
 		}
 		return;
@@ -208,19 +208,19 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 	if (gas_spaces.size() > removed_gas_miners)
 	{
 		float distance = INFINITY;
-		mineral_patch_space* closest = NULL;
+		mineral_patch_space* closest = nullptr;
 		for (mineral_patch_space* &space : gas_spaces)
 		{
 			float dist = Distance2D(worker->pos, space->mineral_patch->pos);
-			if (closest == NULL || dist < distance)
+			if (closest == nullptr || dist < distance)
 			{
 				distance = dist;
 				closest = space;
 			}
 		}
-		if (closest == NULL)
+		if (closest == nullptr)
 		{
-			std::cerr << "Error: NULL in gas_spaces" << std::endl;
+			std::cerr << "Error: nullptr in gas_spaces" << std::endl;
 			return;
 		}
 		*(closest->worker) = worker;
@@ -232,19 +232,19 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 	if (far_3_mineral_patch_spaces.size() > 0)
 	{
 		float distance = INFINITY;
-		mineral_patch_space* closest = NULL;
+		mineral_patch_space* closest = nullptr;
 		for (mineral_patch_space* &space : far_3_mineral_patch_spaces)
 		{
 			float dist = Distance2D(worker->pos, space->mineral_patch->pos);
-			if (closest == NULL || dist < distance)
+			if (closest == nullptr || dist < distance)
 			{
 				distance = dist;
 				closest = space;
 			}
 		}
-		if (closest == NULL)
+		if (closest == nullptr)
 		{
-			std::cerr << "Error: NULL in far_3_mineral_patch_spaces" << std::endl;
+			std::cerr << "Error: nullptr in far_3_mineral_patch_spaces" << std::endl;
 			return;
 		}
 		*(closest->worker) = worker;
@@ -258,19 +258,19 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 	if (close_3_mineral_patch_spaces.size() > 0)
 	{
 		float distance = INFINITY;
-		mineral_patch_space* closest = NULL;
+		mineral_patch_space* closest = nullptr;
 		for (mineral_patch_space* &space : close_3_mineral_patch_spaces)
 		{
 			float dist = Distance2D(worker->pos, space->mineral_patch->pos);
-			if (closest == NULL || dist < distance)
+			if (closest == nullptr || dist < distance)
 			{
 				distance = dist;
 				closest = space;
 			}
 		}
-		if (closest == NULL)
+		if (closest == nullptr)
 		{
-			std::cerr << "Error: NULL in close_3_mineral_patch_spaces" << std::endl;
+			std::cerr << "Error: nullptr in close_3_mineral_patch_spaces" << std::endl;
 			return;
 		}
 		(*closest->worker) = worker;
@@ -292,7 +292,7 @@ void WorkerManager::PlaceWorkerInGas(const Unit* worker, const Unit* gas, int in
 	Point2D assimilator_position = gas->pos;
 	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
-	if (closest_nexus == NULL)
+	if (closest_nexus == nullptr)
 		return;
 	Point2D vector = assimilator_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -314,7 +314,7 @@ void WorkerManager::NewPlaceWorkerInGas(const Unit* worker, const Unit* gas)
 	Point2D assimilator_position = gas->pos;
 	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, assimilator_position);
-	if (closest_nexus == NULL)
+	if (closest_nexus == nullptr)
 		return;
 	Point2D vector = assimilator_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -337,7 +337,7 @@ void WorkerManager::PlaceWorkerOnMinerals(const Unit* worker, const Unit* minera
 	Point2D mineral_position = mineral->pos;
 	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
-	if (closest_nexus == NULL)
+	if (closest_nexus == nullptr)
 		return;
 	Point2D vector = mineral_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -351,7 +351,7 @@ void WorkerManager::PlaceWorkerOnMinerals(const Unit* worker, const Unit* minera
 		if (Distance2D(closest->pos, mineral_position) == 0)
 			const Unit* closest = closest_minerals[1];
 
-		if (closest != NULL && Distance2D(closest->pos, pick_up_point) < 1.325)
+		if (closest != nullptr && Distance2D(closest->pos, pick_up_point) < 1.325)
 		{
 			Point2D new_pick_up_point = Utility::ClosestIntersectionTo(closest->pos, 1.325, mineral_position, 1.325, pick_up_point);
 			pick_up_point = new_pick_up_point;
@@ -375,7 +375,7 @@ void WorkerManager::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* min
 	Point2D mineral_position = mineral->pos;
 	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
 	const Unit* closest_nexus = Utility::ClosestTo(townhalls, mineral_position);
-	if (closest_nexus == NULL)
+	if (closest_nexus == nullptr)
 		return;
 	Point2D vector = mineral_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -389,7 +389,7 @@ void WorkerManager::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* min
 		if (Distance2D(closest->pos, mineral_position) == 0)
 			const Unit* closest = closest_minerals[1];
 
-		if (closest != NULL && Distance2D(closest->pos, pick_up_point) < 1.325)
+		if (closest != nullptr && Distance2D(closest->pos, pick_up_point) < 1.325)
 		{
 			Point2D new_pick_up_point = Utility::ClosestIntersectionTo(closest->pos, 1.325, mineral_position, 1.325, pick_up_point);
 			pick_up_point = new_pick_up_point;
@@ -423,17 +423,17 @@ RemoveWorkerResult WorkerManager::RemoveWorker(const Unit* worker)
 
 		if (mineral_patches[mineral].workers[0] == worker)
 		{
-			if (mineral_patches[mineral].workers[1] == NULL)
+			if (mineral_patches[mineral].workers[1] == nullptr)
 			{
-				mineral_patches[mineral].workers[0] = NULL;
+				mineral_patches[mineral].workers[0] = nullptr;
 				first_2_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[0], mineral));
 			}
 			else
 			{
 				mineral_patches[mineral].workers[0] = mineral_patches[mineral].workers[1];
-				if (mineral_patches[mineral].workers[2] == NULL)
+				if (mineral_patches[mineral].workers[2] == nullptr)
 				{
-					mineral_patches[mineral].workers[1] = NULL;
+					mineral_patches[mineral].workers[1] = nullptr;
 					first_2_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[1], mineral));
 				}
 				else
@@ -449,15 +449,15 @@ RemoveWorkerResult WorkerManager::RemoveWorker(const Unit* worker)
 						far_3_mineral_patch_extras.erase(std::remove_if(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), rem), far_3_mineral_patch_extras.end());
 					}
 					mineral_patches[mineral].workers[1] = mineral_patches[mineral].workers[2];
-					mineral_patches[mineral].workers[2] = NULL;
+					mineral_patches[mineral].workers[2] = nullptr;
 				}
 			}
 		}
 		else if (mineral_patches[mineral].workers[1] == worker)
 		{
-			if (mineral_patches[mineral].workers[2] == NULL)
+			if (mineral_patches[mineral].workers[2] == nullptr)
 			{
-				mineral_patches[mineral].workers[1] = NULL;
+				mineral_patches[mineral].workers[1] = nullptr;
 				first_2_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[1], mineral));
 			}
 			else
@@ -473,7 +473,7 @@ RemoveWorkerResult WorkerManager::RemoveWorker(const Unit* worker)
 					far_3_mineral_patch_extras.erase(std::remove_if(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), rem), far_3_mineral_patch_extras.end());
 				}
 				mineral_patches[mineral].workers[1] = mineral_patches[mineral].workers[2];
-				mineral_patches[mineral].workers[2] = NULL;
+				mineral_patches[mineral].workers[2] = nullptr;
 			}
 		}
 		else if (mineral_patches[mineral].workers[2] == worker)
@@ -488,7 +488,7 @@ RemoveWorkerResult WorkerManager::RemoveWorker(const Unit* worker)
 				far_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral].workers[2], mineral));
 				far_3_mineral_patch_extras.erase(std::remove_if(far_3_mineral_patch_extras.begin(), far_3_mineral_patch_extras.end(), rem), far_3_mineral_patch_extras.end());
 			}
-			mineral_patches[mineral].workers[2] = NULL;
+			mineral_patches[mineral].workers[2] = nullptr;
 		}
 		return RemoveWorkerResult::REMOVED_FROM_MINERALS;
 	}
@@ -498,44 +498,44 @@ RemoveWorkerResult WorkerManager::RemoveWorker(const Unit* worker)
 		assimilators_reversed.erase(worker);
 		if (assimilators[assimilator].workers[0] == worker)
 		{
-			if (assimilators[assimilator].workers[1] == NULL)
+			if (assimilators[assimilator].workers[1] == nullptr)
 			{
-				assimilators[assimilator].workers[0] = NULL;
+				assimilators[assimilator].workers[0] = nullptr;
 				gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[0], assimilator));
 			}
 			else
 			{
 				assimilators[assimilator].workers[0] = assimilators[assimilator].workers[1];
-				if (assimilators[assimilator].workers[2] == NULL)
+				if (assimilators[assimilator].workers[2] == nullptr)
 				{
-					assimilators[assimilator].workers[1] = NULL;
+					assimilators[assimilator].workers[1] = nullptr;
 					gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[1], assimilator));
 				}
 				else
 				{
 					assimilators[assimilator].workers[1] = assimilators[assimilator].workers[2];
-					assimilators[assimilator].workers[2] = NULL;
+					assimilators[assimilator].workers[2] = nullptr;
 					gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[2], assimilator));
 				}
 			}
 		}
 		else if (assimilators[assimilator].workers[1] == worker)
 		{
-			if (assimilators[assimilator].workers[2] == NULL)
+			if (assimilators[assimilator].workers[2] == nullptr)
 			{
-				assimilators[assimilator].workers[1] = NULL;
+				assimilators[assimilator].workers[1] = nullptr;
 				gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[1], assimilator));
 			}
 			else
 			{
 				assimilators[assimilator].workers[1] = assimilators[assimilator].workers[2];
-				assimilators[assimilator].workers[2] = NULL;
+				assimilators[assimilator].workers[2] = nullptr;
 				gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[2], assimilator));
 			}
 		}
 		else if (assimilators[assimilator].workers[2] == worker)
 		{
-			assimilators[assimilator].workers[2] = NULL;
+			assimilators[assimilator].workers[2] = nullptr;
 			gas_spaces.push_back(new mineral_patch_space(&assimilators[assimilator].workers[2], assimilator));
 		}
 		return RemoveWorkerResult::REMOVED_FROM_GAS;
@@ -666,7 +666,7 @@ void WorkerManager::AddNewBase()
 			close_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral_field].workers[2], mineral_field));
 		else
 			far_3_mineral_patch_spaces.push_back(new mineral_patch_space(&mineral_patches[mineral_field].workers[2], mineral_field));
-		new_base = NULL;
+		new_base = nullptr;
 	}
 }
 
@@ -695,10 +695,10 @@ void WorkerManager::DistributeWorkers()
 	Units workers;
 	for (const auto &worker : mineral_patches_reversed)
 	{
-		if (worker.first != NULL)
+		if (worker.first != nullptr)
 			workers.push_back(worker.first);
 		else
-			std::cerr << "found null worker on minerals" << std::endl;
+			std::cerr << "found nullptr worker on minerals" << std::endl;
 	}
 	for (const auto &worker : workers)
 	{
@@ -707,7 +707,7 @@ void WorkerManager::DistributeWorkers()
 		if (worker->weapon_cooldown == 0)
 		{
 			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), worker->pos);
-			if (enemy_unit != NULL && Distance2D(worker->pos, enemy_unit->pos) <= Utility::RealRange(worker, enemy_unit))
+			if (enemy_unit != nullptr && Distance2D(worker->pos, enemy_unit->pos) <= Utility::RealRange(worker, enemy_unit))
 			{
 				mediator->SetUnitCommand(worker, ABILITY_ID::ATTACK, enemy_unit, 0);
 				continue;
@@ -746,7 +746,7 @@ void WorkerManager::DistributeWorkers()
 		{
 			const Unit* mineral_patch = mineral_patches_reversed[worker].mineral;
 
-			if (mineral_patch != NULL)
+			if (mineral_patch != nullptr)
 			{
 				if (Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) > .5 && 
 					Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) < 2 && 
@@ -762,7 +762,7 @@ void WorkerManager::DistributeWorkers()
 			}
 			else
 			{
-				//std::cout << "Error null mineral patching in DistributeWorkers 2";
+				//std::cout << "Error nullptr mineral patching in DistributeWorkers 2";
 			}
 		}
 	}
@@ -770,24 +770,24 @@ void WorkerManager::DistributeWorkers()
 	Units gas_workers;
 	for (const auto &worker : assimilators_reversed)
 	{
-		if (worker.first != NULL)
+		if (worker.first != nullptr)
 			gas_workers.push_back(worker.first);
 		else
-			std::cerr << "found null worker on gas" << std::endl;
+			std::cerr << "found nullptr worker on gas" << std::endl;
 	}
 	for (const auto &worker : gas_workers)
 	{
 		if (worker->weapon_cooldown == 0)
 		{
 			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), worker->pos);
-			if (enemy_unit != NULL && Distance2D(worker->pos, enemy_unit->pos) <= Utility::RealRange(worker, enemy_unit))
+			if (enemy_unit != nullptr && Distance2D(worker->pos, enemy_unit->pos) <= Utility::RealRange(worker, enemy_unit))
 			{
 				mediator->SetUnitCommand(worker, ABILITY_ID::ATTACK, enemy_unit, 0);
 				continue;
 			}
 		}
 		const Unit* assimilator = assimilators_reversed[worker].assimilator;
-		if (assimilators[assimilator].workers[2] != NULL)
+		if (assimilators[assimilator].workers[2] != nullptr)
 		{
 			// 3 workers assigned to gas
 			if (worker->orders.size() == 0 || worker->orders[0].ability_id == ABILITY_ID::ATTACK)
@@ -834,7 +834,7 @@ void WorkerManager::DistributeWorkers()
 		else if (!IsCarryingVespene(*worker) && worker->orders.size() <= 1)
 		{
 			const Unit* mineral_patch = assimilators_reversed[worker].assimilator;
-			if (mineral_patch != NULL)
+			if (mineral_patch != nullptr)
 			{
 				if (Distance2D(worker->pos, assimilators_reversed[worker].pick_up_point) > .5 &&
 					Distance2D(worker->pos, assimilators_reversed[worker].pick_up_point) < 2)
@@ -849,7 +849,7 @@ void WorkerManager::DistributeWorkers()
 			}
 			else
 			{
-				//std::cout << "Error null mineral patching in DistributeWorkers 2";
+				//std::cout << "Error nullptr mineral patching in DistributeWorkers 2";
 			}
 		}
 	}
@@ -868,7 +868,7 @@ void WorkerManager::BalanceWorers()
 		else if (far_3_mineral_patch_extras.size() > 0)
 		{
 			const Unit* worker = *(far_3_mineral_patch_extras[0]->worker);
-			if (worker != NULL)
+			if (worker != nullptr)
 			{
 				RemoveWorker(worker);
 				PlaceWorker(worker);
@@ -890,7 +890,7 @@ void WorkerManager::BalanceWorers()
 		else if (far_3_mineral_patch_extras.size() > 0)
 		{
 			const Unit* worker = *(far_3_mineral_patch_extras[0]->worker);
-			if (worker != NULL)
+			if (worker != nullptr)
 			{
 				RemoveWorker(worker);
 				PlaceWorker(worker);
@@ -978,7 +978,7 @@ void WorkerManager::RemoveMineralPatch(const Unit* patch)
 		for (int i = 0; i < 3; i++)
 		{
 			const Unit* worker = patch_data.workers[i];
-			if (worker != NULL)
+			if (worker != nullptr)
 			{
 				assigned_workers.push_back(worker);
 				mineral_patches_reversed.erase(worker);

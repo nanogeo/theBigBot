@@ -10,14 +10,14 @@ namespace sc2 {
 // TODO change for maps with natural ramp
 void StalkerBaseDefenseTerranDefendFront::TickState()
 {
-	if (state_machine->target == NULL)
+	if (state_machine->target == nullptr)
 	{
 		for (const auto& unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_REAPER)))
 		{
 			state_machine->target = unit;
 			break;
 		}
-		if (state_machine->target == NULL)
+		if (state_machine->target == nullptr)
 		{
 			if (forward)
 			{
@@ -73,7 +73,7 @@ State* StalkerBaseDefenseTerranDefendFront::TestTransitions()
 	Units other_units = agent->Observation()->GetUnits(IsUnits({ UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_STALKER }));
 	if (other_units.size() > 1 || agent->scout_info_terran.first_rax_production != reaper || (gates.size() > 0 && gates[0]->orders.size() > 0 && gates[0]->orders[0].progress > .9))
 		return new StalkerBaseDefenseTerranMoveAcross(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string StalkerBaseDefenseTerranDefendFront::toString()
@@ -87,7 +87,7 @@ std::string StalkerBaseDefenseTerranDefendFront::toString()
 
 void StalkerBaseDefenseTerranMoveAcross::TickState()
 {
-	if (state_machine->target == NULL)
+	if (state_machine->target == nullptr)
 	{
 		for (const auto& unit : agent->Observation()->GetUnits(Unit::Alliance::Enemy))
 		{
@@ -97,7 +97,7 @@ void StalkerBaseDefenseTerranMoveAcross::TickState()
 				break;
 			}
 		}
-		if (state_machine->target == NULL)
+		if (state_machine->target == nullptr)
 		{
 			agent->Actions()->UnitCommand(state_machine->stalker, ABILITY_ID::GENERAL_MOVE, agent->locations->adept_scout_runaway);
 		}
@@ -106,7 +106,7 @@ void StalkerBaseDefenseTerranMoveAcross::TickState()
 	{
 		if (Distance2D(state_machine->stalker->pos, state_machine->target->pos) > 8)
 		{
-			state_machine->target = NULL;
+			state_machine->target = nullptr;
 			return;
 		}
 
@@ -146,7 +146,7 @@ State* StalkerBaseDefenseTerranMoveAcross::TestTransitions()
 {
 	if (Distance2D(state_machine->stalker->pos, agent->locations->adept_scout_runaway) < 3)
 		return new ScoutBaseDefenseTerranHarrassFront(agent, state_machine, agent->locations->adept_scout_shade, agent->locations->adept_scout_runaway);
-	return NULL;
+	return nullptr;
 }
 
 std::string StalkerBaseDefenseTerranMoveAcross::toString()
@@ -220,7 +220,7 @@ void ScoutBaseDefenseTerranHarrassFront::ExitState()
 
 State* ScoutBaseDefenseTerranHarrassFront::TestTransitions()
 {
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutBaseDefenseTerranHarrassFront::toString()
@@ -257,7 +257,7 @@ StalkerBaseDefenseTerran::~StalkerBaseDefenseTerran()
 void StalkerBaseDefenseTerran::OnUnitDestroyedListener(const Unit* unit)
 {
 	if (unit == target)
-		target = NULL;
+		target = nullptr;
 }
 
 #pragma endregion

@@ -14,7 +14,7 @@ std::vector<Node*> Graph::ReconstructPath(std::map<Node*, Node*> came_from, Node
 {
 	std::vector<Node*> path_r;
 	Node* current = end;
-	while (current != NULL)
+	while (current != nullptr)
 	{
 		path_r.push_back(current);
 		current = came_from[current];
@@ -52,7 +52,7 @@ std::vector<Node*> Graph::FindPath(Node* start, Node* end)
 
 	heap.push(QNode(start, Distance2D(start->pos, end->pos)));
 	dist_to[start] = 0;
-	came_from[start] = NULL;
+	came_from[start] = nullptr;
 
 	while (!heap.empty())
 	{

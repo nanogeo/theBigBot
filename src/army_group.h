@@ -47,7 +47,7 @@ struct UnitDanger
 
 struct PrismCargo
 {
-	const Unit* prism = NULL;
+	const Unit* prism = nullptr;
 	bool confirmed = false;
 	PrismCargo() {};
 	PrismCargo(const Unit* prism)
@@ -59,9 +59,9 @@ struct PrismCargo
 class ArmyGroup
 {
 public:
-	Mediator* mediator = NULL;
+	Mediator* mediator = nullptr;
 	ArmyRole role;
-	StateMachine* state_machine = nullptr;
+	StateMachine* state_machine = nullptrptr;
 
 	Units all_units;
 	Units zealots;
@@ -90,7 +90,7 @@ public:
 	int current_attack_index = 0;
 	int high_ground_index = 0;
 	PathManager attack_path_line;
-	LineSegment* defense_line = NULL;
+	LineSegment* defense_line = nullptr;
 	Point2D target_pos;
 
 	bool advancing = true;

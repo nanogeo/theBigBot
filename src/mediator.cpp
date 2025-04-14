@@ -82,7 +82,7 @@ void Mediator::RunManagers()
 	if (agent->Observation()->GetGameLoop() > 40)
 		worker_manager.DistributeWorkers();
 	
-	if (worker_manager.new_base != NULL)
+	if (worker_manager.new_base != nullptr)
 	{
 		//std::cout << "add new base\n";
 		//std::cout << worker_manager.new_base->pos.x << ' ' << worker_manager.new_base->pos.y << '\n';;
@@ -245,7 +245,7 @@ const Unit* Mediator::GetMostRecentBuilding(UNIT_TYPEID type)
 {
 	Units possible_buildings = GetUnits(Unit::Alliance::Self, IsUnit(type));
 	if (possible_buildings.size() == 0)
-		return NULL;
+		return nullptr;
 
 	for (int i = 0; i < possible_buildings.size(); i++)
 	{
@@ -339,7 +339,7 @@ bool Mediator::SendScout()
 {
 	Point2D pos = GetNaturalLocation();
 	const Unit* scouter = GetBuilder(pos);
-	if (scouter == NULL)
+	if (scouter == nullptr)
 	{
 		//std::cout << "Error could not find builder in Scout" << std::endl;
 		return false;
@@ -383,7 +383,7 @@ bool Mediator::SendCannonRushProbe1()
 {
 	/*Point2D pos = mediator->GetEnemyStartLocation();
 	const Unit* scouter = mediator->GetBuilder(pos);
-	if (scouter == NULL)
+	if (scouter == nullptr)
 	{
 		//std::cout << "Error could not find builder in Scout" << std::endl;
 		return false;
@@ -842,7 +842,7 @@ StateMachine* Mediator::GetStateMachineByName(std::string name)
 		if (fsm->name == name)
 			return fsm;
 	}
-	return NULL;
+	return nullptr;
 }
 
 void Mediator::RemoveStateMachine(StateMachine* state_machine)
@@ -885,58 +885,58 @@ void Mediator::StartOracleHarassStateMachine(ArmyGroup* army)
 
 bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)
 {
-	const Unit* scout = NULL;
+	const Unit* scout = nullptr;
 	Race enemy_race = GetEnemyRace();
-	StateMachine* state_machine = NULL;
+	StateMachine* state_machine = nullptr;
 	switch (enemy_race)
 	{
 	case Race::Zerg:
 		state_machine = GetStateMachineByName("Scout Zerg");
-		if (state_machine != NULL)
+		if (state_machine != nullptr)
 		{
 			scout = ((ScoutZergStateMachine*)state_machine)->scout;
 		}
 		else
 		{
 			state_machine = GetStateMachineByName("Scout Random");
-			if (state_machine != NULL)
+			if (state_machine != nullptr)
 				scout = ((ScoutTerranStateMachine*)state_machine)->scout;
 		}
 		break;
 	case Race::Terran:
 		state_machine = GetStateMachineByName("Scout Terran");
-		if (state_machine != NULL)
+		if (state_machine != nullptr)
 		{
 			scout = ((ScoutTerranStateMachine*)state_machine)->scout;
 		}
 		else
 		{
 			state_machine = GetStateMachineByName("Scout Random");
-			if (state_machine != NULL)
+			if (state_machine != nullptr)
 				scout = ((ScoutTerranStateMachine*)state_machine)->scout;
 		}
 		break;
 	case Race::Protoss:
 		state_machine = GetStateMachineByName("Scout Protoss");
-		if (state_machine != NULL)
+		if (state_machine != nullptr)
 		{
 			scout = ((ScoutProtossStateMachine*)state_machine)->scout;
 		}
 		else
 		{
 			state_machine = GetStateMachineByName("Scout Random");
-			if (state_machine != NULL)
+			if (state_machine != nullptr)
 				scout = ((ScoutTerranStateMachine*)state_machine)->scout;
 		}
 		break;
 	case Race::Random:
 		state_machine = GetStateMachineByName("Scout Random");
-		if (state_machine != NULL)
+		if (state_machine != nullptr)
 			scout = ((ScoutTerranStateMachine*)state_machine)->scout;
 		break;
 	}
 
-	if (scout != NULL && scout->is_alive)
+	if (scout != nullptr && scout->is_alive)
 	{
 		RemoveStateMachine(state_machine);
 
@@ -962,14 +962,14 @@ void Mediator::CreateAdeptBaseDefenseTerranFSM()
 void Mediator::MarkStateMachineForDeletion(StateMachine* state_machine)
 {
 	finite_state_machine_manager.MarkStateMachineForDeletion(state_machine);
-	if (state_machine->attached_army_group != NULL)
+	if (state_machine->attached_army_group != nullptr)
 		army_manager.MarkArmyGroupForDeletion(state_machine->attached_army_group);
 }
 
 void Mediator::MarkArmyGroupForDeletion(ArmyGroup* army_group)
 {
 	army_manager.MarkArmyGroupForDeletion(army_group);
-	if (army_group->state_machine != NULL)
+	if (army_group->state_machine != nullptr)
 		finite_state_machine_manager.MarkStateMachineForDeletion(army_group->state_machine);
 }
 
@@ -1016,7 +1016,7 @@ void Mediator::BuildDefensiveBuilding(UNIT_TYPEID type, Point2D location)
 		Point2D pos = FindLocation(BATTERY, location);
 
 	const Unit* builder = GetBuilder(pos);
-	if (builder == NULL)
+	if (builder == nullptr)
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return;

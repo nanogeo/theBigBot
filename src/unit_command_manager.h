@@ -17,7 +17,7 @@ struct UnitCommand
     int priority;
     UnitCommand()
     {
-        target = NULL;
+        target = nullptr;
         target_point = Point2D(0, 0);
         priority = 0;
     }
@@ -25,7 +25,7 @@ struct UnitCommand
     {
         this->ability = ability;
         this->priority = priority;
-        target = NULL;
+        target = nullptr;
         target_point = Point2D(0, 0);
     }
     UnitCommand(AbilityID ability, Point2D target_point, int priority)
@@ -33,7 +33,7 @@ struct UnitCommand
         this->ability = ability;
         this->priority = priority;
         this->target_point = target_point;
-        target = NULL;
+        target = nullptr;
     }
     UnitCommand(AbilityID ability, const Unit* target, int priority)
     {

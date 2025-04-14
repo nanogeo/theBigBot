@@ -117,7 +117,7 @@ class OracleHarassAttackMineralLine : public State {
 public:
 	OracleHarassStateMachine* state_machine;
 	Point2D exit_pos;
-	const Unit* target_drone = NULL;
+	const Unit* target_drone = nullptr;
 	int event_id;
 	bool lost_oracle = false;
 	OracleHarassAttackMineralLine(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D exit_pos);

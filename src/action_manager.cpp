@@ -38,7 +38,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	{
 		// builder died
 		const Unit* builder = mediator->GetBuilder(pos);
-		if (builder == NULL)
+		if (builder == nullptr)
 		{
 			return false;
 		}
@@ -83,7 +83,7 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	{
 		// builder died
 		const Unit* builder = mediator->GetBuilder(pos);
-		if (builder == NULL)
+		if (builder == nullptr)
 		{
 			return false;
 		}
@@ -137,7 +137,7 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data)
 	{
 		// builder died
 		const Unit* builder = mediator->GetBuilder(pos);
-		if (builder == NULL)
+		if (builder == nullptr)
 		{
 			return false;
 		}

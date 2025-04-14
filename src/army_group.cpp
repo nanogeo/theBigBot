@@ -234,7 +234,7 @@ namespace sc2 {
 		standby_units.erase(std::remove(standby_units.begin(), standby_units.end(), unit), standby_units.end());
 		unit_position_asignments.erase(unit);
 
-		if (state_machine != NULL)
+		if (state_machine != nullptr)
 			state_machine->RemoveUnit(unit);
 
 		Units* units;
@@ -1060,7 +1060,7 @@ namespace sc2 {
 					}
 					else if (has_attacked[oracle])
 					{
-						if ((mediator->GetUnit(oracle->engaged_target_tag) == NULL ||
+						if ((mediator->GetUnit(oracle->engaged_target_tag) == nullptr ||
 							Distance2D(oracle->pos, mediator->GetUnit(oracle->engaged_target_tag)->pos) > 3) ||
 							Distance2D(oracle->pos, closest_unit->pos) > 3)  // only move if target is getting away
 							mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, 0, false);
@@ -1140,7 +1140,7 @@ namespace sc2 {
 				{
 					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest_unit->pos, 0);
 				}
-				else if (closest_unit == NULL)
+				else if (closest_unit == nullptr)
 				{
 					double dist_to_start = Distance2D(unit->pos, defense_line->GetStartPoint());
 					double dist_to_end = Distance2D(unit->pos, defense_line->GetEndPoint());
@@ -1382,7 +1382,7 @@ namespace sc2 {
 		for (const auto& obs : observers)
 		{
 			const Unit* closest_danger = Utility::ClosestUnitTo(Utility::GetUnitsThatCanAttack(enemy_units, obs, 1), obs->pos);
-			if (closest_danger == NULL)
+			if (closest_danger == nullptr)
 				mediator->SetUnitCommand(obs, ABILITY_ID::GENERAL_MOVE, target_pos, 0);
 			else
 				mediator->SetUnitCommand(obs, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(obs->pos, closest_danger->pos, -1), 0);
@@ -1868,7 +1868,7 @@ namespace sc2 {
 		// revelate when units are burrowing
 		if (!revelation_cast)
 		{
-			const Unit* unit_to_revelate = NULL;
+			const Unit* unit_to_revelate = nullptr;
 			for (const auto& unit : enemy_burrowed_units)
 			{
 				if (Utility::DistanceToClosest(oracles, unit->pos) <= 9)
@@ -1880,30 +1880,30 @@ namespace sc2 {
 					}
 				}
 			}
-			if (unit_to_revelate != NULL)
+			if (unit_to_revelate != nullptr)
 			{
-				const Unit* highest_over_75 = NULL;
-				const Unit* lowest_over_25 = NULL;
+				const Unit* highest_over_75 = nullptr;
+				const Unit* lowest_over_25 = nullptr;
 				for (const auto& oracle : oracles)
 				{
 					if (oracle->energy > 75)
 					{
-						if (highest_over_75 == NULL || highest_over_75->energy < oracle->energy)
+						if (highest_over_75 == nullptr || highest_over_75->energy < oracle->energy)
 							highest_over_75 = oracle;
 					}
 					else if (oracle->energy > 25)
 					{
-						if (lowest_over_25 == NULL || lowest_over_25->energy > oracle->energy)
+						if (lowest_over_25 == nullptr || lowest_over_25->energy > oracle->energy)
 							lowest_over_25 = oracle;
 					}
 				}
-				if (highest_over_75 != NULL)
+				if (highest_over_75 != nullptr)
 				{
 					mediator->SetUnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos, 0);
 					//agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
 
 				}
-				else if (lowest_over_25 != NULL)
+				else if (lowest_over_25 != nullptr)
 				{
 					mediator->SetUnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos, 0);
 					//agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
@@ -2059,7 +2059,7 @@ namespace sc2 {
 			if (weapon_ready)
 			{
 				const Unit* closest_unit = Utility::ClosestTo(enemy_lings, oracle->pos);
-				if (closest_unit == NULL || Distance2D(closest_unit->pos, oracle->pos) > 6)
+				if (closest_unit == nullptr || Distance2D(closest_unit->pos, oracle->pos) > 6)
 				{
 					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center, 0);
 					continue;

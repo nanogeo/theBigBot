@@ -34,7 +34,7 @@ public:
     TheBigBot* agent;
     State* current_state;
     std::string name;
-    ArmyGroup* attached_army_group = NULL;
+    ArmyGroup* attached_army_group = nullptr;
     StateMachine() {}
     StateMachine(TheBigBot* agent, State* starting_state, std::string name) {
         this->agent = agent;
@@ -49,7 +49,7 @@ public:
     virtual void RunStateMachine()
     {
         State* new_state = current_state->TestTransitions();
-        if (new_state != NULL)
+        if (new_state != nullptr)
         {
             current_state->ExitState();
             delete current_state;
@@ -57,7 +57,7 @@ public:
             std::cerr << "Change state " << new_state->toString() << std::endl;
             current_state->EnterState();
         }
-		if (current_state != NULL)
+		if (current_state != nullptr)
 	        current_state->TickState();
     }
 

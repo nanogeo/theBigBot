@@ -10,7 +10,7 @@ namespace sc2 {
 
 void AdeptHarassProtossMoveAcross::TickState()
 {
-	/*if (state_machine->target == NULL)
+	/*if (state_machine->target == nullptr)
 	{
 		for (const auto& unit : agent->Observation()->GetUnits(Unit::Alliance::Enemy))
 		{
@@ -20,13 +20,13 @@ void AdeptHarassProtossMoveAcross::TickState()
 				break;
 			}
 		}
-		if (state_machine->target == NULL)
+		if (state_machine->target == nullptr)
 		{
 			agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, agent->locations->adept_scout_runaway);
 			if (state_machine->frame_shade_used + 254 < agent->Observation()->GetGameLoop())
 				agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::EFFECT_ADEPTPHASESHIFT, agent->locations->adept_scout_runaway);
 
-			if (state_machine->shade != NULL)
+			if (state_machine->shade != nullptr)
 				agent->Actions()->UnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, agent->locations->adept_scout_runaway);
 		}
 	}
@@ -34,7 +34,7 @@ void AdeptHarassProtossMoveAcross::TickState()
 	{
 		if (Distance2D(state_machine->adept->pos, state_machine->target->pos) > 8)
 		{
-			state_machine->target = NULL;
+			state_machine->target = nullptr;
 			return;
 		}
 
@@ -58,7 +58,7 @@ void AdeptHarassProtossMoveAcross::TickState()
 		{
 			state_machine->attack_status = false;
 		}
-		if (state_machine->shade != NULL)
+		if (state_machine->shade != nullptr)
 		{
 			agent->Actions()->UnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, agent->locations->adept_scout_runaway);
 		}
@@ -83,7 +83,7 @@ State* AdeptHarassProtossMoveAcross::TestTransitions()
 	for (const auto adept : state_machine->adepts)
 	{
 		if (Distance2D(adept->pos, state_machine->consolidation_points[0]) > 3)
-			return NULL;
+			return nullptr;
 	}
 	return new AdeptHarassProtossConsolidate(agent, state_machine);
 }
@@ -138,7 +138,7 @@ State* AdeptHarassProtossConsolidate::TestTransitions()
 			return new AdeptHarassProtossShadeToOtherSide(agent, state_machine);
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string AdeptHarassProtossConsolidate::toString()
@@ -199,7 +199,7 @@ State* AdeptHarassProtossShadeIntoBase::TestTransitions()
 		}
 		return new AdeptHarassProtossKillProbes(agent, state_machine);
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string AdeptHarassProtossShadeIntoBase::toString()
@@ -277,7 +277,7 @@ State* AdeptHarassProtossShadeToOtherSide::TestTransitions()
 			return new AdeptHarassProtossConsolidate(agent, state_machine);
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string AdeptHarassProtossShadeToOtherSide::toString()
@@ -351,7 +351,7 @@ void AdeptHarassProtossKillProbes::ExitState()
 
 State* AdeptHarassProtossKillProbes::TestTransitions()
 {
-	return NULL;
+	return nullptr;
 }
 
 std::string AdeptHarassProtossKillProbes::toString()
@@ -407,7 +407,7 @@ void AdeptHarassProtoss::OnUnitDestroyedListener(const Unit* unit)
 {
 	if (unit == target)
 	{
-		target = NULL;
+		target = nullptr;
 	}
 	else
 	{

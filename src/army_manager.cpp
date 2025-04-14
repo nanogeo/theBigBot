@@ -104,7 +104,7 @@ void ArmyManager::CreateNewArmyGroups()
 			}
 		}
 	}
-	const ArmyTemplate* template_to_create = NULL;
+	const ArmyTemplate* template_to_create = nullptr;
 	for (const auto& army_template : army_templates)
 	{
 		bool all_req_units = true;
@@ -119,14 +119,14 @@ void ArmyManager::CreateNewArmyGroups()
 		}
 		if (all_req_units)
 		{
-			if (template_to_create == NULL || army_template.priority < template_to_create->priority)
+			if (template_to_create == nullptr || army_template.priority < template_to_create->priority)
 			{
 				template_to_create = &army_template;
 			}
 		}
 	}
 
-	if (template_to_create != NULL)
+	if (template_to_create != nullptr)
 	{
 		// create new army with template
 		std::vector<UNIT_TYPEID> unit_types;
@@ -182,7 +182,7 @@ ArmyGroup* ArmyManager::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> 
 		break;
 	default:
 		std::cerr << "Unknown ArmyRole in CreateArmyGroup" << std::endl;
-		return NULL;
+		return nullptr;
 	}
 
 	army->desired_units = desired_units;
@@ -338,7 +338,7 @@ void ArmyManager::ScourMap()
 		if (army_group->state_machine)
 		{
 			mediator->RemoveStateMachine(army_group->state_machine);
-			army_group->state_machine = NULL;
+			army_group->state_machine = nullptr;
 		}
 	}
 }

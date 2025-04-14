@@ -34,7 +34,7 @@ State* ScoutPInitialMove::TestTransitions()
 		else
 			return new ScoutPScoutMain(agent, state_machine, false);
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutPInitialMove::toString()
@@ -75,7 +75,7 @@ State* ScoutPScoutPylon::TestTransitions()
 		return new ScoutPScoutMain(agent, state_machine, false);
 	if (pylons.size() > 0 && Distance2D(state_machine->scout->pos, pylons[0]->pos) < 2)
 		return new ScoutPScoutMain(agent, state_machine, true);
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutPScoutPylon::toString()
@@ -117,7 +117,7 @@ State* ScoutPScoutMain::TestTransitions()
 		return new ScoutPScoutNatural(agent, state_machine);
 	if (agent->mediator.GetCurrentTime() > 120)
 		return new ScoutPReturnToBase(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutPScoutMain::toString()
@@ -152,7 +152,7 @@ State* ScoutPScoutNatural::TestTransitions()
 	{
 		return new ScoutPScoutMain(agent, state_machine, agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() != 0);
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutPScoutNatural::toString()
@@ -185,9 +185,9 @@ State* ScoutPReturnToBase::TestTransitions()
 	if (Distance2D(state_machine->scout->pos, agent->locations->start_location) <= 20)
 	{
 		agent->mediator.MarkStateMachineForDeletion(state_machine);
-		return NULL;
+		return nullptr;
 	}
-	return NULL;
+	return nullptr;
 }
 
 std::string ScoutPReturnToBase::toString()

@@ -116,7 +116,7 @@ bool IsNotFlyingUnit::operator()(const Unit& unit_) const {
 
 const Unit* Utility::ClosestTo(Units units, Point2D position)
 {
-	const Unit* current_closest = NULL;
+	const Unit* current_closest = nullptr;
 	float current_distance = INFINITY;
 	for (const auto &unit : units)
 	{
@@ -127,17 +127,17 @@ const Unit* Utility::ClosestTo(Units units, Point2D position)
 			current_distance = distance;
 		}
 	}
-	if (units.size() == 0 || current_closest == NULL)
+	if (units.size() == 0 || current_closest == nullptr)
 	{
-		//std::cout << "Error current closest is NULL\n";
-		return NULL;
+		//std::cout << "Error current closest is nullptr\n";
+		return nullptr;
 	}
 	return current_closest;
 }
 
 const Unit* Utility::ClosestToLine(Units units, LineSegmentLinearX line)
 {
-	const Unit* current_closest = NULL;
+	const Unit* current_closest = nullptr;
 	float current_distance = INFINITY;
 	for (const auto& unit : units)
 	{
@@ -148,10 +148,10 @@ const Unit* Utility::ClosestToLine(Units units, LineSegmentLinearX line)
 			current_distance = distance;
 		}
 	}
-	if (units.size() == 0 || current_closest == NULL)
+	if (units.size() == 0 || current_closest == nullptr)
 	{
-		//std::cout << "Error current closest is NULL\n";
-		return NULL;
+		//std::cout << "Error current closest is nullptr\n";
+		return nullptr;
 	}
 	return current_closest;
 }
@@ -200,17 +200,17 @@ Point2D Utility::ClosestTo(std::vector<Point2D> points, Point2D position)
 			current_distance = distance;
 		}
 	}
-	/*if (points.size() == 0 || current_closest == NULL)
+	/*if (points.size() == 0 || current_closest == nullptr)
 	{
-		//std::cout << "Error current closest is NULL\n";
-		return NULL;
+		//std::cout << "Error current closest is nullptr\n";
+		return nullptr;
 	}*/
 	return current_closest;
 }
 
 const Unit* Utility::ClosestUnitTo(Units units, Point2D position)
 {
-	const Unit* current_closest = NULL;
+	const Unit* current_closest = nullptr;
 	float current_distance = INFINITY;
 	for (const auto &unit : units)
 	{
@@ -221,10 +221,10 @@ const Unit* Utility::ClosestUnitTo(Units units, Point2D position)
 			current_distance = distance;
 		}
 	}
-	if (units.size() == 0 || current_closest == NULL)
+	if (units.size() == 0 || current_closest == nullptr)
 	{
-		//std::cout << "Error current closest is NULL\n";
-		return NULL;
+		//std::cout << "Error current closest is nullptr\n";
+		return nullptr;
 	}
 	return current_closest;
 }
@@ -245,7 +245,7 @@ Point2D Utility::NthClosestTo(std::vector<Point2D> points, Point2D position, int
 
 const Unit* Utility::FurthestFrom(Units units, Point2D position)
 {
-	const Unit* current_furthest = NULL;
+	const Unit* current_furthest = nullptr;
 	float current_distance = 0;
 	for (const auto &unit : units)
 	{
@@ -256,10 +256,10 @@ const Unit* Utility::FurthestFrom(Units units, Point2D position)
 			current_distance = distance;
 		}
 	}
-	if (units.size() == 0 || current_furthest == NULL)
+	if (units.size() == 0 || current_furthest == nullptr)
 	{
-		//std::cout << "Error current closest is NULL\n";
-		return NULL;
+		//std::cout << "Error current closest is nullptr\n";
+		return nullptr;
 	}
 	return current_furthest;
 }
@@ -279,7 +279,7 @@ Point2D Utility::FurthestFrom(std::vector<Point2D> points, Point2D position)
 	}
 	if (points.size() == 0 || current_furthest == Point2D(0, 0))
 	{
-		//std::cout << "Error current closest is NULL\n";
+		//std::cout << "Error current closest is nullptr\n";
 		return Point2D(0, 0);
 	}
 	return current_furthest;
@@ -288,7 +288,7 @@ Point2D Utility::FurthestFrom(std::vector<Point2D> points, Point2D position)
 float Utility::DistanceToClosest(Units units, Point2D position)
 {
 	const Unit* closest_unit = ClosestTo(units, position);
-	if (closest_unit == NULL)
+	if (closest_unit == nullptr)
 		return INFINITY;
 	return Distance2D(closest_unit->pos, position);
 }
@@ -326,7 +326,7 @@ float Utility::DistanceToClosestOnLine(Units units, LineSegmentLinearX line)
 float Utility::DistanceToFurthest(Units units, Point2D position)
 {
 	const Unit* furthest_unit = FurthestFrom(units, position);
-	if (furthest_unit == NULL)
+	if (furthest_unit == nullptr)
 		return INFINITY;
 	return Distance2D(furthest_unit->pos, position);
 }
@@ -2151,7 +2151,7 @@ AbilityID Utility::UnitToWarpInAbility(UNIT_TYPEID type)
 	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
 		return ABILITY_ID::TRAINWARP_DARKTEMPLAR;
 	default:
-		return NULL;
+		return nullptr;
 	}
 }
 
@@ -2186,7 +2186,7 @@ const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 #endif
 
 	float smallest_angle = 180;
-	const Unit* target = NULL;
+	const Unit* target = nullptr;
 
 
 	for (const auto Funit : allied_units)
@@ -2271,10 +2271,10 @@ int Utility::BuildingsReady(UNIT_TYPEID buildingId, const ObservationInterface* 
 
 const Unit* Utility::GetLeastFullPrism(Units units)
 {
-	const Unit* least_full = NULL;
+	const Unit* least_full = nullptr;
 	for (const auto &unit : units)
 	{
-		if (least_full == NULL || unit->cargo_space_taken < least_full->cargo_space_taken)
+		if (least_full == nullptr || unit->cargo_space_taken < least_full->cargo_space_taken)
 			least_full = unit;
 	}
 	return least_full;

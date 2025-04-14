@@ -77,7 +77,7 @@ class StalkerBaseDefenseTerran : public StateMachine
 public:
 	const Unit* stalker;
 	bool attack_status = false;
-	const Unit* target = NULL;
+	const Unit* target = nullptr;
 	std::vector<Point2D> front_of_base;
 	int event_id;
 	StalkerBaseDefenseTerran(TheBigBot* agent, std::string name, const Unit* stalker, std::vector<Point2D> front_of_base);

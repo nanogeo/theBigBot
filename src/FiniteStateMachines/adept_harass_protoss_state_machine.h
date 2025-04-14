@@ -106,7 +106,7 @@ public:
 	int frame_shade_used = 0;
 	bool attack_status;
 	Units shades;
-	const Unit* target = NULL;
+	const Unit* target = nullptr;
 	int index = 0;
 	int event_id;
 

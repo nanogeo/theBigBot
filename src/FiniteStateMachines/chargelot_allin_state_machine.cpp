@@ -50,7 +50,7 @@ State* ChargeAllInMovingToWarpinSpot::TestTransitions()
 	float time_left = state_machine->last_warp_in_time + 20 - agent->Observation()->GetGameLoop() / 22.4;
 	if (time_left < 2)
 		return new ChargeAllInWarpingIn(agent, state_machine);
-	return NULL;
+	return nullptr;
 }
 
 #pragma endregion
@@ -119,7 +119,7 @@ State* ChargeAllInWarpingIn::TestTransitions()
 		return new ChargeAllInMovingToWarpinSpot(agent, state_machine);
 	// if last warp in time >3 and < 8
 	// return new ChargeAllInLookingForWarpinSpot)(
-	return NULL;
+	return nullptr;
 }
 
 #pragma endregion
