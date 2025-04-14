@@ -1280,10 +1280,10 @@ Point2D CannonRushTerranStandByPhase2::FindPylonPlacement()
 
 CannonRushTerranUnitMicro::CannonRushTerranUnitMicro(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* zealot)
 {
-	army = new ArmyGroup();
+	/*army = new ArmyGroup();
 	this->agent = agent;
 	this->state_machine = state_machine;
-	army->AddUnit(zealot);
+	army->AddUnit(zealot);*/
 }
 
 void CannonRushTerranUnitMicro::TickState()

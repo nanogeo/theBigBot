@@ -117,7 +117,6 @@ public:
 	std::map<const Unit*, uint64_t> target;
 
 
-	ArmyGroup() {};
 	ArmyGroup(Mediator*, PathManager, std::vector<Point2D> attack_path, ArmyRole, std::vector<UNIT_TYPEID>);
 	ArmyGroup(Mediator*, std::vector<Point2D>, ArmyRole, std::vector<UNIT_TYPEID>);
 	ArmyGroup(Mediator*, ArmyRole, std::vector<UNIT_TYPEID>);

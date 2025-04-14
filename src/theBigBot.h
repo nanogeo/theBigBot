@@ -190,7 +190,6 @@ public:
 	Point2D enemy_army_spawn = Point2D(34, 139);
 	Point2D friendly_army_spawn = Point2D(59, 114);
 	Point2D fallback_point = Point2D(142, 33);
-	ArmyGroup test_army;
 	bool tests_set_up = false;
 	bool initial_set_up = false;
 
