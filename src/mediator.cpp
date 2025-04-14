@@ -1128,6 +1128,7 @@ ArmyGroup* Mediator::GetArmyGroupDefendingBase(Point2D pos)
 		if (army_group->role == ArmyRole::defend_base && army_group->target_pos == pos)
 			return army_group;
 	}
+	return nullptr;
 }
 
 void Mediator::ScourMap()

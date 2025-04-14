@@ -158,6 +158,9 @@ const Unit* Utility::ClosestToLine(Units units, LineSegmentLinearX line)
 
 const Unit* Utility::NthClosestTo(Units units, Point2D position, int n)
 {
+	if (units.size() == 0)
+		return nullptr;
+
 	std::vector<Point2D> points;
 	for (const auto &unit : units)
 	{

@@ -1196,6 +1196,7 @@ Triangle* NavMesh::FindTriangle(Point2D v1, Point2D v2, Point2D v3)
 		}
 	}
 	//std::cout << "Error no triangle found in FindTriangle";
+	return nullptr;
 }
 
 void NavMesh::RemoveTriangle(Triangle* triangle)
@@ -1263,6 +1264,7 @@ Triangle* NavMesh::FindClosestTriangle(Point2D pos)
 	if (closest == nullptr)
 	{
 		//std::cout << "Error no triangle found in FindClosestTriangle\n";
+		return nullptr;
 	}
 	return closest;
 }
