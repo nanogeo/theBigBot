@@ -120,7 +120,8 @@ void DefenseManager::UpdateOngoingAttacks()
 			}
 
 			// increase desired defenders
-			if (close_allies.size() >= mediator->GetArmyGroupDefendingBase(attack.location)->desired_units)
+			ArmyGroup* defense_group = mediator->GetArmyGroupDefendingBase(attack.location);
+			if (defense_group && close_allies.size() >= defense_group->desired_units)
 			{
 				if (attack.status < -100)
 					mediator->AddToDefense(attack.location, 5);
