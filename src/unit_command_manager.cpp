@@ -242,18 +242,27 @@ void UnitCommandManager::ParseUnitCommands()
 	file.close();
 #endif
 
-	if (actions_this_frame > 75)
+	actions_past_ten_frames.erase(actions_past_ten_frames.begin());
+	actions_past_ten_frames.push_back(actions_this_frame);
+
+	float avg_actions = 0;
+	for (const auto& actions : actions_past_ten_frames)
+	{
+		avg_actions += actions;
+	}
+
+	if (actions_this_frame > 70) // ~90,000 apm
 		consecutive_high_action_frames++;
 	else
 		consecutive_high_action_frames = 0;
 
 	if (consecutive_high_action_frames > 22)
 	{
-		mediator->SendChat("Tag: high_apm_warning_" + std::to_string(mediator->GetCurrentTime()), ChatChannel::Team);
+		mediator->SendChat("Tag: high_apm_warning_" + std::to_string(round(mediator->GetCurrentTime())), ChatChannel::Team);
 	}
-	else if (consecutive_high_action_frames > 45)
+	else if (consecutive_high_action_frames > 45 || avg_actions > 100) // ~130,000 apm
 	{
-		mediator->SendChat("Tag: high_apm_interrupt_" + std::to_string(mediator->GetCurrentTime()), ChatChannel::All);
+		mediator->SendChat("Tag: high_apm_interrupt_" + std::to_string(round(mediator->GetCurrentTime())), ChatChannel::All);
 		mediator->ScourMap();
 	}
 
