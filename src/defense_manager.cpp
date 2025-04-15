@@ -54,7 +54,7 @@ void DefenseManager::UpdateOngoingAttacks()
 	{
 		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), attack.location, 20);
 		Units close_allies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)), attack.location, 20);
-		Units batteries = Utility::GetUnitsWithin(mediator->GetUnits(IsUnit(BATTERY)), attack.location, 20);
+		Units batteries = Utility::GetUnitsWithin(mediator->GetUnits(IsFinishedUnit(BATTERY)), attack.location, 20);
 		int total_energy = 0;
 		for (const auto& battery : batteries)
 		{
@@ -114,7 +114,7 @@ void DefenseManager::UpdateOngoingAttacks()
 			// BATTERY_OVERCHARGE
 			if (mediator->IsBatteryOverchargeOffCooldown() && 
 				attack.status <= -50 && 
-				Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(BATTERY)), attack.location) < 8)
+				Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(BATTERY)), attack.location) < RANGE_BATTERY_OVERCHARGE) // TODO check this range 
 			{
 				UseBatteryOvercharge(attack.location);
 			}
@@ -372,8 +372,8 @@ void DefenseManager::UseBatteryOvercharge(Point2D location)  // BATTERY_OVERCHAR
 		return;
 
 	Units fighting_units = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self));
-	Units batteries = mediator->GetUnits(Unit::Alliance::Self, IsUnit(BATTERY));
-	const Unit* nexus = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)), location);
+	Units batteries = mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(BATTERY));
+	const Unit* nexus = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(NEXUS)), location);
 
 	if (nexus == nullptr || Distance2D(nexus->pos, location) > 5) // arbitrary distance
 		return;
