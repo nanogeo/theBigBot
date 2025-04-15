@@ -368,7 +368,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 
 void DefenseManager::UseBatteryOvercharge(Point2D location)  // BATTERY_OVERCHARGE
 {
-	if (mediator->GetCurrentTime() - last_time_overcharge_used <= 60)
+	if (mediator->IsBatteryOverchargeOffCooldown() == false)
 		return;
 
 	Units fighting_units = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self));
@@ -393,7 +393,6 @@ void DefenseManager::UseBatteryOvercharge(Point2D location)  // BATTERY_OVERCHAR
 	});
 
 	mediator->SetUnitCommand(nexus, ABILITY_ID::BATTERYOVERCHARGE, batteries[0], 0);
-	last_time_overcharge_used = mediator->GetCurrentTime();
 }
 
 void DefenseManager::RemoveOngoingAttackAt(Point2D location)
