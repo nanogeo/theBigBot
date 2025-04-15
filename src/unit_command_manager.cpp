@@ -185,7 +185,7 @@ void UnitCommandManager::ParseUnitCommands()
 			{
 				if (itr->second.ability.ToType() == ABILITY_ID::BATTERYOVERCHARGE)
 				{
-					if (itr->first->energy >= 50 && Distance2D(itr->first->pos, itr->second.target->pos) < 8)
+					if (itr->first->energy >= 50 && Distance2D(itr->first->pos, itr->second.target->pos) < RANGE_BATTERY_OVERCHARGE)
 						mediator->SetBatteryOverchargeCooldown();
 				}
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target);

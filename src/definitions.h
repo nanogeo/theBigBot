@@ -190,6 +190,8 @@ namespace sc2
 #define U_AIR_ARMOR_3 UPGRADE_ID::PROTOSSAIRARMORSLEVEL3
 
 
+#define RANGE_BATTERY_OVERCHARGE 12.55 // BATTERTY_OVERCHARGE
+
 const std::vector<std::vector<UNIT_TYPEID>> TERRAN_PRIO = { {SIEGE_TANK_SIEGED},
 															{SIEGE_TANK},
 															{WIDOW_MINE},

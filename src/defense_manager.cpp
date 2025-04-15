@@ -380,7 +380,7 @@ void DefenseManager::UseBatteryOvercharge(Point2D location)  // BATTERY_OVERCHAR
 
 	for (int i = batteries.size() - 1; i >= 0; i--)
 	{
-		if (Distance2D(batteries[i]->pos, nexus->pos) > 10.5)
+		if (Distance2D(batteries[i]->pos, nexus->pos) > RANGE_BATTERY_OVERCHARGE)
 			batteries.erase(batteries.begin() + i);
 	}
 
