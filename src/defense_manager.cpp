@@ -288,6 +288,10 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 					if (((friendly_units[i]->energy - 25) / 2) - (20 - max_runs) <= 0)
 						dps = 0;
 				}
+				else
+				{
+					dps = 0;
+				}
 			}
 
 			if (dps > 0)
