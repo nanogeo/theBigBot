@@ -83,7 +83,7 @@ class ImmortalDropMicroDropCarrying2 : public State
 {
 public:
 	class ImmortalDropStateMachine* state_machine;
-	int entry_frame;
+	uint32_t entry_frame;
 	ImmortalDropMicroDropCarrying2(TheBigBot* agent, ImmortalDropStateMachine* state_machine);
 	virtual std::string toString() override;
 	void TickState() override;
@@ -175,9 +175,9 @@ public:
 	int path_index;
 	std::vector<UNIT_TYPEID> target_priority = { UNIT_TYPEID::TERRAN_CYCLONE, UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_SIEGETANK,
 		UNIT_TYPEID::TERRAN_MULE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_WIDOWMINE, UNIT_TYPEID::TERRAN_TECHLAB, UNIT_TYPEID::TERRAN_REACTOR };
-	ImmortalDropStateMachine(TheBigBot* agent, std::string name, const Unit* immortal1, const Unit* immortal2, const Unit* prism, Point2D entry_pos, std::vector<Point2D> prism_path) {
-		this->agent = agent;
-		this->name = name;
+	ImmortalDropStateMachine(TheBigBot* agent, std::string name, const Unit* immortal1, const Unit* immortal2, 
+		const Unit* prism, Point2D entry_pos, std::vector<Point2D> prism_path) : StateMachine(agent, name)
+	{
 		current_state = new ImmortalDropWaitForImmortals(agent, this);
 		this->immortal1 = immortal1;
 		this->immortal2 = immortal2;

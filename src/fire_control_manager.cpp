@@ -25,12 +25,12 @@ namespace sc2 {
 				{
 					info = new EnemyUnitInfo();
 					info->unit = Eunit;
-					info->health = Eunit->health + Eunit->shield;
+					info->health = (int)(Eunit->health + Eunit->shield);
 					auto index = std::find(priority.begin(), priority.end(), Eunit->unit_type.ToType());
 					if (index == priority.end())
-						info->priority = priority.size();
+						info->priority = (int)priority.size();
 					else
-						info->priority = index - priority.begin();
+						info->priority = (int)(index - priority.begin());
 					info->units_in_range.push_back(new_unit);
 					info->total_damage_possible = GetDamage(Funit.first, Eunit);
 					info->dps = Utility::GetDPS(Eunit);
@@ -66,9 +66,9 @@ namespace sc2 {
 					info->health = enemy_health[Eunit];
 					auto index = std::find(priority.begin(), priority.end(), Eunit->unit_type.ToType());
 					if (index == priority.end())
-						info->priority = priority.size();
+						info->priority = (int)priority.size();
 					else
-						info->priority = index - priority.begin();
+						info->priority = (int)(index - priority.begin());
 					info->units_in_range.push_back(new_unit);
 					info->total_damage_possible = GetDamage(Funit.first, Eunit);
 					info->dps = Utility::GetDPS(Eunit);
@@ -102,8 +102,8 @@ namespace sc2 {
 					info = new EnemyUnitInfo();
 					info->unit = Eunit;
 					info->health = enemy_health[Eunit];
-					info->priority = priority.size();
-					for (int i = 0; i < priority.size(); i++)
+					info->priority = (int)priority.size();
+					for (int i = 0; i < (int)priority.size(); i++)
 					{
 						auto index = std::find(priority[i].begin(), priority[i].end(), Eunit->unit_type.ToType());
 						if (index != priority[i].end())
@@ -226,7 +226,7 @@ namespace sc2 {
 #endif
 
 		// order enemy units by number of friendly units that can hit them
-		MinHeap<EnemyUnitInfo*> enemy_units_ordered = MinHeap<EnemyUnitInfo*>(enemy_units.size());
+		MinHeap<EnemyUnitInfo*> enemy_units_ordered = MinHeap<EnemyUnitInfo*>((int)enemy_units.size());
 		//EnemyMinHeap enemy_units_ordered = EnemyMinHeap(enemy_units.size());
 		for (const auto &unit : enemy_units)
 		{
@@ -247,7 +247,7 @@ namespace sc2 {
 			//{
 				// order friendly units that can hit the current enemy unit by number of enemies they can hit
 				// ApplyAttack
-				MinHeap<FriendlyUnitInfo*> friendly_units_ordered = MinHeap<FriendlyUnitInfo*>(current_enemy->units_in_range.size());
+				MinHeap<FriendlyUnitInfo*> friendly_units_ordered = MinHeap<FriendlyUnitInfo*>((int)current_enemy->units_in_range.size());
 				for (const auto &unit : current_enemy->units_in_range)
 				{
 					friendly_units_ordered.Insert(unit);
@@ -272,7 +272,7 @@ namespace sc2 {
 			).count();
 #endif
 
-		MinHeap<FriendlyUnitInfo*>  friendly_units_ordered = MinHeap<FriendlyUnitInfo*>(friendly_units.size());
+		MinHeap<FriendlyUnitInfo*>  friendly_units_ordered = MinHeap<FriendlyUnitInfo*>((int)friendly_units.size());
 		for (const auto &unit : friendly_units)
 		{
 			friendly_units_ordered.Insert(unit);
@@ -339,19 +339,19 @@ void FireControlManager::UpdateEnemyUnitHealth()
 	{
 		if (mediator->GetEnemyRace() == Race::Zerg)
 		{
-			enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 1);
+			enemy_unit_hp[unit_hp.first] = (int)ceil(unit_hp.first->health + unit_hp.first->shield + 1);
 		}
 		else if (mediator->GetEnemyRace() == Race::Terran && Utility::IsBiological(unit_hp.first->unit_type))
 		{
 			Units medivacs = mediator->GetUnits(IsUnit(MEDIVAC));
 			if (medivacs.size() > 0 && Utility::DistanceToClosest(medivacs, unit_hp.first->pos) < 4)
-				enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 10);
+				enemy_unit_hp[unit_hp.first] = (int)ceil(unit_hp.first->health + unit_hp.first->shield + 10);
 			else
-				enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield);
+				enemy_unit_hp[unit_hp.first] = (int)ceil(unit_hp.first->health + unit_hp.first->shield);
 		}
 		else
 		{
-			enemy_unit_hp[unit_hp.first] = ceil(unit_hp.first->health + unit_hp.first->shield + 1);
+			enemy_unit_hp[unit_hp.first] = (int)ceil(unit_hp.first->health + unit_hp.first->shield + 1);
 		}
 	}
 
@@ -467,7 +467,7 @@ void FireControlManager::DoAttacks()
 
 void FireControlManager::OnUnitTakesDamage(const Unit* unit, float health, float shields)
 {
-	float total_damage = health + shields;
+	int total_damage = (int)(health + shields);
 	for (int i = 0; i < outgoing_attacks.size(); i++)
 	{
 		if (outgoing_attacks[i].target == unit && outgoing_attacks[i].confirmend)
@@ -495,7 +495,7 @@ void FireControlManager::OnUnitTakesDamage(const Unit* unit, float health, float
 void FireControlManager::OnUnitEntersVision(const Unit* unit)
 {
 	if (enemy_unit_hp.count(unit) == 0)
-		enemy_unit_hp[unit] = unit->health + unit->shield + 1;
+		enemy_unit_hp[unit] = (int)(unit->health + unit->shield + 1);
 }
 
 void FireControlManager::OnUnitDestroyed(const Unit* unit)

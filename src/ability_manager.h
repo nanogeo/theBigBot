@@ -2,11 +2,6 @@
 
 #include "utility.h"
 
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_map_info.h"
-
-#include "sc2api/sc2_unit_filters.h"
 
 
 namespace sc2

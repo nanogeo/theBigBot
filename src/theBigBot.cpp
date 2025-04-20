@@ -22,9 +22,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#include "sc2api/sc2_api.h"
-#include "sc2api/sc2_unit_filters.h"
-#include "sc2lib/sc2_lib.h"
 
 namespace sc2 {
 
@@ -154,7 +151,7 @@ namespace sc2 {
 			/*if (!debug_mode)
 				ShowLocations();*/
 
-			if ((float)Observation()->GetGameLoop() / 22.4 > seconds_passed)
+			if ((float)Observation()->GetGameLoop() / FRAME_TIME > seconds_passed)
 			{
 				std::cerr << "Time: " << std::to_string(seconds_passed) << std::endl;
 				seconds_passed++;
@@ -536,7 +533,7 @@ namespace sc2 {
         for (const auto &order : orders)
         {
             text += Utility::AbilityIdToString(order.ability_id);
-            int percent = floor(order.progress * 10);
+            int percent = (int)std::floor(order.progress * 10);
             std::string completed(percent, '|');
             std::string todo(10 - percent, '-');
             text += " <" + completed + todo + "> ";
@@ -576,7 +573,7 @@ namespace sc2 {
 						).count();
 #endif
 
-                    Point2D pos = Point2D(pylon->pos.x + i + .5, pylon->pos.y + j + .5);
+                    Point2D pos = Point2D(pylon->pos.x + i + .5f, pylon->pos.y + j + .5f);
                     if (Observation()->IsPathable(pos) && Distance2D(pos, pylon->pos) <= 6 && ToPoint3D(pos).y > pylon->pos.y + .5)
                     {
 #ifdef DEBUG_TIMING
@@ -677,7 +674,7 @@ namespace sc2 {
             {
                 for (int j = -4; j <= 4; j += 1)
                 {
-                    Point2D pos = Point2D(prism->pos.x + i + .5, prism->pos.y + j + .5);
+                    Point2D pos = Point2D(prism->pos.x + i + .5f, prism->pos.y + j + .5f);
                     if (Observation()->IsPathable(pos) && Distance2D(pos, prism->pos) <= 3.75 && Utility::DistanceToClosest(Observation()->GetUnits(), pos) > 1)
                     {
                         prism_spots.push_back(pos);
@@ -733,7 +730,7 @@ namespace sc2 {
             {
                 for (int j = -6; j <= 6; j += 2)
                 {
-                    Point2D pos = Point2D(pylon_pos.x + i + .5, pylon_pos.y + j + .5);
+                    Point2D pos = Point2D(pylon_pos.x + i + .5f, pylon_pos.y + j + .5f);
                     if (Observation()->IsPathable(pos) && Distance2D(pos, pylon_pos) <= 6 && Utility::DistanceToClosest(Observation()->GetUnits(), pos) > 1)
                         spots.push_back(pos);
                 }
@@ -752,7 +749,7 @@ namespace sc2 {
 			{
 				for (int j = -4; j <= 4; j += 1)
 				{
-					Point2D pos = Point2D(prism->pos.x + i + .5, prism->pos.y + j + .5);
+					Point2D pos = Point2D(prism->pos.x + i + .5f, prism->pos.y + j + .5f);
 					if (Observation()->IsPathable(pos) && Distance2D(pos, prism->pos) <= 3.75 && Utility::DistanceToClosest(Observation()->GetUnits(), pos) > 1)
 					{
 						prism_spots.push_back(pos);
@@ -976,8 +973,8 @@ namespace sc2 {
 				float damage_point = Utility::GetDamagePoint(Eunit);
 				if (damage_point == 0)
 				{
-					enemy_weapon_cooldown[Eunit] = Utility::GetWeaponCooldown(Eunit) - damage_point - (1 / 22.4);
-					EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + Utility::GetProjectileTime(Eunit, Distance2D(Eunit->pos, target->pos) - Eunit->radius - target->radius) - 1);
+					enemy_weapon_cooldown[Eunit] = Utility::GetWeaponCooldown(Eunit) - damage_point - (1 / FRAME_TIME);
+					EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + (int)std::floor(Utility::GetProjectileTime(Eunit, Distance2D(Eunit->pos, target->pos) - Eunit->radius - target->radius) - 1));
 					if (enemy_attacks.count(target) == 0)
 						enemy_attacks[target] = { attack };
 					else
@@ -986,7 +983,7 @@ namespace sc2 {
 				else
 				{
 					enemy_weapon_cooldown[Eunit] = Utility::GetWeaponCooldown(Eunit);
-					EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + Utility::GetProjectileTime(Eunit, Distance2D(Eunit->pos, target->pos) - Eunit->radius - target->radius));
+					EnemyAttack attack = EnemyAttack(Eunit, Observation()->GetGameLoop() + (int)std::floor(Utility::GetProjectileTime(Eunit, Distance2D(Eunit->pos, target->pos) - Eunit->radius - target->radius)));
 					if (enemy_attacks.count(target) == 0)
 						enemy_attacks[target] = { attack };
 					else
@@ -1006,7 +1003,7 @@ namespace sc2 {
 #endif
 
 			if (enemy_weapon_cooldown[Eunit] > 0)
-				enemy_weapon_cooldown[Eunit] -= 1 / 22.4;
+				enemy_weapon_cooldown[Eunit] -= 1 / FRAME_TIME;
 			if (enemy_weapon_cooldown[Eunit] < 0)
 			{
 				enemy_weapon_cooldown[Eunit] = 0;
@@ -1036,7 +1033,7 @@ namespace sc2 {
 	{
 		for (auto &attack : enemy_attacks)
 		{
-			for (int i = attack.second.size() - 1; i >= 0; i--)
+			for (int i = (int)attack.second.size() - 1; i >= 0; i--)
 			{
 				if (attack.second[i].impact_frame <= Observation()->GetGameLoop())
 				{
@@ -1046,140 +1043,6 @@ namespace sc2 {
 		}
 	}
 
-	std::vector<Point2D> TheBigBot::FindConcave(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
-	{
-		float range = 0; //r
-		float unit_radius = unit_size + dispersion; //u
-		float concave_degree = 30; //p
-		int max_width = 4;
-
-		Point2D backward_vector = fallback_point - origin;
-		Point2D forward_vector = origin - fallback_point;
-		forward_vector /= sqrt(forward_vector.x * forward_vector.x + forward_vector.y * forward_vector.y);
-
-		Point2D offset_circle_center = Point2D(origin.x + concave_degree * forward_vector.x, origin.y + concave_degree * forward_vector.y);
-
-		float backwards_direction = atan2(backward_vector.y, backward_vector.x);
-		float arclength = (2 * unit_radius) / (range + concave_degree + unit_radius);
-		
-		std::vector<Point2D> concave_points;
-		
-		int row = 0;
-
-		while(concave_points.size() < num_units)
-		{
-			row++;
-			// even row
-			bool left_limit = false;
-			bool right_limit = false;
-			float arclength = (2 * unit_radius) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
-			for (float i = .5; i <= max_width - .5; i += 1)
-			{
-				if (!right_limit)
-				{
-					float unit_direction = backwards_direction + i * arclength;
-					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (Observation()->IsPathable(unit_position))
-					{
-						concave_points.push_back(unit_position);
-					}
-					else
-					{
-						right_limit = true;
-					}
-				}
-				if ((right_limit && left_limit) || concave_points.size() >= num_units)
-					break;
-
-				if (!left_limit)
-				{
-					float unit_direction = backwards_direction - i * arclength;
-					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (Observation()->IsPathable(unit_position))
-					{
-						concave_points.push_back(unit_position);
-					}
-					else
-					{
-						left_limit = true;
-					}
-				}
-				if ((right_limit && left_limit) || concave_points.size() >= num_units)
-					break;
-			}
-			if (concave_points.size() >= num_units)
-				break;
-
-			// odd row
-			row++;
-			// middle point
-			float unit_direction = backwards_direction;
-			Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-				offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-			if (Observation()->IsPathable(unit_position))
-			{
-				concave_points.push_back(unit_position);
-			}
-
-			left_limit = false;
-			right_limit = false;
-			arclength = (2 * unit_radius) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
-			for (int i = 1; i <= max_width - 1; i++)
-			{
-				if (!right_limit)
-				{
-					float unit_direction = backwards_direction + i * arclength;
-					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (Observation()->IsPathable(unit_position))
-					{
-						concave_points.push_back(unit_position);
-					}
-					else
-					{
-						right_limit = true;
-					}
-				}
-				if ((right_limit && left_limit) || concave_points.size() >= num_units)
-					break;
-
-				if (!left_limit)
-				{
-					float unit_direction = backwards_direction - i * arclength;
-					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					if (Observation()->IsPathable(unit_position))
-					{
-						concave_points.push_back(unit_position);
-					}
-					else
-					{
-						left_limit = true;
-					}
-				}
-				if ((right_limit && left_limit) || concave_points.size() >= num_units)
-					break;
-			
-			}
-		}
-		return concave_points;
-	}
-
-	std::vector<Point2D> TheBigBot::FindConcaveFromBack(Point2D origin, Point2D fallback_point, int num_units, float unit_size, float dispersion)
-	{
-		Point2D current_origin = origin;
-		while (true)
-		{
-			std::vector<Point2D> concave_points = FindConcave(current_origin, fallback_point, num_units, unit_size, dispersion);
-			Point2D furthest_back = Utility::ClosestPointOnLine(concave_points.back(), origin, fallback_point);
-			if (Distance2D(origin, fallback_point) < Distance2D(furthest_back, fallback_point))
-				return concave_points;
-			current_origin = Utility::PointBetween(current_origin, fallback_point, -(unit_size + dispersion));
-		}
-
-	}
 
 	void TheBigBot::SetUpUnitTypeInfo()
 	{
@@ -1612,9 +1475,9 @@ namespace sc2 {
             build_order_message += mediator.build_order_manager.build_order[i].toString() + "\n";
         }
 		if (mediator.build_order_manager.run_build_order)
-			Debug()->DebugTextOut(build_order_message, Point2D(.7, .1), Color(0, 255, 0), 20);
+			Debug()->DebugTextOut(build_order_message, Point2D(.7f, .1f), Color(0, 255, 0), 20);
 		else
-	        Debug()->DebugTextOut(build_order_message, Point2D(.7, .1), Color(255, 0, 0), 20);
+	        Debug()->DebugTextOut(build_order_message, Point2D(.7f, .1f), Color(255, 0, 0), 20);
     }
 
     void TheBigBot::DisplayActiveActions()
@@ -1627,7 +1490,7 @@ namespace sc2 {
             if (unit != nullptr)
                 Debug()->DebugTextOut(mediator.action_manager.active_actions[i]->toString(), unit->pos, Color(0, 255, 0), 20);
         }
-        Debug()->DebugTextOut(actions_message, Point2D(.1, 0), Color(0, 255, 0), 20);
+        Debug()->DebugTextOut(actions_message, Point2D(.1f, 0), Color(0, 255, 0), 20);
     }
 
     void TheBigBot::DisplayActiveStateMachines()
@@ -1637,7 +1500,7 @@ namespace sc2 {
         {
             actions_message += mediator.finite_state_machine_manager.active_state_machines[i]->toString() + "\n";
         }
-        Debug()->DebugTextOut(actions_message, Point2D(.3, 0), Color(0, 255, 0), 20);
+        Debug()->DebugTextOut(actions_message, Point2D(.3f, 0), Color(0, 255, 0), 20);
     }
 
     void TheBigBot::DisplayBuildingStatuses()
@@ -1746,13 +1609,13 @@ namespace sc2 {
 				army_info += "\n";
 			}
         }
-        Debug()->DebugTextOut(army_info, Point2D(.8, .3), Color(255, 255, 255), 20);
+        Debug()->DebugTextOut(army_info, Point2D(.8f, .3f), Color(255, 255, 255), 20);
     }
 
     void TheBigBot::DisplaySupplyInfo()
     {
         std::string supply_message = "";
-		supply_message += std::to_string(Observation()->GetGameLoop()) + " - " + std::to_string(Observation()->GetGameLoop() / 22.4) + '\n';
+		supply_message += std::to_string(Observation()->GetGameLoop()) + " - " + std::to_string(Observation()->GetGameLoop() / FRAME_TIME) + '\n';
         int cap = Observation()->GetFoodCap();
         int used = Observation()->GetFoodUsed();
         supply_message += "supply: " + std::to_string(used) + '/' + std::to_string(cap) + '\n';
@@ -1777,17 +1640,17 @@ namespace sc2 {
         if (pending_pylons > 0 || build_pylon_actions > 0)
             supply_message += "new supply: " + std::to_string(used) + '/' + std::to_string(cap + 8 * pending_pylons + 8 * build_pylon_actions) + '\n';
 
-        int gates = Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE)).size();
-        int other_prod = Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)).size() + Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size();
+        size_t gates = Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE)).size();
+        size_t other_prod = Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)).size() + Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size();
         if (gates > 0)
             supply_message += "warpgates: " + std::to_string(gates) + '\n';
         if (other_prod > 0)
             supply_message += "other prod: " + std::to_string(other_prod) + '\n';
-        int nexi = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
+        size_t nexi = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
         supply_message += "nexi: " + std::to_string(nexi) + '\n';
         supply_message += "new supply: " + std::to_string(used + 2 * gates + 3 * other_prod + nexi) + '/' + std::to_string(cap + 8 * pending_pylons + 8 * build_pylon_actions) + '\n';
 
-        Debug()->DebugTextOut(supply_message, Point2D(.9, .05), Color(0, 255, 0), 20);
+        Debug()->DebugTextOut(supply_message, Point2D(.9f, .05f), Color(0, 255, 0), 20);
     }
 
 	void TheBigBot::DisplayOngoingAttacks()
@@ -1806,7 +1669,7 @@ namespace sc2 {
 	void TheBigBot::DisplayEnemyAttacks()
 	{
 		std::string message = "Current frame: " + std::to_string(Observation()->GetGameLoop()) + "\n";
-		message += "Current time: " + std::to_string(frames_passed / 22.4) + "\n";
+		message += "Current time: " + std::to_string(frames_passed / FRAME_TIME) + "\n";
 		for (const auto &unit : enemy_attacks)
 		{
 			message += Utility::UnitTypeIdToString(unit.first->unit_type.ToType());
@@ -1818,7 +1681,7 @@ namespace sc2 {
 				message += " - " + std::to_string(attack.impact_frame) + "\n";
 			}
 		}
-		Debug()->DebugTextOut(message, Point2D(.8, .4), Color(255, 0, 0), 20);
+		Debug()->DebugTextOut(message, Point2D(.8f, .4f), Color(255, 0, 0), 20);
 	}
 
 	void TheBigBot::DisplayEnemyPositions()
@@ -1878,8 +1741,8 @@ namespace sc2 {
 			if (i != 0 && i % raw_map.width == 0)
 			{
 				row++;
-				std::vector<bool> x;
-				map.push_back(x);
+				std::vector<bool> y;
+				map.push_back(y);
 				map[row].push_back(false);
 			}
 		}
@@ -1889,8 +1752,8 @@ namespace sc2 {
 		std::vector<std::vector<bool>> flipped_map;
 		for (int i = 0; i < map[0].size(); i++)
 		{
-			std::vector<bool> x;
-			flipped_map.push_back(x);
+			std::vector<bool> y;
+			flipped_map.push_back(y);
 		}
 		for (int i = 0; i < map.size(); i++)
 		{

@@ -102,7 +102,7 @@ class AdeptBaseDefenseTerran : public StateMachine
 {
 public:
 	const Unit* adept = nullptr;
-	int frame_shade_used = 0;
+	uint32_t frame_shade_used = 0;
 	bool attack_status = false;
 	const Unit* shade = nullptr;
 	Point2D dead_space_spot;

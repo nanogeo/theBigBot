@@ -1,9 +1,5 @@
 #pragma once
-
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
 #include "sc2api/sc2_map_info.h"
-#include "sc2api/sc2_unit_filters.h"
 
 #include "action_manager.h"
 #include "build_order_manager.h"
@@ -65,7 +61,7 @@ public:
 	void RunManagers();
 
 	int GetGameLoop();
-	double GetCurrentTime();
+	float GetCurrentTime();
 	int GetUniqueId();
 	int GetNumWorkers();
 	int GetSupplyUsed();

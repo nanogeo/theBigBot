@@ -364,9 +364,9 @@ std::string AdeptHarassProtossKillProbes::toString()
 
 #pragma region AdeptHarassProtoss
 
-AdeptHarassProtoss::AdeptHarassProtoss(TheBigBot* agent, std::string name, Units adepts, std::vector<Point2D> consolidation_points) {
-	this->agent = agent;
-	this->name = name;
+AdeptHarassProtoss::AdeptHarassProtoss(TheBigBot* agent, std::string name, Units adepts, 
+	std::vector<Point2D> consolidation_points) : StateMachine(agent, name)
+{
 	this->adepts = adepts;
 	this->consolidation_points = consolidation_points;
 

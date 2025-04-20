@@ -1,9 +1,4 @@
 #pragma once
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_map_info.h"
-
-#include "sc2api/sc2_unit_filters.h"
 
 #include "path_manager.h"
 #include "definitions.h"
@@ -124,7 +119,7 @@ public:
 	static float GetMaxGroundRange(Units);
 	static float GetMaxAirRange(Units);
 	static float GetDamagePoint(const Unit*);
-	static int GetProjectileTime(const Unit*, float dist);
+	static float GetProjectileTime(const Unit*, float dist);
 	static float GetWeaponCooldown(const Unit*);
 	static bool IsOnHighGround(Point3D, Point3D);
 	static float GetTimeBuilt(const Unit*, float);

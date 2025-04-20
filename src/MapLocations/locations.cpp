@@ -9,10 +9,12 @@
 
 #define P(x, y) convert_location(Point2D(x, y), swap)
 
+#pragma warning(push)
+#pragma warning(disable : 4305)
 
 namespace sc2 {
 
-	void Locations::SetLightshadeLocations(Point3D start_location, BuildOrder build_order)
+	void Locations::SetLightshadeLocations(Point3D start)
 	{
 		Point2D center_point = Point2D(92, 82);
 
@@ -24,9 +26,9 @@ namespace sc2 {
 				return point;
 		};
 
-		bool swap = start_location.x == 40.5 && start_location.y == 131.5;
+		bool swap = start.x == 40.5 && start.y == 131.5;
 
-		this->start_location = start_location;
+		this->start_location = start;
 
 		nexi_locations = { P(143.5, 32.5),
 							P(145.5, 61.5),
@@ -143,11 +145,11 @@ namespace sc2 {
 						P(44, 114),
 						P(43, 124) };
 
-		attack_path_line = PathManager({ new LineSegmentLinearY(-1, 108.5, 34, 65.5, swap, center_point),
+		/*attack_path_line = PathManager({ new LineSegmentLinearY(-1, 108.5, 34, 65.5, swap, center_point),
 										new LineSegmentCurveY(.0926, -13.056, 500.894, 65.5, 75.5, swap, center_point),
 										new LineSegmentLinearY(1, -32.5, 75.5, 81.5, swap, center_point),
 										new LineSegmentCurveY(-.071425, 12.607, -504.04, 81.5, 95, swap, center_point),
-										new LineSegmentLinearY(-1, 144, 95, 99, swap, center_point), });
+										new LineSegmentLinearY(-1, 144, 95, 99, swap, center_point), });*/
 
 		high_ground_index = 8;
 
@@ -275,13 +277,13 @@ namespace sc2 {
 		blink_pressure_blink_up = P(58, 115);
 		blink_pressure_blink_down = P(56, 121);
 
-		blink_nat_attack_path_line = PathManager({ new LineSegmentCurveY(.0926, -13.056, 500.894, 65.5, 75.5, swap, center_point),
+		/*blink_nat_attack_path_line = PathManager({ new LineSegmentCurveY(.0926, -13.056, 500.894, 65.5, 75.5, swap, center_point),
 													new LineSegmentLinearY(1, -32.5, 75.5, 81.5, swap, center_point),
 													new LineSegmentCurveY(-.071425, 12.607, -504.04, 81.5, 95, swap, center_point),
 													new LineSegmentLinearY(-1, 144, 95, 99, swap, center_point), });
 
 		blink_main_attack_path_lines = { PathManager({ new LineSegmentCurveY(-.05, 12.5, -724.45, 121, 138, swap, center_point) }),
-										PathManager({ new LineSegmentLinearY(10, -1154, 119, 121, swap, center_point) }) };
+										PathManager({ new LineSegmentLinearY(10, -1154, 119, 121, swap, center_point) }) };*/
 
 		//blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveX(-.04, 4.96, -52.76, 55, 67, swap, center_point),
 		//										new LineSegmentCurveX(.08, -8, 297.04, 40, 55, swap, center_point) }, true, swap);
@@ -349,9 +351,9 @@ namespace sc2 {
 }
 
 
-	void Locations::SetLightshadeLocations2(Point3D start_location, BuildOrder build_order)
+	void Locations::SetLightshadeLocations2(Point3D start)
 	{
-		bool swap = start_location.x == 40.5 && start_location.y == 131.5;
+		bool swap = start.x == 40.5 && start.y == 131.5;
 		auto convert_location = [](Point2D point, bool swap)
 		{
 			if (swap)
@@ -368,7 +370,7 @@ namespace sc2 {
 
 	}
 
-void Locations::SetTestingLocations(Point3D start_location, BuildOrder build_order)
+void Locations::SetTestingLocations(Point3D start)
 {
 	Point2D center_point = Point2D(88, 86);
 	auto convert_location = [](Point2D point, bool swap)
@@ -379,9 +381,9 @@ void Locations::SetTestingLocations(Point3D start_location, BuildOrder build_ord
 			return point;
 	};
 
-	bool swap = start_location.x == 142.5 && start_location.y == 140.5;
+	bool swap = start.x == 142.5 && start.y == 140.5;
 
-	this->start_location = start_location;
+	this->start_location = start;
 
 	attack_path_short = { P(31, 142),
 						P(75, 97),
@@ -423,3 +425,4 @@ void Locations::SetTestingLocations(Point3D start_location, BuildOrder build_ord
 
 }
 
+#pragma warning(pop)

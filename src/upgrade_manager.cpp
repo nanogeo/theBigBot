@@ -21,6 +21,8 @@ int UpgradeManager::GetUpgradeLevel(UpgradeType upgrade_type)
 	case UpgradeType::air_armor:
 		return air_armor;
 	}
+	std::cerr << "Error unknown upgrade in GetUpgradeLevel" << std::to_string(upgrade_type) << std::endl;
+	return 0;
 }
 
 void UpgradeManager::OnUpgradeCompleted(UPGRADE_ID upgrade)

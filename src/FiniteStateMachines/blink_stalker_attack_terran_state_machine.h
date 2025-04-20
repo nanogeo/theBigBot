@@ -149,10 +149,8 @@ public:
 	Point2D blink_up_pos;
 	Point2D blink_down_pos;
 	bool warping_in = false;
-	int warp_in_time;
 
 
-	int event_id;
 	BlinkStalkerAttackTerran(TheBigBot* agent, std::string name, Point2D consolidation_pos, 
 		Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos);
 

@@ -11,7 +11,7 @@ namespace sc2 {
 
 std::string ChargeAllInMovingToWarpinSpot::toString()
 {
-	float time_left = state_machine->last_warp_in_time + 20 - agent->Observation()->GetGameLoop() / 22.4;
+	float time_left = state_machine->last_warp_in_time + 20 - agent->Observation()->GetGameLoop() / FRAME_TIME;
 	return "ChargeAllIn looking for warp in spot " + std::to_string((int)time_left);
 }
 
@@ -47,7 +47,7 @@ void ChargeAllInMovingToWarpinSpot::ExitState()
 
 State* ChargeAllInMovingToWarpinSpot::TestTransitions()
 {
-	float time_left = state_machine->last_warp_in_time + 20 - agent->Observation()->GetGameLoop() / 22.4;
+	float time_left = state_machine->last_warp_in_time + 20 - agent->Observation()->GetGameLoop() / FRAME_TIME;
 	if (time_left < 2)
 		return new ChargeAllInWarpingIn(agent, state_machine);
 	return nullptr;
@@ -94,8 +94,8 @@ void ChargeAllInWarpingIn::TickState()
 				//agent->Debug()->DebugSphereOut(pos, 1, Color(255, 0, 255));
 				agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_ZEALOT, spots[i]);
 				agent->warpgate_status[gates[i]].used = true;
-				agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(20 * 22.4);
-				state_machine->last_warp_in_time = agent->Observation()->GetGameLoop() / 22.4;
+				agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(20 * FRAME_TIME);
+				state_machine->last_warp_in_time = agent->Observation()->GetGameLoop() / FRAME_TIME;
 			}
 		}
 	}*/
@@ -114,7 +114,7 @@ void ChargeAllInWarpingIn::ExitState()
 
 State* ChargeAllInWarpingIn::TestTransitions()
 {
-	float time_left = state_machine->last_warp_in_time + 20 - agent->Observation()->GetGameLoop() / 22.4;
+	float time_left = state_machine->last_warp_in_time + 20 - agent->Observation()->GetGameLoop() / FRAME_TIME;
 	if (time_left < 16 && time_left > 10)
 		return new ChargeAllInMovingToWarpinSpot(agent, state_machine);
 	// if last warp in time >3 and < 8

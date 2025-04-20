@@ -3,12 +3,6 @@
 #include "army_group.h"
 #include "utility.h"
 
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_map_info.h"
-
-#include "sc2api/sc2_unit_filters.h"
-
 
 namespace sc2
 {
@@ -97,8 +91,6 @@ public:
 	bool ActionChronoTillFinished(ActionArgData*);
 	bool ActionConstantChrono(ActionArgData*);
 	bool ActionTrainFromProxyRobo(ActionArgData*);
-	bool ActionContain(ActionArgData*);
-	bool ActionStalkerOraclePressure(ActionArgData*);
 	bool ActionZealotDoubleprong(ActionArgData*);
 	bool ActionPullOutOfGas(ActionArgData*);
 	bool ActionRemoveScoutToProxy(ActionArgData*); // tostring
@@ -188,14 +180,6 @@ struct ActionData
 		else if (action == &ActionManager::ActionTrainFromProxyRobo)
 		{
 			str += "Train units from proxy robo";
-		}
-		else if (action == &ActionManager::ActionContain)
-		{
-			str += "Contain";
-		}
-		else if (action == &ActionManager::ActionStalkerOraclePressure)
-		{
-			str += "Stalker Oracle pressure";
 		}
 		else if (action == &ActionManager::ActionZealotDoubleprong)
 		{

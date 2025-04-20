@@ -9,10 +9,12 @@
 
 #define P(x, y) convert_location(Point2D(x, y), swap)
 
+#pragma warning(push)
+#pragma warning(disable : 4305)
 
 namespace sc2 {
 
-	void Locations::SetAbyssalReefLocations(Point3D start_location, BuildOrder build_order)
+	void Locations::SetAbyssalReefLocations(Point3D start)
 	{
 		Point2D center_point = Point2D(224, 0);
 
@@ -24,9 +26,9 @@ namespace sc2 {
 				return point;
 		};
 
-		bool swap = start_location.x == 38.5 && start_location.y == 122.5;
+		bool swap = start.x == 38.5 && start.y == 122.5;
 
-		this->start_location = start_location;
+		this->start_location = start;
 
 		nexi_locations = { P(161.5, 21.5),
 							P(129.5, 26.5),
@@ -301,3 +303,4 @@ namespace sc2 {
 
 }
 
+#pragma warning(pop)

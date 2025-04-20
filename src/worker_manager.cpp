@@ -1,10 +1,4 @@
 
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_map_info.h"
-#include "sc2api/sc2_unit.h"
-#include "sc2api/sc2_unit_filters.h"
-
 #include "worker_manager.h"
 #include "utility.h"
 #include "mediator.h"
@@ -12,9 +6,12 @@
 // temp
 #include "theBigBot.h"
 
+
 namespace sc2
 {
-
+	
+#pragma warning(push)
+#pragma warning(disable : 4702)
 const Unit* WorkerManager::GetWorker()
 {
 	// Units mineral_fields = observation->GetUnits(IsMineralPatch());
@@ -106,6 +103,7 @@ const Unit* WorkerManager::GetWorker()
 	//std::cout << "Error no available worker found";
 	return nullptr;
 }
+#pragma warning(pop)
 
 const Unit* WorkerManager::GetBuilder(Point2D position)
 {
@@ -296,8 +294,8 @@ void WorkerManager::PlaceWorkerInGas(const Unit* worker, const Unit* gas, int in
 		return;
 	Point2D vector = assimilator_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
-	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2;
-	Point2D pick_up_point = assimilator_position - normal_vector * 2.1;
+	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2f;
+	Point2D pick_up_point = assimilator_position - normal_vector * 2.1f;
 	assimilator_reversed_data data;
 	data.assimilator = gas;
 	data.drop_off_point = drop_off_point;
@@ -318,8 +316,8 @@ void WorkerManager::NewPlaceWorkerInGas(const Unit* worker, const Unit* gas)
 		return;
 	Point2D vector = assimilator_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
-	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2;
-	Point2D pick_up_point = assimilator_position - normal_vector * 2.1;
+	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2f;
+	Point2D pick_up_point = assimilator_position - normal_vector * 2.1f;
 	assimilator_reversed_data data;
 	data.assimilator = gas;
 	data.drop_off_point = drop_off_point;
@@ -341,15 +339,15 @@ void WorkerManager::PlaceWorkerOnMinerals(const Unit* worker, const Unit* minera
 		return;
 	Point2D vector = mineral_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
-	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2;
-	Point2D pick_up_point = mineral_position - normal_vector * 1.325;
+	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2f;
+	Point2D pick_up_point = mineral_position - normal_vector * 1.325f;
 
 	std::vector<const Unit*> closest_minerals = Utility::NClosestUnits(mediator->GetUnits(Unit::Alliance::Neutral), pick_up_point, 2);
 	if (closest_minerals.size() == 2)
 	{
 		const Unit* closest = closest_minerals[0];
 		if (Distance2D(closest->pos, mineral_position) == 0)
-			const Unit* closest = closest_minerals[1];
+			closest = closest_minerals[1];
 
 		if (closest != nullptr && Distance2D(closest->pos, pick_up_point) < 1.325)
 		{
@@ -379,15 +377,15 @@ void WorkerManager::NewPlaceWorkerOnMinerals(const Unit* worker, const Unit* min
 		return;
 	Point2D vector = mineral_position - closest_nexus->pos;
 	Point2D normal_vector = vector / sqrt(vector.x * vector.x + vector.y * vector.y);
-	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2;
-	Point2D pick_up_point = mineral_position - normal_vector * 1.325;
+	Point2D drop_off_point = closest_nexus->pos + normal_vector * 3.2f;
+	Point2D pick_up_point = mineral_position - normal_vector * 1.325f;
 
 	std::vector<const Unit*> closest_minerals = Utility::NClosestUnits(mediator->GetUnits(Unit::Alliance::Neutral), pick_up_point, 2);
 	if (closest_minerals.size() == 2)
 	{
 		const Unit* closest = closest_minerals[0];
 		if (Distance2D(closest->pos, mineral_position) == 0)
-			const Unit* closest = closest_minerals[1];
+			closest = closest_minerals[1];
 
 		if (closest != nullptr && Distance2D(closest->pos, pick_up_point) < 1.325)
 		{
@@ -703,7 +701,7 @@ void WorkerManager::DistributeWorkers()
 	for (const auto &worker : workers)
 	{
 		mediator->agent->Debug()->DebugSphereOut(mediator->ToPoint3D(mineral_patches_reversed[worker].pick_up_point), .25, Color(255, 0, 0));
-		mediator->agent->Debug()->DebugSphereOut(mineral_patches_reversed[worker].mineral->pos, 1.325, Color(255, 255, 0));
+		mediator->agent->Debug()->DebugSphereOut(mineral_patches_reversed[worker].mineral->pos, 1.325f, Color(255, 255, 0));
 		if (worker->weapon_cooldown == 0)
 		{
 			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), worker->pos);

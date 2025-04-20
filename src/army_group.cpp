@@ -7,9 +7,6 @@
 #include <iomanip>
 #include <algorithm>
 
-#include "sc2api/sc2_api.h"
-#include "sc2api/sc2_unit_filters.h"
-#include "sc2lib/sc2_lib.h"
 
 #include "army_group.h"
 #include "theBigBot.h"
@@ -133,7 +130,7 @@ namespace sc2 {
 		double line_a = slope;
 		double line_b = start.y - (slope * start.x);
 
-		defense_line = new LineSegmentLinearX(line_a, line_b, start.x, end.x, false, Point2D(0, 0));
+		defense_line = new LineSegmentLinearX((float)line_a, (float)line_b, start.x, end.x);
 
 		this->role = role;
 		for (const auto& type : unit_types)
@@ -304,17 +301,17 @@ namespace sc2 {
 	Units ArmyGroup::GetExtraUnits()
 	{
 		Units extra_units;
-		int extra_num = all_units.size() + new_units.size() - desired_units;
+		int extra_num = (int)(all_units.size() + new_units.size() - desired_units);
 		if (extra_num <= 0)
 			return extra_units;
 
-		for (int i = new_units.size() - 1; i >= 0; i --)
+		for (int i = (int)new_units.size() - 1; i >= 0; i --)
 		{
 			extra_units.push_back(new_units[i]);
 			if (extra_units.size() == extra_num)
 				return extra_units;
 		}
-		for (int i = all_units.size() - 1; i >= 0; i--)
+		for (int i = (int)all_units.size() - 1; i >= 0; i--)
 		{
 			extra_units.push_back(all_units[i]);
 			if (extra_units.size() == extra_num)
@@ -337,7 +334,6 @@ namespace sc2 {
 		Point2D offset_circle_center = Point2D(origin.x + concave_degree * forward_vector.x, origin.y + concave_degree * forward_vector.y);
 
 		float backwards_direction = atan2(backward_vector.y, backward_vector.x);
-		float arclength = (2 * unit_radius) / (range + concave_degree + unit_radius);
 
 		std::vector<Point2D> concave_points;
 
@@ -407,8 +403,8 @@ namespace sc2 {
 			{
 				if (!right_limit)
 				{
-					float unit_direction = backwards_direction + i * arclength;
-					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+					unit_direction = backwards_direction + i * arclength;
+					unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
 					if (mediator->IsPathable(unit_position))
 					{
@@ -424,8 +420,8 @@ namespace sc2 {
 
 				if (!left_limit)
 				{
-					float unit_direction = backwards_direction - i * arclength;
-					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+					unit_direction = backwards_direction - i * arclength;
+					unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
 					if (mediator->IsPathable(unit_position))
 					{
@@ -446,9 +442,8 @@ namespace sc2 {
 
 	std::vector<Point2D> ArmyGroup::FindConcaveWithPrism(Point2D origin, Point2D fallback_point, int num_units, int num_prisms, float unit_size, float dispersion, float concave_degree, std::vector<Point2D>& prism_positions)
 	{
-		float min_height = mediator->ToPoint3D(origin).z - .5;
+		float min_height = mediator->ToPoint3D(origin).z - .5f;
 		float max_height = min_height + 1;
-		float height = mediator->ToPoint3D(origin).z;
 		float range = 0; //r
 		float unit_radius = unit_size + dispersion; //u
 		//float concave_degree = 30; //p
@@ -461,7 +456,6 @@ namespace sc2 {
 		Point2D offset_circle_center = Point2D(origin.x + concave_degree * forward_vector.x, origin.y + concave_degree * forward_vector.y);
 
 		float backwards_direction = atan2(backward_vector.y, backward_vector.x);
-		float arclength = (2 * unit_radius) / (range + concave_degree + unit_radius);
 
 		std::vector<Point2D> concave_points;
 
@@ -486,11 +480,11 @@ namespace sc2 {
 					float point_height = mediator->ToPoint3D(unit_position).z;
 					if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
-						if (point_height + .5 > max_height)
-							max_height = point_height + .5;
-						if (point_height - .5 < min_height)
-							min_height = point_height - .5;
-						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+						if (point_height + .5f > max_height)
+							max_height = point_height + .5f;
+						if (point_height - .5f < min_height)
+							min_height = point_height - .5f;
+						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5f + unit_size + .1f)
 							concave_points.push_back(unit_position);
 					}
 					else
@@ -509,11 +503,11 @@ namespace sc2 {
 					float point_height = mediator->ToPoint3D(unit_position).z;
 					if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
-						if (point_height + .5 > max_height)
-							max_height = point_height + .5;
-						if (point_height - .5 < min_height)
-							min_height = point_height - .5;
-						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+						if (point_height + .5f > max_height)
+							max_height = point_height + .5f;
+						if (point_height - .5f < min_height)
+							min_height = point_height - .5f;
+						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5f + unit_size + .1f)
 							concave_points.push_back(unit_position);
 					}
 					else
@@ -544,7 +538,7 @@ namespace sc2 {
 					offset = 1;
 				}
 
-				arclength = (2 * unit_radius * ((6 / num_prisms) - .5)) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+				arclength = (2 * unit_radius * ((6 / num_prisms) - .5f)) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
 				for (float i = offset; i <= std::ceil((num_prisms / 2) - offset); i += 1)
 				{
 					// right position
@@ -577,11 +571,11 @@ namespace sc2 {
 			float point_height = mediator->ToPoint3D(unit_position).z;
 			if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 			{
-				if (point_height + .5 > max_height)
-					max_height = point_height + .5;
-				if (point_height - .5 < min_height)
-					min_height = point_height - .5;
-				if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+				if (point_height + .5f > max_height)
+					max_height = point_height + .5f;
+				if (point_height - .5f < min_height)
+					min_height = point_height - .5f;
+				if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5f + unit_size + .1f)
 					concave_points.push_back(unit_position);
 			}
 
@@ -592,17 +586,17 @@ namespace sc2 {
 			{
 				if (!right_limit)
 				{
-					float unit_direction = backwards_direction + i * arclength;
-					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+					unit_direction = backwards_direction + i * arclength;
+					unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					float point_height = mediator->ToPoint3D(unit_position).z;
+					point_height = mediator->ToPoint3D(unit_position).z;
 					if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
-						if (point_height + .5 > max_height)
-							max_height = point_height + .5;
-						if (point_height - .5 < min_height)
-							min_height = point_height - .5;
-						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+						if (point_height + .5f > max_height)
+							max_height = point_height + .5f;
+						if (point_height - .5f < min_height)
+							min_height = point_height - .5f;
+						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5f + unit_size + .1f)
 							concave_points.push_back(unit_position);
 					}
 					else
@@ -615,17 +609,17 @@ namespace sc2 {
 
 				if (!left_limit)
 				{
-					float unit_direction = backwards_direction - i * arclength;
-					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+					unit_direction = backwards_direction - i * arclength;
+					unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
-					float point_height = mediator->ToPoint3D(unit_position).z;
+					point_height = mediator->ToPoint3D(unit_position).z;
 					if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 					{
-						if (point_height + .5 > max_height)
-							max_height = point_height + .5;
-						if (point_height - .5 < min_height)
-							min_height = point_height - .5;
-						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5 + unit_size + .1)
+						if (point_height + .5f > max_height)
+							max_height = point_height + .5f;
+						if (point_height - .5f < min_height)
+							min_height = point_height - .5f;
+						if (Utility::DistanceToClosest(mediator->agent->corrosive_bile_positions, unit_position) > .5f + unit_size + .1f)
 							concave_points.push_back(unit_position);
 					}
 					else
@@ -646,8 +640,8 @@ namespace sc2 {
 				if (num_prisms % 2 == 1)
 				{
 					// middle point
-					float unit_direction = backwards_direction;
-					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+					unit_direction = backwards_direction;
+					unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
 					if (mediator->IsPathable(unit_position))
 					{
@@ -656,13 +650,13 @@ namespace sc2 {
 					offset = 1;
 				}
 
-				arclength = (2 * unit_radius * ((6 / num_prisms) - .5)) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+				arclength = (2 * unit_radius * ((6 / num_prisms) - .5f)) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
 				for (float i = offset; i <= std::ceil((num_prisms / 2) - offset); i += 1)
 				{
 					// right position
 					{
-						float unit_direction = backwards_direction + i * arclength;
-						Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						unit_direction = backwards_direction + i * arclength;
+						unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 							offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
 
 						prism_positions.push_back(unit_position);
@@ -670,8 +664,8 @@ namespace sc2 {
 
 					// left position
 					{
-						float unit_direction = backwards_direction - i * arclength;
-						Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
+						unit_direction = backwards_direction - i * arclength;
+						unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
 							offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
 
 						prism_positions.push_back(unit_position);
@@ -861,8 +855,8 @@ namespace sc2 {
 
 
 
-		std::vector<Point2D> attack_concave_positions = FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, stalkers.size(), .625, unit_dispersion);
-		std::vector<Point2D> retreat_concave_positions = FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, stalkers.size(), .625, unit_dispersion, 30);
+		std::vector<Point2D> attack_concave_positions = FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, (int)stalkers.size(), .625, unit_dispersion);
+		std::vector<Point2D> retreat_concave_positions = FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, (int)stalkers.size(), .625, unit_dispersion, 30);
 
 		attacking_unit_positions = AssignUnitsToPositions(stalkers, attack_concave_positions);
 		retreating_unit_positions = AssignUnitsToPositions(stalkers, retreat_concave_positions);
@@ -916,7 +910,7 @@ namespace sc2 {
 			return;
 		}
 
-		Point2D guard_move_to = Utility::PointBetween(door_closed_pos, closest_to_door->pos, std::min(4.0, std::max(0.0, (dist_to_closest / 2) - 1)));
+		Point2D guard_move_to = Utility::PointBetween(door_closed_pos, closest_to_door->pos, (float)std::min(4.0, std::max(0.0, (dist_to_closest / 2) - 1)));
 
 
 		// TODO use fire control to find the best target
@@ -1028,7 +1022,7 @@ namespace sc2 {
 
 		if (enemy_ground_units.size() > 0)
 		{
-			int num_active_units = all_units.size() - oracles.size();
+			int num_active_units = (int)(all_units.size() - oracles.size());
 			for (const auto& oracle : oracles)
 			{
 				if (mediator->IsOracleBeamActive(oracle))
@@ -1248,15 +1242,15 @@ namespace sc2 {
 				}
 				else
 				{
-					std::srand(unit->tag + mediator->GetGameLoop());
+					std::srand((unsigned int)(unit->tag + mediator->GetGameLoop()));
 					int x = std::rand() % raw_map.width;
 					int y = std::rand() % raw_map.height;
-					Point2D pos = Point2D(x, y);
+					Point2D pos = Point2D((float)x, (float)y);
 					while (!unit->is_flying && !mediator->IsPathable(pos))
 					{
 						x = std::rand() % raw_map.width;
 						y = std::rand() % raw_map.height;
-						pos = Point2D(x, y);
+						pos = Point2D((float)x, (float)y);
 					}
 					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, pos, 0);
 				}
@@ -1584,7 +1578,7 @@ namespace sc2 {
 
 			
 		
-		MicroReadyUnits(units_ready, target_priority, percent_units_needed, basic_units.size());
+		MicroReadyUnits(units_ready, target_priority, percent_units_needed, (int)basic_units.size());
 		std::vector<std::pair<const Unit*, UnitDanger>> units_requesting_pickup = MicroNonReadyUnits(units_not_ready);
 
 		for (const auto& request : units_requesting_pickup)
@@ -1804,7 +1798,7 @@ namespace sc2 {
 
 
 
-		MicroReadyUnits(units_ready, target_priority, percent_units_needed, basic_units.size());
+		MicroReadyUnits(units_ready, target_priority, percent_units_needed, (int)basic_units.size());
 		std::vector<std::pair<const Unit*, UnitDanger>> units_requesting_pickup = MicroNonReadyUnits(units_not_ready);
 
 		for (const auto& request : units_requesting_pickup)
@@ -1924,7 +1918,6 @@ namespace sc2 {
 		if (num_close_lings > 4)
 		{
 			int num_stalkers_with_blink = 0;
-			float now = mediator->GetGameLoop() / 22.4;
 			for (const auto& stalker : stalkers)
 			{
 				if (mediator->IsStalkerBlinkOffCooldown(stalker))
@@ -2050,7 +2043,7 @@ namespace sc2 {
 				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center, 0);
 				continue;
 			}
-			float now = mediator->GetGameLoop() / 22.4;
+			float now = mediator->GetGameLoop() / FRAME_TIME;
 			bool weapon_ready = now - time_last_attacked[oracle] > .8; //.61
 
 			/*agent->Debug()->DebugTextOut("weapon ready " + std::to_string(weapon_ready), Point2D(.2, .35), Color(0, 255, 0), 20);
@@ -2072,7 +2065,7 @@ namespace sc2 {
 				//agent->Debug()->DebugSphereOut(closest_unit->pos, .75, Color(0, 255, 255));
 
 				target[oracle] = closest_unit->tag;
-				time_last_attacked[oracle] = mediator->GetGameLoop() / 22.4;
+				time_last_attacked[oracle] = mediator->GetGameLoop() / FRAME_TIME;
 				has_attacked[oracle] = false;
 				//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
 			}
@@ -2233,7 +2226,7 @@ namespace sc2 {
 		float concave_degree = (5 * avg_distance) + 4;
 
 		std::vector<Point2D> prism_positions;
-		std::vector<Point2D> concave_positions = FindConcaveWithPrism(concave_origin, (2 * concave_origin) - concave_target, units.size(), prisms.size(), unit_size, dispersion, concave_degree, prism_positions);
+		std::vector<Point2D> concave_positions = FindConcaveWithPrism(concave_origin, (2 * concave_origin) - concave_target, (int)units.size(), (int)prisms.size(), unit_size, dispersion, concave_degree, prism_positions);
 
 		unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
 		if (prisms.size() > 0)
@@ -2317,13 +2310,13 @@ namespace sc2 {
 		{
 			if (mediator->GetAttackStatus(unit) == false)
 			{
-				float damage = mediator->agent->IncomingDamage(unit);
+				float damage = (float)mediator->agent->IncomingDamage(unit);
 				//agent->Debug()->DebugTextOut(std::to_string(damage), unit->pos, Color(255, 255, 255), 16);
 				if (damage > 0)
 				{
 					float shield_damage = std::min(damage, unit->shield);
 					float health_damage = damage - shield_damage;
-					float total_damage = shield_damage + ((health_damage / unit->health) * unit->health_max * 1.5);
+					float total_damage = shield_damage + ((health_damage / unit->health) * unit->health_max * 1.5f);
 					int prio = 3;
 					if (health_damage >= unit->health)
 						prio = 1;
@@ -2461,7 +2454,6 @@ namespace sc2 {
 			{
 				if (request.first->unit_type == STALKER && request.second.unit_prio >= 2)
 				{
-					float now = mediator->GetGameLoop() / 22.4;
 					bool blink_off_cooldown = mediator->IsStalkerBlinkOffCooldown(request.first);
 
 					if (mediator->upgrade_manager.has_blink && blink_off_cooldown)
@@ -2501,20 +2493,25 @@ namespace sc2 {
 			AddNewUnit(unit);
 	}
 
-	void ArmyGroup::AutoAddUnits(std::vector<UNIT_TYPEID> unit_types)
+	void ArmyGroup::AutoAddUnits(std::vector<UNIT_TYPEID> types)
 	{
 		std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
 			this->OnUnitCreatedListener(unit);
 		};
 		mediator->agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
-		this->unit_types = unit_types;
+		this->unit_types = types;
 	}
 
+#pragma warning(push)
+#pragma warning(disable : 4100)
 	void ArmyGroup::OnUnitCreatedListener(const Unit* unit)
 	{
 		
 	}
+#pragma warning(pop)
 
+#pragma warning(push)
+#pragma warning(disable : 4100)
 	void ArmyGroup::OnUnitDamagedListener(const Unit* unit, float health_damage, float shields_damage)
 	{
 		for (const auto& oracle : oracles)
@@ -2527,6 +2524,7 @@ namespace sc2 {
 			}
 		}
 	}
+#pragma warning(pop)
 
 	void ArmyGroup::OnUnitDestroyedListener(const Unit* unit)
 	{

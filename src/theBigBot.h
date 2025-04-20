@@ -1,4 +1,7 @@
 #pragma once
+#include "sc2api/sc2_common.h"
+#include "sc2api/sc2_agent.h"
+
 #include "pathfinding.h"
 #include "nav_mesh_pathfinding.h"
 #include "army_group.h"
@@ -7,10 +10,6 @@
 #include "mediator.h"
 
 
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_map_info.h"
-#include "sc2api/sc2_unit_filters.h"
 
 #include <map>
 
@@ -84,7 +83,7 @@ struct LiberatorZone
 struct EnemyAttack
 {
 	const Unit* unit;
-	int impact_frame;
+	uint32_t impact_frame;
 	EnemyAttack(const Unit* unit, int impact_frame)
 	{
 		this->unit = unit;
@@ -94,10 +93,10 @@ struct EnemyAttack
 
 struct UnitTypeInfo
 {
-	bool is_melee;
-	bool is_army_unit;
-	bool has_anti_ground_attack;
-	bool has_anti_air_attack;
+	bool is_melee = 0;
+	bool is_army_unit = 0;
+	bool has_anti_ground_attack = 0;
+	bool has_anti_air_attack = 0;
 	UnitTypeInfo() {};
 	UnitTypeInfo(bool melee, bool army, bool anti_ground, bool anti_air)
 	{
@@ -116,7 +115,9 @@ public:
 	virtual void OnGameStart()
 	{
 		//Debug()->DebugGiveAllUpgrades();
-		//Debug()->SendDebug();
+		//Debug()->DebugFastBuild();
+		//Debug()->DebugGiveAllResources();
+		Debug()->SendDebug();
 	}
 
 	virtual void OnStep()
@@ -172,16 +173,16 @@ public:
 	int seconds_passed = 0;
     ScoutInfoZerg scout_info_zerg; // TODO create scouting manager
     ScoutInfoTerran scout_info_terran;
-    Race enemy_race;
+    Race enemy_race = Race::Random;
     std::vector<std::vector<bool>> grid_map;
     NavMesh nav_mesh;
-    const Unit* probe;
+    const Unit* probe = nullptr;
 	std::vector<Triangle*> overlaps;
 	std::map<const Unit*, float> enemy_weapon_cooldown;
 	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
 	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
 	std::vector<Point2D> corrosive_bile_positions;
-	std::vector<int> corrosive_bile_times;
+	std::vector<uint32_t> corrosive_bile_times;
 	std::vector<LiberatorZone> liberator_zone_current;
 	int current_unique_id = 0;
 
@@ -200,7 +201,7 @@ public:
 	void SetUpArmies();
 
 
-    Locations* locations;
+    Locations* locations = nullptr;
     //bool should_build_workers;
     int extra_pylons = 0;
     //int removed_gas_miners = 0;

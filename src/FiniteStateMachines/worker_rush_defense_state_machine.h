@@ -68,10 +68,8 @@ public:
 	const Unit* grouping_mineral_patch;
 	const Unit* attacking_mineral_patch;
 	WorkerRushDefenseStateMachine(TheBigBot* agent, std::string name, Units workers,
-		const Unit* grouping_mineral_patch, const Unit* attacking_mineral_patch)
+		const Unit* grouping_mineral_patch, const Unit* attacking_mineral_patch) : StateMachine(agent, name)
 	{
-		this->agent = agent;
-		this->name = name;
 		this->workers = workers;
 		this->attacking_mineral_patch = attacking_mineral_patch;
 		this->grouping_mineral_patch = grouping_mineral_patch;

@@ -159,7 +159,7 @@ public:
 	std::map<const Unit*, bool> has_attacked;
 	std::map<const Unit*, uint64_t> target;
 	bool harass_direction = true;
-	int harass_index = 0;
+	size_t harass_index = 0;
 	int event_id;
 	OracleHarassStateMachine(TheBigBot* agent, Units oracles, Point2D third_base_pos, Point2D door_guard_pos, std::string name);
 	OracleHarassStateMachine(TheBigBot* agent, Units oracles, std::string name);

@@ -1,11 +1,6 @@
 #pragma once
 #include <string>
 
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_unit_filters.h"
-
-
 #include "utility.h"
 #include "locations.h"
 #include "path_manager.h"
@@ -18,8 +13,7 @@ class ArmyGroup;
 class State
 {
 public:
-    TheBigBot* agent;
-    State() {};
+    TheBigBot* agent = nullptr;
     virtual std::string toString();
     virtual void TickState();
     virtual void EnterState();
@@ -31,12 +25,17 @@ public:
 class StateMachine
 {
 public:
-    TheBigBot* agent;
-    State* current_state;
+    TheBigBot* agent = nullptr;
+    State* current_state = nullptr;
     std::string name;
     ArmyGroup* attached_army_group = nullptr;
-    StateMachine() {}
-    StateMachine(TheBigBot* agent, State* starting_state, std::string name) {
+    StateMachine(TheBigBot* agent, std::string name) 
+    {
+        this->agent = agent;
+        this->name = name;
+    }
+    StateMachine(TheBigBot* agent, State* starting_state, std::string name) 
+    {
         this->agent = agent;
         current_state = starting_state;
         this->name = name;

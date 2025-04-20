@@ -104,15 +104,14 @@ class ScoutProtossStateMachine : public StateMachine
 public:
     const Unit* scout;
     Point2D enemy_main;
-    int index;
+    int index = 0;
     std::vector<Point2D> main_scout_path;
     std::vector<Point2D> natural_scout_path;
     Point2D enemy_natural_pos;
     Point2D current_target;
-    ScoutProtossStateMachine(TheBigBot* agent, std::string name, const Unit* scout, Point2D enemy_main, std::vector<Point2D> main_scout_path, std::vector<Point2D> natural_scout_path, Point2D enemy_natural_pos)
+    ScoutProtossStateMachine(TheBigBot* agent, std::string name, const Unit* scout, Point2D enemy_main, 
+        std::vector<Point2D> main_scout_path, std::vector<Point2D> natural_scout_path, Point2D enemy_natural_pos) : StateMachine(agent, name)
     {
-        this->agent = agent;
-        this->name = name;
         current_state = new ScoutPInitialMove(agent, this);
         this->scout = scout;
         this->enemy_main = enemy_main;

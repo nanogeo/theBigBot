@@ -37,7 +37,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	if (builder->is_alive == false)
 	{
 		// builder died
-		const Unit* builder = mediator->GetBuilder(pos);
+		builder = mediator->GetBuilder(pos);
 		if (builder == nullptr)
 		{
 			return false;
@@ -82,7 +82,7 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	if (builder->is_alive == false)
 	{
 		// builder died
-		const Unit* builder = mediator->GetBuilder(pos);
+		builder = mediator->GetBuilder(pos);
 		if (builder == nullptr)
 		{
 			return false;
@@ -136,7 +136,7 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data)
 	if (builder->is_alive == false)
 	{
 		// builder died
-		const Unit* builder = mediator->GetBuilder(pos);
+		builder = mediator->GetBuilder(pos);
 		if (builder == nullptr)
 		{
 			return false;
@@ -182,6 +182,8 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data)
 	return false;
 }
 
+#pragma warning(push)
+#pragma warning(disable : 4100)
 bool ActionManager::ActionScoutZerg(ActionArgData* data)
 {
 	return true;
@@ -197,8 +199,8 @@ bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 
 	int extra_workers = 0;// data->index; TODO add extra workers to worker manager
 	int num_workers = mediator->GetNumWorkers();
-	int num_nexi = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
-	int num_assimilators = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
+	int num_nexi = (int)mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
+	int num_assimilators = (int)mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
 	if (num_workers >= std::min(num_nexi * 16 + num_assimilators * 3, 70) + extra_workers)
 	{
 		mediator->SetBuildWorkers(false);
@@ -511,7 +513,10 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 	expanding << end_time - start_time << "\n";
 	expanding.close();
 #endif
+	return false;
 }
+
+#pragma warning(pop)
 
 bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 {
@@ -584,13 +589,14 @@ bool ActionManager::ActionConstantChrono(ActionArgData* data)
 	constant_chrono << end_time - start_time << "\n";
 	constant_chrono.close();
 #endif
+	return false;
 }
 
 bool ActionManager::ActionTrainFromProxyRobo(ActionArgData* data)
 {
 	const Unit * robo = data->unit;
-	int num_prisms = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)).size();
-	int num_obs = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_OBSERVER)).size();
+	int num_prisms = (int)mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)).size();
+	int num_obs = (int)mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_OBSERVER)).size();
 
 	if (robo->build_progress == 1 && robo->orders.size() == 0)
 	{
@@ -601,113 +607,6 @@ bool ActionManager::ActionTrainFromProxyRobo(ActionArgData* data)
 		else if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1))
 			mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL, 0);
 	}
-	return false;
-}
-
-bool ActionManager::ActionContain(ActionArgData* data)
-{
-	/*ArmyGroup* army = data->army_group;
-	Point2D retreat_point = army->attack_path[army->current_attack_index - 2];
-
-	Point2D attack_point = army->attack_path[army->current_attack_index];
-
-	Units prisms = army->warp_prisms;
-	Units stalkers = army->stalkers;
-	Units observers = army->observers;
-	Units immortals = army->immortals;
-
-
-	bool obs_in_position = false;
-	if (stalkers.size() > 0)
-	{
-		if (observers.size() > 0)
-		{
-			if (Utility::DistanceToClosest(observers, attack_point) < 10)
-				obs_in_position = true;
-			mediator->ObserveAttackPath(observers, retreat_point, attack_point);
-		}
-		if (prisms.size() > 0)
-		{
-			mediator->StalkerAttackTowardsWithPrism(stalkers, prisms, retreat_point, attack_point, obs_in_position);
-			if (immortals.size() > 0)
-				mediator->ImmortalAttackTowardsWithPrism(immortals, prisms, retreat_point, attack_point, obs_in_position);
-		}
-		else
-		{
-			mediator->StalkerAttackTowards(stalkers, retreat_point, attack_point, obs_in_position);
-			if (immortals.size() > 0)
-				mediator->ImmortalAttackTowards(immortals, retreat_point, attack_point, obs_in_position);
-		}
-	}
-
-	if (army->current_attack_index > 2 && Distance2D(Utility::Center(stalkers), retreat_point) < 3)
-		army->current_attack_index--;
-	if (army->current_attack_index < army->attack_path.size() - 1 && Distance2D(Utility::MedianCenter(stalkers), attack_point) < 3)
-	{
-		if (obs_in_position)
-			army->current_attack_index++;
-		else
-			army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);
-	}
-	*/
-	return false;
-}
-
-bool ActionManager::ActionStalkerOraclePressure(ActionArgData* data)
-{
-#ifdef DEBUG_TIMING
-	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-
-
-	unsigned long long new_units = 0;
-	unsigned long long critical_points = 0;
-	unsigned long long close_targets = 0;
-	unsigned long long concave_origins = 0;
-	unsigned long long positions = 0;
-	unsigned long long apply_pressure = 0;
-#endif
-
-	float unit_size = .625;
-	float unit_dispersion = 0;
-
-	ArmyGroup* army = data->army_group;
-
-
-	for (int i = 0; i < army->new_units.size(); i++)
-	{
-		const Unit* unit = army->new_units[i];
-		if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
-		{
-			for (const auto &point : army->attack_path)
-			{
-				mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, 0, true);
-			}
-		}
-		if ((army->stalkers.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(army->stalkers)) < 5) || (army->stalkers.size() == 0 && Distance2D(unit->pos, army->attack_path[0]) < 2))
-		{
-			army->AddUnit(unit);
-			i--;
-		}
-	}
-
-#ifdef DEBUG_TIMING
-	new_units = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
-	//mediator->Debug()->DebugSphereOut(Point3D(fallback_point.x, fallback_point.y, mediator->Observation()->TerrainHeight(fallback_point)), 3, Color(255, 0, 0));
-	//mediator->Debug()->DebugSphereOut(Point3D(attack_point.x, attack_point.y, mediator->Observation()->TerrainHeight(attack_point)), 3, Color(0, 255, 0));
-
-	/*for (const auto &pos : mediator->locations->attack_path_line.GetPoints())
-	{
-		mediator->Debug()->DebugSphereOut(mediator->ToPoint3D(pos), .5, Color(255, 255, 255));
-	}*/
-
-	army->AttackLine(0, 6, ZERG_PRIO);
-
 	return false;
 }
 
@@ -742,6 +641,8 @@ bool ActionManager::ActionZealotDoubleprong(ActionArgData* data)
 	return false;
 }
 
+#pragma warning(push)
+#pragma warning(disable : 4100)
 bool ActionManager::ActionPullOutOfGas(ActionArgData* data)
 {
 	Units workers = mediator->GetAllWorkersOnGas();
@@ -755,6 +656,7 @@ bool ActionManager::ActionPullOutOfGas(ActionArgData* data)
 		return true;
 	return false;
 }
+#pragma warning(pop)
 
 bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 {
@@ -770,14 +672,14 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 			break;
 		}
 	}
-	int build_time = data->index;
+	//int build_time = data->index;
 	const Unit* scout = data->unit;
 
 	if (Distance2D(scout->pos, data->position) > 1 && !pylon_placed)
 	{
 		mediator->SetUnitCommand(scout, ABILITY_ID::GENERAL_MOVE, data->position, 0);
 	}
-	else if (Distance2D(scout->pos, data->position) < 1 && !pylon_placed && mediator->GetGameLoop() / 22.4 >= data->index)
+	else if (Distance2D(scout->pos, data->position) < 1 && !pylon_placed && mediator->GetGameLoop() / FRAME_TIME >= data->index)
 	{
 		mediator->SetUnitCommand(scout, ABILITY_ID::BUILD_PYLON, data->position, 0);
 	}
@@ -799,6 +701,8 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 	return false;
 }
 
+#pragma warning(push)
+#pragma warning(disable : 4100)
 bool ActionManager::ActionDTHarassTerran(ActionArgData* data)
 {
 	/*for (const auto &unit : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_DARKTEMPLAR)))
@@ -826,6 +730,7 @@ bool ActionManager::ActionDTHarassTerran(ActionArgData* data)
 	}*/
 	return false;
 }
+#pragma warning(pop)
 
 bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 {
@@ -868,6 +773,8 @@ bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 	return false;
 }
 
+#pragma warning(push)
+#pragma warning(disable : 4100)
 bool ActionManager::ActionAllIn(ActionArgData* data)
 {
 	/*ArmyGroup* army = data->army_group;
@@ -916,6 +823,7 @@ bool ActionManager::ActionAllIn(ActionArgData* data)
 	*/
 	return false;
 }
+#pragma warning(pop)
 
 bool ActionManager::ActionAllInAttack(ActionArgData* data)
 {
@@ -1049,6 +957,8 @@ bool ActionManager::ActionAllInAttack(ActionArgData* data)
 	return false;
 }
 
+#pragma warning(push)
+#pragma warning(disable : 4100)
 bool ActionManager::ActionScourMap(ActionArgData* data)
 {
 	ImageData raw_map = mediator->GetPathingGrid();
@@ -1056,21 +966,22 @@ bool ActionManager::ActionScourMap(ActionArgData* data)
 	{
 		if (unit->orders.size() == 0)
 		{
-			std::srand(unit->tag + mediator->GetGameLoop());
+			std::srand((unsigned int)(unit->tag + mediator->GetGameLoop()));
 			int x = std::rand() % raw_map.width;
 			int y = std::rand() % raw_map.height;
-			Point2D pos = Point2D(x, y);
+			Point2D pos = Point2D((float)x, (float)y);
 			while (!unit->is_flying && !mediator->IsPathable(pos))
 			{
 				x = std::rand() % raw_map.width;
 				y = std::rand() % raw_map.height;
-				pos = Point2D(x, y);
+				pos = Point2D((float)x, (float)y);
 			}
 			mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, pos, 0);
 		}
 	}
 	return false;
 }
+#pragma warning(pop)
 
 
 bool ActionManager::ActionAttackLine(ActionArgData* data)

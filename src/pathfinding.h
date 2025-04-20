@@ -1,8 +1,9 @@
 #pragma once
 #include <string>
+#include <vector>
+#include <map>
 
-#include "sc2api/sc2_interfaces.h"
-
+#include "sc2api/sc2_common.h"
 
 namespace sc2 {
 

@@ -18,7 +18,6 @@ void DefenseManager::CheckForAttacks()
 	for (const auto& base : mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)))
 	{
 		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), base->pos, 20);
-		ArmyGroup* defense_group = mediator->GetArmyGroupDefendingBase(base->pos);
 		// consider wall when defending nat vs zerg
 		
 		auto itr = std::find_if(ongoing_attacks.begin(), ongoing_attacks.end(), [base](const OngoingAttack& attack) { return Point2D(base->pos) == attack.location; });
@@ -55,13 +54,13 @@ void DefenseManager::UpdateOngoingAttacks()
 		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), attack.location, 20);
 		Units close_allies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)), attack.location, 20);
 		Units batteries = Utility::GetUnitsWithin(mediator->GetUnits(IsFinishedUnit(BATTERY)), attack.location, 20);
-		int total_energy = 0;
+		float total_energy = 0.0f;
 		for (const auto& battery : batteries)
 		{
 			total_energy += battery->energy;
 		}
 		bool sim_city = (mediator->GetEnemyRace() == Race::Zerg && mediator->GetNaturalLocation() == attack.location) ? true : false;
-		attack.status = JudgeFight(close_enemies, close_allies, 0, total_energy, sim_city);
+		attack.status = JudgeFight(close_enemies, close_allies, 0.0f, total_energy, sim_city);
 		std::cerr << "Attack at " << attack.location.x << ", " << attack.location.y << " current value " << attack.status<< std::endl;
 		if (attack.status < 0)
 		{
@@ -107,8 +106,8 @@ void DefenseManager::UpdateOngoingAttacks()
 					if (army_group)
 						army_group->AddUnit(worker);
 				}
-				mediator->AddToDefense(attack.location, attack.pulled_workers.size());
-
+				mediator->AddToDefense(attack.location, (int)attack.pulled_workers.size());
+				
 			}
 
 			// BATTERY_OVERCHARGE
@@ -200,14 +199,14 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 		int melee_attacks_this_round = 0;
 		bool enemy_damage_done = false;
 		bool friendly_damage_done = false;
-		for (int i = enemy_units.size() - 1; i >= 0; i--)
+		for (int i = (int)enemy_units.size() - 1; i >= 0; i--)
 		{
 			if (enemy_units[i]->unit_type == ORACLE && (enemy_units[i]->energy - 10) / 2 <= 20 - max_runs)
 				continue;
 
 			float dps = 0;
 			const Unit* curr_target = nullptr;
-			for (int j = friendly_units.size() - 1; j >= 0; j--)
+			for (int j = (int)friendly_units.size() - 1; j >= 0; j--)
 			{
 				if (friendly_unit_hp[friendly_units[j]] <= 0)
 					continue;
@@ -229,13 +228,13 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 				if (sim_city)
 				{
 					if (melee_attacks_this_round > 1)
-						dps = 0;
+						dps = 0.0f;
 					else
 						melee_attacks_this_round++;
 				}
 				else
 				{
-					dps /= 1.5;
+					dps /= 1.5f;
 				}
 			}
 
@@ -244,7 +243,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 				if (friendly_battery_energy > dps)
 				{
 					friendly_battery_energy -= dps;
-					dps = 0;
+					dps = 0.0f;
 				}
 				else
 				{
@@ -257,7 +256,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 		}
 
 
-		for (int i = friendly_units.size() - 1; i >= 0; i--)
+		for (int i = (int)friendly_units.size() - 1; i >= 0; i--)
 		{
 			if (friendly_units[i]->unit_type == ORACLE)
 			{
@@ -286,7 +285,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 
 			float dps = 0;
 			const Unit* curr_target = nullptr;
-			for (int j = enemy_units.size() - 1; j >= 0; j--)
+			for (int j = (int)enemy_units.size() - 1; j >= 0; j--)
 			{
 				if (enemy_unit_hp[enemy_units[j]] <= 0)
 					continue;
@@ -313,7 +312,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 				if (enemy_battery_energy > dps)
 				{
 					enemy_battery_energy -= dps;
-					dps = 0;
+					dps = 0.0f;
 				}
 				else
 				{
@@ -325,12 +324,12 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 			enemy_unit_hp[curr_target] -= dps;
 		}
 
-		for (int i = enemy_units.size() - 1; i >= 0; i--)
+		for (int i = (int)enemy_units.size() - 1; i >= 0; i--)
 		{
 			if (enemy_unit_hp[enemy_units[i]] <= 0)
 				enemy_units.erase(enemy_units.begin() + i);
 		}
-		for (int i = friendly_units.size() - 1; i >= 0; i--)
+		for (int i = (int)friendly_units.size() - 1; i >= 0; i--)
 		{
 			if (friendly_unit_hp[friendly_units[i]] <= 0)
 				friendly_units.erase(friendly_units.begin() + i);
@@ -386,7 +385,7 @@ void DefenseManager::UseBatteryOvercharge(Point2D location)  // BATTERY_OVERCHAR
 	if (nexus == nullptr || Distance2D(nexus->pos, location) > 5) // arbitrary distance
 		return;
 
-	for (int i = batteries.size() - 1; i >= 0; i--)
+	for (int i = (int)batteries.size() - 1; i >= 0; i--)
 	{
 		if (Distance2D(batteries[i]->pos, nexus->pos) > RANGE_BATTERY_OVERCHARGE)
 			batteries.erase(batteries.begin() + i);

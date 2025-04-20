@@ -103,7 +103,7 @@ class AdeptHarassProtoss : public StateMachine
 public:
 	Units adepts;
 	std::vector<Point2D> consolidation_points;
-	int frame_shade_used = 0;
+	uint32_t frame_shade_used = 0;
 	bool attack_status;
 	Units shades;
 	const Unit* target = nullptr;

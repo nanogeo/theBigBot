@@ -3,10 +3,8 @@
 #include "path_manager.h"
 #include "build_order_manager.h"
 
-
 #include <string>
 
-#include "sc2api/sc2_interfaces.h"
 
 
 namespace sc2 {
@@ -117,8 +115,8 @@ public:
 	std::vector<Point2D> attack_path_alt;
 	std::vector<Point2D> attack_path_special;
 	PathManager attack_path_special_line;
-    int high_ground_index;
-	int high_ground_index_alt;
+    int high_ground_index = 0;
+	int high_ground_index_alt = 0;
 
     Point2D initial_scout_pos;
     std::vector<Point2D> main_scout_path;
@@ -162,40 +160,40 @@ public:
 
     Locations() {}
 	// TODO take a Point2D not Point3D
-    Locations(Point3D start_location, BuildOrder build_order, std::string map_name)
+    Locations(Point3D start_location, std::string map_name)
     {
         if (map_name == "Lightshade LE")
         {
-            SetLightshadeLocations(start_location, build_order);
-			SetLightshadeLocations2(start_location, build_order);
+            SetLightshadeLocations(start_location);
+			SetLightshadeLocations2(start_location);
         }
 		else if (map_name == "Abyssal Reef AIE")
 		{
-			SetAbyssalReefLocations(start_location, build_order);
+			SetAbyssalReefLocations(start_location);
 		}
 		else if (map_name == "Acropolis AIE")
 		{
-			SetAcropolisLocations(start_location, build_order);
+			SetAcropolisLocations(start_location);
 		}
 		else if (map_name == "Automaton AIE")
 		{
-			SetAutomatonLocations(start_location, build_order);
+			SetAutomatonLocations(start_location);
 		}
 		else if (map_name == "Ephemeron AIE")
 		{
-			SetEphemeronLocations(start_location, build_order);
+			SetEphemeronLocations(start_location);
 		}
 		else if (map_name == "Interloper AIE")
 		{
-			SetInterloperLocations(start_location, build_order);
+			SetInterloperLocations(start_location);
 		}
 		else if (map_name == "ThunderbirdAIE")
 		{
-			SetThunderbirdLocations(start_location, build_order);
+			SetThunderbirdLocations(start_location);
 		}
 		else if (map_name == "Eternal Empire LE")
 		{
-			SetTestingLocations(start_location, build_order);
+			SetTestingLocations(start_location);
 		}
 		else
 		{
@@ -203,16 +201,16 @@ public:
 		}
 
     }
-	void SetTestingLocations(Point3D, BuildOrder);
+	void SetTestingLocations(Point3D);
 
-    void SetLightshadeLocations(Point3D, BuildOrder);
-	void SetLightshadeLocations2(Point3D, BuildOrder);
-	void SetAbyssalReefLocations(Point3D, BuildOrder);
-	void SetAcropolisLocations(Point3D, BuildOrder);
-	void SetAutomatonLocations(Point3D, BuildOrder);
-	void SetEphemeronLocations(Point3D, BuildOrder);
-	void SetInterloperLocations(Point3D, BuildOrder);
-	void SetThunderbirdLocations(Point3D, BuildOrder);
+    void SetLightshadeLocations(Point3D);
+	void SetLightshadeLocations2(Point3D);
+	void SetAbyssalReefLocations(Point3D);
+	void SetAcropolisLocations(Point3D);
+	void SetAutomatonLocations(Point3D);
+	void SetEphemeronLocations(Point3D);
+	void SetInterloperLocations(Point3D);
+	void SetThunderbirdLocations(Point3D);
 	
 
 };

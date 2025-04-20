@@ -9,10 +9,12 @@
 
 #define P(x, y) convert_location(Point2D(x, y), swap)
 
+#pragma warning(push)
+#pragma warning(disable : 4305)
 
 namespace sc2 {
 
-	void Locations::SetAcropolisLocations(Point3D start_location, BuildOrder build_order)
+	void Locations::SetAcropolisLocations(Point3D start)
 	{
 		Point2D center_point = Point2D(88, 86);
 
@@ -24,11 +26,9 @@ namespace sc2 {
 				return point;
 		};
 
-		bool swap = start_location.x == 142.5 && start_location.y == 33.5;
+		bool swap = start.x == 142.5 && start.y == 33.5;
 
-		this->start_location = start_location;
-
-		std::cerr << "start location: " + std::to_string(start_location.x) + ", " + std::to_string(start_location.y) + "\n";
+		this->start_location = start;
 
 
 		nexi_locations = { P(33.5, 138.5),
@@ -280,3 +280,4 @@ namespace sc2 {
 	
 }
 
+#pragma warning(pop)

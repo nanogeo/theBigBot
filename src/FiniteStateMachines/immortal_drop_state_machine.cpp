@@ -9,6 +9,8 @@ namespace sc2 {
 
 #pragma region ImmortalDropWaitForImmortals
 
+#pragma warning(push)
+#pragma warning(disable : 4702)
 void ImmortalDropWaitForImmortals::TickState()
 {
 	if (state_machine->prism == nullptr)
@@ -30,6 +32,7 @@ void ImmortalDropWaitForImmortals::TickState()
 		}
 	}
 }
+#pragma warning(pop)
 
 void ImmortalDropWaitForImmortals::EnterState()
 {
@@ -134,12 +137,12 @@ ImmortalDropMicroDropCarrying1::ImmortalDropMicroDropCarrying1(TheBigBot* agent,
 void ImmortalDropMicroDropCarrying1::TickState()
 {
 	// don't leave immortals behind
-	if (Distance2D(state_machine->prism->pos, state_machine->immortal2->pos) > 4.5)
+	if (Distance2D(state_machine->prism->pos, state_machine->immortal2->pos) > 4.5f)
 		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->immortal2->pos);
 	else
 		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->UpdatePrismPathing());
 
-	if (agent->Observation()->GetGameLoop() >= entry_frame + 15)
+	if ((int)agent->Observation()->GetGameLoop() >= entry_frame + 15)
 		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism);
 	if (state_machine->immortal1->orders.size() == 0 || state_machine->immortal1->orders[0].ability_id != ABILITY_ID::SMART)
 		agent->Actions()->UnitCommand(state_machine->immortal1, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1));
@@ -340,21 +343,21 @@ Point2D ImmortalDropStateMachine::UpdatePrismPathing()
 		return agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_CYCLONE))[0]->pos;
 	}
 
-	int prev_index = path_index - 1 >= 0 ? path_index - 1 : prism_path.size() - 1;
-	int next_index = path_index + 1 < prism_path.size() ? path_index + 1 : 0;
+	int prev_index = path_index - 1 >= 0 ? path_index - 1 : (int)prism_path.size() - 1;
+	int next_index = path_index + 1 < (int)prism_path.size() ? path_index + 1 : 0;
 
 	// update path index
 	if (Distance2D(prism->pos, prism_path[prev_index]) < 2)
 	{
 		path_index = prev_index;
-		prev_index = path_index - 1 >= 0 ? path_index - 1 : prism_path.size() - 1;
-		next_index = path_index + 1 < prism_path.size() ? path_index + 1 : 0;
+		prev_index = path_index - 1 >= 0 ? path_index - 1 : (int)prism_path.size() - 1;
+		next_index = path_index + 1 < (int)prism_path.size() ? path_index + 1 : 0;
 	}
 	else if (Distance2D(prism->pos, prism_path[next_index]) < 2)
 	{
 		path_index = next_index;
-		prev_index = path_index - 1 >= 0 ? path_index - 1 : prism_path.size() - 1;
-		next_index = path_index + 1 < prism_path.size() ? path_index + 1 : 0;
+		prev_index = path_index - 1 >= 0 ? path_index - 1 : (int)prism_path.size() - 1;
+		next_index = path_index + 1 < (int)prism_path.size() ? path_index + 1 : 0;
 	}
 
 	// move away from danger?

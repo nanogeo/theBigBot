@@ -1,9 +1,19 @@
 #pragma once
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_map_info.h"
+#pragma warning(push)
+#pragma warning(disable : 26495)
+#pragma warning(disable : 26439)
+#pragma warning(disable : 4189)
+#pragma warning(disable : 4244)
+#pragma warning(disable : 4996)
+#pragma warning(disable : 6001)
+#pragma warning(disable : 6385)
+#pragma warning(disable : 6386)
+#include "sc2api/sc2_common.h"
+#include "sc2api/sc2_unit.h"
+#pragma warning(pop)
 
-#include "sc2api/sc2_unit_filters.h"
+#include <map>
+#include <vector>
 
 
 namespace sc2

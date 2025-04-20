@@ -56,7 +56,7 @@ void AbilityManager::UpdateOracleInfo()
 		{
 			oracle_beam_status[oracle.first] = false;
 		}
-		oracle.second = oracle.first->energy;
+		oracle.second = (int)oracle.first->energy;
 	}
 }
 
@@ -136,7 +136,7 @@ void AbilityManager::OnUnitCreated(const Unit* unit)
 	{
 	case ORACLE:
 		oracle_beam_status[unit] = false;
-		previous_oracle_energy[unit] = unit->energy;
+		previous_oracle_energy[unit] = (int)unit->energy;
 		oracle_casting[unit] = false;
 		oracle_revelation_off_cooldown[unit] = true;
 		last_time_oracle_revealed[unit] = 0;

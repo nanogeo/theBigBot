@@ -1,10 +1,9 @@
 #pragma once
+#include "sc2api/sc2_unit_filters.h"
+
 #include <string>
-
-#include "sc2api/sc2_interfaces.h"
-
-
-
+#include <vector>
+#include <map>
 
 namespace sc2 {
 
@@ -15,7 +14,7 @@ struct EnemyUnitInfo;
 
 struct FriendlyUnitInfo
 {
-	const Unit* unit;
+	const Unit* unit = nullptr;
 	std::vector<EnemyUnitInfo*> units_in_range;
 	bool operator>(const FriendlyUnitInfo& rhs) const
 	{

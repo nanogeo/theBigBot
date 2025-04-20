@@ -7,6 +7,8 @@ namespace sc2 {
 
 #pragma region StalkerBaseDefenseTerranDefendFront
 
+#pragma warning(push)
+#pragma warning(disable : 4702)
 // TODO change for maps with natural ramp
 void StalkerBaseDefenseTerranDefendFront::TickState()
 {
@@ -56,6 +58,7 @@ void StalkerBaseDefenseTerranDefendFront::TickState()
 	}
 
 }
+#pragma warning(pop)
 
 void StalkerBaseDefenseTerranDefendFront::EnterState()
 {
@@ -165,7 +168,7 @@ void ScoutBaseDefenseTerranHarrassFront::TickState()
 	for (const auto& unit : enemy_units)
 	{
 		double range = Utility::RealRange(unit, state_machine->stalker) + 2;
-		Point2D intersection = agent->locations->attack_path_line.GetPointFrom(unit->pos, range, false);
+		Point2D intersection = agent->locations->attack_path_line.GetPointFrom(unit->pos, (float)range, false);
 		if (intersection != Point2D(0, 0))
 		{
 			float dist = Distance2D(intersection, attack_pos);
@@ -234,9 +237,9 @@ std::string ScoutBaseDefenseTerranHarrassFront::toString()
 
 #pragma region StalkerBaseDefenseTerran
 
-StalkerBaseDefenseTerran::StalkerBaseDefenseTerran(TheBigBot* agent, std::string name, const Unit* stalker, std::vector<Point2D> front_of_base) {
-	this->agent = agent;
-	this->name = name;
+StalkerBaseDefenseTerran::StalkerBaseDefenseTerran(TheBigBot* agent, std::string name, const Unit* stalker, 
+	std::vector<Point2D> front_of_base) : StateMachine(agent, name)
+{
 	current_state = new StalkerBaseDefenseTerranDefendFront(agent, this);
 	this->stalker = stalker;
 	this->front_of_base = front_of_base;

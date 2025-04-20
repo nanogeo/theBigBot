@@ -20,7 +20,7 @@ std::vector<Node*> Graph::ReconstructPath(std::map<Node*, Node*> came_from, Node
 		current = came_from[current];
 	}
 	std::vector<Node*> path;
-	for (int i = path_r.size() - 1; i >= 0; i--)
+	for (int i = (int)path_r.size() - 1; i >= 0; i--)
 	{
 		path.push_back(path_r[i]);
 	}
@@ -78,6 +78,8 @@ std::vector<Node*> Graph::FindPath(Node* start, Node* end)
 
 		visited.push_back(current.node);
 	}
+	// Error
+	return {};
 }
 
 }

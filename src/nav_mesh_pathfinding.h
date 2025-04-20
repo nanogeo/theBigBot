@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <vector>
+#include <map>
 
 #include "sc2api/sc2_interfaces.h"
 #include "sc2api/sc2_map_info.h"
@@ -39,7 +41,7 @@ struct Polygon
 struct Circle
 {
     Point2D center;
-    float radius;
+    float radius = 0;
     Circle() {};
 };
 
@@ -49,7 +51,6 @@ struct Triangle
     std::vector<Triangle*> connections;
     Point2D center;
 	bool pathable;
-    Triangle() {};
     Triangle(std::vector<Point2D> p)
     {
         verticies = p;

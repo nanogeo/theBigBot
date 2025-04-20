@@ -30,7 +30,7 @@ class ArmyManager
 {
 public:
 	Mediator* mediator;
-	ArmyGroup* unassigned_group;
+	ArmyGroup* unassigned_group = nullptr;
 	std::vector<ArmyGroup*> army_groups;
 	std::vector<ArmyGroup*> army_groups_to_delete;
 

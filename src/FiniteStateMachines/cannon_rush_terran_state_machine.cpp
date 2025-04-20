@@ -127,7 +127,7 @@ State* CannonRushTerranScout::TestTransitions()
 
 		}
 		if (free_pylon == false)
-			return new CannonRushTerranFindAvaibleCorner(agent, state_machine, probe, pylons.size() - 1);
+			return new CannonRushTerranFindAvaibleCorner(agent, state_machine, probe, (int)pylons.size() - 1);
 	}
 
 	if (agent->Observation()->GetUnits(IsFriendlyUnit(GATEWAY)).size() == 0)
@@ -342,7 +342,7 @@ void CannonRushTerranWallOff::TickState()
 		building_pos = pos.building_pos;
 		move_to_pos = pos.move_to_pos;
 		float dist = Distance2D(probe->pos, move_to_pos);
-		agent->Actions()->UnitCommand(probe, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(probe->pos, move_to_pos, dist + .5));
+		agent->Actions()->UnitCommand(probe, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(probe->pos, move_to_pos, dist + .5f));
 
 		if (pos.type == UNIT_TYPEID::PROTOSS_PYLON)
 		{
@@ -442,7 +442,7 @@ void CannonRushTerranCannonFirstWallOff::TickState()
 			int minerals = agent->Observation()->GetMinerals();
 			Point2D gate_pos;
 			Point2D pylon_pos;
-			for (const auto pos : gateway_wall_pos)
+			for (const auto &pos : gateway_wall_pos)
 			{
 				if (pos.type == UNIT_TYPEID::PROTOSS_GATEWAY)
 					gate_pos = pos.building_pos;
@@ -557,7 +557,7 @@ State* CannonRushTerranStandBy::TestTransitions()
 	if (scv_attacking_probe > 0)
 		return new CannonRushTerranStandByLoop(agent, state_machine, probe, agent->locations->cannon_rush_terran_stand_by_loop);
 
-	int num_pylons = state_machine->pylons.size();
+	int num_pylons = (int)state_machine->pylons.size();
 	for (const auto& pylon : state_machine->pylons)
 	{
 		if ((pylon->health / pylon->health_max) < (pylon->build_progress * .75))
@@ -574,7 +574,7 @@ State* CannonRushTerranStandBy::TestTransitions()
 	if (agent->Observation()->GetMinerals() >= 150 && agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() == 0)
 		return new CannonRushTerranBuildGateway(agent, state_machine, probe);
 
-	int num_gasses = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
+	int num_gasses = (int)agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
 	for (const auto& action : agent->mediator.action_manager.active_actions)
 	{
 		if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
@@ -705,7 +705,7 @@ Point2D CannonRushTerranExtraPylon::FindPylonPlacement()
 	});
 	if (possible_positions.size() > 0)
 	{
-		for (const auto pos : possible_positions)
+		for (const auto &pos : possible_positions)
 		{
 			if (agent->Query()->Placement(ABILITY_ID::BUILD_PYLON, pos))
 				return pos;
@@ -773,7 +773,7 @@ Point2D CannonRushTerranExtraCannon::FindCannonPlacement()
 	});
 	if (possible_positions.size() > 0)
 	{
-		for (const auto pos : possible_positions)
+		for (const auto &pos : possible_positions)
 		{
 			if (agent->Query()->Placement(ABILITY_ID::BUILD_PHOTONCANNON, pos))
 				return pos;
@@ -841,7 +841,7 @@ Point2D CannonRushTerranBuildGateway::FindGatewayPlacement()
 	});
 	if (possible_positions.size() > 0)
 	{
-		for (const auto pos : possible_positions)
+		for (const auto &pos : possible_positions)
 		{
 			if (agent->Query()->Placement(ABILITY_ID::BUILD_GATEWAY, pos))
 				return pos;
@@ -909,7 +909,7 @@ Point2D CannonRushTerranBuildStargate::FindStargatePlacement()
 	});
 	if (possible_positions.size() > 0)
 	{
-		for (const auto pos : possible_positions)
+		for (const auto &pos : possible_positions)
 		{
 			if (agent->Query()->Placement(ABILITY_ID::BUILD_GATEWAY, pos))
 				return pos;
@@ -1033,10 +1033,10 @@ void CannonRushTerranStandByPhase2::TickState()
 		return;
 	}
 
-	int num_pylons = state_machine->pylons.size();
-	int num_cannons = state_machine->cannons.size();
-	int num_batteries = state_machine->batteries.size();
-	int num_other = state_machine->gateways.size() + state_machine->stargates.size();
+	int num_pylons = (int)state_machine->pylons.size();
+	int num_cannons = (int)state_machine->cannons.size();
+	int num_batteries = (int)state_machine->batteries.size();
+	int num_other = (int)(state_machine->gateways.size() + state_machine->stargates.size());
 
 	if (num_pylons <= (num_cannons + num_batteries + num_other) / 4 || state_machine->cannon_places.size() < 5 || state_machine->gateway_places.size() < 5)
 	{
@@ -1058,7 +1058,7 @@ void CannonRushTerranStandByPhase2::TickState()
 			if (battery->build_progress < 1)
 				total_battery_energy += 50;
 			else
-				total_battery_energy += battery->energy;
+				total_battery_energy += (int)battery->energy;
 		}
 		if (agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0 && total_battery_energy < num_cannons * 100)
 		{
@@ -1108,7 +1108,7 @@ void CannonRushTerranStandByPhase2::TickState()
 
 void CannonRushTerranStandByPhase2::EnterState()
 {
-	int num_gasses = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
+	int num_gasses = (int)agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
 	for (const auto& action : agent->mediator.action_manager.active_actions)
 	{
 		if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
@@ -1158,7 +1158,7 @@ Point2D CannonRushTerranStandByPhase2::FindBuildingPlacement()
 	});
 	if (possible_positions.size() > 0)
 	{
-		for (const auto pos : possible_positions)
+		for (const auto &pos : possible_positions)
 		{
 			if (agent->Query()->Placement(ABILITY_ID::BUILD_GATEWAY, pos))
 				return pos;
@@ -1201,7 +1201,7 @@ Point2D CannonRushTerranStandByPhase2::FindBatteryPlacement()
 
 	if (possible_positions.size() > 0)
 	{
-		for (const auto pos : possible_positions)
+		for (const auto &pos : possible_positions)
 		{
 			if (Utility::DistanceToClosest(state_machine->pylons, pos) < 6.5 && agent->Query()->Placement(ABILITY_ID::BUILD_SHIELDBATTERY, pos))
 				return pos;
@@ -1238,7 +1238,7 @@ Point2D CannonRushTerranStandByPhase2::FindCannonPlacement()
 	});
 	if (possible_positions.size() > 0)
 	{
-		for (const auto pos : possible_positions)
+		for (const auto &pos : possible_positions)
 		{
 			if (Utility::DistanceToClosest(state_machine->pylons, pos) < 6.5 && agent->Query()->Placement(ABILITY_ID::BUILD_PHOTONCANNON, pos))
 				return pos;
@@ -1264,7 +1264,7 @@ Point2D CannonRushTerranStandByPhase2::FindPylonPlacement()
 	});
 	if (possible_positions.size() > 0)
 	{
-		for (const auto pos : possible_positions)
+		for (const auto &pos : possible_positions)
 		{
 			if (agent->Query()->Placement(ABILITY_ID::BUILD_PYLON, pos))
 				return pos;
@@ -1278,13 +1278,15 @@ Point2D CannonRushTerranStandByPhase2::FindPylonPlacement()
 
 #pragma region CannonRushTerranUnitMicro
 
+#pragma warning(push)
+#pragma warning(disable : 4100)
 CannonRushTerranUnitMicro::CannonRushTerranUnitMicro(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* zealot)
 {
-	/*army = new ArmyGroup();
+	//army = new ArmyGroup();
 	this->agent = agent;
 	this->state_machine = state_machine;
-	army->AddUnit(zealot);*/
 }
+#pragma warning(pop)
 
 void CannonRushTerranUnitMicro::TickState()
 {
@@ -1318,9 +1320,8 @@ std::string CannonRushTerranUnitMicro::toString()
 
 #pragma region CannonRushTerran
 
-CannonRushTerran::CannonRushTerran(TheBigBot* agent, std::string name, const Unit* probe, int variation) {
-	this->agent = agent;
-	this->name = name;
+CannonRushTerran::CannonRushTerran(TheBigBot* agent, std::string name, const Unit* probe, int variation) : StateMachine(agent, name)
+{
 	this->probe = probe;
 	if (variation == 1)
 		current_state = new CannonRushTerranMoveAcross(agent, this, probe);
@@ -1371,9 +1372,9 @@ void CannonRushTerran::OnUnitCreatedListener(const Unit* unit)
 	if (unit->unit_type == UNIT_TYPEID::PROTOSS_PYLON && Distance2D(unit->pos, agent->locations->start_location) > 30)
 	{
 		pylons.push_back(unit);
-		for (int i = -7; i <= 7; i++)
+		for (float i = -7.0f; i <= 7.0f; i++)
 		{
-			for (int j = -7; j <= 7; j++)
+			for (float j = -7.0f; j <= 7.0f; j++)
 			{
 				Point2D pos = unit->pos + Point2D(i, j);
 				if (Distance2D(pos, unit->pos) < 7.5 && std::find(cannon_places.begin(), cannon_places.end(), pos) == cannon_places.end() && agent->Query()->Placement(ABILITY_ID::BUILD_PYLON, pos))
@@ -1382,9 +1383,9 @@ void CannonRushTerran::OnUnitCreatedListener(const Unit* unit)
 				}
 			}
 		}
-		for (int i = -6; i <= 5; i++)
+		for (float i = -6.0f; i <= 5.0f; i++)
 		{
-			for (int j = -6; j <= 5; j++)
+			for (float j = -6.0f; j <= 5.0f; j++)
 			{
 				Point2D pos = unit->pos + Point2D(i, j) + Point2D(.5, .5);
 				if (Distance2D(pos, unit->pos) < 6.5 && std::find(gateway_places.begin(), gateway_places.end(), pos) == gateway_places.end() && agent->Query()->Placement(ABILITY_ID::BUILD_BARRACKS, pos))
@@ -1440,9 +1441,9 @@ void CannonRushTerran::OnUnitDestroyedListener(const Unit* unit)
 
 void CannonRushTerran::SmallBuildingBlock(Point2D building_pos)
 {
-	for (int i = -1; i <= 1; i++)
+	for (float i = -1.0f; i <= 1.0f; i += 1)
 	{
-		for (int j = -1; j <= 1; j++)
+		for (float j = -1.0f; j <= 1.0f; j += 1)
 		{
 			Point2D pos = building_pos + Point2D(i, j);
 			auto pos_it = std::find(cannon_places.begin(), cannon_places.end(), pos);
@@ -1452,9 +1453,9 @@ void CannonRushTerran::SmallBuildingBlock(Point2D building_pos)
 			}
 		}
 	}
-	for (int i = -2; i <= 1; i++)
+	for (float i = -2.0f; i <= 1.0f; i += 1)
 	{
-		for (int j = -2; j <= 1; j++)
+		for (float j = -2.0f; j <= 1.0f; j += 1)
 		{
 			Point2D pos = building_pos + Point2D(i, j) + Point2D(.5, .5);
 			auto pos_it = std::find(gateway_places.begin(), gateway_places.end(), pos);
@@ -1468,9 +1469,9 @@ void CannonRushTerran::SmallBuildingBlock(Point2D building_pos)
 
 void CannonRushTerran::BigBuildingBlock(Point2D building_pos)
 {
-	for (int i = -2; i <= 1; i++)
+	for (float i = -2.0f; i <= 1.0f; i += 1)
 	{
-		for (int j = -2; j <= 1; j++)
+		for (float j = -2.0f; j <= 1.0f; j += 1)
 		{
 			Point2D pos = building_pos + Point2D(i, j) + Point2D(.5, .5);
 			auto pos_it = std::find(cannon_places.begin(), cannon_places.end(), pos);
@@ -1480,9 +1481,9 @@ void CannonRushTerran::BigBuildingBlock(Point2D building_pos)
 			}
 		}
 	}
-	for (int i = -2; i <= 2; i++)
+	for (float i = -2.0f; i <= 2.0f; i += 1)
 	{
-		for (int j = -2; j <= 2; j++)
+		for (float j = -2.0f; j <= 2.0f; j += 1)
 		{
 			Point2D pos = building_pos + Point2D(i, j);
 			auto pos_it = std::find(gateway_places.begin(), gateway_places.end(), pos);

@@ -1,10 +1,7 @@
 #pragma once
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_map_info.h"
-
 #include "sc2api/sc2_unit_filters.h"
 
+#include <vector>
 
 namespace sc2
 {
@@ -191,6 +188,7 @@ namespace sc2
 
 
 #define RANGE_BATTERY_OVERCHARGE 12.55 // BATTERTY_OVERCHARGE
+#define FRAME_TIME 22.4f
 
 const std::vector<std::vector<UNIT_TYPEID>> TERRAN_PRIO = { {SIEGE_TANK_SIEGED},
 															{SIEGE_TANK},
@@ -355,11 +353,11 @@ struct WarpgateStatus
 
 struct UnitCost
 {
-	int mineral_cost;
-	int vespene_cost;
-	int supply;
+	uint32_t mineral_cost = 0;
+	uint32_t vespene_cost = 0;
+	uint32_t supply = 0;
 	UnitCost() {};
-	UnitCost(int x, int y, int z)
+	UnitCost(uint32_t x, uint32_t y, uint32_t z)
 	{
 		mineral_cost = x;
 		vespene_cost = y;

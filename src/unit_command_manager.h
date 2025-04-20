@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+#include <map>
 
 #include "sc2api/sc2_interfaces.h"
 

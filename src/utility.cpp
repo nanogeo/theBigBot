@@ -8,11 +8,6 @@
 #include <fstream>
 #include <complex>
 
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_map_info.h"
-
-#include "sc2api/sc2_unit_filters.h"
 
 #include "theBigBot.h"
 #include "utility.h"
@@ -440,7 +435,7 @@ Point2D Utility::Center(Units units)
 	{
 		total += unit->pos;
 	}
-	return total / units.size();
+	return total / (float)units.size();
 }
 
 Point2D Utility::Center(std::vector<Point2D> points)
@@ -453,7 +448,7 @@ Point2D Utility::Center(std::vector<Point2D> points)
 	{
 		total += point;
 	}
-	return total / points.size();
+	return total / (float)points.size();
 }
 
 Point2D Utility::MedianCenter(Units units)
@@ -552,8 +547,8 @@ Point2D Utility::ClosestIntersectionTo(Point2D center1, double radius1, Point2D 
 	double h = sqrt(pow(radius1, 2) - pow(a, 2));
 	double x = center1.x + a * (center2.x - center1.x) / dist;
 	double y = center1.y + a * (center2.y - center1.y) / dist;
-	Point2D intersection1 = Point2D(x + h * (center2.y - center1.y) / dist, y - h * (center2.x - center1.x) / dist);
-	Point2D intersection2 = Point2D(x - h * (center2.y - center1.y) / dist, y + h * (center2.x - center1.x) / dist);
+	Point2D intersection1 = Point2D((float)(x + h * (center2.y - center1.y) / dist), (float)(y - h * (center2.x - center1.x) / dist));
+	Point2D intersection2 = Point2D((float)(x - h * (center2.y - center1.y) / dist), (float)(y + h * (center2.x - center1.x) / dist));
 
 	if (Distance2D(intersection1, point) <= Distance2D(intersection2, point))
 		return intersection1;
@@ -894,301 +889,301 @@ float Utility::GetDPS(const Unit* attacker)
 	switch (attacker->unit_type.ToType())
 	{
 	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
-		return 22.4;
+		return FRAME_TIME;
 	case UNIT_TYPEID::PROTOSS_PROBE:
-		return 4.67;
+		return 4.67f;
 		break;
 	case UNIT_TYPEID::PROTOSS_ZEALOT:
-		return 18.6 + (upgrade_level * 2.33);
+		return 18.6f + (upgrade_level * 2.33f);
 		break;
 	case UNIT_TYPEID::PROTOSS_SENTRY:
-		return 14 + (upgrade_level * 1.4);
+		return 14.0f + (upgrade_level * 1.4f);
 		break;
 	case UNIT_TYPEID::PROTOSS_STALKER:
-		return 13.4 + (upgrade_level * 1.5);
+		return 13.4f + (upgrade_level * 1.5f);
 		break;
 	case UNIT_TYPEID::PROTOSS_ADEPT: // TODO glaives
-		return 13.65 + (upgrade_level * 1.24);
+		return 13.65f + (upgrade_level * 1.24f);
 		break;
 	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
-		return 3.2 + (upgrade_level * .8);
+		return 3.2f + (upgrade_level * .8f);
 		break;
 	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
-		return 37.2 + (upgrade_level * 4.13);
+		return 37.2f + (upgrade_level * 4.13f);
 		break;
 	case UNIT_TYPEID::PROTOSS_ARCHON:
-		return 28 + (upgrade_level * 3.2);
+		return 28.0f + (upgrade_level * 3.2f);
 		break;
 	case UNIT_TYPEID::PROTOSS_IMMORTAL:
-		return 48.1 + (upgrade_level * 4.82);
+		return 48.1f + (upgrade_level * 4.82f);
 		break;
 	case UNIT_TYPEID::PROTOSS_COLOSSUS:
-		return 28 + (upgrade_level * 3.74);
+		return 28.0f + (upgrade_level * 3.74f);
 		break;
 	case UNIT_TYPEID::PROTOSS_PHOENIX:
-		return 25.4 + (upgrade_level * 2.5);
+		return 25.4f + (upgrade_level * 2.5f);
 		break;
 	case UNIT_TYPEID::PROTOSS_VOIDRAY: // TODO prismatic alignment
-		return 28 + (upgrade_level * 2.8);
+		return 28.0f + (upgrade_level * 2.8f);
 		break;
 	case UNIT_TYPEID::PROTOSS_ORACLE:
-		return 35.9;
+		return 35.9f;
 		break;
 	case UNIT_TYPEID::PROTOSS_CARRIER:
-		return 37.4 + (upgrade_level * 7.5);
+		return 37.4f + (upgrade_level * 7.5f);
 		break;
 	case UNIT_TYPEID::PROTOSS_TEMPEST: // TODO techtonic destabilizers
-		return 16.97 + (upgrade_level * 1.697);
+		return 16.97f + (upgrade_level * 1.697f);
 		break;
 	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
-		return 22.8 + (upgrade_level * 3.78);
+		return 22.8f + (upgrade_level * 3.78f);
 		break;
 	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS: // terran
-		return 28;
+		return 28.0f;
 		break;
 	case UNIT_TYPEID::TERRAN_MISSILETURRET:
-		return 39.3;
+		return 39.3f;
 		break;
 	case UNIT_TYPEID::TERRAN_SCV:
-		return 4.67;
+		return 4.67f;
 		break;
 	case UNIT_TYPEID::TERRAN_MARINE: // TODO stim
-		return 9.8 + (upgrade_level * 1.6);
+		return 9.8f + (upgrade_level * 1.6f);
 		break;
 	case UNIT_TYPEID::TERRAN_MARAUDER:
-		return 18.6 + (upgrade_level * 1.86);
+		return 18.6f + (upgrade_level * 1.86f);
 		break;
 	case UNIT_TYPEID::TERRAN_REAPER:
-		return 10.1 + (upgrade_level * 2.5);
+		return 10.1f + (upgrade_level * 2.5f);
 		break;
 	case UNIT_TYPEID::TERRAN_GHOST:
-		return 18.6 + (upgrade_level * 1.86);
+		return 18.6f + (upgrade_level * 1.86f);
 		break;
 	case UNIT_TYPEID::TERRAN_HELLION: // TODO blue flame
-		return 7.88 + (upgrade_level * 1.13);
+		return 7.88f + (upgrade_level * 1.13f);
 		break;
 	case UNIT_TYPEID::TERRAN_HELLIONTANK:
-		return 21 + (upgrade_level * 1.4);
+		return 21.0f + (upgrade_level * 1.4f);
 		break;
 	case UNIT_TYPEID::TERRAN_SIEGETANK:
-		return 33.78 + (upgrade_level * 4.05);
+		return 33.78f + (upgrade_level * 4.05f);
 		break;
 	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
-		return 32.71 + (upgrade_level * 2.34);
+		return 32.71f + (upgrade_level * 2.34f);
 		break;
 	case UNIT_TYPEID::TERRAN_CYCLONE:
-		return 24.14 + (upgrade_level * 1.72);
+		return 24.14f + (upgrade_level * 1.72f);
 		break;
 	case UNIT_TYPEID::TERRAN_THOR:
-		return 65.9 + (upgrade_level * 6.59);
+		return 65.9f + (upgrade_level * 6.59f);
 		break;
 	case UNIT_TYPEID::TERRAN_THORAP:
-		return 65.9 + (upgrade_level * 6.59);
+		return 65.9f + (upgrade_level * 6.59f);
 		break;
 	case UNIT_TYPEID::TERRAN_AUTOTURRET:
-		return 31.58;
+		return 31.58f;
 		break;
 	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
-		return 28.2 + (upgrade_level * 2.82);
+		return 28.2f + (upgrade_level * 2.82f);
 		break;
 	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
-		return 19.59 + (upgrade_level * 1.4);
+		return 19.59f + (upgrade_level * 1.4f);
 		break;
 	case UNIT_TYPEID::TERRAN_LIBERATOR:
-		return 7.75 + (upgrade_level * 1.55);
+		return 7.75f + (upgrade_level * 1.55f);
 		break;
 	case UNIT_TYPEID::TERRAN_LIBERATORAG:
-		return 65.8 + (upgrade_level * 4.39);
+		return 65.8f + (upgrade_level * 4.39f);
 		break;
 	case UNIT_TYPEID::TERRAN_BANSHEE:
-		return 27 + (upgrade_level * 2.25);
+		return 27.0f + (upgrade_level * 2.25f);
 		break;
 	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
-		return 49.8 + (upgrade_level * 6.2);
+		return 49.8f + (upgrade_level * 6.2f);
 		break;
 	case UNIT_TYPEID::ZERG_SPINECRAWLER: // zerg
-		return 22.7;
+		return 22.7f;
 		break;
 	case UNIT_TYPEID::ZERG_SPORECRAWLER:
-		return 24.4;
+		return 24.4f;
 		break;
 	case UNIT_TYPEID::ZERG_DRONE:
-		return 4.67;
+		return 4.67f;
 		break;
 	case UNIT_TYPEID::ZERG_QUEEN:
-		return 12.6 + (upgrade_level * 1.4);
+		return 12.6f + (upgrade_level * 1.4f);
 		break;
 	case UNIT_TYPEID::ZERG_ZERGLING: // TODO adrenal
-		return 10 + (upgrade_level * 2);
+		return 10.0f + (upgrade_level * 2.0f);
 		break;
 	case UNIT_TYPEID::ZERG_BANELING:
-		return 35 + (upgrade_level * 2);
+		return 35.0f + (upgrade_level * 2.0f);
 		break;
 	case UNIT_TYPEID::ZERG_ROACH:
-		return 11.2 + (upgrade_level * 1.4);
+		return 11.2f + (upgrade_level * 1.4f);
 		break;
 	case UNIT_TYPEID::ZERG_RAVAGER:
-		return 14.04 + (upgrade_level * 1.75);
+		return 14.04f + (upgrade_level * 1.75f);
 		break;
 	case UNIT_TYPEID::ZERG_HYDRALISK:
-		return 20.4 + (upgrade_level * 1.7);
+		return 20.4f + (upgrade_level * 1.7f);
 		break;
 	case UNIT_TYPEID::ZERG_LURKERMP:
-		return 21 + (upgrade_level * 2.1);
+		return 21.0f + (upgrade_level * 2.1f);
 		break;
 	case UNIT_TYPEID::ZERG_ULTRALISK:
-		return 57.38 + (upgrade_level * 4.9);
+		return 57.38f + (upgrade_level * 4.9f);
 		break;
 	case UNIT_TYPEID::ZERG_MUTALISK:
-		return 11.93 + (upgrade_level * 1.33);
+		return 11.93f + (upgrade_level * 1.33f);
 		break;
 	case UNIT_TYPEID::ZERG_CORRUPTOR:
-		return 14.69 + (upgrade_level * 1.48);
+		return 14.69f + (upgrade_level * 1.48f);
 		break;
 	case UNIT_TYPEID::ZERG_BROODLORD:
-		return 22.4 + (upgrade_level * 2.2);
+		return 22.4f + (upgrade_level * 2.2f);
 		break;
 	case UNIT_TYPEID::ZERG_LOCUSTMP:
-		return 23.25 + (upgrade_level * 2.33);
+		return 23.25f + (upgrade_level * 2.33f);
 		break;
 	case UNIT_TYPEID::ZERG_BROODLING:
-		return 7 + (upgrade_level * 1.75);
+		return 7.0f + (upgrade_level * 1.75f);
 		break;
 	default:
 		//std::cout << "Error invalid unit type in GetDPS\n";
-		return 0;
+		return 0.0f;
 	}
 }
 
 float Utility::GetDPS(const Unit* attacker, const Unit* target)
 {
-	float damage = GetDamage(attacker, target) - GetArmor(target);
+	float damage = (float)(GetDamage(attacker, target) - GetArmor(target));
 
 	switch (attacker->unit_type.ToType())
 	{
 	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
-		return damage / .89;
+		return damage / .89f;
 	case UNIT_TYPEID::PROTOSS_PROBE:
-		return damage / 1.07;
+		return damage / 1.07f;
 	case UNIT_TYPEID::PROTOSS_ZEALOT:
-		return damage / .86;
+		return damage / .86f;
 	case UNIT_TYPEID::PROTOSS_SENTRY:
-		return damage / .71;
+		return damage / .71f;
 	case UNIT_TYPEID::PROTOSS_STALKER:
-		return damage / 1.34;
+		return damage / 1.34f;
 	case UNIT_TYPEID::PROTOSS_ADEPT: // TODO glaives
-		return damage / 1.61; // .64
+		return damage / 1.61f; // .64
 	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
-		return damage / 1.25;
+		return damage / 1.25f;
 	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
-		return damage / 1.21;
+		return damage / 1.21f;
 	case UNIT_TYPEID::PROTOSS_ARCHON:
-		return damage / 1.25;
+		return damage / 1.25f;
 	case UNIT_TYPEID::PROTOSS_IMMORTAL:
-		return damage / 1.04;
+		return damage / 1.04f;
 	case UNIT_TYPEID::PROTOSS_COLOSSUS:
-		return damage / 1.07;
+		return damage / 1.07f;
 	case UNIT_TYPEID::PROTOSS_PHOENIX:
-		return damage / .79;
+		return damage / .79f;
 	case UNIT_TYPEID::PROTOSS_VOIDRAY: // TODO prismatic alignment
-		return damage / .36;
+		return damage / .36f;
 	case UNIT_TYPEID::PROTOSS_ORACLE:
-		return damage / .61;
+		return damage / .61f;
 	case UNIT_TYPEID::PROTOSS_CARRIER:
-		return damage / 2.14;
+		return damage / 2.14f;
 	case UNIT_TYPEID::PROTOSS_TEMPEST: // TODO techtonic destabilizers
-		return damage / 2.36;
+		return damage / 2.36f;
 	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
-		return damage / 1.58;
+		return damage / 1.58f;
 	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS: // terran
-		return damage / 1.43;
+		return damage / 1.43f;
 	case UNIT_TYPEID::TERRAN_MISSILETURRET:
-		return damage / .61;
+		return damage / .61f;
 	case UNIT_TYPEID::TERRAN_SCV:
-		return damage / 1.07;
+		return damage / 1.07f;
 	case UNIT_TYPEID::TERRAN_MARINE: // TODO stim
-		return damage / .61; // .41
+		return damage / .61f; // .41
 	case UNIT_TYPEID::TERRAN_MARAUDER:
-		return damage / 1.07; // .71
+		return damage / 1.07f; // .71
 	case UNIT_TYPEID::TERRAN_REAPER:
-		return damage / .79;
+		return damage / .79f;
 	case UNIT_TYPEID::TERRAN_GHOST:
-		return damage / 1.07;
+		return damage / 1.07f;
 	case UNIT_TYPEID::TERRAN_HELLION: // TODO blue flame
-		return damage / 1.79;
+		return damage / 1.79f;
 	case UNIT_TYPEID::TERRAN_HELLIONTANK:
-		return damage / 1.43;
+		return damage / 1.43f;
 	case UNIT_TYPEID::TERRAN_SIEGETANK:
-		return damage / .74;
+		return damage / .74f;
 	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
-		return damage / 2.14;
+		return damage / 2.14f;
 	case UNIT_TYPEID::TERRAN_CYCLONE:
-		return damage / .71;
+		return damage / .71f;
 	case UNIT_TYPEID::TERRAN_THOR:
 		if (target->is_flying)
-			return damage / 2.14;
+			return damage / 2.14f;
 		else
-			return damage / .91;
+			return damage / .91f;
 	case UNIT_TYPEID::TERRAN_THORAP:
-			return damage / .91;
+			return damage / .91f;
 	case UNIT_TYPEID::TERRAN_AUTOTURRET:
-		return damage / .57;
+		return damage / .57f;
 	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
-		return damage / .71;
+		return damage / .71f;
 	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
-		return damage / 1.43;
+		return damage / 1.43f;
 	case UNIT_TYPEID::TERRAN_LIBERATOR:
-		return damage / 1.29;
+		return damage / 1.29f;
 	case UNIT_TYPEID::TERRAN_LIBERATORAG:
-		return damage / 1.14;
+		return damage / 1.14f;
 	case UNIT_TYPEID::TERRAN_BANSHEE:
-		return damage / .89;
+		return damage / .89f;
 	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
-		return damage / .16;
+		return damage / .16f;
 	case UNIT_TYPEID::ZERG_SPINECRAWLER: // zerg
-		return damage / 1.32;
+		return damage / 1.32f;
 	case UNIT_TYPEID::ZERG_SPORECRAWLER:
-		return damage / .61;
+		return damage / .61f;
 	case UNIT_TYPEID::ZERG_DRONE:
 	case UNIT_TYPEID::ZERG_DRONEBURROWED:
-		return damage / 1.07;
+		return damage / 1.07f;
 	case UNIT_TYPEID::ZERG_QUEEN:
 	case UNIT_TYPEID::ZERG_QUEENBURROWED:
-		return damage / .71;
+		return damage / .71f;
 	case UNIT_TYPEID::ZERG_ZERGLING: // TODO adrenal
 	case UNIT_TYPEID::ZERG_ZERGLINGBURROWED:
-		return damage / .5; // .35
+		return damage / .5f; // .35
 	case UNIT_TYPEID::ZERG_BANELING:
 	case UNIT_TYPEID::ZERG_BANELINGBURROWED:
 		return damage;
 	case UNIT_TYPEID::ZERG_ROACH:
 	case UNIT_TYPEID::ZERG_ROACHBURROWED:
-		return damage / 1.43;
+		return damage / 1.43f;
 	case UNIT_TYPEID::ZERG_RAVAGER:
 	case UNIT_TYPEID::RAVAGERBURROWED:
-		return damage / 1.14;
+		return damage / 1.14f;
 	case UNIT_TYPEID::ZERG_HYDRALISK:
 	case UNIT_TYPEID::ZERG_HYDRALISKBURROWED:
-		return damage / .59;
+		return damage / .59f;
 	case UNIT_TYPEID::ZERG_LURKERMP:
 	case UNIT_TYPEID::ZERG_LURKERMPBURROWED:
-		return damage / 1.43;
+		return damage / 1.43f;
 	case UNIT_TYPEID::ZERG_ULTRALISK:
 	case UNIT_TYPEID::ZERG_ULTRALISKBURROWED:
-		return damage / .61;
+		return damage / .61f;
 	case UNIT_TYPEID::ZERG_MUTALISK:
-		return damage / 1.09;
+		return damage / 1.09f;
 	case UNIT_TYPEID::ZERG_CORRUPTOR:
-		return damage / 1.36;
+		return damage / 1.36f;
 	case UNIT_TYPEID::ZERG_BROODLORD:
-		return damage / 1.79;
+		return damage / 1.79f;
 	case UNIT_TYPEID::ZERG_LOCUSTMP:
-		return damage / .43;
+		return damage / .43f;
 	case UNIT_TYPEID::ZERG_BROODLING:
-		return damage / .46;
+		return damage / .46f;
 	default:
 		//std::cout << "Error invalid unit type in GetDPS\n";
-		return 0;
+		return 0.0f;
 	}
 }
 
@@ -1535,114 +1530,114 @@ float Utility::GetGroundRange(const Unit* unit)
 	switch (unit->unit_type.ToType())
 	{
 	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
-		return 7;
+		return 7.0f;
 	case UNIT_TYPEID::PROTOSS_PROBE:
-		return .1;
+		return .1f;
 	case UNIT_TYPEID::PROTOSS_ZEALOT:
-		return .1;
+		return .1f;
 	case UNIT_TYPEID::PROTOSS_SENTRY:
-		return 5;
+		return 5.0f;
 	case UNIT_TYPEID::PROTOSS_STALKER:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::PROTOSS_ADEPT:
-		return 4;
+		return 4.0f;
 	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
-		return .1;
+		return .1f;
 	case UNIT_TYPEID::PROTOSS_ARCHON:
-		return 3;
+		return 3.0f;
 	case UNIT_TYPEID::PROTOSS_IMMORTAL:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::PROTOSS_COLOSSUS: // TODO extended thermal lance
-		return 7;
+		return 7.0f;
 	case UNIT_TYPEID::PROTOSS_VOIDRAY:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::PROTOSS_ORACLE:
-		return 4;
+		return 4.0f;
 	case UNIT_TYPEID::PROTOSS_CARRIER:
-		return 14;
+		return 14.0f;
 	case UNIT_TYPEID::PROTOSS_TEMPEST: // air 14
-		return  10;
+		return 10.0f;
 	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
-		return 7;
+		return 7.0f;
 	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS: // terran hi sec auto tracking
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::TERRAN_SCV:
-		return .1;
+		return .1f;
 	case UNIT_TYPEID::TERRAN_MARINE:
-		return 5;
+		return 5.0f;
 	case UNIT_TYPEID::TERRAN_MARAUDER:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::TERRAN_REAPER:
-		return 5;
+		return 5.0f;
 	case UNIT_TYPEID::TERRAN_GHOST:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::TERRAN_HELLION:
-		return 5;
+		return 5.0f;
 	case UNIT_TYPEID::TERRAN_HELLIONTANK:
-		return 2;
+		return 2.0f;
 	case UNIT_TYPEID::TERRAN_SIEGETANK:
-		return 7;
+		return 7.0f;
 	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
-		return 13;
+		return 13.0f;
 	case UNIT_TYPEID::TERRAN_CYCLONE:
-		return 5;
+		return 5.0f;
 	case UNIT_TYPEID::TERRAN_THOR: // flying 10
-		return 7;
+		return 7.0f;
 	case UNIT_TYPEID::TERRAN_THORAP: // flying 11
-		return 7;
+		return 7.0f;
 	case UNIT_TYPEID::TERRAN_AUTOTURRET:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
-		return 9;
+		return 9.0f;
 	case UNIT_TYPEID::TERRAN_LIBERATORAG:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_BANSHEE:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::ZERG_SPINECRAWLER: // zerg
-		return 7;
+		return 7.0f;
 	case UNIT_TYPEID::ZERG_DRONE:
-		return .1;
+		return .1f;
 	case UNIT_TYPEID::ZERG_QUEEN: // flying 7
-		return 5;
+		return 5.0f;
 	case UNIT_TYPEID::ZERG_ZERGLING:
-		return .1;
+		return .1f;
 	case UNIT_TYPEID::ZERG_BANELING:
-		return 2.5;
+		return 2.5f;
 	case UNIT_TYPEID::ZERG_ROACH:
-		return 4;
+		return 4.0f;
 	case UNIT_TYPEID::ZERG_RAVAGER:
-		return  6;
+		return 6.0f;
 	case UNIT_TYPEID::ZERG_HYDRALISK: // grooved spines
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::ZERG_LURKERMP: // seismic spine
-		return 8;
+		return 8.0f;
 	case UNIT_TYPEID::ZERG_ULTRALISK:
-		return .1;
+		return .1f;
 	case UNIT_TYPEID::ZERG_MUTALISK:
-		return 3;
+		return 3.0f;
 	case UNIT_TYPEID::ZERG_BROODLORD:
-		return 10;
+		return 10.0f;
 	case UNIT_TYPEID::ZERG_LOCUSTMP:
-		return 3;
+		return 3.0f;
 	case UNIT_TYPEID::ZERG_BROODLING:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_LARVA:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_OVERLORD:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_EGG:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_INFESTOR:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_INFESTORBURROWED:
-		return 0;
+		return 0.0f;
 	default:
 		//std::cout << "Error invalid unit type in GetRange\n";
-		return 0;
+		return 0.0f;
 	}
 }
 
@@ -1651,56 +1646,56 @@ float Utility::GetAirRange(const Unit* unit)
 	switch (unit->unit_type.ToType())
 	{
 	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
-		return 7;
+		return 7.0f;
 	case UNIT_TYPEID::PROTOSS_SENTRY:
-		return 5;
+		return 5.0f;
 	case UNIT_TYPEID::PROTOSS_STALKER:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::PROTOSS_ARCHON:
-		return 3;
+		return 3.0f;
 	case UNIT_TYPEID::PROTOSS_PHOENIX: // TODO anion pulse crystals
-		return 5;
+		return 5.0f;
 	case UNIT_TYPEID::PROTOSS_VOIDRAY:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::PROTOSS_CARRIER:
-		return 14;
+		return 14.0f;
 	case UNIT_TYPEID::PROTOSS_TEMPEST:
-		return  14;
+		return 14.0f;
 	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
-		return 7;
+		return 7.0f;
 	case UNIT_TYPEID::TERRAN_MISSILETURRET: // terran
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::TERRAN_MARINE:
-		return 5;
+		return 5.0f;
 	case UNIT_TYPEID::TERRAN_GHOST:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::TERRAN_CYCLONE:
-		return 5;
+		return 5.0f;
 	case UNIT_TYPEID::TERRAN_THOR:
-		return 10;
+		return 10.0f;
 	case UNIT_TYPEID::TERRAN_THORAP:
-		return 11;
+		return 11.0f;
 	case UNIT_TYPEID::TERRAN_AUTOTURRET:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::TERRAN_LIBERATOR:
-		return  5;
+		return 5.0f;
 	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::ZERG_SPORECRAWLER: // zerg
-		return 7;
+		return 7.0f;
 	case UNIT_TYPEID::ZERG_QUEEN:
-		return 7;
+		return 7.0f;
 	case UNIT_TYPEID::ZERG_HYDRALISK: // grooved spines
-		return 6;
+		return 6.0f;
 	case UNIT_TYPEID::ZERG_MUTALISK:
-		return 3;
+		return 3.0f;
 	case UNIT_TYPEID::ZERG_CORRUPTOR:
-		return 6;
+		return 6.0f;
 	default:
 		//std::cout << "Error invalid unit type in GetRange\n";
-		return 0;
+		return 0.0f;
 	}
 }
 
@@ -1747,131 +1742,131 @@ float Utility::GetDamagePoint(const Unit* unit)
 	switch (unit->unit_type.ToType())
 	{
 	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_PROBE:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_ZEALOT:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_SENTRY:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_STALKER:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_ADEPT:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
-		return .2579;
+		return .2579f;
 	case UNIT_TYPEID::PROTOSS_ARCHON:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_IMMORTAL:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_COLOSSUS:
-		return .0594;
+		return .0594f;
 	case UNIT_TYPEID::PROTOSS_PHOENIX:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_VOIDRAY:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_ORACLE:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_CARRIER:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_TEMPEST:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::TERRAN_MISSILETURRET:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::TERRAN_SCV:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::TERRAN_MARINE:
-		return .0357;
+		return .0357f;
 	case UNIT_TYPEID::TERRAN_MARAUDER:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_REAPER:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_GHOST:
-		return .0593;
+		return .0593f;
 	case UNIT_TYPEID::TERRAN_HELLION:
-		return .1786;
+		return .1786f;
 	case UNIT_TYPEID::TERRAN_HELLIONTANK:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::TERRAN_SIEGETANK:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::TERRAN_CYCLONE:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::TERRAN_THOR:
-		return .5936;
+		return .5936f;
 	case UNIT_TYPEID::TERRAN_THORAP:
-		return .5936;
+		return .5936f;
 	case UNIT_TYPEID::TERRAN_AUTOTURRET:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
-		return .0357;
+		return .0357f;
 	case UNIT_TYPEID::TERRAN_LIBERATOR:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::TERRAN_LIBERATORAG:
-		return .0893;
+		return .0893f;
 	case UNIT_TYPEID::TERRAN_BANSHEE:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::ZERG_SPINECRAWLER:
-		return .238;
+		return .238f;
 	case UNIT_TYPEID::ZERG_SPORECRAWLER:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::ZERG_DRONE:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::ZERG_QUEEN:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::ZERG_ZERGLING:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::ZERG_BANELING:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_ROACH:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::ZERG_RAVAGER:
-		return .1429;
+		return .1429f;
 	case UNIT_TYPEID::ZERG_HYDRALISK:
-		return .1;
+		return .1f;
 	case UNIT_TYPEID::ZERG_LURKERMP:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_ULTRALISK:
-		return .238;
+		return .238f;
 	case UNIT_TYPEID::ZERG_MUTALISK:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_CORRUPTOR:
-		return .0446;
+		return .0446f;
 	case UNIT_TYPEID::ZERG_BROODLORD:
-		return .1193;
+		return .1193f;
 	case UNIT_TYPEID::ZERG_LOCUSTMP:
-		return .1904;
+		return .1904f;
 	case UNIT_TYPEID::ZERG_BROODLING:
-		return .1193;
+		return .1193f;
 	default:
 		//std::cout << "Error invalid unit type in GetDamagePoint\n";
-		return 0;
+		return 0.0f;
 	}
 }
 
-int Utility::GetProjectileTime(const Unit* unit, float dist)
+float Utility::GetProjectileTime(const Unit* unit, float dist)
 {
 	switch (unit->unit_type.ToType())
 	{
 	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
 		return dist;
 	case UNIT_TYPEID::PROTOSS_PROBE:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_ZEALOT:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_SENTRY:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_STALKER:
 		return dist;
 	case UNIT_TYPEID::PROTOSS_ADEPT:
@@ -1879,63 +1874,63 @@ int Utility::GetProjectileTime(const Unit* unit, float dist)
 	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
 		return dist;
 	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_ARCHON:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_IMMORTAL:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_COLOSSUS:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_PHOENIX:
 		return dist;
 	case UNIT_TYPEID::PROTOSS_VOIDRAY:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_ORACLE:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_CARRIER:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::PROTOSS_TEMPEST:
 		return dist;
 	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_MISSILETURRET:
 		return dist;
 	case UNIT_TYPEID::TERRAN_SCV:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_MARINE:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_MARAUDER:
 		return dist;
 	case UNIT_TYPEID::TERRAN_REAPER:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_GHOST:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_HELLION:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_HELLIONTANK:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_SIEGETANK:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_CYCLONE:
 		return dist;
 	case UNIT_TYPEID::TERRAN_THOR:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_THORAP:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_AUTOTURRET:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
 		return dist;
 	case UNIT_TYPEID::TERRAN_LIBERATOR:
 		return dist;
 	case UNIT_TYPEID::TERRAN_LIBERATORAG:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::TERRAN_BANSHEE:
 		return dist;
 	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
@@ -1945,13 +1940,13 @@ int Utility::GetProjectileTime(const Unit* unit, float dist)
 	case UNIT_TYPEID::ZERG_SPORECRAWLER:
 		return dist;
 	case UNIT_TYPEID::ZERG_DRONE:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_QUEEN:
 		return dist;
 	case UNIT_TYPEID::ZERG_ZERGLING:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_BANELING:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_ROACH:
 		return dist;
 	case UNIT_TYPEID::ZERG_RAVAGER:
@@ -1959,9 +1954,9 @@ int Utility::GetProjectileTime(const Unit* unit, float dist)
 	case UNIT_TYPEID::ZERG_HYDRALISK:
 		return dist;
 	case UNIT_TYPEID::ZERG_LURKERMP:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_ULTRALISK:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_MUTALISK:
 		return dist;
 	case UNIT_TYPEID::ZERG_CORRUPTOR:
@@ -1971,10 +1966,10 @@ int Utility::GetProjectileTime(const Unit* unit, float dist)
 	case UNIT_TYPEID::ZERG_LOCUSTMP:
 		return dist;
 	case UNIT_TYPEID::ZERG_BROODLING:
-		return 0;
+		return 0.0f;
 	default:
 		//std::cout << "Error invalid unit type in GetProjectileTime\n";
-		return 0;
+		return 0.0f;
 	}
 }
 
@@ -1983,116 +1978,116 @@ float Utility::GetWeaponCooldown(const Unit* unit)
 	switch (unit->unit_type.ToType())
 	{
 	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
-		return .89;
+		return .89f;
 	case UNIT_TYPEID::PROTOSS_PROBE:
-		return 1.07;
+		return 1.07f;
 	case UNIT_TYPEID::PROTOSS_ZEALOT:
-		return .86;
+		return .86f;
 	case UNIT_TYPEID::PROTOSS_SENTRY:
-		return .71;
+		return .71f;
 	case UNIT_TYPEID::PROTOSS_STALKER:
-		return 1.34;
+		return 1.34f;
 	case UNIT_TYPEID::PROTOSS_ADEPT: // TODO glaives
-		return 1.61;
+		return 1.61f;
 	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
-		return 1.25;
+		return 1.25f;
 	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
-		return 1.21;
+		return 1.21f;
 	case UNIT_TYPEID::PROTOSS_ARCHON:
-		return 1.25;
+		return 1.25f;
 	case UNIT_TYPEID::PROTOSS_IMMORTAL:
-		return 1.04;
+		return 1.04f;
 	case UNIT_TYPEID::PROTOSS_COLOSSUS:
-		return 1.07;
+		return 1.07f;
 	case UNIT_TYPEID::PROTOSS_PHOENIX:
-		return .79;
+		return .79f;
 	case UNIT_TYPEID::PROTOSS_VOIDRAY:
-		return .36;
+		return .36f;
 	case UNIT_TYPEID::PROTOSS_ORACLE:
-		return .61;
+		return .61f;
 	case UNIT_TYPEID::PROTOSS_CARRIER: // TODO each interceptor?
-		return 2.14;
+		return 2.14f;
 	case UNIT_TYPEID::PROTOSS_TEMPEST:
-		return 2.36;
+		return 2.36f;
 	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
-		return 1.58;
+		return 1.58f;
 	case UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
-		return 1.43;
+		return 1.43f;
 	case UNIT_TYPEID::TERRAN_MISSILETURRET:
-		return .61;
+		return .61f;
 	case UNIT_TYPEID::TERRAN_SCV:
-		return 1.07;
+		return 1.07f;
 	case UNIT_TYPEID::TERRAN_MARINE: // TODO stim
-		return .61;
+		return .61f;
 	case UNIT_TYPEID::TERRAN_MARAUDER: // TODO stim
-		return 1.07;
+		return 1.07f;
 	case UNIT_TYPEID::TERRAN_REAPER:
-		return .79;
+		return .79f;
 	case UNIT_TYPEID::TERRAN_GHOST:
-		return 1.07;
+		return 1.07f;
 	case UNIT_TYPEID::TERRAN_HELLION:
-		return 1.79;
+		return 1.79f;
 	case UNIT_TYPEID::TERRAN_HELLIONTANK:
-		return 1.43;
+		return 1.43f;
 	case UNIT_TYPEID::TERRAN_SIEGETANK:
-		return .79;
+		return .79f;
 	case UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
-		return 2.14;
+		return 2.14f;
 	case UNIT_TYPEID::TERRAN_CYCLONE:
-		return .71;
+		return .71f;
 	case UNIT_TYPEID::TERRAN_THOR: // TODO anit air
-		return .91;
+		return .91f;
 	case UNIT_TYPEID::TERRAN_THORAP:
-		return .91;
+		return .91f;
 	case UNIT_TYPEID::TERRAN_AUTOTURRET:
-		return .57;
+		return .57f;
 	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
-		return .71;
+		return .71f;
 	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
-		return 1.43;
+		return 1.43f;
 	case UNIT_TYPEID::TERRAN_LIBERATOR:
-		return 1.29;
+		return 1.29f;
 	case UNIT_TYPEID::TERRAN_LIBERATORAG:
-		return 1.14;
+		return 1.14f;
 	case UNIT_TYPEID::TERRAN_BANSHEE:
-		return .89;
+		return .89f;
 	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
-		return .16;
+		return .16f;
 	case UNIT_TYPEID::ZERG_SPINECRAWLER:
-		return 1.32;
+		return 1.32f;
 	case UNIT_TYPEID::ZERG_SPORECRAWLER:
-		return .61;
+		return .61f;
 	case UNIT_TYPEID::ZERG_DRONE:
-		return 1.07;
+		return 1.07f;
 	case UNIT_TYPEID::ZERG_QUEEN:
-		return .71;
+		return .71f;
 	case UNIT_TYPEID::ZERG_ZERGLING: //TODO adrenal
-		return .497;
+		return .497f;
 	case UNIT_TYPEID::ZERG_BANELING:
-		return 0;
+		return 0.0f;
 	case UNIT_TYPEID::ZERG_ROACH:
-		return 1.43;
+		return 1.43f;
 	case UNIT_TYPEID::ZERG_RAVAGER:
-		return 1.43;
+		return 1.43f;
 	case UNIT_TYPEID::ZERG_HYDRALISK:
-		return .59;
+		return .59f;
 	case UNIT_TYPEID::ZERG_LURKERMP:
-		return 1.43;
+		return 1.43f;
 	case UNIT_TYPEID::ZERG_ULTRALISK:
-		return .61;
+		return .61f;
 	case UNIT_TYPEID::ZERG_MUTALISK:
-		return 1.09;
+		return 1.09f;
 	case UNIT_TYPEID::ZERG_CORRUPTOR:
-		return 1.36;
+		return 1.36f;
 	case UNIT_TYPEID::ZERG_BROODLORD:
-		return 1.79;
+		return 1.79f;
 	case UNIT_TYPEID::ZERG_LOCUSTMP:
-		return .43;
+		return .43f;
 	case UNIT_TYPEID::ZERG_BROODLING:
-		return .46;
+		return .46f;
 	default:
 		//std::cout << "Error invalid unit type in GetWeaponCooldown\n";
-		return 0;
+		return 0.0f;
 	}
 }
 
@@ -2107,28 +2102,28 @@ float Utility::GetTimeBuilt(const Unit* unit, float curr_time)
 	switch (unit->unit_type.ToType())
 	{
 	case UNIT_TYPEID::ZERG_HATCHERY:
-		build_time = 71;
+		build_time = 71.0f;
 		break;
 	case UNIT_TYPEID::ZERG_EXTRACTOR:
-		build_time = 21;
+		build_time = 21.0f;
 		break;
 	case UNIT_TYPEID::ZERG_SPAWNINGPOOL:
-		build_time = 46;
+		build_time = 46.0f;
 		break;
 	case UNIT_TYPEID::ZERG_ROACHWARREN:
-		build_time = 39;
+		build_time = 39.0f;
 		break;
 	case UNIT_TYPEID::TERRAN_COMMANDCENTER:
-		build_time = 71;
+		build_time = 71.0f;
 		break;
 	case UNIT_TYPEID::TERRAN_REFINERY:
-		build_time = 30;
+		build_time = 30.0f;
 		break;
 	case UNIT_TYPEID::TERRAN_BARRACKS:
-		build_time = 46;
+		build_time = 46.0f;
 		break;
 	case UNIT_TYPEID::TERRAN_FACTORY:
-		build_time = 43;
+		build_time = 43.0f;
 		break;
 	default:
 		//std::cout << "Error Unknown building in GetTimeBuilt\n";
@@ -2161,7 +2156,7 @@ AbilityID Utility::UnitToWarpInAbility(UNIT_TYPEID type)
 bool Utility::IsFacing(const Unit* unit, const Unit* target)
 {
 	Point2D vec = Point2D(target->pos.x - unit->pos.x, target->pos.y - unit->pos.y);
-	float angle = atan2(vec.y, vec.x);
+	double angle = atan2(vec.y, vec.x);
 	if (angle < 0)
 		angle += 2 * M_PI;
 	float facing = unit->facing;
@@ -2171,10 +2166,10 @@ bool Utility::IsFacing(const Unit* unit, const Unit* target)
 float Utility::GetFacingAngle(const Unit* unit, const Unit* target)
 {
 	Point2D vec = Point2D(target->pos.x - unit->pos.x, target->pos.y - unit->pos.y);
-	float angle = atan2(vec.y, vec.x);
+	double angle = atan2(vec.y, vec.x);
 	if (angle < 0)
 		angle += 2 * M_PI;
-	return std::abs(angle - unit->facing);
+	return (float)std::abs(angle - unit->facing);
 }
 
 const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
@@ -2599,18 +2594,18 @@ bool Utility::CanAfford(UNIT_TYPEID unit, int amount, const ObservationInterface
 		std::cerr << "Error invalid unit id in CanAfford " << UnitTypeToName(unit) << std::endl;
 		return false;
 	}
-	bool enough_minerals = observation->GetMinerals() >= cost.mineral_cost * amount;
-	bool enough_vespene = observation->GetVespene() >= cost.vespene_cost * amount;
-	bool enough_supply = observation->GetFoodCap() - observation->GetFoodUsed() >= cost.supply * amount;
+	bool enough_minerals = (int)observation->GetMinerals() >= cost.mineral_cost * amount;
+	bool enough_vespene = (int)observation->GetVespene() >= cost.vespene_cost * amount;
+	bool enough_supply = (int)(observation->GetFoodCap() - observation->GetFoodUsed()) >= cost.supply * amount;
 	return enough_minerals && enough_vespene && enough_supply;
 }
 
 bool Utility::CanAffordAfter(UNIT_TYPEID unit, UnitCost already_spent, const ObservationInterface* observation)
 {
 	UnitCost total_cost = GetCost(unit) + already_spent;
-	bool enough_minerals = observation->GetMinerals() >= total_cost.mineral_cost;
-	bool enough_vespene = observation->GetVespene() >= total_cost.vespene_cost;
-	bool enough_supply = observation->GetFoodCap() - observation->GetFoodUsed() >= total_cost.supply;
+	bool enough_minerals = (int)observation->GetMinerals() >= total_cost.mineral_cost;
+	bool enough_vespene = (int)observation->GetVespene() >= total_cost.vespene_cost;
+	bool enough_supply = (int)(observation->GetFoodCap() - observation->GetFoodUsed()) >= total_cost.supply;
 	return enough_minerals && enough_vespene && enough_supply;
 }
 

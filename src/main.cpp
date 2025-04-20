@@ -1,8 +1,11 @@
 // The MIT License (MIT)
 //
 // Copyright (c) 2021-2022 Alexander Kurbatov
+#pragma warning(push)
+#pragma warning(disable : 4702)
 
 #include "theBigBot.h"
+
 
 #include <sc2api/sc2_coordinator.h>
 #include <sc2api/sc2_gametypes.h>

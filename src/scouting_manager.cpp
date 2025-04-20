@@ -198,7 +198,7 @@ void ScoutingManager::UpdateInfo()
 			continue;
 		if (enemy_unit_saved_position.count(unit) > 0)
 		{
-			if (enemy_unit_saved_position[unit].pos == unit->pos)
+			if (Distance2D(enemy_unit_saved_position[unit].pos, unit->pos) < .05)
 			{
 				enemy_unit_saved_position[unit].frames++;
 			}
@@ -289,7 +289,7 @@ int ScoutingManager::CheckTerranScoutingInfoEarly()
 	if (natural_timing > 0)
 		return 0;
 
-	int correct_scv_count = floor(mediator->GetCurrentTime() / 12) + 12;
+	int correct_scv_count = (int)(floor(mediator->GetCurrentTime() / 12) + 12);
 	if (GetEnemyUnitCount(ORBITAL) > 0)
 		correct_scv_count -= 2;
 

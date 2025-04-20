@@ -63,7 +63,7 @@ void BuildOrderManager::UnpauseBuildOrder()
 
 bool BuildOrderManager::TimePassed(Condition data)
 {
-	return mediator->GetGameLoop() / 22.4 >= data.time;
+	return mediator->GetGameLoop() / FRAME_TIME >= data.time;
 }
 
 bool BuildOrderManager::NumWorkers(Condition data)
@@ -85,10 +85,8 @@ bool BuildOrderManager::HasBuilding(Condition data)
 
 bool BuildOrderManager::HasBuildingStarted(Condition data)
 {
-	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
-	{
+	if (mediator->GetUnits(IsFriendlyUnit(data.unitId)).size() > 0)
 		return true;
-	}
 	return false;
 }
 
@@ -102,10 +100,13 @@ bool BuildOrderManager::IsResearching(Condition data)
 	return false;
 }
 
+#pragma warning(push)
+#pragma warning(disable : 4100)
 bool BuildOrderManager::HasGas(Condition data)
 {
 	return mediator->HasResources(0, 100, 0);
 }
+#pragma warning(pop)
 
 bool BuildOrderManager::HasUnits(Condition data)
 {
@@ -119,7 +120,7 @@ bool BuildOrderManager::HasUnits(Condition data)
 bool BuildOrderManager::ReadyToScour(Condition data)
 {
 	if (Utility::DistanceToClosest(mediator->GetUnits(IsUnits({ NEXUS, COMMAND_CENTER, ORBITAL, UNIT_TYPEID::ZERG_HATCHERY, UNIT_TYPEID::ZERG_LAIR })), mediator->GetEnemyStartLocation()) > 15
-		|| mediator->GetGameLoop() / 22.4 >= data.time)
+		|| mediator->GetGameLoop() / FRAME_TIME >= data.time)
 	{
 		return true;
 	}
@@ -247,7 +248,7 @@ bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 			{
 				mediator->SetUnitCommand(gates_ready[i], ABILITY_ID::TRAIN_STALKER, 0);
 			}
-			std::cerr << "Stalkers trained at " << mediator->GetGameLoop() / 22.4 << std::endl;
+			std::cerr << "Stalkers trained at " << mediator->GetGameLoop() / FRAME_TIME << std::endl;
 			return true;
 		}
 	}
@@ -695,7 +696,7 @@ bool BuildOrderManager::MicroChargelotAllin(BuildOrderResultArgData data)
 	/*if (mediator->GetUnits(IsFriendlyUnit(PRISM)).size() > 0)
 	{
 		const Unit* prism = mediator->GetUnits(IsFriendlyUnit(PRISM))[0];
-		ChargelotAllInStateMachine* chargelotFSM = new ChargelotAllInStateMachine(mediator, "Chargelot allin", mediator->locations->warp_prism_locations, mediator->GetUnits(IsFriendlyUnit(ZEALOT)), prism, mediator->Observation()->GetGameLoop() / 22.4);
+		ChargelotAllInStateMachine* chargelotFSM = new ChargelotAllInStateMachine(mediator, "Chargelot allin", mediator->locations->warp_prism_locations, mediator->GetUnits(IsFriendlyUnit(ZEALOT)), prism, mediator->Observation()->GetGameLoop() / FRAME_TIME);
 		mediator->active_FSMs.push_back(chargelotFSM);
 		return true;
 	}*/
@@ -880,7 +881,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		mediator->SendChat("Tag: scout_triple_hatch", ChatChannel::Team);
 		return true;
 	}
-	else if (mediator->GetGameLoop() / 22.4 >= 90)
+	else if (mediator->GetGameLoop() / FRAME_TIME >= 90)
 	{
 		// late pool
 		mediator->SendChat("Tag: scout_late_pool", ChatChannel::Team);
@@ -973,7 +974,7 @@ bool BuildOrderManager::CheckTankCount(BuildOrderResultArgData data)
 		build_order_step = 0;
 		return false;
 	}
-	if (mediator->GetGameLoop() / 22.4 > 310)
+	if (mediator->GetGameLoop() / FRAME_TIME > 310)
 	{
 		return true;
 	}
@@ -1054,7 +1055,7 @@ bool BuildOrderManager::AttackLine(BuildOrderResultArgData data)
 	Units eUnits = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
 	Units fUnits = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self));
 	
-	mediator->defense_manager.JudgeFight(eUnits, fUnits, 0, 300, true);
+	mediator->defense_manager.JudgeFight(eUnits, fUnits, 0.0f, 300.0f, true);
 	//ArmyGroup* army = mediator->CreateArmyGroup(ArmyRole::simple_attack, { ADEPT, STALKER, PRISM }, 3, 20);
 	//army->standby_pos = mediator->agent->locations->attack_path[0];
 	//army->using_standby = false;

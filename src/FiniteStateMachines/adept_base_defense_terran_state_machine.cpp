@@ -110,6 +110,8 @@ std::string AdeptBaseDefenseTerranClearBase::toString()
 
 #pragma region AdeptBaseDefenseTerranDefendFront
 
+#pragma warning(push)
+#pragma warning(disable : 4702)
 // TODO change for maps with natural ramp
 void AdeptBaseDefenseTerranDefendFront::TickState()
 {
@@ -165,6 +167,7 @@ void AdeptBaseDefenseTerranDefendFront::TickState()
 	}
 
 }
+#pragma warning(pop)
 
 void AdeptBaseDefenseTerranDefendFront::EnterState()
 {
@@ -450,9 +453,9 @@ void AdeptBaseDefenseTerranScoutBase::UpdateShadeTarget()
 
 #pragma region AdeptBaseDefenseTerran
 
-AdeptBaseDefenseTerran::AdeptBaseDefenseTerran(TheBigBot* agent, std::string name, Point2D dead_space_spot, std::vector<Point2D> front_of_base) {
-	this->agent = agent;
-	this->name = name;
+AdeptBaseDefenseTerran::AdeptBaseDefenseTerran(TheBigBot* agent, std::string name, Point2D dead_space_spot, 
+	std::vector<Point2D> front_of_base) : StateMachine(agent, name)
+{
 	current_state = new AdeptBaseDefenseTerranClearBase(agent, this);
 	this->dead_space_spot = dead_space_spot;
 	this->front_of_base = front_of_base;

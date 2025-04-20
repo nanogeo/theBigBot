@@ -100,7 +100,7 @@ void UnitProductionManager::RunUnitProduction()
 				{
 					mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(warpgate_production), spots.back(), 0);
 					warpgate_status[warpgate].used = true;
-					warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + round(Utility::GetWarpCooldown(warpgate_production) * 22.4);
+					warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(warpgate_production) * FRAME_TIME);
 					spots.pop_back();
 				}
 				else
@@ -138,7 +138,7 @@ std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to)
 			for (int j = -7; j <= 6; j += 1)
 			{
 
-				Point2D pos = Point2D(pylon->pos.x + i + .5, pylon->pos.y + j + .5);
+				Point2D pos = Point2D(pylon->pos.x + i + .5f, pylon->pos.y + j + .5f);
 				if (mediator->IsPathable(pos) && Distance2D(pos, pylon->pos) <= 6 && mediator->ToPoint3D(pos).y > pylon->pos.y + .5)
 				{
 
@@ -213,7 +213,7 @@ std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to)
 		{
 			for (int j = -4; j <= 4; j += 1)
 			{
-				Point2D pos = Point2D(prism->pos.x + i + .5, prism->pos.y + j + .5);
+				Point2D pos = Point2D(prism->pos.x + i + .5f, prism->pos.y + j + .5f);
 				if (mediator->IsPathable(pos) && Distance2D(pos, prism->pos) <= 3.75 && Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self), pos) > 1)
 				{
 					prism_spots.push_back(pos);

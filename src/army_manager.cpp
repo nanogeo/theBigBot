@@ -220,7 +220,7 @@ void ArmyManager::RunArmyGroups()
 				army_groups[i]->AttackLine(0, 8, PROTOSS_PRIO);
 				break;
 			case Race::Terran:
-				army_groups[i]->AttackLine(.2, 7, TERRAN_PRIO);
+				army_groups[i]->AttackLine(.2f, 7, TERRAN_PRIO);
 				break;
 			default:
 				std::cerr << "Unknown enemy race in RunArmyGroup" << std::endl;

@@ -338,7 +338,7 @@ public:
 	const Unit* probe;
 	bool probe_busy = false;
 	Point2D stand_by_spot;
-	UNIT_TYPEID next_unit;
+	UNIT_TYPEID next_unit = UNIT_TYPEID::INVALID;
 	CannonRushTerranStandByPhase2(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D stand_by_spot)
 	{
 		this->agent = agent;
@@ -361,8 +361,7 @@ class CannonRushTerranUnitMicro : public State
 {
 public:
 	class CannonRushTerran* state_machine;
-	ArmyGroup* army;
-	int event_id;
+	ArmyGroup* army = nullptr;
 	CannonRushTerranUnitMicro(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* zealot);
 	virtual std::string toString() override;
 	void TickState() override;

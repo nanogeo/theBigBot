@@ -10,7 +10,6 @@
 
 #include <iomanip>
 
-#include "sc2api/sc2_map_info.h"
 
 
 namespace sc2 {
@@ -69,8 +68,8 @@ std::vector<std::vector<bool>> NavMesh::SetUpMap(ImageData raw_map)
 		if (i != 0 && i % raw_map.width == 0)
 		{
 			row++;
-			std::vector<bool> x;
-			map.push_back(x);
+			std::vector<bool> y;
+			map.push_back(y);
 			map[row].push_back(false);
 		}
 	}
@@ -80,8 +79,8 @@ std::vector<std::vector<bool>> NavMesh::SetUpMap(ImageData raw_map)
 	std::vector<std::vector<bool>> flipped_map;
 	for (int i = 0; i < map[0].size(); i++)
 	{
-		std::vector<bool> x;
-		flipped_map.push_back(x);
+		std::vector<bool> y;
+		flipped_map.push_back(y);
 	}
 	for (int i = 0; i < map.size(); i++)
 	{
@@ -269,10 +268,10 @@ std::vector<Vec2D> NavMesh::FindIsolines(std::vector<std::vector<bool>> map)
 	{
 		for (int j = 0; j < map[i].size() - 1; j++)
 		{
-			Point2D t = Point2D(i + .5, j);
-			Point2D b = Point2D(i + .5, j + 1);
-			Point2D l = Point2D(i, j + .5);
-			Point2D r = Point2D(i + 1, j + .5);
+			Point2D t = Point2D(i + .5f, (float)j);
+			Point2D b = Point2D(i + .5f, (float)j + 1);
+			Point2D l = Point2D((float)i, j + .5f);
+			Point2D r = Point2D((float)i + 1, j + .5f);
 
 			std::vector<Vec2D> isolines = GetIsolineConfiguration(map[i][j], map[i + 1][j], map[i + 1][j + 1], map[i][j + 1], t, b, l, r);
 
@@ -438,11 +437,11 @@ std::vector<Polygon*> NavMesh::MakeTriangles(std::vector<Point2D> verticies, Ima
 	// make supra-triangle
 	Polygon* supra_triangle = new Polygon();
 	supra_triangle->points.push_back(Point2D(0, 0));
-	supra_triangle->points.push_back(Point2D(0, raw_map.height * 2));
-	supra_triangle->points.push_back(Point2D(raw_map.width * 2, 0));
+	supra_triangle->points.push_back(Point2D(0, (float)raw_map.height * 2));
+	supra_triangle->points.push_back(Point2D((float)raw_map.width * 2, 0));
 
-	std::vector<Polygon*> triangles;
-	triangles.push_back(supra_triangle);
+	std::vector<Polygon*> new_triangles;
+	new_triangles.push_back(supra_triangle);
 
 	// loop through points
 	for (const auto &point : verticies)
@@ -453,7 +452,7 @@ std::vector<Polygon*> NavMesh::MakeTriangles(std::vector<Point2D> verticies, Ima
 		}
 		std::vector<Polygon*> bad_triangles;
 		//   loop through triangles
-		for (auto &triangle : triangles)
+		for (auto &triangle : new_triangles)
 		{
 			//      compute circumcircle
 			Circle circumcircle = ComputeCircumcircle(*triangle);
@@ -473,10 +472,10 @@ std::vector<Polygon*> NavMesh::MakeTriangles(std::vector<Point2D> verticies, Ima
 			edges.push_back(Vec2D(triangle->points[1], triangle->points[2]));
 			edges.push_back(Vec2D(triangle->points[2], triangle->points[0]));
 			//      remove bad triangle from triangles
-			triangles.erase(std::remove(triangles.begin(), triangles.end(), triangle), triangles.end());
+			new_triangles.erase(std::remove(new_triangles.begin(), new_triangles.end(), triangle), new_triangles.end());
 		}
 		// remove common edges
-		for (int i = edges.size() - 1; i > 0; i--)
+		for (int i = (int)edges.size() - 1; i > 0; i--)
 		{
 			bool common = false;
 			for (int j = i - 1; j >= 0; j--)
@@ -494,16 +493,16 @@ std::vector<Polygon*> NavMesh::MakeTriangles(std::vector<Point2D> verticies, Ima
 		// make new triangles with edges
 		for (const auto &edge : edges)
 		{
-			triangles.push_back(new Polygon({ point, edge.start, edge.end }));
+			new_triangles.push_back(new Polygon({ point, edge.start, edge.end }));
 		}
 	}
 	// delete any triangle with 2+ verticies the same as the supra triangle
-	for (int i = triangles.size() - 1; i >= 0; i--)
+	for (int i = (int)new_triangles.size() - 1; i >= 0; i--)
 	{
-		if (DoesShareVertex(*triangles[i], *supra_triangle))
-			triangles.erase(triangles.begin() + i);
+		if (DoesShareVertex(*new_triangles[i], *supra_triangle))
+			new_triangles.erase(new_triangles.begin() + i);
 	}
-	return triangles;
+	return new_triangles;
 }
 
 Circle NavMesh::ComputeCircumcircle(Polygon triangle)
@@ -516,12 +515,12 @@ Circle NavMesh::ComputeCircumcircle(Polygon triangle)
 	Point2D a = triangle.points[0];
 	Point2D b = triangle.points[1];
 	Point2D c = triangle.points[2];
-	float d = (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 2;
-	float x = ((pow(a.x, 2) + pow(a.y, 2)) * (b.y - c.y) + (pow(b.x, 2) + pow(b.y, 2)) * (c.y - a.y) + (pow(c.x, 2) + pow(c.y, 2)) * (a.y - b.y)) / d;
-	float y = ((pow(a.x, 2) + pow(a.y, 2)) * (c.x - b.x) + (pow(b.x, 2) + pow(b.y, 2)) * (a.x - c.x) + (pow(c.x, 2) + pow(c.y, 2)) * (b.x - a.x)) / d;
+	double d = (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 2;
+	double x = ((pow(a.x, 2) + pow(a.y, 2)) * (b.y - c.y) + (pow(b.x, 2) + pow(b.y, 2)) * (c.y - a.y) + (pow(c.x, 2) + pow(c.y, 2)) * (a.y - b.y)) / d;
+	double y = ((pow(a.x, 2) + pow(a.y, 2)) * (c.x - b.x) + (pow(b.x, 2) + pow(b.y, 2)) * (a.x - c.x) + (pow(c.x, 2) + pow(c.y, 2)) * (b.x - a.x)) / d;
 
 	Circle circle;
-	circle.center = Point2D(x, y);
+	circle.center = Point2D((float)x, (float)y);
 	circle.radius = Distance2D(a, circle.center);
 	return circle;
 }
@@ -531,24 +530,24 @@ Circle NavMesh::ComputeCircumcircle(Triangle* triangle)
 	Point2D a = triangle->verticies[0];
 	Point2D b = triangle->verticies[1];
 	Point2D c = triangle->verticies[2];
-	float d = (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 2;
-	float x = ((pow(a.x, 2) + pow(a.y, 2)) * (b.y - c.y) + (pow(b.x, 2) + pow(b.y, 2)) * (c.y - a.y) + (pow(c.x, 2) + pow(c.y, 2)) * (a.y - b.y)) / d;
-	float y = ((pow(a.x, 2) + pow(a.y, 2)) * (c.x - b.x) + (pow(b.x, 2) + pow(b.y, 2)) * (a.x - c.x) + (pow(c.x, 2) + pow(c.y, 2)) * (b.x - a.x)) / d;
+	double d = (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 2;
+	double x = ((pow(a.x, 2) + pow(a.y, 2)) * (b.y - c.y) + (pow(b.x, 2) + pow(b.y, 2)) * (c.y - a.y) + (pow(c.x, 2) + pow(c.y, 2)) * (a.y - b.y)) / d;
+	double y = ((pow(a.x, 2) + pow(a.y, 2)) * (c.x - b.x) + (pow(b.x, 2) + pow(b.y, 2)) * (a.x - c.x) + (pow(c.x, 2) + pow(c.y, 2)) * (b.x - a.x)) / d;
 
 	Circle circle;
-	circle.center = Point2D(x, y);
+	circle.center = Point2D((float)x, (float)y);
 	circle.radius = Distance2D(a, circle.center);
 	return circle;
 }
 
 Circle NavMesh::ComputeCircumcircle(Point2D a, Point2D b, Point2D c)
 {
-	float d = (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 2;
-	float x = ((pow(a.x, 2) + pow(a.y, 2)) * (b.y - c.y) + (pow(b.x, 2) + pow(b.y, 2)) * (c.y - a.y) + (pow(c.x, 2) + pow(c.y, 2)) * (a.y - b.y)) / d;
-	float y = ((pow(a.x, 2) + pow(a.y, 2)) * (c.x - b.x) + (pow(b.x, 2) + pow(b.y, 2)) * (a.x - c.x) + (pow(c.x, 2) + pow(c.y, 2)) * (b.x - a.x)) / d;
+	double d = (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 2;
+	double x = ((pow(a.x, 2) + pow(a.y, 2)) * (b.y - c.y) + (pow(b.x, 2) + pow(b.y, 2)) * (c.y - a.y) + (pow(c.x, 2) + pow(c.y, 2)) * (a.y - b.y)) / d;
+	double y = ((pow(a.x, 2) + pow(a.y, 2)) * (c.x - b.x) + (pow(b.x, 2) + pow(b.y, 2)) * (a.x - c.x) + (pow(c.x, 2) + pow(c.y, 2)) * (b.x - a.x)) / d;
 
 	Circle circle;
-	circle.center = Point2D(x, y);
+	circle.center = Point2D((float)x, (float)y);
 	circle.radius = Distance2D(a, circle.center);
 	return circle;
 }
@@ -595,33 +594,34 @@ bool NavMesh::DoesShareSide(Triangle tri1, Triangle tri2)
 	return similar_verticies >= 2;
 }
 
-std::vector<Triangle*> NavMesh::MarkOutsideTriangles(std::vector<Triangle*> triangles, std::vector<std::vector<bool>> grid_map)
+std::vector<Triangle*> NavMesh::MarkOutsideTriangles(std::vector<Triangle*> outer_triangles, std::vector<std::vector<bool>> grid_map)
 {
-	for (int i = triangles.size() - 1; i >= 0; i--)
+	for (int i = (int)outer_triangles.size() - 1; i >= 0; i--)
 	{
-		Point2D center = Point2D((triangles[i]->verticies[0].x + triangles[i]->verticies[1].x + triangles[i]->verticies[2].x) / 3, (triangles[i]->verticies[0].y + triangles[i]->verticies[1].y + triangles[i]->verticies[2].y) / 3);
-		if (!grid_map[floor(center.x)][floor(center.y)])
-			triangles[i]->pathable = false;
+		Point2D center = Point2D((outer_triangles[i]->verticies[0].x + outer_triangles[i]->verticies[1].x + outer_triangles[i]->verticies[2].x) / 3, 
+			(outer_triangles[i]->verticies[0].y + outer_triangles[i]->verticies[1].y + outer_triangles[i]->verticies[2].y) / 3);
+		if (!grid_map[(int)floor(center.x)][(int)floor(center.y)])
+			outer_triangles[i]->pathable = false;
 	}
-	return triangles;
+	return outer_triangles;
 }
 
 std::vector<Triangle*> NavMesh::ConvertToTriangles(std::vector<Polygon*> polygons)
 {
-	std::vector<Triangle*> triangles;
+	std::vector<Triangle*> new_triangles;
 	for (const auto *poly : polygons)
 	{
-		triangles.push_back(new Triangle(poly->points));
+		new_triangles.push_back(new Triangle(poly->points));
 	}
 
-	for (int i = 0; i < triangles.size() - 1; i++)
+	for (int i = 0; i < new_triangles.size() - 1; i++)
 	{
-		Triangle* tri1 = triangles[i];
+		Triangle* tri1 = new_triangles[i];
 		if (tri1->connections.size() == 3)
 			continue;
-		for (int j = i + 1; j < triangles.size(); j++)
+		for (int j = i + 1; j < new_triangles.size(); j++)
 		{
-			Triangle* tri2 = triangles[j];
+			Triangle* tri2 = new_triangles[j];
 			if (DoesShareSide(*tri1, *tri2))
 			{
 				tri1->connections.push_back(tri2);
@@ -631,7 +631,7 @@ std::vector<Triangle*> NavMesh::ConvertToTriangles(std::vector<Polygon*> polygon
 			}
 		}
 	}
-	return triangles;
+	return new_triangles;
 }
 
 
@@ -708,8 +708,8 @@ std::vector<Triangle*> NavMesh::FindOverlappingTriangles(Polygon polygon)
 		}
 		OverlapInfo side_info;
 		side_info.pvector = pvec;
-		side_info.max = *std::max_element(std::begin(projections), std::end(projections));
-		side_info.min = *std::min_element(std::begin(projections), std::end(projections));
+		side_info.max = (int)*std::max_element(std::begin(projections), std::end(projections));
+		side_info.min = (int)*std::min_element(std::begin(projections), std::end(projections));
 		infos.push_back(side_info);
 	}
 
@@ -774,8 +774,8 @@ std::vector<Triangle*> NavMesh::FindOverlappingTriangles(Polygon polygon)
 			}
 			OverlapInfo side_info;
 			side_info.pvector = pvec;
-			side_info.max = *std::max_element(std::begin(projections), std::end(projections));
-			side_info.min = *std::min_element(std::begin(projections), std::end(projections));
+			side_info.max = (int)*std::max_element(std::begin(projections), std::end(projections));
+			side_info.min = (int)*std::min_element(std::begin(projections), std::end(projections));
 			Tinfos.push_back(side_info);
 		}
 
@@ -841,9 +841,9 @@ std::vector<Point2D> NavMesh::FindIntersectionPoints(Polygon polygon, std::vecto
 				intersection_points.push_back(intersection);
 		}
 	}
-	for (int i = intersection_points.size() - 1; i >= 0; i--)
+	for (int i = (int)intersection_points.size() - 1; i >= 0; i--)
 	{
-		for (int j = i + 1; j < intersection_points.size(); j++)
+		for (int j = i + 1; j < (int)intersection_points.size(); j++)
 		{
 			if (Distance2D(intersection_points[i], intersection_points[j]) < .1)
 			{
@@ -942,10 +942,9 @@ void NavMesh::ReAddVerticies(std::vector<Point2D> removed_verticies, std::vector
 	maxY++;
 
 	// make supra-triangle
-	Triangle* supra_triangle = new Triangle();
-	supra_triangle->verticies.push_back(Point2D(minX, minY));
-	supra_triangle->verticies.push_back(Point2D(minX, minY + (maxY - minY) * 2));
-	supra_triangle->verticies.push_back(Point2D(minX + (maxX - minX) * 2, minY));
+	Triangle* supra_triangle = new Triangle({ Point2D(minX, minY), 
+		Point2D(minX, minY + (maxY - minY) * 2), 
+		Point2D(minX + (maxX - minX) * 2, minY) });
 
 	std::vector<Triangle*> new_triangles;
 	new_triangles.push_back(supra_triangle);
@@ -982,7 +981,7 @@ void NavMesh::ReAddVerticies(std::vector<Point2D> removed_verticies, std::vector
 			new_triangles.erase(std::remove(new_triangles.begin(), new_triangles.end(), triangle), new_triangles.end());
 		}
 		// remove common edges
-		for (int i = edges.size() - 1; i > 0; i--)
+		for (int i = (int)edges.size() - 1; i > 0; i--)
 		{
 			bool common = false;
 			for (int j = i - 1; j >= 0; j--)
@@ -1004,7 +1003,7 @@ void NavMesh::ReAddVerticies(std::vector<Point2D> removed_verticies, std::vector
 		}
 	}
 	// delete any triangle with 2+ verticies the same as the supra triangle
-	for (int i = new_triangles.size() - 1; i >= 0; i--)
+	for (int i = (int)new_triangles.size() - 1; i >= 0; i--)
 	{
 		if (DoesShareVertex(new_triangles[i], supra_triangle))
 			new_triangles.erase(new_triangles.begin() + i);
@@ -1050,7 +1049,7 @@ void NavMesh::AddVerticies(std::vector<Point2D> verticies)
 			RemoveTriangle(triangle);
 		}
 		// remove common edges
-		for (int i = edges.size() - 1; i > 0; i--)
+		for (int i = (int)edges.size() - 1; i > 0; i--)
 		{
 			bool common = false;
 			for (int j = i - 1; j >= 0; j--)
@@ -1237,7 +1236,7 @@ std::vector<Triangle*> NavMesh::ReconstructPath(std::map<Triangle*, Triangle*> c
 		current = came_from[current];
 	}
 	std::vector<Triangle*> path;
-	for (int i = path_r.size() - 1; i >= 0; i--)
+	for (int i = (int)path_r.size() - 1; i >= 0; i--)
 	{
 		path.push_back(path_r[i]);
 	}
@@ -1340,6 +1339,8 @@ std::vector<Triangle*> NavMesh::FindTrianglePath(Triangle* start, Triangle* end)
 
 		visited.push_back(current.triangle);
 	}
+	// Error
+	return {};
 }
 
 float NavMesh::TriangleSignPoint(Point2D point, Point2D start, Point2D end)
@@ -1588,11 +1589,7 @@ bool NavMesh::BuildNavMeshFromFile(std::string filename)
 		file >> v3x;
 		file >> v3y;
 		file >> pathable;
-		Triangle* triangle = new Triangle();
-		triangle->center = Point2D(cX, cY);
-		triangle->verticies.push_back(Point2D(v1x, v1y));
-		triangle->verticies.push_back(Point2D(v2x, v2y));
-		triangle->verticies.push_back(Point2D(v3x, v3y));
+		Triangle* triangle = new Triangle({ Point2D(v1x, v1y), Point2D(v2x, v2y), Point2D(v3x, v3y) });
 		triangle->pathable = pathable;
 		triangles.push_back(triangle);
 		file >> next;

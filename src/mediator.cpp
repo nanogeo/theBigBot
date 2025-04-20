@@ -1,10 +1,4 @@
 
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_map_info.h"
-#include "sc2api/sc2_unit_filters.h"
-#include "sc2api/sc2_types.h"
-
 #include "mediator.h"
 #include "utility.h"
 #include "theBigBot.h"
@@ -117,9 +111,9 @@ int  Mediator::GetGameLoop()
 	return agent->Observation()->GetGameLoop();
 }
 
-double Mediator::GetCurrentTime()
+float Mediator::GetCurrentTime()
 {
-	return agent->Observation()->GetGameLoop() / 22.4;
+	return agent->Observation()->GetGameLoop() / FRAME_TIME;
 }
 
 int Mediator::GetUniqueId()
@@ -167,11 +161,8 @@ bool Mediator::HasBuildingCompleted(UNIT_TYPEID buildingId)
 
 bool Mediator::HasBuildingStarted(UNIT_TYPEID buildingId)
 {
-
-	for (const auto& building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
-	{
+	if (agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)).size() > 0)
 		return true;
-	}
 	return false;
 }
 
@@ -182,15 +173,15 @@ bool Mediator::IsResearching()
 
 bool Mediator::HasResources(int minerals, int vespene, int supply)
 {
-	bool enough_minerals = agent->Observation()->GetMinerals() >= minerals;
-	bool enough_vespene = agent->Observation()->GetVespene() >= vespene;
-	bool enough_supply = agent->Observation()->GetFoodCap() - agent->Observation()->GetFoodUsed() >= supply;
+	bool enough_minerals = (int)agent->Observation()->GetMinerals() >= minerals;
+	bool enough_vespene = (int)agent->Observation()->GetVespene() >= vespene;
+	bool enough_supply = (int)(agent->Observation()->GetFoodCap() - agent->Observation()->GetFoodUsed()) >= supply;
 	return enough_minerals && enough_vespene && enough_supply;
 }
 
 int Mediator::GetNumUnits(UNIT_TYPEID unitId)
 {
-	return agent->Observation()->GetUnits(IsFriendlyUnit(unitId)).size();
+	return (int)agent->Observation()->GetUnits(IsFriendlyUnit(unitId)).size();
 }
 
 bool Mediator::CanAfford(UNIT_TYPEID unitId, int amount)
@@ -293,7 +284,7 @@ std::vector<std::vector<UNIT_TYPEID>> Mediator::GetPrio()
 		return TERRAN_PRIO;
 	case Race::Protoss:
 		return PROTOSS_PRIO;
-	case Race::Random:
+	default:
 		return {};
 	}
 }
@@ -332,7 +323,7 @@ Units Mediator::GetAllWorkersOnGas()
 
 int Mediator::NumFar3rdWorkers()
 {
-	return worker_manager.far_3_mineral_patch_extras.size();
+	return (int)worker_manager.far_3_mineral_patch_extras.size();
 }
 
 bool Mediator::SendScout()
@@ -419,7 +410,7 @@ void Mediator::SetImmediatlySemiSaturateGasses(bool value)
 
 void Mediator::SetBuildOrder(BuildOrder build)
 {
-	agent->locations = new Locations(ToPoint3D(GetStartLocation()), build, GetMapName());
+	agent->locations = new Locations(ToPoint3D(GetStartLocation()), GetMapName());
 	build_order_manager.SetBuildOrder(build);
 	SendChat("Tag: " + GetMapName(), ChatChannel::Team);
 }
@@ -671,7 +662,7 @@ Point2D Mediator::GetFirstPylonLocation()
 	case Race::Terran:
 		return agent->locations->first_pylon_location_terran;
 		break;
-	case Race::Random:
+	default:
 		return agent->locations->first_pylon_location_protoss;
 		break;
 	}
@@ -693,9 +684,9 @@ Point2D Mediator::FindLocation(UNIT_TYPEID unit_type, Point2D location)
 	std::vector<Point2D> possible_locations;
 	for (const auto& pylon : pylons)
 	{
-		for (int i = -7; i <= 6; i += 1)
+		for (float i = -7; i <= 6; i += 1)
 		{
-			for (int j = -7; j <= 6; j += 1)
+			for (float j = -7; j <= 6; j += 1)
 			{
 				Point2D curr_pos = pylon->pos + Point2D(i, j);
 				if (Distance2D(location, enemy_main) < Distance2D(curr_pos, enemy_main))
@@ -1013,7 +1004,7 @@ void Mediator::BuildDefensiveBuilding(UNIT_TYPEID type, Point2D location)
 		pos = GetNaturalDefensiveLocation(type);
 	}
 	if (pos == Point2D(0, 0))
-		Point2D pos = FindLocation(BATTERY, location);
+		pos = FindLocation(BATTERY, location);
 
 	const Unit* builder = GetBuilder(pos);
 	if (builder == nullptr)
@@ -1371,10 +1362,15 @@ void Mediator::OnBuildingConstructionComplete(const Unit* building)
 	}
 	unit_production_manager.OnBuildingConstructionComplete(building);
 }
+
+#pragma warning(push)
+#pragma warning(disable : 4100)
 void Mediator::OnNeutralUnitCreated(const Unit* unit)
 {
 
 }
+#pragma warning(pop)
+
 void Mediator::OnUnitCreated(const Unit* unit)
 {
 	if (unit->unit_type == PROBE)
@@ -1395,14 +1391,20 @@ void Mediator::OnUnitCreated(const Unit* unit)
 		ability_manager.OnUnitCreated(unit);
 	}
 }
+
 void Mediator::OnUnitEnterVision(const Unit*)
 {
 
 }
+
+#pragma warning(push)
+#pragma warning(disable : 4100)
 void Mediator::OnUnitDamaged(const Unit* unit, float health_damage, float shields_damage)
 {
 		
 }
+#pragma warning(pop)
+
 void Mediator::OnUnitDestroyed(const Unit* unit)
 {
 	worker_manager.OnUnitDestroyed(unit);

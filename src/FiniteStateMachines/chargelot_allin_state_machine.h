@@ -56,14 +56,14 @@ public:
     std::vector<Point2D> prism_spots;
     int prism_spots_index;
     Point2D next_warp_in_location;
-    ChargelotAllInStateMachine(TheBigBot* agent, std::string name, std::vector<Point2D> prism_locations, Units zealots, const Unit* prism, float last_warp_in_time) {
-        this->agent = agent;
-        this->name = name;
+    ChargelotAllInStateMachine(TheBigBot* agent, std::string name, std::vector<Point2D> prism_locations, 
+        Units zealots, const Unit* prism, float last_warp_in_time) : StateMachine(agent, name)
+    {
         current_state = new ChargeAllInMovingToWarpinSpot(agent, this);
         prism_spots = prism_locations;
         this->zealots = zealots;
         this->prism = prism;
-        this->last_warp_in_time;
+        this->last_warp_in_time = last_warp_in_time;
         prism_spots_index = 0;
         current_state->EnterState();
     }

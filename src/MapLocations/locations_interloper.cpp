@@ -9,10 +9,12 @@
 
 #define P(x, y) convert_location(Point2D(x, y), swap)
 
+#pragma warning(push)
+#pragma warning(disable : 4305)
 
 namespace sc2 {
 
-	void Locations::SetInterloperLocations(Point3D start_location, BuildOrder build_order)
+	void Locations::SetInterloperLocations(Point3D start)
 	{
 		Point2D center_point = Point2D(224, 0);
 
@@ -24,9 +26,9 @@ namespace sc2 {
 				return point;
 		};
 
-		bool swap = start_location.x == 26.5 && start_location.y == 137.5;
+		bool swap = start.x == 26.5 && start.y == 137.5;
 
-		this->start_location = start_location;
+		this->start_location = start;
 
 		nexi_locations = { P(125.5, 30.5),
 							P(126.5, 56.5),
@@ -308,3 +310,4 @@ namespace sc2 {
 	
 }
 
+#pragma warning(pop)

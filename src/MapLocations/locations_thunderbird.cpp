@@ -9,10 +9,12 @@
 
 #define P(x, y) convert_location(Point2D(x, y), swap)
 
+#pragma warning(push)
+#pragma warning(disable : 4305)
 
 namespace sc2 {
 
-	void Locations::SetThunderbirdLocations(Point3D start_location, BuildOrder build_order)
+	void Locations::SetThunderbirdLocations(Point3D start)
 	{
 		Point2D center_point = Point2D(224, 0);
 
@@ -24,9 +26,9 @@ namespace sc2 {
 				return point;
 		};
 
-		bool swap = start_location.x == 38.5 && start_location.y == 133.5;
+		bool swap = start.x == 38.5 && start.y == 133.5;
 
-		this->start_location = start_location;
+		this->start_location = start;
 
 		nexi_locations = { P(153.5, 22.5),
 							P(151.5, 52.5),
@@ -280,3 +282,4 @@ namespace sc2 {
 	
 }
 
+#pragma warning(pop)

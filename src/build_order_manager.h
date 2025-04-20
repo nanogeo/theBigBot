@@ -1,12 +1,6 @@
 #pragma once
 #include "utility.h"
 
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_map_info.h"
-
-#include "sc2api/sc2_unit_filters.h"
-
 
 namespace sc2
 {
@@ -94,7 +88,7 @@ class BuildOrderManager
 {
 public:
 	Mediator* mediator;
-	BuildOrder current_build_order;
+	BuildOrder current_build_order = BuildOrder::blank;
 	std::vector<BuildOrderData> build_order;
 	int build_order_step = 0;
 	bool run_build_order = true;
@@ -249,7 +243,7 @@ struct BuildOrderData
 		if (condition == &BuildOrderManager::TimePassed)
 		{
 			str = "At ";
-			int mins = std::floor(condition_arg.time / 60);
+			int mins = (int)std::floor(condition_arg.time / 60);
 			int seconds = (int)condition_arg.time % 60;
 			str += std::to_string(mins);
 			str += ':';

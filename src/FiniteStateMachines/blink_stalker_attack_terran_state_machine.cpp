@@ -55,7 +55,7 @@ State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 			}
 		}
 	}
-	if (state_machine->attached_army_group->AttackLine(state_machine->attacking_stalkers, .2, 7, TERRAN_PRIO) > 0 ||
+	if (state_machine->attached_army_group->AttackLine(state_machine->attacking_stalkers, .2f, 7, TERRAN_PRIO) > 0 ||
 		state_machine->attached_army_group->attack_path_line.GetFurthestForward({ state_machine->attached_army_group->concave_origin,
 			state_machine->attached_army_group->attack_path_line.FindClosestPoint(state_machine->consolidation_pos) }) == state_machine->attached_army_group->concave_origin)
 	{
@@ -104,7 +104,7 @@ void BlinkStalkerAttackTerranWarpIn::TickState()
 					//std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
 					agent->mediator.SetUnitCommand(gates[i], ABILITY_ID::TRAINWARP_STALKER, spots[i], 0);
 					agent->warpgate_status[gates[i]].used = true;
-					agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * 22.4);
+					agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * FRAME_TIME);
 				}
 
 				state_machine->warping_in = true;
@@ -433,7 +433,7 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 			return new BlinkStalkerAttackTerranSnipeUnit(agent, state_machine, unit);
 		}
 	}
-	int attack_line_status = state_machine->attached_army_group->AttackLine(state_machine->attacking_stalkers, .2, 7, TERRAN_PRIO, true);
+	int attack_line_status = state_machine->attached_army_group->AttackLine(state_machine->attacking_stalkers, .2f, 7, TERRAN_PRIO, true);
 	if (attack_line_status == 1 || attack_line_status == 2 || state_machine->standby_stalkers.size() > state_machine->attacking_stalkers.size())
 	{
 		if (state_machine->attacking_main)
@@ -545,6 +545,7 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 		{
 			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
 			i--;
+			continue;
 		}
 
 		if (stalker->pos.z - .1 < agent->ToPoint3D(state_machine->blink_down_pos).z && // TODO write utility function to check same height
@@ -600,9 +601,8 @@ std::string BlinkStalkerAttackTerranLeaveHighground::toString()
 #pragma region BlinkStalkerAttackTerran
 
 BlinkStalkerAttackTerran::BlinkStalkerAttackTerran(TheBigBot* agent, std::string name, 
-	Point2D consolidation_pos, Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos) {
-	this->agent = agent;
-	this->name = name;
+	Point2D consolidation_pos, Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos) : StateMachine(agent, name)
+{
 	this->consolidation_pos = consolidation_pos;
 	this->prism_consolidation_pos = prism_consolidation_pos;
 	this->blink_up_pos = blink_up_pos;

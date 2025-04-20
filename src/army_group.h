@@ -1,10 +1,5 @@
 #pragma once
 
-#include "sc2api/sc2_interfaces.h"
-#include "sc2api/sc2_agent.h"
-#include "sc2api/sc2_map_info.h"
-#include "sc2api/sc2_unit_filters.h"
-
 #include "utility.h"
 #include "path_manager.h"
 #include "finite_state_machine.h"
