@@ -57,7 +57,7 @@ namespace sc2 {
 
 		std::cerr << "First pylon: " + std::to_string(pylon_locations[0].x) + ", " + std::to_string(pylon_locations[0].y) + "\n";
 
-		first_pylon_location_zerg = P(136, 39);
+		first_pylon_location_zerg = P(133, 37);
 		first_pylon_location_protoss = P(147, 21);
 		first_pylon_location_terran = P(158, 37);
 
@@ -67,8 +67,8 @@ namespace sc2 {
 							P(158.5, 34.5),
 							P(155.5, 32.5),
 							P(161.5, 34.5),
-							P(139.5, 37.5),
-							P(133.75, 37.25),
+							P(131.75, 34.25),
+							P(138.5, 37.5),
 							P(156.5, 60.5),
 							P(159.5, 58.5),
 							P(162.5, 56.5),
@@ -104,7 +104,7 @@ namespace sc2 {
 
 		cyber_core_locations = { P(147.5, 23.5),
 									P(160.5, 37.5),
-									P(131.5, 34.5) };
+									P(135.75, 37.25) };
 
 		tech_locations = { P(162.5, 25.5),
 							P(165.5, 25.5),
@@ -247,8 +247,8 @@ namespace sc2 {
 
 
 		third_base_pylon_gap = P(158.5, 53.5);
-		natural_door_closed = P(137.5, 38.5);
-		natural_door_open = P(137.5, 42);
+		natural_door_closed = P(140.5, 38);
+		natural_door_open = P(140.5, 42);
 		
 
 		adept_harrass_protoss_consolidation = { P(52, 98), P(80, 103) };
