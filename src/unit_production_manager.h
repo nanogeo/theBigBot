@@ -16,9 +16,9 @@ public:
 
 	Units warpgates, robos, stargates;
 
-	UNIT_TYPEID warpgate_production = UNIT_TYPEID::BALL; // ball == NULL
-	UNIT_TYPEID robo_production = UNIT_TYPEID::BALL;
-	UNIT_TYPEID stargate_production = UNIT_TYPEID::BALL;
+	UNIT_TYPEID warpgate_production = UNIT_TYPEID::INVALID;
+	UNIT_TYPEID robo_production = UNIT_TYPEID::INVALID;
+	UNIT_TYPEID stargate_production = UNIT_TYPEID::INVALID;
 
 	std::map<const Unit*, WarpgateStatus> warpgate_status;
 	bool warp_in_at_proxy = false;

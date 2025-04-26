@@ -267,7 +267,7 @@ void ScoutingManager::AddNewUnit(const Unit* unit)
 	case ROBO:
 	case TWILIGHT:
 	case STARGATE:
-		if (tech_choice == UNIT_TYPEID::BALL)
+		if (tech_choice == UNIT_TYPEID::INVALID)
 			tech_choice = unit->unit_type;
 		break;
 	case SPAWNING_POOL:

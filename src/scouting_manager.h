@@ -31,7 +31,7 @@ public:
 	float second_gate_timing = 0;
 	float first_pylon_timing = 0;
 	float second_pylon_timing = 0;
-	UNIT_TYPEID tech_choice = UNIT_TYPEID::BALL;
+	UNIT_TYPEID tech_choice = UNIT_TYPEID::INVALID;
 
 	// Zerg scouting info
 	float spawning_pool_time = 0;

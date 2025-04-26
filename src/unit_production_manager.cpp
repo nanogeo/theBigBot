@@ -48,7 +48,7 @@ void UnitProductionManager::RunUnitProduction()
 
 	resources_used_this_frame = UnitCost(0, 0, 0);
 
-	if (stargate_production != UNIT_TYPEID::BALL)
+	if (stargate_production != UNIT_TYPEID::INVALID)
 	{
 		// use stargates
 		for (const auto& stargate : stargates)
@@ -68,7 +68,7 @@ void UnitProductionManager::RunUnitProduction()
 		}
 	}
 
-	if (robo_production != UNIT_TYPEID::BALL)
+	if (robo_production != UNIT_TYPEID::INVALID)
 	{
 		// use robos
 		for (const auto& robo : robos)

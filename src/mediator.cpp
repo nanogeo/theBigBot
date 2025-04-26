@@ -1089,17 +1089,17 @@ UNIT_TYPEID Mediator::GetStargateProduction()
 
 void Mediator::CancelWarpgateUnitProduction()
 {
-	unit_production_manager.SetWarpgateProduction(UNIT_TYPEID::BALL);
+	unit_production_manager.SetWarpgateProduction(UNIT_TYPEID::INVALID);
 }
 
 void Mediator::CancelRoboUnitProduction()
 {
-	unit_production_manager.SetRoboProduction(UNIT_TYPEID::BALL);
+	unit_production_manager.SetRoboProduction(UNIT_TYPEID::INVALID);
 }
 
 void Mediator::CancelStargateUnitProduction()
 {
-	unit_production_manager.SetStargateProduction(UNIT_TYPEID::BALL);
+	unit_production_manager.SetStargateProduction(UNIT_TYPEID::INVALID);
 }
 
 void Mediator::SetWarpInAtProxy(bool status)

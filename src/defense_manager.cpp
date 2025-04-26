@@ -71,7 +71,7 @@ void DefenseManager::UpdateOngoingAttacks()
 			// warp in or make units from gates
 			if (mediator->CheckUpgrade(UPGRADE_ID::WARPGATERESEARCH))
 			{
-				if (mediator->GetWarpgateProduction() == UNIT_TYPEID::BALL)
+				if (mediator->GetWarpgateProduction() == UNIT_TYPEID::INVALID)
 				{
 					mediator->SetUnitProduction(STALKER);
 					reset_warpgate_production = true;
@@ -79,12 +79,12 @@ void DefenseManager::UpdateOngoingAttacks()
 			}
 
 			// make units from other tech structures
-			if (mediator->GetRoboProduction() == UNIT_TYPEID::BALL)
+			if (mediator->GetRoboProduction() == UNIT_TYPEID::INVALID)
 			{
 				mediator->SetUnitProduction(IMMORTAL);
 				reset_robo_production = true;
 			}
-			if (mediator->GetStargateProduction() == UNIT_TYPEID::BALL)
+			if (mediator->GetStargateProduction() == UNIT_TYPEID::INVALID)
 			{
 				mediator->SetUnitProduction(VOID_RAY);
 				reset_stargate_production = true;
