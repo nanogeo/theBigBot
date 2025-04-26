@@ -305,6 +305,8 @@ namespace sc2 {
 							Point2D(75, 67), Point2D(101, 111), Point2D(51, 57), Point2D(73, 103), Point2D(77, 101), 
 							Point2D(81, 47), Point2D(79, 65), Point2D(48, 61), Point2D(104, 107), Point2D(71, 121) };
 		
+		worker_rush_defense_group = P(133, 29.5);
+		worker_rush_defense_attack = P(19, 138.5);
 
 	}
 	

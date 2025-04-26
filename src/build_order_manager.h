@@ -109,7 +109,6 @@ public:
 	bool IsResearching(BuildOrderConditionArgData);
 	bool HasGas(BuildOrderConditionArgData);
 	bool HasUnits(BuildOrderConditionArgData);
-	bool ReadyToScour(BuildOrderConditionArgData); // to string
 
 	// Build order results
 	bool BuildBuilding(BuildOrderResultArgData);
@@ -132,6 +131,7 @@ public:
 	bool TrainImmortal(BuildOrderResultArgData);
 	bool TrainObserver(BuildOrderResultArgData);
 	bool ChronoBuilding(BuildOrderResultArgData);
+	bool OptionalChronoBuilding(BuildOrderResultArgData);
 	bool ResearchWarpgate(BuildOrderResultArgData);
 	bool BuildProxy(BuildOrderResultArgData);
 	bool BuildProxyMulti(BuildOrderResultArgData);
@@ -149,6 +149,7 @@ public:
 	bool ContinueChronoProxyRobo(BuildOrderResultArgData);
 	bool Contain(BuildOrderResultArgData);
 	bool StalkerOraclePressure(BuildOrderResultArgData);
+	bool ZealotSimpleAttack(BuildOrderResultArgData);
 	bool ZealotDoubleprong(BuildOrderResultArgData);
 	bool ZealotDoubleprongLarge(BuildOrderResultArgData);
 	bool MicroOracles(BuildOrderResultArgData);
@@ -177,7 +178,6 @@ public:
 	bool CannonRushAttack(BuildOrderResultArgData);
 	bool SendAllInAttack(BuildOrderResultArgData);
 	bool SendAdeptHarassProtoss(BuildOrderResultArgData);
-	bool ScourMap(BuildOrderResultArgData);
 	bool CheckForEarlyPool(BuildOrderResultArgData);
 	bool BuildNaturalDefensiveBuilding(BuildOrderResultArgData);
 	bool ReturnToOracleGatewaymanPvZ(BuildOrderResultArgData);
@@ -219,6 +219,7 @@ public:
 	void SetChargeTransition();
 	void SetMinorProxyRaxResponse();
 	void SetMajorProxyRaxResponse();
+	void SetWorkerRushDefense();
 
 };
 
@@ -287,10 +288,6 @@ struct BuildOrderData
 			str += " ";
 			str += Utility::UnitTypeIdToString(condition_arg.unitId);
 			str += "s are made, ";
-		}
-		else if (condition == &BuildOrderManager::ReadyToScour)
-		{
-			str += "ready to scour, ";
 		}
 		else
 		{
@@ -409,6 +406,12 @@ struct BuildOrderData
 			str += "chrono ";
 			str += Utility::UnitTypeIdToString(result_arg.unitId);
 		}
+		else if (result == &BuildOrderManager::OptionalChronoBuilding)
+		{
+			str += "chrono ";
+			str += Utility::UnitTypeIdToString(result_arg.unitId);
+			str += "if energy is available";
+			}
 		else if (result == &BuildOrderManager::ResearchWarpgate)
 		{
 			str += "research warpgate";
@@ -599,10 +602,6 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::SendAdeptHarassProtoss)
 		{
 			str += "send adept harass vs protoss";
-		}
-		else if (result == &BuildOrderManager::ScourMap)
-		{
-			str += "scour map";
 		}
 		else if (result == &BuildOrderManager::CheckForEarlyPool)
 		{

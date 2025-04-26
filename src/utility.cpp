@@ -108,6 +108,13 @@ bool IsNotFlyingUnit::operator()(const Unit& unit_) const {
 	return !unit_.is_flying;
 }
 
+IsNotCarryingResources::IsNotCarryingResources(UNIT_TYPEID type_) : m_type(type_) {
+}
+
+bool IsNotCarryingResources::operator()(const Unit& unit_) const {
+	return unit_.unit_type == m_type && !IsCarryingMinerals(unit_);
+}
+
 
 const Unit* Utility::ClosestTo(Units units, Point2D position)
 {
@@ -521,6 +528,25 @@ Point2D Utility::MedianCenter(std::vector<Point2D> points)
 		}
 	}
 	return guess;
+}
+
+
+const Unit* Utility::GetMostDamagedUnit(Units units)
+{
+	if (units.size() == 0)
+		return nullptr;
+	float lowest_healh = units[0]->health + units[0]->shield;
+	const Unit* lowest_unit = units[0];
+	for (const auto& unit : units)
+	{
+		float health = unit->health + unit->shield;
+		if (health < lowest_healh)
+		{
+			lowest_healh = health;
+			lowest_unit = unit;
+		}
+	}
+	return lowest_unit;
 }
 
 Point2D Utility::PointBetween(Point2D start, Point2D end, float dist)

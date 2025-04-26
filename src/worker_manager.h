@@ -126,8 +126,9 @@ public:
 	void AddNewBase();
 	void RemoveBase(const Unit*);
 	void DistributeWorkers();
-	void BalanceWorers();
+	void BalanceWorkers();
 	void BuildWorkers();
+	void PullOutOfGas();
 
 	void AddAssimilator(const Unit*);
 	void SetNewBase(const Unit*);

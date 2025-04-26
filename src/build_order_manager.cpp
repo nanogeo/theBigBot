@@ -117,18 +117,6 @@ bool BuildOrderManager::HasUnits(Condition data)
 	return false;
 }
 
-bool BuildOrderManager::ReadyToScour(Condition data)
-{
-	if (Utility::DistanceToClosest(mediator->GetUnits(IsUnits({ NEXUS, COMMAND_CENTER, ORBITAL, UNIT_TYPEID::ZERG_HATCHERY, UNIT_TYPEID::ZERG_LAIR })), mediator->GetEnemyStartLocation()) > 15
-		|| mediator->GetGameLoop() / FRAME_TIME >= data.time)
-	{
-		return true;
-	}
-	return false;
-}
-
-
-
 bool BuildOrderManager::BuildBuilding(BuildOrderResultArgData data)
 {
 	Point2D pos = mediator->GetLocation(data.unitId);
@@ -403,6 +391,25 @@ bool BuildOrderManager::ChronoBuilding(BuildOrderResultArgData data)
 	return false;
 }
 
+bool BuildOrderManager::OptionalChronoBuilding(BuildOrderResultArgData data)
+{
+	for (const auto& building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
+	{
+		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
+		{
+			for (const auto& nexus : mediator->GetUnits(IsFriendlyUnit(NEXUS)))
+			{
+				if (nexus->energy >= 50 && nexus->build_progress == 1)
+				{
+					mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building, 0);
+					return true;
+				}
+			}
+		}
+	}
+	return true;
+}
+
 bool BuildOrderManager::ResearchWarpgate(BuildOrderResultArgData data)
 {
 	for (const auto &cyber : mediator->GetUnits(IsFinishedUnit(CYBERCORE)))
@@ -624,6 +631,12 @@ bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::ZealotSimpleAttack(BuildOrderResultArgData data)
+{
+	mediator->CreateArmyGroup(ArmyRole::simple_attack, { ZEALOT }, 2, 20);
+	return true;
+}
+
 bool BuildOrderManager::ZealotDoubleprong(BuildOrderResultArgData data)
 {
 	mediator->CreateArmyGroup(ArmyRole::simple_attack, { ZEALOT }, 12, 20);
@@ -656,32 +669,7 @@ bool BuildOrderManager::WarpInUnits(BuildOrderResultArgData data)
 
 bool BuildOrderManager::PullOutOfGas(BuildOrderResultArgData data)
 {
-	/*mediator->removed_gas_miners += data.amount;
-	Units workers;
-	for (const auto &data : mediator->assimilators)
-	{
-		if (data.second.workers[2] != nullptr)
-			workers.push_back(data.second.workers[2]);
-	}
-	for (const auto &data : mediator->assimilators)
-	{
-		if (data.second.workers[1] != nullptr)
-			workers.push_back(data.second.workers[1]);
-	}
-	for (const auto &data : mediator->assimilators)
-	{
-		if (data.second.workers[0] != nullptr)
-			workers.push_back(data.second.workers[0]);
-	}
-	int num_removed = 0;
-	for (const auto &worker : workers)
-	{
-		if (num_removed >= data.amount)
-			break;
-		mediator->RemoveWorker(worker);
-		mediator->PlaceWorker(worker);
-		num_removed++;
-	}*/
+	mediator->PullOutOfGas();
 	return true;
 }
 
@@ -862,12 +850,6 @@ bool BuildOrderManager::SendAllInAttack(BuildOrderResultArgData data)
 bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
 {
 	mediator->CreateAdeptHarassProtossFSM();
-	return true;
-}
-
-bool BuildOrderManager::ScourMap(BuildOrderResultArgData data)
-{
-	mediator->ScourMap();
 	return true;
 }
 
@@ -1181,7 +1163,6 @@ void BuildOrderManager::SetChargeTransition()
 					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ZealotDoubleprong,					Result()),
 					Data(&BuildOrderManager::HasUnits,				Condition(ZEALOT, 12),		&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::HasUnits,				Condition(ZEALOT, 12),		&BuildOrderManager::SetWarpInAtProxy,					Result(1)),
-					Data(&BuildOrderManager::ReadyToScour,			Condition(900.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
 
@@ -1262,7 +1243,22 @@ void BuildOrderManager::SetMajorProxyRaxResponse()
 					Data(&BuildOrderManager::TimePassed,			Condition(410.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
 					Data(&BuildOrderManager::TimePassed,			Condition(460.0f),			&BuildOrderManager::ZealotDoubleprong,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(480.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
-					Data(&BuildOrderManager::ReadyToScour,			Condition(900.0f),			&BuildOrderManager::ScourMap,							Result()),
+	};
+}
+
+void BuildOrderManager::SetWorkerRushDefense()
+{
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CancelImmediatelySemiSaturateGasses,Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CancelImmediatelySaturateGasses,	Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::PullOutOfGas,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CutWorkers,							Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(GATEWAY),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(GATEWAY),			&BuildOrderManager::OptionalChronoBuilding,				Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({ GATEWAY, GATEWAY })),
+					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::ContinueChronos,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::ZealotSimpleAttack,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 	};
 }
 
@@ -1329,7 +1325,6 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(500.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({FLEET_BEACON, STARGATE})),
 					Data(&BuildOrderManager::HasBuilding,			Condition(FLEET_BEACON),	&BuildOrderManager::SetUnitProduction,					Result(CARRIER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(600.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
-					Data(&BuildOrderManager::ReadyToScour,			Condition(600.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
 
@@ -1362,7 +1357,6 @@ void BuildOrderManager::SetThreeGateRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
-					Data(&BuildOrderManager::ReadyToScour,			Condition(480.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
 
@@ -1407,7 +1401,6 @@ void BuildOrderManager::Set2GateProxyRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetUnitProduction,					Result(IMMORTAL)),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(STALKER)),
-					Data(&BuildOrderManager::ReadyToScour,			Condition(300.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
 
@@ -1440,7 +1433,6 @@ void BuildOrderManager::Set1GateExpand()
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
-					Data(&BuildOrderManager::ReadyToScour,			Condition(480.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
 
@@ -1498,7 +1490,6 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(500.0f),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(500.0f),			&BuildOrderManager::ZealotDoubleprong,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(720.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
-					Data(&BuildOrderManager::ReadyToScour,			Condition(900.0f),			&BuildOrderManager::ScourMap,							Result()),
 	};
 }
 

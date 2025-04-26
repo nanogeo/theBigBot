@@ -13,6 +13,7 @@
 #include "defense_manager.h"
 #include "ability_manager.h"
 #include "fire_control_manager.h"
+#include "transition_manager.h"
 
 #include "definitions.h"
 
@@ -35,7 +36,8 @@ public:
 		scouting_manager(this),
 		defense_manager(this),
 		ability_manager(this),
-		fire_control_manager(this)
+		fire_control_manager(this),
+		transition_manager(this)
 	{
 		this->agent = agent;
 	}
@@ -54,6 +56,7 @@ public:
 	DefenseManager defense_manager;
 	AbilityManager ability_manager;
 	FireControlManager fire_control_manager;
+	TransitionManager transition_manager;
 
 
 public:
@@ -105,6 +108,8 @@ public:
 	void SetBuildOrder(BuildOrder);
 	void PauseBuildOrder();
 	void UnPauseBuildOrder();
+	void SetWorkerRushDefenseBuidOrder();
+
 	Point2D GetLocation(UNIT_TYPEID);
 	Point2D GetLocation(UNIT_TYPEID, int);
 	Point2D GetProxyLocation(UNIT_TYPEID);
@@ -122,9 +127,12 @@ public:
 	int GetNumBuildActions(UNIT_TYPEID);
 	void AddAction(bool(sc2::ActionManager::* action)(ActionArgData*), ActionArgData*);
 	bool HasActionOfType(bool(sc2::ActionManager::* action)(ActionArgData*));
+	void CancelAllBuildActions();
+	void CancelAllActionsOfType(bool(sc2::ActionManager::* action)(ActionArgData*));
 
 	ScoutInfoTerran GetScoutInfoTerran();
 	ScoutInfoZerg GetScoutInfoZerg();
+	int GetEnemyUnitCount(UNIT_TYPEID);
 
 	StateMachine* GetStateMachineByName(std::string);
 	void RemoveStateMachine(StateMachine*);
@@ -133,6 +141,8 @@ public:
 	void StartOracleHarassStateMachine(ArmyGroup*);
 	bool RemoveScoutToProxy(UNIT_TYPEID, int);
 	void CreateAdeptBaseDefenseTerranFSM();
+	void CreateWorkerRushDefenseFSM();
+
 	void MarkStateMachineForDeletion(StateMachine*);
 	void MarkArmyGroupForDeletion(ArmyGroup* army_group);
 
@@ -146,6 +156,7 @@ public:
 
 	void PlaceWorker(const Unit*);
 	RemoveWorkerResult RemoveWorker(const Unit*);
+	void PullOutOfGas();
 
 	void SetUnitProduction(UNIT_TYPEID);
 	UNIT_TYPEID GetWarpgateProduction();
@@ -172,6 +183,8 @@ public:
 	std::vector<Point2D> GetIndirectAttackPath();
 	std::vector<Point2D> GetAltAttackPath();
 	std::vector<Point2D> GetBadWarpInSpots();
+	const Unit* GetWorkerRushDefenseAttackingMineralPatch();
+	const Unit* GetWorkerRushDefenseGroupingMineralPatch();
 
 	std::string GetMapName();
 	Race GetEnemyRace();

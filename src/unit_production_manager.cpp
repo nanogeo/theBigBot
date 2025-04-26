@@ -39,6 +39,9 @@ void UnitProductionManager::OnBuildingConstructionComplete(const Unit* building)
 	case STARGATE:
 		stargates.push_back(building);
 		break;
+	case GATEWAY:
+		gateways.push_back(building);
+		break;
 	}
 }
 
@@ -87,25 +90,49 @@ void UnitProductionManager::RunUnitProduction()
 			}
 		}
 	}
-
-	if (warpgate_production != UNIT_TYPEID::BALL)
+	if (mediator->CheckUpgrade(UPGRADE_ID::WARPGATERESEARCH))
 	{
-		// use warpgates
-		std::vector<Point2D> spots = FindWarpInSpots(mediator->GetEnemyStartLocation());
-		for (const auto& warpgate : warpgates)
+		if (warpgate_production != UNIT_TYPEID::INVALID)
 		{
-			if (warpgate_status[warpgate].frame_ready == 0)
+			// use warpgates
+			std::vector<Point2D> spots = FindWarpInSpots(mediator->GetEnemyStartLocation());
+			for (const auto& warpgate : warpgates)
 			{
-				if (mediator->CanAffordAfter(warpgate_production, resources_used_this_frame) && spots.size() > 0)
+				if (warpgate_status[warpgate].frame_ready == 0)
 				{
-					mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(warpgate_production), spots.back(), 0);
-					warpgate_status[warpgate].used = true;
-					warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(warpgate_production) * FRAME_TIME);
-					spots.pop_back();
+					if (mediator->CanAffordAfter(warpgate_production, resources_used_this_frame) && spots.size() > 0)
+					{
+						mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(warpgate_production), spots.back(), 0);
+						warpgate_status[warpgate].used = true;
+						warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(warpgate_production) * FRAME_TIME);
+						spots.pop_back();
+					}
+					else
+					{
+						break;
+					}
 				}
-				else
+			}
+		}
+	}
+	else
+	{
+		if (warpgate_production != UNIT_TYPEID::INVALID)
+		{
+			// use gateways
+			for (const auto& gateway : gateways)
+			{
+				if (gateway->orders.size() == 0)
 				{
-					break;
+					if (mediator->CanAffordAfter(warpgate_production, resources_used_this_frame))
+					{
+						resources_used_this_frame += Utility::GetCost(warpgate_production);
+						mediator->SetUnitCommand(gateway, Utility::GetTrainAbility(warpgate_production), 0);
+					}
+					else
+					{
+						break;
+					}
 				}
 			}
 		}

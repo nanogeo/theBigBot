@@ -74,6 +74,14 @@ struct IsNotFlyingUnit {
 	bool operator()(const Unit& unit_) const;
 };
 
+struct IsNotCarryingResources {
+	explicit IsNotCarryingResources(UNIT_TYPEID type_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	UNIT_TYPEID m_type;
+};
 
 
 class Utility
@@ -104,6 +112,7 @@ public:
 	static Point2D Center(std::vector<Point2D>);
 	static Point2D MedianCenter(Units);
 	static Point2D MedianCenter(std::vector<Point2D>);
+	static const Unit* GetMostDamagedUnit(Units);
 	static Point2D PointBetween(Point2D, Point2D, float);
 	static Point2D ClosestIntersectionTo(Point2D, double, Point2D, double, Point2D);
 	static int DangerLevel(const Unit *, const ObservationInterface*);

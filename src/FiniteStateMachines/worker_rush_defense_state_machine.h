@@ -15,6 +15,9 @@ class TheBigBot;
 class WorkerRushDefenseGroupUp : public State
 {
 public:
+	Units new_workers;
+	Point2D group_pos;
+	float enter_time = 0;;
 	class WorkerRushDefenseStateMachine* state_machine;
 	WorkerRushDefenseGroupUp(TheBigBot* agent, WorkerRushDefenseStateMachine* state_machine)
 	{
@@ -67,17 +70,7 @@ public:
 	Units workers;
 	const Unit* grouping_mineral_patch;
 	const Unit* attacking_mineral_patch;
-	WorkerRushDefenseStateMachine(TheBigBot* agent, std::string name, Units workers,
-		const Unit* grouping_mineral_patch, const Unit* attacking_mineral_patch) : StateMachine(agent, name)
-	{
-		this->workers = workers;
-		this->attacking_mineral_patch = attacking_mineral_patch;
-		this->grouping_mineral_patch = grouping_mineral_patch;
-
-		current_state = new WorkerRushDefenseGroupUp(agent, this);
-		current_state->EnterState();
-	}
-
+	WorkerRushDefenseStateMachine(TheBigBot*, std::string);
 };
 
 

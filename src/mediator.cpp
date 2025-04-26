@@ -13,6 +13,7 @@
 #include "scout_zerg_state_machine.h"
 #include "scout_protoss_state_machine.h"
 #include "stalker_base_defense_terran_state_machine.h"
+#include "worker_rush_defense_state_machine.h"
 
 
 
@@ -73,6 +74,8 @@ void Mediator::RunManagers()
 	if (agent->Observation()->GetGameLoop() % 20 == 0)
 		defense_manager.UpdateOngoingAttacks();
 
+	transition_manager.CheckTransitions();
+
 	if (agent->Observation()->GetGameLoop() > 40)
 		worker_manager.DistributeWorkers();
 	
@@ -87,9 +90,11 @@ void Mediator::RunManagers()
 		}
 	}
 	if (agent->Observation()->GetGameLoop() % 5 == 0)
+	{
 		worker_manager.BuildWorkers();
+		unit_production_manager.RunUnitProduction();
+	}
 
-	unit_production_manager.RunUnitProduction();
 
 	build_order_manager.CheckBuildOrder();
 
@@ -424,6 +429,15 @@ void Mediator::PauseBuildOrder()
 void Mediator::UnPauseBuildOrder()
 {
 	build_order_manager.UnpauseBuildOrder();
+}
+
+void Mediator::SetWorkerRushDefenseBuidOrder()
+{
+	build_order_manager.SetWorkerRushDefense();
+	if (GetUnits(Unit::Alliance::Self, IsUnit(GATEWAY)).size() > 0)
+		build_order_manager.build_order_step = 1;
+	else
+		build_order_manager.build_order_step = 0;
 }
 
 // TODO create locations manager
@@ -816,6 +830,42 @@ bool Mediator::HasActionOfType(bool(sc2::ActionManager::* type)(ActionArgData*))
 	return false;
 }
 
+void Mediator::CancelAllBuildActions()
+{
+	for (auto itr = action_manager.active_actions.begin(); itr != action_manager.active_actions.end();)
+	{
+		if ((*itr)->action == &ActionManager::ActionBuildBuilding)
+		{
+			if ((*itr)->action_arg->unit)
+				PlaceWorker((*itr)->action_arg->unit);
+
+			itr = action_manager.active_actions.erase(itr);
+		}
+		else
+		{
+			itr++;
+		}
+	}
+}
+
+void Mediator::CancelAllActionsOfType(bool(sc2::ActionManager::* type)(ActionArgData*))
+{
+	for (auto itr = action_manager.active_actions.begin(); itr != action_manager.active_actions.end();)
+	{
+		if ((*itr)->action == type)
+		{
+			if ((*itr)->action_arg->unit && (*itr)->action_arg->unit->unit_type == PROBE)
+				PlaceWorker((*itr)->action_arg->unit);
+
+			itr = action_manager.active_actions.erase(itr);
+		}
+		else
+		{
+			itr++;
+		}
+	}
+}
+
 ScoutInfoTerran Mediator::GetScoutInfoTerran()
 {
 	return agent->scout_info_terran;
@@ -824,6 +874,11 @@ ScoutInfoTerran Mediator::GetScoutInfoTerran()
 ScoutInfoZerg Mediator::GetScoutInfoZerg()
 {
 	return agent->scout_info_zerg;
+}
+
+int Mediator::GetEnemyUnitCount(UNIT_TYPEID type)
+{
+	return scouting_manager.GetEnemyUnitCount(type);
 }
 
 StateMachine* Mediator::GetStateMachineByName(std::string name)
@@ -950,6 +1005,17 @@ void Mediator::CreateAdeptBaseDefenseTerranFSM()
 	adept_defense_fsm->attached_army_group = adept_harass;
 }
 
+void Mediator::CreateWorkerRushDefenseFSM()
+{
+	Units attackers = Utility::GetUnitsWithin(GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })),
+		GetStartLocation(), 20.0f);
+
+	WorkerRushDefenseStateMachine* worker_rush_defense_fsm =
+		new WorkerRushDefenseStateMachine(agent, "Worker rush defense");
+
+	finite_state_machine_manager.active_state_machines.push_back(worker_rush_defense_fsm);
+}
+
 void Mediator::MarkStateMachineForDeletion(StateMachine* state_machine)
 {
 	finite_state_machine_manager.MarkStateMachineForDeletion(state_machine);
@@ -1041,6 +1107,11 @@ void Mediator::PlaceWorker(const Unit* worker)
 RemoveWorkerResult Mediator::RemoveWorker(const Unit* worker)
 {
 	return worker_manager.RemoveWorker(worker);
+}
+
+void Mediator::PullOutOfGas()
+{
+	worker_manager.PullOutOfGas();
 }
 
 void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
@@ -1191,6 +1262,16 @@ std::vector<Point2D> Mediator::GetAltAttackPath()
 std::vector<Point2D> Mediator::GetBadWarpInSpots()
 {
 	return agent->locations->bad_warpin_spots;
+}
+
+const Unit* Mediator::GetWorkerRushDefenseAttackingMineralPatch()
+{
+	return Utility::ClosestTo(GetUnits(Unit::Alliance::Neutral), agent->locations->worker_rush_defense_attack);
+}
+
+const Unit* Mediator::GetWorkerRushDefenseGroupingMineralPatch()
+{
+	return Utility::ClosestTo(GetUnits(Unit::Alliance::Neutral), agent->locations->worker_rush_defense_group);
 }
 
 std::string Mediator::GetMapName()

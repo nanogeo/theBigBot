@@ -688,7 +688,7 @@ void WorkerManager::RemoveBase(const Unit* nexus)
 
 void WorkerManager::DistributeWorkers()
 {
-	BalanceWorers();
+	BalanceWorkers();
 
 	Units workers;
 	for (const auto &worker : mineral_patches_reversed)
@@ -853,7 +853,7 @@ void WorkerManager::DistributeWorkers()
 	}
 }
 
-void WorkerManager::BalanceWorers()
+void WorkerManager::BalanceWorkers()
 {
 	while (first_2_mineral_patch_spaces.size() > 0 && (close_3_mineral_patch_extras.size() > 0 || far_3_mineral_patch_extras.size() > 0))
 	{
@@ -877,7 +877,7 @@ void WorkerManager::BalanceWorers()
 			}
 		}
 	}
-	while (gas_spaces.size() > 0 && (close_3_mineral_patch_extras.size() > 0 || far_3_mineral_patch_extras.size() > 0))
+	while (gas_spaces.size() - removed_gas_miners > 0 && (close_3_mineral_patch_extras.size() > 0 || far_3_mineral_patch_extras.size() > 0))
 	{
 		if (close_3_mineral_patch_extras.size() > 0)
 		{
@@ -949,6 +949,21 @@ void WorkerManager::BuildWorkers()
 				mediator->agent->Actions()->UnitCommand(nexus, ABILITY_ID::CANCEL_LAST);
 			}
 		}
+	}
+}
+
+void WorkerManager::PullOutOfGas()
+{
+	removed_gas_miners = mediator->GetUnits(Unit::Alliance::Self, IsUnit(ASSIMILATOR)).size() * 3;
+	Units gas_workers;
+	for (const auto &worker : assimilators_reversed)
+	{
+		gas_workers.push_back(worker.first);
+	}
+	for (const auto& worker : gas_workers)
+	{
+		RemoveWorker(worker);
+		PlaceWorker(worker);
 	}
 }
 

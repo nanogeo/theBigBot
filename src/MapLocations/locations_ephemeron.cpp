@@ -268,6 +268,8 @@ namespace sc2 {
 
 		bad_warpin_spots = { first_pylon_location_terran, P(69, 111), P(113.5, 36), P(118, 40), proxy_pylon_locations[0] };
 
+		worker_rush_defense_group = P(138, 20.5);
+		worker_rush_defense_attack = P(22, 139.5);
 	}
 	
 }

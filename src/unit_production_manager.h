@@ -14,7 +14,7 @@ class UnitProductionManager
 public:
 	Mediator* mediator;
 
-	Units warpgates, robos, stargates;
+	Units warpgates, robos, stargates, gateways;
 
 	UNIT_TYPEID warpgate_production = UNIT_TYPEID::INVALID;
 	UNIT_TYPEID robo_production = UNIT_TYPEID::INVALID;
@@ -35,7 +35,7 @@ public:
 	void SetRoboProduction(UNIT_TYPEID);
 	void SetStargateProduction(UNIT_TYPEID);
 
-	void OnBuildingConstructionComplete(const Unit*);
+	void OnBuildingConstructionComplete(const Unit*); // TODO on unit destroyed
 	void RunUnitProduction();
 
 	void SetWarpInAtProxy(bool);
