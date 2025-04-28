@@ -262,6 +262,8 @@ void ArmyManager::FindArmyGroupForUnit(const Unit* unit)
 	std::vector<ArmyGroup*> possibles_groups;
 	for (const auto& group : army_groups)
 	{
+		if (group->accept_new_units == false)
+			continue;
 		if (std::find(group->unit_types.begin(), group->unit_types.end(), unit->unit_type) == group->unit_types.end())
 			continue;
 		if (group->all_units.size() >= group->max_units)

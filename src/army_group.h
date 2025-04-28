@@ -99,7 +99,7 @@ public:
 	Point2D standby_pos;
 	Units standby_units;
 
-
+	bool accept_new_units = true;
 	int event_id;
 	std::vector<UNIT_TYPEID> unit_types;
 	int desired_units = 0;
