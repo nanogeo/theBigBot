@@ -366,6 +366,9 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 		}
 	}
 
+	if (mediator->GetStargateProduction() == UNIT_TYPEID::INVALID)
+		return false;
+
 	std::vector<ABILITY_ID> air_upgrades = {};
 	if (mediator->GetUpgradeLevel(UpgradeType::air_weapons) < 3)
 		air_upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONS);
