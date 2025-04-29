@@ -153,10 +153,21 @@ bool Mediator::IsPathable(Point2D pos)
 
 bool Mediator::HasBuildingCompleted(UNIT_TYPEID buildingId)
 {
-
 	for (const auto& building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
 	{
 		if (building->build_progress == 1)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Mediator::HasBuildingUnderConstruction(UNIT_TYPEID buildingId)
+{
+	for (const auto& building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
+	{
+		if (building->build_progress < 1)
 		{
 			return true;
 		}
@@ -294,6 +305,11 @@ std::vector<std::vector<UNIT_TYPEID>> Mediator::GetPrio()
 	}
 }
 
+UnitCost Mediator::GetCurrentResources()
+{
+	return UnitCost(agent->Observation()->GetMinerals(), agent->Observation()->GetVespene(), 0);
+}
+
 void Mediator::SendChat(std::string message, ChatChannel channel)
 {
 	agent->Actions()->SendChat(message, channel);
@@ -302,6 +318,20 @@ void Mediator::SendChat(std::string message, ChatChannel channel)
 const Unit* Mediator::GetBuilder(Point2D position)
 {
 	return worker_manager.GetBuilder(position);
+}
+
+bool Mediator::BuildBuilding(UNIT_TYPEID buildingId)
+{
+	Point2D pos = GetLocation(buildingId);
+	const Unit* builder = GetBuilder(pos);
+	if (builder == nullptr)
+	{
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		return false;
+	}
+	worker_manager.RemoveWorker(builder);
+	action_manager.AddAction(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, buildingId, pos)));
+	return true;
 }
 
 void Mediator::BuildBuilding(UNIT_TYPEID buildingId, Point2D position, const Unit* probe)
@@ -410,12 +440,17 @@ bool Mediator::CheckBuildWorkers()
 
 void Mediator::SetImmediatlySaturateGasses(bool value)
 {
-	worker_manager.immediatelySaturateGasses = value;// TODO move to worker manager
+	worker_manager.immediatelySaturateGasses = value;
 }
 
 void Mediator::SetImmediatlySemiSaturateGasses(bool value)
 {
-	worker_manager.immediatelySemiSaturateGasses = value; // TODO move to worker manager
+	worker_manager.immediatelySemiSaturateGasses = value;
+}
+
+void Mediator::SetBalanceIncome(bool value)
+{
+	worker_manager.balance_income = value;
 }
 
 void Mediator::SetBuildOrder(BuildOrder build)
@@ -869,6 +904,19 @@ void Mediator::CancelAllActionsOfType(bool(sc2::ActionManager::* type)(ActionArg
 			itr++;
 		}
 	}
+}
+
+UnitCost Mediator::CalculateCostOfCurrentBuildActions()
+{
+	UnitCost total;
+	for (const auto& action : action_manager.active_actions)
+	{
+		if (action->action == &ActionManager::ActionBuildBuilding)
+		{
+			total += Utility::GetCost(action->action_arg->unitId);
+		}
+	}
+	return total;
 }
 
 ScoutInfoTerran Mediator::GetScoutInfoTerran()

@@ -367,13 +367,17 @@ struct UnitCost
 	{
 		return UnitCost(mineral_cost + other.mineral_cost, vespene_cost + other.vespene_cost, supply + other.supply);
 	}
+	UnitCost operator-(const UnitCost& other) const
+	{
+		return UnitCost(mineral_cost - other.mineral_cost, vespene_cost - other.vespene_cost, supply - other.supply);
+	}
 	void operator+=(const UnitCost& other) 
 	{
 		mineral_cost += other.mineral_cost;
 		vespene_cost += other.vespene_cost;
 		supply += other.supply;
 	}
-	UnitCost operator*(const uint32_t num)
+	UnitCost operator*(const uint32_t num) const
 	{
 		return UnitCost(mineral_cost * num, vespene_cost * num, supply * num);
 	}

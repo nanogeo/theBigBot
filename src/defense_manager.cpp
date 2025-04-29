@@ -93,6 +93,7 @@ void DefenseManager::UpdateOngoingAttacks()
 			if (attack.location == mediator->GetNaturalLocation() && attack.status <= -50 && attack.pulled_workers.size() == 0)
 			{
 				mediator->AddAction(&ActionManager::ActionContinueBuildingPylons, new ActionArgData());
+				mediator->SetBalanceIncome(true); // TODO move this and above to somewhere more central for when build order is interrupted
 				// make a new battery
 				if (mediator->GetNumBuildActions(BATTERY) == 0)
 					mediator->BuildDefensiveBuilding(BATTERY, attack.location);

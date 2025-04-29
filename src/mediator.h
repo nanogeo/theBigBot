@@ -72,6 +72,7 @@ public:
 	ImageData GetPathingGrid();
 	bool IsPathable(Point2D);
 	bool HasBuildingCompleted(UNIT_TYPEID);
+	bool HasBuildingUnderConstruction(UNIT_TYPEID);
 	bool HasBuildingStarted(UNIT_TYPEID);
 	bool IsResearching();
 	bool HasResources(int, int, int);
@@ -88,10 +89,12 @@ public:
 	float GetLineDangerLevel(PathManager);
 	bool IsVisible(Point2D);
 	std::vector<std::vector<UNIT_TYPEID>> GetPrio();
+	UnitCost GetCurrentResources();
 
 	void SendChat(std::string, ChatChannel);
 
 	const Unit* GetBuilder(Point2D);
+	bool BuildBuilding(UNIT_TYPEID);
 	void BuildBuilding(UNIT_TYPEID, Point2D, const Unit*);
 	void BuildBuildingMulti(std::vector<UNIT_TYPEID>, Point2D, const Unit*);
 	//void BuildBuilding(UNIT_TYPEID);
@@ -105,6 +108,7 @@ public:
 	bool CheckBuildWorkers();
 	void SetImmediatlySaturateGasses(bool);
 	void SetImmediatlySemiSaturateGasses(bool);
+	void SetBalanceIncome(bool);
 
 	void SetBuildOrder(BuildOrder);
 	void PauseBuildOrder();
@@ -130,6 +134,7 @@ public:
 	bool HasActionOfType(bool(sc2::ActionManager::* action)(ActionArgData*));
 	void CancelAllBuildActions();
 	void CancelAllActionsOfType(bool(sc2::ActionManager::* action)(ActionArgData*));
+	UnitCost CalculateCostOfCurrentBuildActions();
 
 	ScoutInfoTerran GetScoutInfoTerran();
 	ScoutInfoZerg GetScoutInfoZerg();

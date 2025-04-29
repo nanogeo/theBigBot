@@ -855,6 +855,37 @@ void WorkerManager::DistributeWorkers()
 
 void WorkerManager::BalanceWorkers()
 {
+	if (balance_income)
+	{
+		UnitCost income = mediator->CalculateIncome();
+		UnitCost future_resources = mediator->GetCurrentResources() + income - 
+			mediator->CalculateCostOfProduction() - mediator->CalculateCostOfCurrentBuildActions();
+
+		bool excess_minerals = future_resources.mineral_cost > income.mineral_cost / 2;
+		bool excess_gas = future_resources.vespene_cost > income.vespene_cost / 2;
+
+		if (excess_gas && !excess_minerals && assimilators_reversed.size() > 0)
+		{
+			PullOutOfGas(1);
+		}
+		else if (excess_minerals && !excess_gas)
+		{
+			if (removed_gas_miners > 0)
+			{
+				removed_gas_miners--;
+			}
+			else
+			{
+				if (mediator->GetNumBuildActions(ASSIMILATOR) == 0 && mediator->HasBuildingUnderConstruction(ASSIMILATOR) == false)
+					mediator->BuildBuilding(ASSIMILATOR);
+			}
+		}
+		else if (excess_gas && excess_minerals)
+		{
+			// build more production
+		}
+	}
+
 	while (first_2_mineral_patch_spaces.size() > 0 && (close_3_mineral_patch_extras.size() > 0 || far_3_mineral_patch_extras.size() > 0))
 	{
 		if (close_3_mineral_patch_extras.size() > 0)
@@ -959,6 +990,25 @@ void WorkerManager::PullOutOfGas()
 	for (const auto &worker : assimilators_reversed)
 	{
 		gas_workers.push_back(worker.first);
+	}
+	for (const auto& worker : gas_workers)
+	{
+		RemoveWorker(worker);
+		PlaceWorker(worker);
+	}
+}
+
+void WorkerManager::PullOutOfGas(int num)
+{
+	removed_gas_miners = std::min(removed_gas_miners + num, (int)mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(ASSIMILATOR)).size() * 3);
+	Units gas_workers;
+	int removed = 0;
+	for (const auto& worker : assimilators_reversed)
+	{
+		gas_workers.push_back(worker.first);
+		removed++;
+		if (removed >= num)
+			break;
 	}
 	for (const auto& worker : gas_workers)
 	{

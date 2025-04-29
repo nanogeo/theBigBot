@@ -122,6 +122,7 @@ public:
 	bool CancelImmediatelySaturateGasses(BuildOrderResultArgData);
 	bool ImmediatelySemiSaturateGasses(BuildOrderResultArgData);
 	bool CancelImmediatelySemiSaturateGasses(BuildOrderResultArgData);
+	bool BalanceIncome(BuildOrderResultArgData);
 	bool TrainStalker(BuildOrderResultArgData);
 	bool TrainAdept(BuildOrderResultArgData);
 	bool TrainZealot(BuildOrderResultArgData);
@@ -184,6 +185,7 @@ public:
 	bool ReturnTo4GateBlink(BuildOrderResultArgData);
 	bool SetUnitProduction(BuildOrderResultArgData);
 	bool CancelWarpgateUnitProduction(BuildOrderResultArgData);
+	bool CancelStargateUnitProduction(BuildOrderResultArgData);
 	bool SetWarpInAtProxy(BuildOrderResultArgData);
 	bool AddToNaturalDefense(BuildOrderResultArgData);
 	bool CheckTankCount(BuildOrderResultArgData);
@@ -348,6 +350,10 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::CancelImmediatelySemiSaturateGasses)
 		{
 			str += "cancel immediately semi-saturate gasses";
+		}
+		else if (result == &BuildOrderManager::BalanceIncome)
+		{
+			str += "balance income";
 		}
 		else if (result == &BuildOrderManager::TrainStalker)
 		{
@@ -627,6 +633,10 @@ struct BuildOrderData
 		{
 			str += "cancel warpgate unit production";
 		}
+		else if (result == &BuildOrderManager::CancelStargateUnitProduction)
+		{
+			str += "cancel stargate unit production";
+			}
 		else if (result == &BuildOrderManager::SetWarpInAtProxy)
 		{
 			str += "set warp in a t proxy";

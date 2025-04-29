@@ -108,6 +108,7 @@ public:
 	const Unit *new_base = nullptr;
 	bool should_build_workers = true;
 	int removed_gas_miners = 0;
+	bool balance_income = false;
 
 	WorkerManager(Mediator* mediator)
 	{
@@ -131,6 +132,7 @@ public:
 	void BalanceWorkers();
 	void BuildWorkers();
 	void PullOutOfGas();
+	void PullOutOfGas(int);
 	UnitCost CalculateIncome();
 
 	void AddAssimilator(const Unit*);
