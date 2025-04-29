@@ -142,10 +142,6 @@ void AbilityManager::OnUnitCreated(const Unit* unit)
 		last_time_oracle_revealed[unit] = 0;
 		break;
 	case STALKER:
-		std::cout << "Class instance address: " << this << std::endl;
-		std::cout << "previous_stalker_position address: " << &previous_stalker_position << std::endl;
-		std::cout << "Map size before crash: " << previous_stalker_position.size() << std::endl;
-		//previous_stalker_position.clear();
 		previous_stalker_position[unit] = unit->pos;
 		if (mediator->CheckUpgrade(U_BLINK))
 			stalker_blink_off_cooldown[unit] = true;
