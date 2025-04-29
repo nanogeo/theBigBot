@@ -967,6 +967,58 @@ void WorkerManager::PullOutOfGas()
 	}
 }
 
+UnitCost WorkerManager::CalculateIncome()
+{
+	int mineral_income = 0;
+	int gas_income = 0;
+	for (const auto &patch : mineral_patches)
+	{
+		if (patch.second.is_close)
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				if (patch.second.workers[i])
+				{
+					if (i == 2)
+						mineral_income += 7;
+					else
+						mineral_income += 66;
+				}
+			}
+		}
+		else
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				if (patch.second.workers[i])
+				{
+					if (i == 2)
+						mineral_income += 23;
+					else
+						mineral_income += 60;
+				}
+			}
+		}
+	}
+
+
+	for (const auto &gas : assimilators)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			if (gas.second.workers[i])
+			{
+				if (i == 2)
+					gas_income += 39;
+				else
+					gas_income += 62;
+			}
+		}
+	}
+
+	return UnitCost(mineral_income, gas_income, 0);
+}
+
 void WorkerManager::AddAssimilator(const Unit* assimilator)
 {
 	assimilators[assimilator] = assimilator_data();

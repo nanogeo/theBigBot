@@ -102,6 +102,7 @@ public:
 	bool SendCannonRushProbe1();
 
 	void SetBuildWorkers(bool);
+	bool CheckBuildWorkers();
 	void SetImmediatlySaturateGasses(bool);
 	void SetImmediatlySemiSaturateGasses(bool);
 
@@ -157,6 +158,7 @@ public:
 	void PlaceWorker(const Unit*);
 	RemoveWorkerResult RemoveWorker(const Unit*);
 	void PullOutOfGas();
+	UnitCost CalculateIncome();
 
 	void SetUnitProduction(UNIT_TYPEID);
 	UNIT_TYPEID GetWarpgateProduction();
@@ -166,6 +168,7 @@ public:
 	void CancelRoboUnitProduction();
 	void CancelStargateUnitProduction();
 	void SetWarpInAtProxy(bool);
+	UnitCost CalculateCostOfProduction();
 
 	ArmyGroup* CreateArmyGroup(ArmyRole, std::vector<UNIT_TYPEID>, int, int);
 	ArmyGroup* GetArmyGroupDefendingBase(Point2D);

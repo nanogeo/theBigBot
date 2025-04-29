@@ -15,6 +15,8 @@
 #include <map>
 #include <vector>
 
+#include "definitions.h"
+
 
 namespace sc2
 {
@@ -129,6 +131,7 @@ public:
 	void BalanceWorkers();
 	void BuildWorkers();
 	void PullOutOfGas();
+	UnitCost CalculateIncome();
 
 	void AddAssimilator(const Unit*);
 	void SetNewBase(const Unit*);

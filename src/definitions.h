@@ -373,6 +373,10 @@ struct UnitCost
 		vespene_cost += other.vespene_cost;
 		supply += other.supply;
 	}
+	UnitCost operator*(const uint32_t num)
+	{
+		return UnitCost(mineral_cost * num, vespene_cost * num, supply * num);
+	}
 };
 
 struct EnemyUnitPosition

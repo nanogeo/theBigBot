@@ -133,6 +133,7 @@ public:
 	static bool IsOnHighGround(Point3D, Point3D);
 	static float GetTimeBuilt(const Unit*, float);
 	static AbilityID UnitToWarpInAbility(UNIT_TYPEID);
+	static int GetTrainingTime(UNIT_TYPEID);
 	static bool IsFacing(const Unit*, const Unit*);
 	static float GetFacingAngle(const Unit*, const Unit*);
 	static const Unit* AimingAt(const Unit*, Units);

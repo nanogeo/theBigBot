@@ -403,6 +403,11 @@ void Mediator::SetBuildWorkers(bool value)
 	worker_manager.should_build_workers = value;
 }
 
+bool Mediator::CheckBuildWorkers()
+{
+	return worker_manager.should_build_workers;
+}
+
 void Mediator::SetImmediatlySaturateGasses(bool value)
 {
 	worker_manager.immediatelySaturateGasses = value;// TODO move to worker manager
@@ -1114,6 +1119,11 @@ void Mediator::PullOutOfGas()
 	worker_manager.PullOutOfGas();
 }
 
+UnitCost Mediator::CalculateIncome()
+{
+	return worker_manager.CalculateIncome();
+}
+
 void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
 {
 	switch (unit_type)
@@ -1176,6 +1186,11 @@ void Mediator::CancelStargateUnitProduction()
 void Mediator::SetWarpInAtProxy(bool status)
 {
 	unit_production_manager.SetWarpInAtProxy(status);
+}
+
+UnitCost Mediator::CalculateCostOfProduction()
+{
+	return unit_production_manager.CalculateCostOfProduction();
 }
 
 ArmyGroup* Mediator::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)

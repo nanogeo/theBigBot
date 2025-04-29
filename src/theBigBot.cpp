@@ -1650,6 +1650,18 @@ namespace sc2 {
         supply_message += "nexi: " + std::to_string(nexi) + '\n';
         supply_message += "new supply: " + std::to_string(used + 2 * gates + 3 * other_prod + nexi) + '/' + std::to_string(cap + 8 * pending_pylons + 8 * build_pylon_actions) + '\n';
 
+		UnitCost income = mediator.CalculateIncome();
+		UnitCost production_cost = mediator.CalculateCostOfProduction();
+		int mineral_income_size = ((income.mineral_cost / 10) ? 1 : 0) + ((income.mineral_cost / 100) ? 1 : 0) + ((income.mineral_cost / 1000) ? 1 : 0);
+		int gas_income_size = ((income.vespene_cost / 10) ? 1 : 0) + ((income.vespene_cost / 100) ? 1 : 0) + ((income.vespene_cost / 1000) ? 1 : 0);
+		int mineral_cost_size = ((production_cost.mineral_cost / 10) ? 1 : 0) + ((production_cost.mineral_cost / 100) ? 1 : 0) + ((production_cost.mineral_cost / 1000) ? 1 : 0);
+		int gas_cost_size = ((production_cost.vespene_cost / 10) ? 1 : 0) + ((production_cost.vespene_cost / 100) ? 1 : 0) + ((production_cost.vespene_cost / 1000) ? 1 : 0);
+
+		supply_message += "income:    " + std::string(3 - mineral_income_size, ' ') + std::to_string(income.mineral_cost) +
+			" " + std::string(3 - gas_income_size, ' ') + std::to_string(income.vespene_cost) + '\n';
+		supply_message += "prod cost: " + std::string(3 - mineral_cost_size, ' ') + std::to_string(production_cost.mineral_cost) +
+			" " + std::string(3 - gas_cost_size, ' ') + std::to_string(production_cost.vespene_cost) + '\n';
+			
         Debug()->DebugTextOut(supply_message, Point2D(.9f, .05f), Color(0, 255, 0), 20);
     }
 

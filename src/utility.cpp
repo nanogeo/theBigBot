@@ -2179,6 +2179,52 @@ AbilityID Utility::UnitToWarpInAbility(UNIT_TYPEID type)
 	}
 }
 
+int Utility::GetTrainingTime(UNIT_TYPEID type)
+{
+	switch (type)
+	{
+	case UNIT_TYPEID::PROTOSS_PROBE:
+		return 12;
+	case UNIT_TYPEID::PROTOSS_ZEALOT:
+		return 27;
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		return 23;
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		return 27;
+	case UNIT_TYPEID::PROTOSS_ADEPT:
+		return 30;
+	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		return 39;
+	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		return 39;
+	case UNIT_TYPEID::PROTOSS_OBSERVER:
+		return 18;
+	case UNIT_TYPEID::PROTOSS_WARPPRISM:
+		return 36;
+	case UNIT_TYPEID::PROTOSS_IMMORTAL:
+		return 39;
+	case UNIT_TYPEID::PROTOSS_COLOSSUS:
+		return 54;
+	case UNIT_TYPEID::PROTOSS_DISRUPTOR:
+		return 36;
+	case UNIT_TYPEID::PROTOSS_PHOENIX:
+		return 25;
+	case UNIT_TYPEID::PROTOSS_VOIDRAY:
+		return 43;
+	case UNIT_TYPEID::PROTOSS_ORACLE:
+		return 37;
+	case UNIT_TYPEID::PROTOSS_CARRIER:
+		return 64;
+	case UNIT_TYPEID::PROTOSS_TEMPEST:
+		return 43;
+	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+		return 89;
+	default:
+		std::cerr << "Error unknown unit in GetTrainingTime " << UnitTypeIdToString(type) << std::endl;
+		return 1;
+	}
+}
+
 bool Utility::IsFacing(const Unit* unit, const Unit* target)
 {
 	Point2D vec = Point2D(target->pos.x - unit->pos.x, target->pos.y - unit->pos.y);
