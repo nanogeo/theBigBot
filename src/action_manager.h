@@ -19,6 +19,11 @@ struct ActionArgData
 	Point2D position = Point2D(0, 0);
 	ArmyGroup* army_group = nullptr;
 	ActionArgData() {}
+	ActionArgData(UNIT_TYPEID y, Point2D z)
+	{
+		unitId = y;
+		position = z;
+	}
 	ActionArgData(const Unit* x, UNIT_TYPEID y, Point2D z)
 	{
 		unit = x;
@@ -80,6 +85,7 @@ public:
 	void AddAction(ActionData*);
 
 	bool ActionBuildBuilding(ActionArgData*);
+	bool ActionBuildBuildingWhenSafe(ActionArgData*);
 	bool ActionBuildBuildingMulti(ActionArgData*);
 	bool ActionBuildProxyMulti(ActionArgData*);
 	bool ActionScoutZerg(ActionArgData*);
@@ -119,6 +125,12 @@ struct ActionData
 		{
 			str += "Build a ";
 			str += Utility::UnitTypeIdToString(action_arg->unitId);
+		}
+		if (action == &ActionManager::ActionBuildBuildingWhenSafe)
+		{
+			str += "Build a ";
+			str += Utility::UnitTypeIdToString(action_arg->unitId);
+			str += " when safe";
 		}
 		else if (action == &ActionManager::ActionBuildBuildingMulti)
 		{

@@ -74,6 +74,22 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	return false;
 }
 
+bool ActionManager::ActionBuildBuildingWhenSafe(ActionArgData* data)
+{
+	if (Utility::DistanceToClosest(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), data->position) > 10) // TODO add CanAfford?
+	{
+		const Unit* builder = mediator->GetBuilder(data->position);
+		if (builder == nullptr)
+		{
+			//std::cout << "Error could not find builder in ActionBuildBuildingWhenSafe" << std::endl;
+			return false;
+		}
+		mediator->BuildBuilding(data->unitId, data->position, builder);
+		return true;
+	}
+	return false;
+}
+
 bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 {
 	UNIT_TYPEID buildingId = data->unitIds[data->index];
