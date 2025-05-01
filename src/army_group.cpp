@@ -1322,7 +1322,11 @@ namespace sc2 {
 			// else move back to defense point
 			if (unit->weapon_cooldown > 0 || Distance2D(unit->pos, target_pos) > 10)
 			{
-				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, target_pos, 0);
+				const Unit* closest = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), unit->pos);
+				if (Distance2D(closest->pos, unit->pos) < Utility::GetGroundRange(unit) - 1)
+					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, target_pos, 0);
+				else
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, closest, 0);
 			}
 			else
 			{
