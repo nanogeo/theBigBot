@@ -203,6 +203,9 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		}
 		return;
 	}
+	if (removed_gas_miners > 0 && removed_gas_miners == gas_spaces.size())
+		removed_gas_miners--;
+
 	if (gas_spaces.size() > removed_gas_miners)
 	{
 		float distance = INFINITY;
@@ -864,7 +867,7 @@ void WorkerManager::BalanceWorkers()
 		bool excess_minerals = future_resources.mineral_cost > income.mineral_cost / 2;
 		bool excess_gas = future_resources.vespene_cost > income.vespene_cost / 2;
 
-		if (excess_gas && !excess_minerals && assimilators_reversed.size() > 0)
+		if (excess_gas && !excess_minerals && assimilators_reversed.size() > 0 && first_2_mineral_patch_spaces.size() > 0)
 		{
 			PullOutOfGas(1);
 		}
