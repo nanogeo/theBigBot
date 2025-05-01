@@ -90,6 +90,7 @@ public:
 	bool IsVisible(Point2D);
 	std::vector<std::vector<UNIT_TYPEID>> GetPrio();
 	UnitCost GetCurrentResources();
+	void CancelBuilding(const Unit*);
 
 	void SendChat(std::string, ChatChannel);
 

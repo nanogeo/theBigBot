@@ -310,6 +310,11 @@ UnitCost Mediator::GetCurrentResources()
 	return UnitCost(agent->Observation()->GetMinerals(), agent->Observation()->GetVespene(), 0);
 }
 
+void Mediator::CancelBuilding(const Unit* building)
+{
+	SetUnitCommand(building, ABILITY_ID::CANCEL, 100); // TODO check abilitiy
+}
+
 void Mediator::SendChat(std::string message, ChatChannel channel)
 {
 	agent->Actions()->SendChat(message, channel);
@@ -1545,7 +1550,11 @@ void Mediator::OnUnitEnterVision(const Unit*)
 #pragma warning(disable : 4100)
 void Mediator::OnUnitDamaged(const Unit* unit, float health_damage, float shields_damage)
 {
-		
+	if (unit->is_building && unit->build_progress < 1)
+	{
+		if (Utility::DangerLevelAt(unit, unit->pos, agent->Observation()) >= unit->health + unit->shield)
+			CancelBuilding(unit);
+	}
 }
 #pragma warning(pop)
 
