@@ -1156,7 +1156,7 @@ void BuildOrderManager::SetEarlyPoolInterrupt()
 					Data(&BuildOrderManager::TimePassed,			Condition(154.0f),			&BuildOrderManager::ResearchWarpgate,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),			&BuildOrderManager::TrainAdept,							Result(ADEPT, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::TrainOracle,						Result(STARGATE)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::SetUnitProduction,					Result(STARGATE)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::ChronoBuilding,						Result(STARGATE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
