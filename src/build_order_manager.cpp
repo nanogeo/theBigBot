@@ -1023,6 +1023,12 @@ bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
 	return false;
 }
 
+bool BuildOrderManager::ScoutBases(BuildOrderResultArgData data)
+{
+	mediator->CreateArmyGroup(ArmyRole::scout_bases, { ADEPT, STALKER }, 1, 1);
+	return true;
+}
+
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
 	//mediator->agent->Debug()->DebugCreateUnit(ORACLE, mediator->agent->locations->attack_path[0], 2, 1);
@@ -1490,6 +1496,7 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::BuildBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(1)),
 					//Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::ScoutBases,							Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::CheckTankCount,						Result()),
 
 					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),

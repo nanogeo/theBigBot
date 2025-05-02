@@ -195,6 +195,7 @@ public:
 	std::vector<Point2D> GetBadWarpInSpots();
 	const Unit* GetWorkerRushDefenseAttackingMineralPatch();
 	const Unit* GetWorkerRushDefenseGroupingMineralPatch();
+	std::vector<Point2D> GetEmptyBases();
 
 	std::string GetMapName();
 	Race GetEnemyRace();

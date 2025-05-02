@@ -191,6 +191,7 @@ public:
 	bool CheckTankCount(BuildOrderResultArgData);
 	bool CheckForProxyRax(BuildOrderResultArgData);
 	bool CheckProtossOpenning(BuildOrderResultArgData);
+	bool ScoutBases(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string
@@ -657,6 +658,10 @@ struct BuildOrderData
 		{
 			str += "check protoss openning";
 		}
+		else if (result == &BuildOrderManager::ScoutBases)
+		{
+			str += "scout bases";
+			}
 
 		return str;
 	}

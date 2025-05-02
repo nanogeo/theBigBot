@@ -180,6 +180,9 @@ ArmyGroup* ArmyManager::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> 
 		army = new ArmyGroup(mediator, ArmyRole::outside_control, unit_types);
 		mediator->StartOracleHarassStateMachine(army);
 		break;
+	case ArmyRole::scout_bases:
+		army = new ArmyGroup(mediator, mediator->GetEmptyBases(), role, unit_types);
+		break;
 	default:
 		std::cerr << "Unknown ArmyRole in CreateArmyGroup" << std::endl;
 		return nullptr;
@@ -249,6 +252,9 @@ void ArmyManager::RunArmyGroups()
 			break;
 		case ArmyRole::observer_scout:
 			army_groups[i]->ObserverScout();
+			break;
+		case ArmyRole::scout_bases:
+			army_groups[i]->ScoutBases();
 			break;
 		default:
 			std::cerr << "Unknown ArmyRole in RunArmyGroup" << std::endl;

@@ -1404,6 +1404,45 @@ namespace sc2 {
 		}
 	}
 
+	void ArmyGroup::ScoutBases()
+	{
+		for (int i = 0; i < new_units.size(); i++)
+		{
+			AddUnit(new_units[i]);
+			i--;
+		}
+
+		if (all_units.size() == 0)
+			return;
+
+		if (target_pos == Point2D(0, 0) && attack_path.size() > 0)
+			target_pos = Utility::ClosestTo(attack_path, all_units[0]->pos);
+
+		if (Distance2D(all_units[0]->pos, target_pos) > 7)
+		{
+			if (Utility::DistanceToClosest(mediator->GetUnits(IsUnits({ NEXUS, COMMAND_CENTER, COMMAND_CENTER_FLYING, ORBITAL, ORBITAL_FLYING, PLANETARY, HATCHERY, LAIR, HIVE })), target_pos) < 1)
+			{
+				attack_path.erase(std::remove(attack_path.begin(), attack_path.end(), target_pos), attack_path.end());
+				if (attack_path.size() == 0)
+				{
+					attack_path = mediator->GetEmptyBases();
+				}
+				target_pos = Utility::ClosestTo(attack_path, all_units[0]->pos);
+			}
+			mediator->SetUnitsCommand(all_units, ABILITY_ID::MOVE_MOVE, target_pos, 0, false);
+		}
+		else
+		{
+			if (attack_path.size() == 0)
+			{
+				attack_path = mediator->GetEmptyBases();
+			}
+			target_pos = Utility::ClosestTo(attack_path, all_units[0]->pos);
+			attack_path.erase(std::remove(attack_path.begin(), attack_path.end(), target_pos), attack_path.end());
+		}
+
+	}
+
 	// returns: 0 - normal operation, 1 - all units dead or in standby, 2 - reached the end of the attack path
 	int ArmyGroup::AttackLine(float dispersion, float target_range, std::vector<std::vector<UNIT_TYPEID>> target_priority, bool limit_advance)
 	{
