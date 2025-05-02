@@ -313,7 +313,6 @@ UnitCost Mediator::GetCurrentResources()
 void Mediator::CancelBuilding(const Unit* building)
 {
 	SetUnitCommand(building, ABILITY_ID::CANCEL, 100); // TODO check abilitiy
-	RebuildBuilding(building->pos, building->unit_type);
 }
 
 void Mediator::RebuildBuilding(Point2D pos, UNIT_TYPEID type)
@@ -1586,7 +1585,7 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 		defense_manager.RemoveOngoingAttackAt(unit->pos);
 	}
 
-	if (unit->is_building)
+	if (unit->is_building && unit->alliance == Unit::Alliance::Self)
 		RebuildBuilding(unit->pos, unit->unit_type);
 }
 void Mediator::OnUpgradeCompleted(UPGRADE_ID upgrade)
