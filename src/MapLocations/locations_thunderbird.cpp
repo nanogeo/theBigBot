@@ -30,6 +30,23 @@ namespace sc2 {
 
 		this->start_location = start;
 
+		base_locations = { P(153.5, 22.5),
+							P(151.5, 52.5),
+							P(124.5, 29.5),
+							P(134.5, 68.5),
+							P(154.5, 93.5),
+							P(93.5, 25.5),
+							P(60.5, 19.5),
+							P(80.5, 55.5),
+							convert_location(Point2D(153.5, 22.5), !swap),
+							convert_location(Point2D(151.5, 52.5), !swap),
+							convert_location(Point2D(124.5, 29.5), !swap),
+							convert_location(Point2D(134.5, 68.5), !swap),
+							convert_location(Point2D(154.5, 93.5), !swap),
+							convert_location(Point2D(93.5, 25.5), !swap),
+							convert_location(Point2D(60.5, 19.5), !swap),
+							convert_location(Point2D(80.5, 55.5), !swap) };
+
 		nexi_locations = { P(153.5, 22.5),
 							P(151.5, 52.5),
 							P(124.5, 29.5),

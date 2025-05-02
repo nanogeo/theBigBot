@@ -92,6 +92,7 @@ class Locations
 {
 public:
 	Point2D start_location;
+	std::vector<Point2D> base_locations;
     std::vector<Point2D> nexi_locations;
     std::vector<Point2D> pylon_locations;
     Point2D first_pylon_location_zerg;

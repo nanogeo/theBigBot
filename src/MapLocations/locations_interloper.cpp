@@ -30,6 +30,23 @@ namespace sc2 {
 
 		this->start_location = start;
 
+		base_locations = { P(125.5, 30.5),
+							P(126.5, 56.5),
+							P(93.5, 39.5),
+							P(125.5, 86.5),
+							P(91.5, 71.5),
+							P(59.5, 28.5),
+							P(65.5, 53.5),
+							P(26.5, 30.5),
+							convert_location(Point2D(125.5, 30.5), !swap),
+							convert_location(Point2D(126.5, 56.5), !swap),
+							convert_location(Point2D(93.5, 39.5), !swap),
+							convert_location(Point2D(125.5, 86.5), !swap),
+							convert_location(Point2D(91.5, 71.5), !swap),
+							convert_location(Point2D(59.5, 28.5), !swap),
+							convert_location(Point2D(65.5, 53.5), !swap),
+							convert_location(Point2D(26.5, 30.5), !swap) };
+
 		nexi_locations = { P(125.5, 30.5),
 							P(126.5, 56.5),
 							P(93.5, 39.5),
@@ -240,6 +257,37 @@ namespace sc2 {
 
 		oracle_path = OraclePath(entrance_point, exit_point, entrance_points, exit_points, base_points, exfi_paths);
 
+		std::vector<Point2D> oracle_points = { P(83, 150),
+												P(16, 90),
+												P(62, 138),
+												P(30, 147),
+												P(28, 121),
+												P(48, 125),
+												P(17, 134),
+												P(16, 108),
+												P(47, 151),
+												P(80, 151),
+												P(12, 123),
+												P(12, 97),
+												P(12, 151) };
+
+		std::vector<std::vector<int>> oracle_links = {
+			{ 9 },
+			{ 11 },
+			{ 5, 8, 9 },
+			{ 5, 6, 8, 12 },
+			{ 6, 7, 10 },
+			{ 2, 3, 8 },
+			{ 4, 10, 12 },
+			{ 4, 10, 11 },
+			{ 2, 3, 5, 9, 12 },
+			{ 0, 2, 8 },
+			{ 4, 6, 7, 11, 12 },
+			{ 1, 7, 10 },
+			{ 3, 6, 8, 10 }
+		};
+
+		//oracle_pathing = Graph(oracle_points, oracle, links);
 		
 		third_base_pylon_gap = P(90.5, 38);
 		natural_door_closed = P(113, 59.5);
@@ -304,7 +352,7 @@ namespace sc2 {
 		bad_warpin_spots = { first_pylon_location_terran, P(108, 42), P(112.5, 48), 
 							Point2D(75, 67), Point2D(101, 111), Point2D(51, 57), Point2D(73, 103), Point2D(77, 101), 
 							Point2D(81, 47), Point2D(79, 65), Point2D(48, 61), Point2D(104, 107), Point2D(71, 121) };
-		
+
 		worker_rush_defense_group = P(133, 29.5);
 		worker_rush_defense_attack = P(19, 138.5);
 
