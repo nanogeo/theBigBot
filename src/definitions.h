@@ -300,7 +300,7 @@ const std::map<ArmyRole, std::string> ARMY_ROLE_TO_STRING = {	{ArmyRole::none, "
 																{ArmyRole::defend_base, "Defend base"},
 																{ArmyRole::observer_scout, "Observer scout"},
 																{ArmyRole::oracle_harass, "Oracle harass"},
-																{ArmyRole::scout_bases, "Scout bases"},
+																{ArmyRole::scout_bases, "Scout bases"} };
 
 struct ScoutInfoZerg
 {
