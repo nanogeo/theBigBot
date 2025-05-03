@@ -93,19 +93,22 @@ bool TransitionManager::WorkerRushTransitionCondition()
 
 bool TransitionManager::WorkerRushTransitionRemoveCondition()
 {
-	return mediator->GetCurrentTime() > 300;
+	return mediator->GetCurrentTime() > 180;
 }
 void TransitionManager::WorkerRushTransitionEnterAction()
 {
 	// start worker rush defense state machine
 	mediator->CreateWorkerRushDefenseFSM();
 	// change to worker rush defense build order
-	mediator->SetWorkerRushDefenseBuidOrder();
-	// cancel current actions
-	mediator->CancelAllActionsOfType(&ActionManager::ActionBuildBuilding);
-	mediator->CancelAllActionsOfType(&ActionManager::ActionBuildBuildingMulti);
-	mediator->CancelAllActionsOfType(&ActionManager::ActionContinueMakingWorkers);
-	// unsaturate gasses
+	if (mediator->GetCurrentTime() < 120)
+	{
+		mediator->SetWorkerRushDefenseBuidOrder();
+		// cancel current actions
+		mediator->CancelAllActionsOfType(&ActionManager::ActionBuildBuilding);
+		mediator->CancelAllActionsOfType(&ActionManager::ActionBuildBuildingMulti);
+		mediator->CancelAllActionsOfType(&ActionManager::ActionContinueMakingWorkers);
+		// unsaturate gasses
+	}
 }
 
 bool TransitionManager::ScourTransitionCondition()
