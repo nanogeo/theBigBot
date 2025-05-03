@@ -38,6 +38,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	{
 		// builder died
 		mediator->RebuildBuilding(data->position, data->unitId);
+		return true;
 	}
 	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(buildingId)))
 	{
