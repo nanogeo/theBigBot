@@ -37,13 +37,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	if (builder->is_alive == false)
 	{
 		// builder died
-		builder = mediator->GetBuilder(pos);
-		if (builder == nullptr)
-		{
-			return false;
-		}
-		mediator->RemoveWorker(builder);
-		data->unit = builder;
+		mediator->RebuildBuilding(data->position, data->unitId);
 	}
 	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(buildingId)))
 	{
@@ -76,7 +70,8 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 
 bool ActionManager::ActionBuildBuildingWhenSafe(ActionArgData* data)
 {
-	if (Utility::DistanceToClosest(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), data->position) > 10) // TODO add CanAfford?
+	if (Utility::DistanceToClosest(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), data->position) > 10 &&
+		(data->unitId == PYLON || data->unitId == NEXUS || Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PYLON)), data->position) < 6.5)) // TODO add CanAfford?
 	{
 		const Unit* builder = mediator->GetBuilder(data->position);
 		if (builder == nullptr)

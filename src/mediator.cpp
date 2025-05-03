@@ -312,7 +312,7 @@ UnitCost Mediator::GetCurrentResources()
 
 void Mediator::CancelBuilding(const Unit* building)
 {
-	SetUnitCommand(building, ABILITY_ID::CANCEL, 100); // TODO check abilitiy
+	SetUnitCommand(building, ABILITY_ID::CANCEL, 100);
 }
 
 void Mediator::RebuildBuilding(Point2D pos, UNIT_TYPEID type)
