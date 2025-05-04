@@ -143,8 +143,8 @@ void ScoutTScoutRax::TickState()
 
 void ScoutTScoutRax::EnterState()
 {
-	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_BARRACKS))[0]->pos);
-	rax = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_BARRACKS))[0];
+	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, agent->Observation()->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0]->pos);
+	rax = agent->Observation()->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0];
 }
 
 void ScoutTScoutRax::ExitState()
