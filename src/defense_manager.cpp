@@ -76,6 +76,11 @@ void DefenseManager::UpdateOngoingAttacks()
 					mediator->SetUnitProduction(STALKER);
 					reset_warpgate_production = true;
 				}
+				else
+				{
+					prev_warpgate_production = mediator->GetWarpgateProduction();
+					mediator->SetUnitProduction(STALKER);
+				}
 			}
 
 			// make units from other tech structures
@@ -84,10 +89,21 @@ void DefenseManager::UpdateOngoingAttacks()
 				mediator->SetUnitProduction(IMMORTAL);
 				reset_robo_production = true;
 			}
+			else
+			{
+				prev_robo_production = mediator->GetRoboProduction();
+				mediator->SetUnitProduction(IMMORTAL);
+			}
+
 			if (mediator->GetStargateProduction() == UNIT_TYPEID::INVALID)
 			{
 				mediator->SetUnitProduction(VOID_RAY);
 				reset_stargate_production = true;
+			}
+			else
+			{
+				prev_stargate_production = mediator->GetStargateProduction();
+				mediator->SetUnitProduction(VOID_RAY);
 			}
 
 			if (attack.location == mediator->GetNaturalLocation() && attack.status <= -50 && attack.pulled_workers.size() == 0)
@@ -142,10 +158,19 @@ void DefenseManager::UpdateOngoingAttacks()
 		// stop unnecessary production
 		if (reset_warpgate_production)
 			mediator->CancelWarpgateUnitProduction();
+		else
+			mediator->SetUnitProduction(prev_warpgate_production);
+
 		if (reset_robo_production)
 			mediator->CancelRoboUnitProduction();
+		else
+			mediator->SetUnitProduction(prev_robo_production);
+
 		if (reset_stargate_production)
 			mediator->CancelStargateUnitProduction();
+		else
+			mediator->SetUnitProduction(prev_stargate_production);
+
 
 		reset_warpgate_production = false;
 		reset_robo_production = false;
