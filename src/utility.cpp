@@ -3216,6 +3216,8 @@ std::string Utility::UnitTypeIdToString(UNIT_TYPEID typeId)
 {
 	switch (typeId)
 	{
+	case UNIT_TYPEID::INVALID:
+		return "invalid";
 	case UNIT_TYPEID::PROTOSS_PYLON: // protoss buildings
 		return "pylon";
 	case UNIT_TYPEID::PROTOSS_NEXUS:

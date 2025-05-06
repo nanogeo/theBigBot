@@ -39,6 +39,7 @@ void BuildOrderManager::CheckBuildOrder()
 			BuildOrderResultArgData result_arg = current_step.result_arg;
 			if ((*this.*result)(result_arg))
 			{
+				std::cerr << "Complete build order step " << std::to_string(build_order_step) << std::endl;
 				build_order_step++;
 			}
 		}
@@ -884,6 +885,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		// 12 pool
 		SetEarlyPoolInterrupt(); // TODO new interrupt for 12 pool
 		build_order_step = 0;
+		std::cerr << "Early pool interrupt. build orde step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag: scout_12_pool", ChatChannel::Team);
 	}
 	else if (info.pool_timing < 45)
@@ -891,6 +893,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		// pool first
 		SetEarlyPoolInterrupt();
 		build_order_step = 0;
+		std::cerr << "Early pool interrupt. build orde step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag: scout_pool_first", ChatChannel::Team);
 	}
 	else if (info.pool_timing >= 45)
@@ -920,6 +923,7 @@ bool BuildOrderManager::ReturnToOracleGatewaymanPvZ(BuildOrderResultArgData data
 {
 	SetOracleGatewaymanPvZ();
 	build_order_step = 21;
+	std::cerr << "Return to oracle gatewayman. build orde step now " << std::to_string(build_order_step) << std::endl;
 	return true;
 }
 
@@ -927,6 +931,7 @@ bool BuildOrderManager::ReturnTo4GateBlink(BuildOrderResultArgData data)
 {
 	Set4GateBlink();
 	build_order_step = 23;
+	std::cerr << "Return to 4 gate blink. build orde step now " << std::to_string(build_order_step) << std::endl;
 	return true;
 }
 
@@ -966,6 +971,7 @@ bool BuildOrderManager::CheckTankCount(BuildOrderResultArgData data)
 	{
 		SetChargeTransition();
 		build_order_step = 0;
+		std::cerr << "Charge transition. build orde step now " << std::to_string(build_order_step) << std::endl;
 		return false;
 	}
 	if (mediator->GetGameLoop() / FRAME_TIME > 310)
@@ -986,12 +992,14 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 		// minor proxy
 		SetMinorProxyRaxResponse();
 		build_order_step = 0;
+		std::cerr << "Minor proxy rax. build orde step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag: scout_minor/possible_proxy_rax", ChatChannel::Team);
 		break;
 	case 2:
 		// major proxy
 		SetMajorProxyRaxResponse();
 		build_order_step = 0;
+		std::cerr << "Major proxy rax. build orde step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag: scout_major_proxy_rax", ChatChannel::Team);
 		break;
 	}
