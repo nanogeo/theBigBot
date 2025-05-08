@@ -87,7 +87,7 @@ bool TransitionManager::WorkerRushTransitionCondition()
 {
 	// if > 4? enemy workers are within 20? of base
 	return Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })), 
-		mediator->GetStartLocation(), 20).size() > 2;
+		mediator->GetStartLocation(), 40).size() > 2;
 	
 }
 
