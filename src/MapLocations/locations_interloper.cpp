@@ -338,6 +338,17 @@ namespace sc2 {
 
 		blink_main_attack_path_lines = { PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
 
+		std::vector<std::vector<Point2D>> blink_third_attack_path = { { P(60, 120),
+																	P(55, 133) },
+																	{ P(60, 120),
+																	P(49, 113),
+																	P(45, 102),
+																	P(44, 96),
+																	P(36, 82),
+																	P(24, 84) } };
+
+		blink_third_attack_path_lines = { PathManager(blink_third_attack_path[0]), PathManager(blink_third_attack_path[1]) };
+
 		std::vector<Point2D> rocks = { Point2D(75, 67),
 										Point2D(101, 111),
 										Point2D(51, 57),

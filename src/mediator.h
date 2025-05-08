@@ -196,6 +196,7 @@ public:
 	const Unit* GetWorkerRushDefenseAttackingMineralPatch();
 	const Unit* GetWorkerRushDefenseGroupingMineralPatch();
 	std::vector<Point2D> GetEmptyBases();
+	std::vector<Point2D> GetPossibleEnemyThirdBaseLocations();
 
 	std::string GetMapName();
 	Race GetEnemyRace();

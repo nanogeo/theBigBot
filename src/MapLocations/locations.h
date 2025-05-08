@@ -148,6 +148,7 @@ public:
 
 	std::vector<PathManager> blink_main_attack_path_lines;
 	PathManager blink_nat_attack_path_line;
+	std::vector<PathManager> blink_third_attack_path_lines;
 	
 	std::vector<CannonRushTriplePylonWalloff> cannon_rush_terran_pylon_walloffs;
 

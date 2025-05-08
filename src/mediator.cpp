@@ -1352,6 +1352,11 @@ std::vector<Point2D> Mediator::GetEmptyBases()
 	return agent->locations->base_locations;
 }
 
+std::vector<Point2D> Mediator::GetPossibleEnemyThirdBaseLocations()
+{
+	return agent->locations->possible_3rds;
+}
+
 std::string Mediator::GetMapName()
 {
 	return agent->Observation()->GetGameInfo().map_name;

@@ -291,7 +291,18 @@ namespace sc2 {
 																	P(34, 139) } };
 
 		blink_main_attack_path_lines = { PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
-		
+
+		std::vector<std::vector<Point2D>> blink_third_attack_path = { { P(76, 95),
+																	P(59, 103),
+																	P(60, 109),
+																	P(65, 117),
+																	P(67, 124),
+																	P(68, 131) },
+																	{ P(76, 95),
+																	P(53, 85) } };
+
+		blink_third_attack_path_lines = { PathManager(blink_third_attack_path[0]), PathManager(blink_third_attack_path[1]) };
+
 
 		bad_warpin_spots = { first_pylon_location_terran };
 

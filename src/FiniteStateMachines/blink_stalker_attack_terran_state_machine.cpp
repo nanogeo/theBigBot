@@ -202,7 +202,7 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 		return nullptr;
 	if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), state_machine->consolidation_pos) < 12)
 	{
-		state_machine->attacking_main = false;
+		state_machine->attack_location = BlinkAtackLocation::natural;
 		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
 	}
 	if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
@@ -223,22 +223,35 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 			// acropolis does not have a blink up spot
 			if (agent->mediator.GetMapName() == "Acropolis AIE" || state_machine->prism->is_alive == false)
 			{
-				state_machine->attacking_main = false;
+				state_machine->attack_location = BlinkAtackLocation::natural;
 				return new BlinkStalkerAttackTerranAttack(agent, state_machine);
 			}
 			
 			float danger_nat = agent->mediator.GetLineDangerLevel(agent->locations->blink_nat_attack_path_line);
 			float danger_main_1 = agent->mediator.GetLineDangerLevel(agent->locations->blink_main_attack_path_lines[0]);
 			float danger_main_2 = agent->mediator.GetLineDangerLevel(agent->locations->blink_main_attack_path_lines[1]);
-
+			Units enemy_bases = agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnits({ COMMAND_CENTER, ORBITAL, PLANETARY }));
+			
+			for (size_t i = 0; i < agent->mediator.GetPossibleEnemyThirdBaseLocations().size(); i++)
+			{
+				Point2D possible_third = agent->mediator.GetPossibleEnemyThirdBaseLocations()[i];
+				if (Utility::DistanceToClosest(enemy_bases, possible_third) < 2)
+				{
+					if (i == 0)
+						state_machine->attack_location = BlinkAtackLocation::third_1;
+					else
+						state_machine->attack_location = BlinkAtackLocation::third_2;
+					return new BlinkStalkerAttackTerranAttack(agent, state_machine);
+				}
+			}
 			if (danger_nat <= danger_main_1 && danger_nat <= danger_main_2)
 			{
-				state_machine->attacking_main = false;
+				state_machine->attack_location = BlinkAtackLocation::natural;
 				return new BlinkStalkerAttackTerranAttack(agent, state_machine);
 			}
 			else
 			{
-				state_machine->attacking_main = true;
+				state_machine->attack_location = BlinkAtackLocation::main;
 				return new BlinkStalkerAttackTerranBlinkUp(agent, state_machine);
 			}
 		}
@@ -302,7 +315,7 @@ State* BlinkStalkerAttackTerranBlinkUp::TestTransitions()
 	if (stalkers_to_blink.size() == state_machine->attacking_stalkers.size() && 
 		Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), Utility::MedianCenter(stalkers_to_blink)) < 10)
 	{
-		state_machine->attacking_main = false;
+		state_machine->attack_location = BlinkAtackLocation::natural;
 		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
 	}
 	if (stalkers_to_blink.size() == 0)
@@ -324,7 +337,7 @@ std::string BlinkStalkerAttackTerranBlinkUp::toString()
 
 void BlinkStalkerAttackTerranAttack::TickState()
 {
-	if (state_machine->attacking_main)
+	if (state_machine->attack_location = BlinkAtackLocation::main)
 	{
 		agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::UNLOADALLAT, state_machine->prism, 1);
 		agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->blink_up_pos, 1, true);
@@ -389,7 +402,7 @@ void BlinkStalkerAttackTerranAttack::TickState()
 
 void BlinkStalkerAttackTerranAttack::EnterState()
 {
-	if (state_machine->attacking_main)
+	if (state_machine->attack_location = BlinkAtackLocation::main)
 	{
 		float danger_main_1 = agent->mediator.GetLineDangerLevel(agent->locations->blink_main_attack_path_lines[0]);
 		float danger_main_2 = agent->mediator.GetLineDangerLevel(agent->locations->blink_main_attack_path_lines[1]);
@@ -399,9 +412,17 @@ void BlinkStalkerAttackTerranAttack::EnterState()
 		else
 			state_machine->attached_army_group->attack_path_line = agent->locations->blink_main_attack_path_lines[1];
 	}
-	else
+	else if (state_machine->attack_location = BlinkAtackLocation::natural)
 	{
 		state_machine->attached_army_group->attack_path_line = agent->locations->blink_nat_attack_path_line;
+	}
+	else if (state_machine->attack_location = BlinkAtackLocation::third_1)
+	{
+		state_machine->attached_army_group->attack_path_line = agent->locations->blink_third_attack_path_lines[0];
+	}
+	else if (state_machine->attack_location = BlinkAtackLocation::third_2)
+	{
+		state_machine->attached_army_group->attack_path_line = agent->locations->blink_third_attack_path_lines[1];
 	}
 }
 
@@ -436,14 +457,13 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 	int attack_line_status = state_machine->attached_army_group->AttackLine(state_machine->attacking_stalkers, .2f, 7, TERRAN_PRIO, true);
 	if (attack_line_status == 1 || attack_line_status == 2 || state_machine->standby_stalkers.size() > state_machine->attacking_stalkers.size())
 	{
-		if (state_machine->attacking_main)
+		state_machine->attached_army_group->concave_origin = Point2D(0, 0);
+		if (state_machine->attack_location == BlinkAtackLocation::main)
 		{
-			state_machine->attached_army_group->concave_origin = Point2D(0, 0);
 			return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine);
 		}
 		else
 		{
-			state_machine->attached_army_group->concave_origin = Point2D(0, 0);
 			return new BlinkStalkerAttackTerranConsolidate(agent, state_machine);
 		}
 	}
@@ -456,7 +476,7 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 	}
 	if (stalkers_ok < 6)
 	{
-		if (state_machine->attacking_main)
+		if (state_machine->attack_location == BlinkAtackLocation::main)
 		{
 			state_machine->attached_army_group->concave_origin = Point2D(0, 0);
 			return new BlinkStalkerAttackTerranLeaveHighground(agent, state_machine);

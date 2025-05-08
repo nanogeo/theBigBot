@@ -13,6 +13,14 @@ class BlinkStalkerAttackTerran;
 class TheBigBot;
 class ArmyGroup;
 
+enum BlinkAtackLocation
+{
+	main,
+	natural,
+	third_1,
+	third_2
+};
+
 class BlinkStalkerAttackTerranMoveAcross : public State
 {
 public:
@@ -143,7 +151,7 @@ public:
 	Units attacking_stalkers;
 	Units standby_stalkers;
 	Units moving_to_standby_stalkers;
-	bool attacking_main = false;
+	BlinkAtackLocation attack_location = BlinkAtackLocation::natural;
 	Point2D consolidation_pos;
 	Point2D prism_consolidation_pos;
 	Point2D blink_up_pos;
