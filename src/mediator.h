@@ -58,6 +58,7 @@ public:
 	FireControlManager fire_control_manager;
 	TransitionManager transition_manager;
 
+	bool minor_error_logged = false;
 
 public:
 	void SetUpManagers(bool);
@@ -94,6 +95,7 @@ public:
 	void RebuildBuilding(Point2D, UNIT_TYPEID);
 
 	void SendChat(std::string, ChatChannel);
+	void LogMinorError();
 
 	const Unit* GetBuilder(Point2D);
 	bool BuildBuilding(UNIT_TYPEID);

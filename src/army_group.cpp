@@ -292,6 +292,7 @@ namespace sc2 {
 			break;
 		default:
 			std::cerr << "Error unknown unit type in ArmyGroup::RemoveUnit" << std::endl;
+			mediator->LogMinorError();
 			return;
 		}
 

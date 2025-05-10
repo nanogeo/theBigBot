@@ -286,11 +286,11 @@ void UnitCommandManager::ParseUnitCommands()
 
 	if (consecutive_high_action_frames > 22)
 	{
-		mediator->SendChat("Tag: high_apm_warning_" + std::to_string(round(mediator->GetCurrentTime())), ChatChannel::Team);
+		mediator->SendChat("Tag:high_apm_warning_" + std::to_string(round(mediator->GetCurrentTime())), ChatChannel::Team);
 	}
 	else if (consecutive_high_action_frames > 45 || avg_actions > 100) // ~130,000 apm
 	{
-		mediator->SendChat("Tag: high_apm_interrupt_" + std::to_string(round(mediator->GetCurrentTime())), ChatChannel::All);
+		mediator->SendChat("Tag:high_apm_interrupt_" + std::to_string(round(mediator->GetCurrentTime())), ChatChannel::All);
 		mediator->ScourMap();
 	}
 

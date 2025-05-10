@@ -199,6 +199,7 @@ ArmyGroup* ArmyManager::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> 
 		break;
 	default:
 		std::cerr << "Unknown ArmyRole in CreateArmyGroup" << std::endl;
+		mediator->LogMinorError();
 		return nullptr;
 	}
 
@@ -241,6 +242,7 @@ void ArmyManager::RunArmyGroups()
 				break;
 			default:
 				std::cerr << "Unknown enemy race in RunArmyGroup" << std::endl;
+				mediator->LogMinorError();
 			}
 			break;
 		case ArmyRole::scour:
@@ -275,6 +277,7 @@ void ArmyManager::RunArmyGroups()
 			break;
 		default:
 			std::cerr << "Unknown ArmyRole in RunArmyGroup" << std::endl;
+			mediator->LogMinorError();
 			break;
 		}
 	}

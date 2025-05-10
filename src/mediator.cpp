@@ -40,19 +40,19 @@ void Mediator::SetUpManagers(bool debug)
 		switch (scouting_manager.enemy_race)
 		{
 		case Race::Protoss:
-			SendChat("Tag: race_protoss", ChatChannel::Team);
+			SendChat("Tag:race_protoss", ChatChannel::Team);
 			SetBuildOrder(BuildOrder::pvp_openner);
 			break;
 		case Race::Terran:
-			SendChat("Tag: race_terran", ChatChannel::Team);
+			SendChat("Tag:race_terran", ChatChannel::Team);
 			SetBuildOrder(BuildOrder::four_gate_blink);
 			break;
 		case Race::Zerg:
-			SendChat("Tag: race_zerg", ChatChannel::Team);
+			SendChat("Tag:race_zerg", ChatChannel::Team);
 			SetBuildOrder(BuildOrder::oracle_gatewayman_pvz);
 			break;
 		default:
-			SendChat("Tag: race_random", ChatChannel::Team);
+			SendChat("Tag:race_random", ChatChannel::Team);
 			SetBuildOrder(BuildOrder::three_gate_robo);
 			break;
 		}
@@ -325,6 +325,15 @@ void Mediator::SendChat(std::string message, ChatChannel channel)
 	agent->Actions()->SendChat(message, channel);
 }
 
+void Mediator::LogMinorError()
+{
+	if (!minor_error_logged)
+	{
+		agent->Actions()->SendChat("Tag:minor_error_logged", ChatChannel::Team);
+		minor_error_logged = true;
+	}
+}
+
 const Unit* Mediator::GetBuilder(Point2D position)
 {
 	return worker_manager.GetBuilder(position);
@@ -467,7 +476,7 @@ void Mediator::SetBuildOrder(BuildOrder build)
 {
 	agent->locations = new Locations(ToPoint3D(GetStartLocation()), GetMapName());
 	build_order_manager.SetBuildOrder(build);
-	SendChat("Tag: " + GetMapName(), ChatChannel::Team);
+	SendChat("Tag:" + GetMapName(), ChatChannel::Team);
 }
 
 void Mediator::PauseBuildOrder()
@@ -658,6 +667,7 @@ Point2D Mediator::GetProxyLocation(UNIT_TYPEID unit_type)
 
 	}
 	std::cerr << "Error no viable point found in GetProxyLocation for type " << UnitTypeToName(unit_type) << std::endl;
+	LogMinorError();
 	return Point2D(0, 0);
 }
 
@@ -782,6 +792,7 @@ Point2D Mediator::FindLocation(UNIT_TYPEID unit_type, Point2D location)
 	if (possible_locations.size() == 0)
 	{
 		std::cerr << "Error no viable point found in GetProxyLocation for type " << UnitTypeToName(unit_type) << std::endl;
+		LogMinorError();
 		return Point2D(0, 0);
 	}
 
@@ -1208,6 +1219,9 @@ void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
 	case TEMPEST:
 		unit_production_manager.SetStargateProduction(unit_type);
 		break;
+	default:
+		std::cerr << "Unknown unit in SetUnitProduction " << Utility::UnitTypeIdToString(unit_type) << std::endl;
+		LogMinorError();
 	}
 }
 

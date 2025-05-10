@@ -21,6 +21,7 @@ void WorkerRushDefenseGroupUp::TickState()
 		if (agent->mediator.RemoveWorker(worker) == RemoveWorkerResult::NOT_FOUND)
 		{
 			std::cerr << "Worker not found when trying to remove in WorkerRushDefenseGroupUp::TickState" << std::endl;
+			agent->mediator.LogMinorError();
 		}
 		new_workers.push_back(worker);
 
@@ -152,6 +153,7 @@ void WorkerRushDefenseDefend::TickState()
 			if (agent->mediator.RemoveWorker(worker) == RemoveWorkerResult::NOT_FOUND)
 			{
 				std::cerr << "Worker not found when trying to remove in WorkerRushDefenseDefend::TickState" << std::endl;
+				agent->mediator.LogMinorError();
 			}
 			state_machine->workers.push_back(worker);
 		}

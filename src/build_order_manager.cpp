@@ -243,7 +243,6 @@ bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 			{
 				mediator->SetUnitCommand(gates_ready[i], ABILITY_ID::TRAIN_STALKER, 0);
 			}
-			std::cerr << "Stalkers trained at " << mediator->GetGameLoop() / FRAME_TIME << std::endl;
 			return true;
 		}
 	}
@@ -867,13 +866,13 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 	if (info.third_timing != 0 && info.third_timing < 90)
 	{
 		// 3 hatch before pool
-		mediator->SendChat("Tag: scout_triple_hatch", ChatChannel::Team);
+		mediator->SendChat("Tag:scout_triple_hatch", ChatChannel::Team);
 		return true;
 	}
 	else if (mediator->GetGameLoop() / FRAME_TIME >= 90)
 	{
 		// late pool
-		mediator->SendChat("Tag: scout_late_pool", ChatChannel::Team);
+		mediator->SendChat("Tag:scout_late_pool", ChatChannel::Team);
 		return true;
 	}
 	else if (info.pool_timing == 0)
@@ -885,21 +884,21 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		// 12 pool
 		SetEarlyPoolInterrupt(); // TODO new interrupt for 12 pool
 		build_order_step = 0;
-		std::cerr << "Early pool interrupt. build orde step now " << std::to_string(build_order_step) << std::endl;
-		mediator->SendChat("Tag: scout_12_pool", ChatChannel::Team);
+		std::cerr << "Early pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
+		mediator->SendChat("Tag:scout_12_pool", ChatChannel::Team);
 	}
 	else if (info.pool_timing < 45)
 	{
 		// pool first
 		SetEarlyPoolInterrupt();
 		build_order_step = 0;
-		std::cerr << "Early pool interrupt. build orde step now " << std::to_string(build_order_step) << std::endl;
-		mediator->SendChat("Tag: scout_pool_first", ChatChannel::Team);
+		std::cerr << "Early pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
+		mediator->SendChat("Tag:scout_pool_first", ChatChannel::Team);
 	}
 	else if (info.pool_timing >= 45)
 	{
 		// hatch first
-		mediator->SendChat("Tag: scout_hatch_pool", ChatChannel::Team);
+		mediator->SendChat("Tag:scout_hatch_pool", ChatChannel::Team);
 		return true;
 	}
 	return false;
@@ -923,7 +922,7 @@ bool BuildOrderManager::ReturnToOracleGatewaymanPvZ(BuildOrderResultArgData data
 {
 	SetOracleGatewaymanPvZ();
 	build_order_step = 21;
-	std::cerr << "Return to oracle gatewayman. build orde step now " << std::to_string(build_order_step) << std::endl;
+	std::cerr << "Return to oracle gatewayman. build order step now " << std::to_string(build_order_step) << std::endl;
 	return true;
 }
 
@@ -931,7 +930,7 @@ bool BuildOrderManager::ReturnTo4GateBlink(BuildOrderResultArgData data)
 {
 	Set4GateBlink();
 	build_order_step = 23;
-	std::cerr << "Return to 4 gate blink. build orde step now " << std::to_string(build_order_step) << std::endl;
+	std::cerr << "Return to 4 gate blink. build order step now " << std::to_string(build_order_step) << std::endl;
 	return true;
 }
 
@@ -971,7 +970,7 @@ bool BuildOrderManager::CheckTankCount(BuildOrderResultArgData data)
 	{
 		SetChargeTransition();
 		build_order_step = 0;
-		std::cerr << "Charge transition. build orde step now " << std::to_string(build_order_step) << std::endl;
+		std::cerr << "Charge transition. build order step now " << std::to_string(build_order_step) << std::endl;
 		return false;
 	}
 	if (mediator->GetGameLoop() / FRAME_TIME > 310)
@@ -986,21 +985,21 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 	switch (mediator->scouting_manager.CheckTerranScoutingInfoEarly())
 	{
 	case 0:
-		mediator->SendChat("Tag: scout_no_proxy_rax", ChatChannel::Team);
+		mediator->SendChat("Tag:scout_no_proxy_rax", ChatChannel::Team);
 		return true;
 	case 1:
 		// minor proxy
 		SetMinorProxyRaxResponse();
 		build_order_step = 0;
-		std::cerr << "Minor proxy rax. build orde step now " << std::to_string(build_order_step) << std::endl;
-		mediator->SendChat("Tag: scout_minor/possible_proxy_rax", ChatChannel::Team);
+		std::cerr << "Minor proxy rax. build order step now " << std::to_string(build_order_step) << std::endl;
+		mediator->SendChat("Tag:scout_minor/possible_proxy_rax", ChatChannel::Team);
 		break;
 	case 2:
 		// major proxy
 		SetMajorProxyRaxResponse();
 		build_order_step = 0;
 		std::cerr << "Major proxy rax. build orde step now " << std::to_string(build_order_step) << std::endl;
-		mediator->SendChat("Tag: scout_major_proxy_rax", ChatChannel::Team);
+		mediator->SendChat("Tag:scout_major_proxy_rax", ChatChannel::Team);
 		break;
 	}
 	return false;
@@ -1015,17 +1014,17 @@ bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
 	case 0:
 		// proxy
 		build_order_step = 0;
-		mediator->SendChat("Tag: scout_proxy_gate", ChatChannel::Team);
+		mediator->SendChat("Tag:scout_proxy_gate", ChatChannel::Team);
 		break;
 	case 1:
 		// 1 gate expand
 		build_order_step = 0;
-		mediator->SendChat("Tag: scout_1_gate_expand", ChatChannel::Team);
+		mediator->SendChat("Tag:scout_1_gate_expand", ChatChannel::Team);
 		break;
 	case 2:
 		// 2 gate
 		build_order_step = 0;
-		mediator->SendChat("Tag: scout_2_gate", ChatChannel::Team);
+		mediator->SendChat("Tag:scout_2_gate", ChatChannel::Team);
 		break;
 	}
 	return false;

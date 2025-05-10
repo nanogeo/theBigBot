@@ -1,9 +1,9 @@
 
+#include "mediator.h"
 #include "definitions.h"
 #include "upgrade_manager.h"
 
 namespace sc2 {
-
 
 
 int UpgradeManager::GetUpgradeLevel(UpgradeType upgrade_type)
@@ -22,6 +22,7 @@ int UpgradeManager::GetUpgradeLevel(UpgradeType upgrade_type)
 		return air_armor;
 	}
 	std::cerr << "Error unknown upgrade in GetUpgradeLevel" << std::to_string(upgrade_type) << std::endl;
+	mediator->LogMinorError();
 	return 0;
 }
 
@@ -91,6 +92,7 @@ void UpgradeManager::OnUpgradeCompleted(UPGRADE_ID upgrade)
 		break;
 	default:
 		std::cerr << "Unknown upgrade found in OnUpgradeCompleted" << std::endl;
+		mediator->LogMinorError();
 		break;
 	}
 }
@@ -161,6 +163,7 @@ bool UpgradeManager::CheckUpgrade(UPGRADE_ID upgrade_id)
 		break;
 	default:
 		std::cerr << "Unknown upgrade found in OnUpgradeCompleted" << std::endl;
+		mediator->LogMinorError();
 		return false;
 		break;
 	}

@@ -156,6 +156,7 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		if (closest == nullptr)
 		{
 			std::cerr << "Error: nullptr in gas_spaces" << std::endl;
+			mediator->LogMinorError();
 			return;
 		}
 		*(closest->worker) = worker;
@@ -199,6 +200,7 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		else
 		{
 			std::cerr << "Error: nullptr in first_2_mineral_patch_spaces" << std::endl;
+			mediator->LogMinorError();
 			return;
 		}
 		return;
@@ -222,6 +224,7 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		if (closest == nullptr)
 		{
 			std::cerr << "Error: nullptr in gas_spaces" << std::endl;
+			mediator->LogMinorError();
 			return;
 		}
 		*(closest->worker) = worker;
@@ -246,6 +249,7 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		if (closest == nullptr)
 		{
 			std::cerr << "Error: nullptr in far_3_mineral_patch_spaces" << std::endl;
+			mediator->LogMinorError();
 			return;
 		}
 		*(closest->worker) = worker;
@@ -272,6 +276,7 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 		if (closest == nullptr)
 		{
 			std::cerr << "Error: nullptr in close_3_mineral_patch_spaces" << std::endl;
+			mediator->LogMinorError();
 			return;
 		}
 		(*closest->worker) = worker;
@@ -697,9 +702,14 @@ void WorkerManager::DistributeWorkers()
 	for (const auto &worker : mineral_patches_reversed)
 	{
 		if (worker.first != nullptr)
+		{
 			workers.push_back(worker.first);
+		}
 		else
+		{
 			std::cerr << "found nullptr worker on minerals" << std::endl;
+			mediator->LogMinorError();
+		}
 	}
 	for (const auto &worker : workers)
 	{
@@ -772,9 +782,14 @@ void WorkerManager::DistributeWorkers()
 	for (const auto &worker : assimilators_reversed)
 	{
 		if (worker.first != nullptr)
+		{
 			gas_workers.push_back(worker.first);
+		}
 		else
+		{
 			std::cerr << "found nullptr worker on gas" << std::endl;
+			mediator->LogMinorError();
+		}
 	}
 	for (const auto &worker : gas_workers)
 	{

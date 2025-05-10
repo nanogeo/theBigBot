@@ -195,6 +195,7 @@ float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float 
 		break;
 	default:
 		std::cerr << "Invalid race in DefenseManager::JudgeFight" << std::endl;
+		mediator->LogMinorError();
 	}*/
 
 	// sort from most to least health
