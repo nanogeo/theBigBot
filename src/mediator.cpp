@@ -334,7 +334,7 @@ bool Mediator::BuildBuilding(UNIT_TYPEID buildingId)
 {
 	Point2D pos = GetLocation(buildingId);
 	const Unit* builder = GetBuilder(pos);
-	if (builder == nullptr)
+	if (builder == nullptr || pos == Point2D(0, 0))
 	{
 		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
 		return false;
@@ -539,7 +539,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 	for (const auto& point : possible_locations)
 	{
 		bool blocked = false;
-		bool in_base = !(unit_type == PYLON);
+		bool in_base = !(unit_type == PYLON || unit_type == ASSIMILATOR);
 		bool in_energy_field = (unit_type == PYLON || unit_type == ASSIMILATOR || unit_type == NEXUS);
 		for (const auto& building : agent->Observation()->GetUnits(IsBuilding()))
 		{
