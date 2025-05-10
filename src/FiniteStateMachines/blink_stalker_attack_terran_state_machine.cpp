@@ -202,7 +202,7 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 		return nullptr;
 	if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), state_machine->consolidation_pos) < 12)
 	{
-		state_machine->attack_location = BlinkAtackLocation::natural;
+		state_machine->attack_location = BlinkAtackLocation::natural_defensive;
 		return new BlinkStalkerAttackTerranAttack(agent, state_machine);
 	}
 	if (state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
@@ -381,6 +381,15 @@ void BlinkStalkerAttackTerranAttack::TickState()
 	}
 	else
 	{
+		if (state_machine->attack_location = BlinkAtackLocation::natural_defensive)
+		{
+			Point2D stalkers_center = Utility::MedianCenter(state_machine->attacking_stalkers);
+			Point2D stalker_line_pos = state_machine->attached_army_group->attack_path_line.FindClosestPoint(stalkers_center);
+
+			Point2D new_consolidation_pos = state_machine->attached_army_group->attack_path_line.GetPointFrom(stalker_line_pos, 6, false); // TODO adjust distance
+			state_machine->SetConsolidationPos(new_consolidation_pos);
+		}
+
 		for (int i = 0; i < state_machine->moving_to_standby_stalkers.size(); i++)
 		{
 			const Unit* stalker = state_machine->moving_to_standby_stalkers[i];
@@ -419,6 +428,10 @@ void BlinkStalkerAttackTerranAttack::EnterState()
 	{
 		state_machine->attached_army_group->attack_path_line = agent->locations->blink_nat_attack_path_line;
 	}
+	else if (state_machine->attack_location == BlinkAtackLocation::natural_defensive)
+	{
+		state_machine->attached_army_group->attack_path_line = agent->locations->blink_nat_attack_path_line;
+	}
 	else if (state_machine->attack_location == BlinkAtackLocation::third_1)
 	{
 		state_machine->attached_army_group->attack_path_line = agent->locations->blink_third_attack_path_lines[0];
@@ -431,7 +444,7 @@ void BlinkStalkerAttackTerranAttack::EnterState()
 
 void BlinkStalkerAttackTerranAttack::ExitState()
 {
-
+	state_machine->ResetConsolidationPos();
 }
 
 State* BlinkStalkerAttackTerranAttack::TestTransitions()
@@ -627,6 +640,7 @@ BlinkStalkerAttackTerran::BlinkStalkerAttackTerran(TheBigBot* agent, std::string
 	Point2D consolidation_pos, Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos) : StateMachine(agent, name)
 {
 	this->consolidation_pos = consolidation_pos;
+	this->default_consolidation_pos = consolidation_pos;
 	this->prism_consolidation_pos = prism_consolidation_pos;
 	this->blink_up_pos = blink_up_pos;
 	this->blink_down_pos = blink_down_pos;
@@ -658,6 +672,16 @@ void BlinkStalkerAttackTerran::RemoveUnit(const Unit* unit)
 	attacking_stalkers.erase(std::remove(attacking_stalkers.begin(), attacking_stalkers.end(), unit), attacking_stalkers.end());
 	standby_stalkers.erase(std::remove(standby_stalkers.begin(), standby_stalkers.end(), unit), standby_stalkers.end());
 	moving_to_standby_stalkers.erase(std::remove(moving_to_standby_stalkers.begin(), moving_to_standby_stalkers.end(), unit), moving_to_standby_stalkers.end());
+}
+
+void BlinkStalkerAttackTerran::SetConsolidationPos(Point2D pos)
+{
+	consolidation_pos = pos;
+}
+
+void BlinkStalkerAttackTerran::ResetConsolidationPos()
+{
+	consolidation_pos = default_consolidation_pos;
 }
 
 BlinkStalkerAttackTerran::~BlinkStalkerAttackTerran()

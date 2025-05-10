@@ -17,6 +17,7 @@ enum BlinkAtackLocation
 {
 	main,
 	natural,
+	natural_defensive,
 	third_1,
 	third_2
 };
@@ -153,6 +154,7 @@ public:
 	Units moving_to_standby_stalkers;
 	BlinkAtackLocation attack_location = BlinkAtackLocation::natural;
 	Point2D consolidation_pos;
+	Point2D default_consolidation_pos;
 	Point2D prism_consolidation_pos;
 	Point2D blink_up_pos;
 	Point2D blink_down_pos;
@@ -166,6 +168,8 @@ public:
 	virtual void RunStateMachine() override;
 	bool AddUnit(const Unit*) override;
 	void RemoveUnit(const Unit*) override;
+	void SetConsolidationPos(Point2D);
+	void ResetConsolidationPos();
 
 	~BlinkStalkerAttackTerran();
 };
