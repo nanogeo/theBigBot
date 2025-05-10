@@ -74,11 +74,7 @@ public:
     std::map<const Unit*, UnitCommand> current_commands;
     std::map<const Unit*, std::vector<UnitCommand>> queued_commands;
 
-	UnitCommandManager(Mediator* mediator, TheBigBot* agent)
-	{
-		this->mediator = mediator;
-        this->agent = agent;
-	}
+    UnitCommandManager(Mediator* mediator, TheBigBot* agent);
 
     void SetUnitCommand(const Unit* unit, AbilityID ability, int priority, bool queued_command = false);
     void SetUnitCommand(const Unit* unit, AbilityID ability, Point2D point, int priority, bool queued_command = false);

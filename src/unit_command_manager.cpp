@@ -10,6 +10,18 @@
 
 namespace sc2
 {
+
+UnitCommandManager::UnitCommandManager(Mediator* mediator, TheBigBot* agent)
+{
+	this->mediator = mediator;
+	this->agent = agent;
+
+#ifndef BUILD_FOR_LADDER
+	std::ofstream file;
+	file.open("unit_commands.txt");
+	file.close();
+#endif
+}
 	// TODO do not queue blink or oracle beam etc or deal with it
 
 void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, int priority, bool queued_command)
@@ -159,10 +171,24 @@ void UnitCommandManager::ParseUnitCommands()
 #ifndef BUILD_FOR_LADDER
 		file << mediator->GetGameLoop() << ", " << itr->first->tag << ", " << Utility::UnitTypeIdToString(itr->first->unit_type) << ", ";
 		if (itr->first->orders.size() > 0)
+		{
 			file << Utility::AbilityIdToString(itr->first->orders[0].ability_id.ToType()) << ", " << itr->first->orders[0].target_pos.x << " " << 
 			itr->first->orders[0].target_pos.y << ", " << itr->first->orders[0].target_unit_tag << ", ";
+			if (itr->first->orders[0].target_unit_tag != 0)
+			{
+				const Unit* target = mediator->GetUnit(itr->first->orders[0].target_unit_tag);
+				if (target != nullptr)
+					file << Utility::UnitTypeIdToString(target->unit_type) << ", ";
+				else
+					file << "null, ";
+			}
+			else
+			{
+				file << "none, ";
+			}
+		}
 		else
-			file << "None, 0 0, 0, ";
+			file << "None, 0 0, 0, none, ";
 #endif
 		if (itr->second.target_point == Point2D(0, 0))
 		{
@@ -178,7 +204,7 @@ void UnitCommandManager::ParseUnitCommands()
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability);
 				actions_this_frame++;
 #ifndef BUILD_FOR_LADDER
-				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, 0, " << std::endl;
+				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, 0, none, " << std::endl;
 #endif
 			}
 			else
@@ -191,7 +217,8 @@ void UnitCommandManager::ParseUnitCommands()
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target);
 				actions_this_frame++;
 #ifndef BUILD_FOR_LADDER
-				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, " << itr->second.target->tag << ", " << std::endl;
+				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, " << itr->second.target->tag << ", " << 
+					Utility::UnitTypeIdToString(mediator->GetUnit(itr->second.target->tag)->unit_type) << ", " << std::endl;
 #endif
 			}
 		}
@@ -208,7 +235,7 @@ void UnitCommandManager::ParseUnitCommands()
 			agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target_point);
 			actions_this_frame++;
 #ifndef BUILD_FOR_LADDER
-			file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", " << itr->second.target_point.x << " " << itr->second.target_point.y << ", 0, " << std::endl;
+			file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", " << itr->second.target_point.x << " " << itr->second.target_point.y << ", 0, none, " << std::endl;
 #endif
 		}
 	}
