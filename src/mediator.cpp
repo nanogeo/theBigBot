@@ -1347,7 +1347,7 @@ const Unit* Mediator::GetWorkerRushDefenseGroupingMineralPatch()
 	return Utility::ClosestTo(GetUnits(Unit::Alliance::Neutral), agent->locations->worker_rush_defense_group);
 }
 
-std::vector<Point2D> Mediator::GetEmptyBases()
+std::vector<Point2D> Mediator::GetAllBases()
 {
 	return agent->locations->base_locations;
 }

@@ -45,7 +45,11 @@ void ArmyManager::CreateProtossArmyTemplates()
 
 void ArmyManager::CreateTerranArmyTemplates()
 {
-
+	std::map<UNIT_TYPEID, int> base_denial_req;
+	base_denial_req[STALKER] = 2;
+	bool(sc2::ArmyManager:: * condition)() = &ArmyManager::EnemyHasExposedBase;
+	ArmyTemplate base_denial = ArmyTemplate(base_denial_req, 10, ArmyRole::deny_outer_base, 2, 4, condition);
+	army_templates.push_back(base_denial);
 }
 
 void ArmyManager::CreateZergArmyTemplates()
@@ -107,6 +111,13 @@ void ArmyManager::CreateNewArmyGroups()
 	const ArmyTemplate* template_to_create = nullptr;
 	for (const auto& army_template : army_templates)
 	{
+		if (army_template.condition != nullptr)
+		{
+			bool(sc2::ArmyManager:: * condition)() = army_template.condition;
+			if ((*this.*condition)() == false)
+				continue;
+		}
+
 		bool all_req_units = true;
 		for (const auto& type : army_template.required_units)
 		{
@@ -181,7 +192,10 @@ ArmyGroup* ArmyManager::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> 
 		mediator->StartOracleHarassStateMachine(army);
 		break;
 	case ArmyRole::scout_bases:
-		army = new ArmyGroup(mediator, mediator->GetEmptyBases(), role, unit_types);
+		army = new ArmyGroup(mediator, mediator->GetAllBases(), role, unit_types);
+		break;
+	case ArmyRole::deny_outer_base:
+		army = new ArmyGroup(mediator, FindExposedBase(), role, unit_types);
 		break;
 	default:
 		std::cerr << "Unknown ArmyRole in CreateArmyGroup" << std::endl;
@@ -255,6 +269,9 @@ void ArmyManager::RunArmyGroups()
 			break;
 		case ArmyRole::scout_bases:
 			army_groups[i]->ScoutBases();
+			break;
+		case ArmyRole::deny_outer_base:
+			army_groups[i]->DenyBase();
 			break;
 		default:
 			std::cerr << "Unknown ArmyRole in RunArmyGroup" << std::endl;
@@ -399,6 +416,47 @@ void ArmyManager::DeleteArmyGroup(ArmyGroup* army)
 void ArmyManager::MarkArmyGroupForDeletion(ArmyGroup* army_group)
 {
 	army_groups_to_delete.push_back(army_group);
+}
+
+bool ArmyManager::EnemyHasExposedBase()
+{
+	return FindExposedBase() != Point2D(0, 0);
+}
+
+Point2D ArmyManager::FindExposedBase()
+{
+	Units enemy_bases = mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ COMMAND_CENTER, ORBITAL, PLANETARY, NEXUS, HATCHERY, LAIR, HIVE }));
+	for (const auto& base : enemy_bases)
+	{
+		if (Distance2D(base->pos, mediator->GetEnemyStartLocation()) < 2 ||
+			Distance2D(base->pos, mediator->GetEnemyNaturalLocation()) < 2)
+			continue;
+
+		bool at_base = false;
+		for (const auto& base_pos : mediator->GetAllBases())
+		{
+			if (Distance2D(base->pos, base_pos) < 2)
+			{
+				at_base = true;
+				break;
+			}
+		}
+		if (!at_base)
+			continue;
+
+		bool close_to_third = false;
+		for (const auto& third_pos : mediator->GetPossibleEnemyThirdBaseLocations())
+		{
+			if (Distance2D(base->pos, third_pos) < 2)
+			{
+				close_to_third = true;
+				break;
+			}
+		}
+		if (!close_to_third)
+			return base->pos;
+	}
+	return Point2D(0, 0);
 }
 
 }

@@ -7,22 +7,7 @@
 namespace sc2
 {
 
-struct ArmyTemplate
-{
-	std::map<UNIT_TYPEID, int> required_units;
-	int priority;
-	ArmyRole role;
-	int desired_units;
-	int max_units;
-	ArmyTemplate(std::map<UNIT_TYPEID, int> required_units, int priority, ArmyRole role, int desired_units, int max_units)
-	{
-		this->required_units = required_units;
-		this->priority = priority;
-		this->role = role;
-		this->desired_units = desired_units;
-		this->max_units = max_units;
-	}
-};
+struct ArmyTemplate;
 
 class Mediator;
 
@@ -59,6 +44,36 @@ public:
 	void RemoveDefenseGroupAt(Point2D);
 	void DeleteArmyGroup(ArmyGroup*);
 	void MarkArmyGroupForDeletion(ArmyGroup*);
+
+	bool EnemyHasExposedBase();
+	Point2D FindExposedBase();
+};
+
+struct ArmyTemplate
+{
+	std::map<UNIT_TYPEID, int> required_units;
+	bool(sc2::ArmyManager::* condition)() = nullptr;
+	int priority;
+	ArmyRole role;
+	int desired_units;
+	int max_units;
+	ArmyTemplate(std::map<UNIT_TYPEID, int> required_units, int priority, ArmyRole role, int desired_units, int max_units)
+	{
+		this->required_units = required_units;
+		this->priority = priority;
+		this->role = role;
+		this->desired_units = desired_units;
+		this->max_units = max_units;
+	}
+	ArmyTemplate(std::map<UNIT_TYPEID, int> required_units, int priority, ArmyRole role, int desired_units, int max_units, bool(sc2::ArmyManager::* condition)())
+	{
+		this->required_units = required_units;
+		this->priority = priority;
+		this->role = role;
+		this->desired_units = desired_units;
+		this->max_units = max_units;
+		this->condition = condition;
+	}
 };
 
 }

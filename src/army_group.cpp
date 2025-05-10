@@ -87,7 +87,7 @@ namespace sc2 {
 		}
 	}
 
-	ArmyGroup::ArmyGroup(Mediator* mediator, Point2D defense_point, ArmyRole role, std::vector<UNIT_TYPEID> unit_types)
+	ArmyGroup::ArmyGroup(Mediator* mediator, Point2D target_pos, ArmyRole role, std::vector<UNIT_TYPEID> unit_types)
 	{
 		this->mediator = mediator;
 		event_id = mediator->GetUniqueId();
@@ -102,7 +102,7 @@ namespace sc2 {
 		};
 		mediator->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
 
-		this->target_pos = defense_point;
+		this->target_pos = target_pos;
 		this->role = role;
 		for (const auto& type : unit_types)
 		{
@@ -1425,7 +1425,7 @@ namespace sc2 {
 				attack_path.erase(std::remove(attack_path.begin(), attack_path.end(), target_pos), attack_path.end());
 				if (attack_path.size() == 0)
 				{
-					attack_path = mediator->GetEmptyBases();
+					attack_path = mediator->GetAllBases();
 				}
 				target_pos = Utility::ClosestTo(attack_path, all_units[0]->pos);
 			}
@@ -1435,12 +1435,30 @@ namespace sc2 {
 		{
 			if (attack_path.size() == 0)
 			{
-				attack_path = mediator->GetEmptyBases();
+				attack_path = mediator->GetAllBases();
 			}
 			target_pos = Utility::ClosestTo(attack_path, all_units[0]->pos);
 			attack_path.erase(std::remove(attack_path.begin(), attack_path.end(), target_pos), attack_path.end());
 		}
 
+	}
+
+	void ArmyGroup::DenyBase()
+	{
+		for (int i = 0; i < new_units.size(); i++)
+		{
+			AddUnit(new_units[i]);
+			i--;
+		}
+
+		if (all_units.size() == 0)
+			return;
+
+		mediator->SetUnitsCommand(all_units, ABILITY_ID::ATTACK_ATTACK, target_pos, 1);
+
+		if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ COMMAND_CENTER, COMMAND_CENTER_FLYING,
+			ORBITAL, ORBITAL_FLYING, PLANETARY, NEXUS, HATCHERY, LAIR, HIVE })), target_pos) > 7)
+			mediator->MarkArmyGroupForDeletion(this);
 	}
 
 	// returns: 0 - normal operation, 1 - all units dead or in standby, 2 - reached the end of the attack path
