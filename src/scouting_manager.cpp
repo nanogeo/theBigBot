@@ -178,7 +178,7 @@ void ScoutingManager::SetEnemyRace(UNIT_TYPEID type)
 		mediator->SendChat("Tag:race_zerg", ChatChannel::Team);
 		break;
 	default:
-		std::cerr << "Unknown unit type in SetEnemyRace: " << Utility::UnitTypeIdToString(type) << std::endl;
+		std::cerr << "Unknown unit type in SetEnemyRace: " << UnitTypeToName(type) << std::endl;
 		mediator->LogMinorError();
 	}
 }

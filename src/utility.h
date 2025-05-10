@@ -160,7 +160,6 @@ public:
 	static bool IsStructure(UNIT_TYPEID);
 	static bool IsMelee(UNIT_TYPEID);
 
-	static std::string UnitTypeIdToString(UNIT_TYPEID);
 	static std::string AbilityIdToString(ABILITY_ID);
 
 };

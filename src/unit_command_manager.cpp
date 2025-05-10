@@ -169,7 +169,7 @@ void UnitCommandManager::ParseUnitCommands()
 	for (std::map<const Unit*, UnitCommand>::iterator itr = current_commands.begin(); itr != current_commands.end(); itr++)
 	{
 #ifndef BUILD_FOR_LADDER
-		file << mediator->GetGameLoop() << ", " << itr->first->tag << ", " << Utility::UnitTypeIdToString(itr->first->unit_type) << ", ";
+		file << mediator->GetGameLoop() << ", " << itr->first->tag << ", " << UnitTypeToName(itr->first->unit_type) << ", ";
 		if (itr->first->orders.size() > 0)
 		{
 			file << Utility::AbilityIdToString(itr->first->orders[0].ability_id.ToType()) << ", " << itr->first->orders[0].target_pos.x << " " << 
@@ -178,7 +178,7 @@ void UnitCommandManager::ParseUnitCommands()
 			{
 				const Unit* target = mediator->GetUnit(itr->first->orders[0].target_unit_tag);
 				if (target != nullptr)
-					file << Utility::UnitTypeIdToString(target->unit_type) << ", ";
+					file << UnitTypeToName(target->unit_type) << ", ";
 				else
 					file << "null, ";
 			}
@@ -218,7 +218,7 @@ void UnitCommandManager::ParseUnitCommands()
 				actions_this_frame++;
 #ifndef BUILD_FOR_LADDER
 				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, " << itr->second.target->tag << ", " << 
-					Utility::UnitTypeIdToString(mediator->GetUnit(itr->second.target->tag)->unit_type) << ", " << std::endl;
+					UnitTypeToName(mediator->GetUnit(itr->second.target->tag)->unit_type) << ", " << std::endl;
 #endif
 			}
 		}

@@ -2583,8 +2583,8 @@ namespace sc2 {
 		{
 			if (target[oracle] == unit->tag)
 			{
-				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " took " + std::to_string(health) + " damage from orale", Point2D(.2, .4 + .02 * i), Color(0, 255, 0), 20);
-				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
+				//agent->Debug()->DebugTextOut(UnitTypeToName(unit->unit_type.ToType()) + " took " + std::to_string(health) + " damage from orale", Point2D(.2, .4 + .02 * i), Color(0, 255, 0), 20);
+				//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
 				has_attacked[oracle] = true;
 			}
 		}
@@ -2597,8 +2597,8 @@ namespace sc2 {
 		{
 			if (target[oracle] == unit->tag)
 			{
-				//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " desroyed by oracle", Point2D(.2, .45 + .02 * i), Color(0, 255, 0), 20);
-				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+				//agent->Debug()->DebugTextOut(UnitTypeToName(unit->unit_type.ToType()) + " desroyed by oracle", Point2D(.2, .45 + .02 * i), Color(0, 255, 0), 20);
+				//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed by orale\n";
 				has_attacked[oracle] = true;
 			}
 		}

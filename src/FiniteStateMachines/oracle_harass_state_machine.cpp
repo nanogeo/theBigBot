@@ -151,12 +151,12 @@ State* OracleDefendLocation::TestTransitions()
 #pragma warning(disable : 4100)
 void OracleDefendLocation::OnUnitDamagedListener(const Unit* unit, float health, float shields)
 {
-	//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
+	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
 	for (const auto &oracle : state_machine->oracles)
 	{
 		if (oracle->engaged_target_tag == unit->tag)
 		{
-			//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
+			//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
 			state_machine->has_attacked[oracle] = true;
 		}
 	}
@@ -165,12 +165,12 @@ void OracleDefendLocation::OnUnitDamagedListener(const Unit* unit, float health,
 
 void OracleDefendLocation::OnUnitDestroyedListener(const Unit* unit)
 {
-	//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed\n";
 	for (const auto &oracle : state_machine->oracles)
 	{
 		if (oracle->engaged_target_tag == unit->tag)
 		{
-			//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+			//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed by orale\n";
 			state_machine->has_attacked[oracle] = true;
 		}
 	}
@@ -384,12 +384,12 @@ State* OracleDefendLine::TestTransitions()
 #pragma warning(disable : 4100)
 void OracleDefendLine::OnUnitDamagedListener(const Unit* unit, float health, float shields)
 {
-	//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
+	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
 	for (const auto& oracle : state_machine->oracles)
 	{
 		if (oracle->engaged_target_tag == unit->tag)
 		{
-			//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
+			//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
 			state_machine->has_attacked[oracle] = true;
 		}
 	}
@@ -398,12 +398,12 @@ void OracleDefendLine::OnUnitDamagedListener(const Unit* unit, float health, flo
 
 void OracleDefendLine::OnUnitDestroyedListener(const Unit* unit)
 {
-	//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed\n";
 	for (const auto& oracle : state_machine->oracles)
 	{
 		if (oracle->engaged_target_tag == unit->tag)
 		{
-			//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+			//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed by orale\n";
 			state_machine->has_attacked[oracle] = true;
 		}
 	}
@@ -413,7 +413,7 @@ void OracleDefendLine::OnUnitDestroyedListener(const Unit* unit)
 #pragma warning(disable : 4100)
 void OracleDefendLine::OnUnitCreatedListener(const Unit* unit)
 {
-	//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed\n";
 	/*if (unit->unit_type == ORACLE)
 	{
 		state_machine->oracles.push_back(unit);
@@ -713,7 +713,7 @@ State* OracleDefendArmyGroup::TestTransitions()
 #pragma warning(disable : 4100)
 void OracleDefendArmyGroup::OnUnitDamagedListener(const Unit* unit, float health, float shields)
 {
-	//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
+	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
 	int i = 0;
 	//agent->Debug()->DebugTextOut(std::to_string(unit->tag), Point2D(.1, .35), Color(0, 255, 0), 20);
 
@@ -721,8 +721,8 @@ void OracleDefendArmyGroup::OnUnitDamagedListener(const Unit* unit, float health
 	{
 		if (state_machine->target[oracle] == unit->tag)
 		{
-			//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " took " + std::to_string(health) + " damage from orale", Point2D(.2, .4 + .02 * i), Color(0, 255, 0), 20);
-			//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
+			//agent->Debug()->DebugTextOut(UnitTypeToName(unit->unit_type.ToType()) + " took " + std::to_string(health) + " damage from orale", Point2D(.2, .4 + .02 * i), Color(0, 255, 0), 20);
+			//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
 			state_machine->has_attacked[oracle] = true;
 		}
 		i++;
@@ -732,15 +732,15 @@ void OracleDefendArmyGroup::OnUnitDamagedListener(const Unit* unit, float health
 
 void OracleDefendArmyGroup::OnUnitDestroyedListener(const Unit* unit)
 {
-	//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed\n";
 	int i = 0;
 	//agent->Debug()->DebugTextOut(std::to_string(unit->tag), Point2D(.1, .39), Color(0, 255, 255), 20);
 	for (const auto &oracle : state_machine->oracles)
 	{
 		if (state_machine->target[oracle] == unit->tag)
 		{
-			//agent->Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit->unit_type.ToType()) + " desroyed by oracle", Point2D(.2, .45 + .02 * i), Color(0, 255, 0), 20);
-			//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+			//agent->Debug()->DebugTextOut(UnitTypeToName(unit->unit_type.ToType()) + " desroyed by oracle", Point2D(.2, .45 + .02 * i), Color(0, 255, 0), 20);
+			//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed by orale\n";
 			state_machine->has_attacked[oracle] = true;
 		}
 		i++;
@@ -1045,7 +1045,7 @@ void OracleHarassAttackMineralLine::ExitState()
 
 void OracleHarassAttackMineralLine::OnUnitDestroyedListener(const Unit* unit)
 {
-	//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed\n";
 	if (target_drone != nullptr && unit->tag == target_drone->tag)
 	{
 		target_drone = nullptr;
@@ -1055,7 +1055,7 @@ void OracleHarassAttackMineralLine::OnUnitDestroyedListener(const Unit* unit)
 			/*
 			if (state_machine->oracles[i]->engaged_target_tag == unit->tag || state_machine->oracles[i]->engaged_target_tag == 0)
 			{
-				//std::cout << Utility::UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed by orale\n";
+				//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed by orale\n";
 				state_machine->has_attacked[i] = true;
 			}*/
 		}

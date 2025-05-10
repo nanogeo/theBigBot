@@ -124,12 +124,12 @@ struct ActionData
 		if (action == &ActionManager::ActionBuildBuilding)
 		{
 			str += "Build a ";
-			str += Utility::UnitTypeIdToString(action_arg->unitId);
+			str += UnitTypeToName(action_arg->unitId);
 		}
 		if (action == &ActionManager::ActionBuildBuildingWhenSafe)
 		{
 			str += "Build a ";
-			str += Utility::UnitTypeIdToString(action_arg->unitId);
+			str += UnitTypeToName(action_arg->unitId);
 			str += " when safe";
 		}
 		else if (action == &ActionManager::ActionBuildBuildingMulti)
@@ -137,7 +137,7 @@ struct ActionData
 			str += "Build a ";
 			for (int i = action_arg->index; i < action_arg->unitIds.size(); i++)
 			{
-				str += Utility::UnitTypeIdToString(action_arg->unitIds[i]);
+				str += UnitTypeToName(action_arg->unitIds[i]);
 				str += ", ";
 			}
 			str.pop_back();
@@ -148,7 +148,7 @@ struct ActionData
 			str += "Build a proxy ";
 			for (int i = action_arg->index; i < action_arg->unitIds.size(); i++)
 			{
-				str += Utility::UnitTypeIdToString(action_arg->unitIds[i]);
+				str += UnitTypeToName(action_arg->unitIds[i]);
 				str += ", ";
 			}
 			str.pop_back();
@@ -181,13 +181,13 @@ struct ActionData
 		else if (action == &ActionManager::ActionChronoTillFinished)
 		{
 			str += "Chrono ";
-			str += Utility::UnitTypeIdToString(action_arg->unitId);
+			str += UnitTypeToName(action_arg->unitId);
 			str += " till finished";
 		}
 		else if (action == &ActionManager::ActionConstantChrono)
 		{
 			str += "Constant chrono on ";
-			str += Utility::UnitTypeIdToString(action_arg->unitId);
+			str += UnitTypeToName(action_arg->unitId);
 		}
 		else if (action == &ActionManager::ActionTrainFromProxyRobo)
 		{
@@ -208,7 +208,7 @@ struct ActionData
 			{
 				for (const auto &unit : action_arg->unitIds)
 				{
-					str += Utility::UnitTypeIdToString(unit);
+					str += UnitTypeToName(unit);
 					str += ", ";
 				}
 			}

@@ -265,18 +265,18 @@ struct BuildOrderData
 		else if (condition == &BuildOrderManager::HasBuilding)
 		{
 			str += "a ";
-			str += Utility::UnitTypeIdToString(condition_arg.unitId);
+			str += UnitTypeToName(condition_arg.unitId);
 			str += " is built, ";
 		}
 		else if (condition == &BuildOrderManager::HasBuildingStarted)
 		{
 			str += "a ";
-			str += Utility::UnitTypeIdToString(condition_arg.unitId);
+			str += UnitTypeToName(condition_arg.unitId);
 			str += " has started building, ";
 		}
 		else if (condition == &BuildOrderManager::IsResearching)
 		{
-			str += Utility::UnitTypeIdToString(condition_arg.unitId);
+			str += UnitTypeToName(condition_arg.unitId);
 			str += " is researching, ";
 		}
 		else if (condition == &BuildOrderManager::HasGas)
@@ -289,7 +289,7 @@ struct BuildOrderData
 		{
 			str += std::to_string(condition_arg.amount);
 			str += " ";
-			str += Utility::UnitTypeIdToString(condition_arg.unitId);
+			str += UnitTypeToName(condition_arg.unitId);
 			str += "s are made, ";
 		}
 		else
@@ -303,7 +303,7 @@ struct BuildOrderData
 		if (result == &BuildOrderManager::BuildBuilding)
 		{
 			str += "build a ";
-			str += Utility::UnitTypeIdToString(result_arg.unitId);
+			str += UnitTypeToName(result_arg.unitId);
 		}
 		else if (result == &BuildOrderManager::BuildFirstPylon)
 		{
@@ -314,7 +314,7 @@ struct BuildOrderData
 			str += "build a ";
 			for (const auto &building : result_arg.unitIds)
 			{
-				str += Utility::UnitTypeIdToString(building);
+				str += UnitTypeToName(building);
 				str += ", ";
 			}
 			str.pop_back();
@@ -411,12 +411,12 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::ChronoBuilding)
 		{
 			str += "chrono ";
-			str += Utility::UnitTypeIdToString(result_arg.unitId);
+			str += UnitTypeToName(result_arg.unitId);
 		}
 		else if (result == &BuildOrderManager::OptionalChronoBuilding)
 		{
 			str += "chrono ";
-			str += Utility::UnitTypeIdToString(result_arg.unitId);
+			str += UnitTypeToName(result_arg.unitId);
 			str += "if energy is available";
 			}
 		else if (result == &BuildOrderManager::ResearchWarpgate)
@@ -426,14 +426,14 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::BuildProxy)
 		{
 			str += "build a proxy ";
-			str += Utility::UnitTypeIdToString(result_arg.unitId);
+			str += UnitTypeToName(result_arg.unitId);
 		}
 		else if (result == &BuildOrderManager::BuildProxyMulti)
 		{
 			str += "build a proxy ";
 			for (const auto &building : result_arg.unitIds)
 			{
-				str += Utility::UnitTypeIdToString(building);
+				str += UnitTypeToName(building);
 				str += ", ";
 			}
 			str.pop_back();
@@ -458,7 +458,7 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::ChronoTillFinished)
 		{
 			str += "chrono ";
-			str += Utility::UnitTypeIdToString(result_arg.unitId);
+			str += UnitTypeToName(result_arg.unitId);
 			str += " till it's finished";
 		}
 		else if (result == &BuildOrderManager::ContinueBuildingPylons)
@@ -484,7 +484,7 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::TrainFromProxy)
 		{
 			str += "train units from proxy ";
-			str += Utility::UnitTypeIdToString(result_arg.unitId);
+			str += UnitTypeToName(result_arg.unitId);
 		}
 		else if (result == &BuildOrderManager::ContinueChronoProxyRobo)
 		{
@@ -532,7 +532,7 @@ struct BuildOrderData
 			str += "warp in ";
 			str += std::to_string(result_arg.amount);
 			str += " ";
-			str += Utility::UnitTypeIdToString(result_arg.unitId);
+			str += UnitTypeToName(result_arg.unitId);
 			str += 's';
 		}
 		else if (result == &BuildOrderManager::PullOutOfGas)

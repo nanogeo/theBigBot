@@ -11,21 +11,21 @@ void UnitProductionManager::SetWarpgateProduction(UNIT_TYPEID unit_type)
 {
 	// TODO check if this is a unit made by the warp gate
 	warpgate_production = unit_type;
-	std::cerr << "Warpgate production changed to " << Utility::UnitTypeIdToString(unit_type) << std::endl;
+	std::cerr << "Warpgate production changed to " << UnitTypeToName(unit_type) << std::endl;
 }
 
 void UnitProductionManager::SetRoboProduction(UNIT_TYPEID unit_type)
 {
 	// TODO check if this is a unit made by the robo
 	robo_production = unit_type;
-	std::cerr << "Robo production changed to " << Utility::UnitTypeIdToString(unit_type) << std::endl;
+	std::cerr << "Robo production changed to " << UnitTypeToName(unit_type) << std::endl;
 }
 
 void UnitProductionManager::SetStargateProduction(UNIT_TYPEID unit_type)
 {
 	// TODO check if this is a unit made by the stargate
 	stargate_production = unit_type;
-	std::cerr << "Stargate production changed to " << Utility::UnitTypeIdToString(unit_type) << std::endl;
+	std::cerr << "Stargate production changed to " << UnitTypeToName(unit_type) << std::endl;
 }
 
 void UnitProductionManager::OnBuildingConstructionComplete(const Unit* building)
