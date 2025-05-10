@@ -1220,7 +1220,7 @@ void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
 		unit_production_manager.SetStargateProduction(unit_type);
 		break;
 	default:
-		std::cerr << "Unknown unit in SetUnitProduction " << Utility::UnitTypeIdToString(unit_type) << std::endl;
+		std::cerr << "Unknown unit in SetUnitProduction " << UnitTypeToName(unit_type) << std::endl;
 		LogMinorError();
 	}
 }

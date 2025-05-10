@@ -206,7 +206,7 @@ namespace sc2 {
 			mediator.OnBuildingConstructionComplete(building);
 			if (debug_mode)
 			{
-				std::cout << Utility::UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
+				std::cout << UnitTypeToName(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
 				//nav_mesh.AddNewObstacle(building);
 				return;
 			}
@@ -250,7 +250,7 @@ namespace sc2 {
 		}
         /*if (debug_mode)
         {
-            std::cout << UnitTypeIdToString(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
+            std::cout << UnitTypeToName(building->unit_type) << ' ' << building->pos.x << ", " << building->pos.y << '\n';
             return;
         }*/
     }
@@ -307,7 +307,7 @@ namespace sc2 {
 
     void TheBigBot::OnUnitDamaged(const Unit *unit, float health_damage, float shield_damage)
     {
-        //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " took " << std::to_string(health_damage) << " damage\n";
+        //std::cout << UnitTypeToName(unit->unit_type.ToType()) << " took " << std::to_string(health_damage) << " damage\n";
 		//if (unit->alliance == Unit::Alliance::Self)
 	        //std::cout << unit->tag << " took " << std::to_string(health_damage + shield_damage) << " damage\n";
 		try
@@ -328,7 +328,7 @@ namespace sc2 {
 
     void TheBigBot::OnUnitDestroyed(const Unit *unit)
     {
-        //std::cout << UnitTypeIdToString(unit->unit_type.ToType()) << " destroyed\n";
+        //std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed\n";
 		try
 		{
 			if (enemy_weapon_cooldown.find(unit) != enemy_weapon_cooldown.end())
@@ -1513,7 +1513,8 @@ namespace sc2 {
             sort(begin(buildings), end(buildings), [](const Unit* a, const Unit* b) { return a->tag < b->tag; });
             for (const auto &building : buildings)
             {
-                std::string info = Utility::UnitTypeIdToString(building_type) + " ";
+				std::string info = UnitTypeToName(building_type);
+				info += " ";
                 Color text_color = Color(0, 255, 0);
 				
                 if (building_type == UNIT_TYPEID::PROTOSS_WARPGATE)
@@ -1602,7 +1603,8 @@ namespace sc2 {
 							army_info += "\n    ";
 							num_per_line = 0;
 						}
-						army_info += Utility::UnitTypeIdToString(type) + "-" + std::to_string(unit_totals[type]) + ", ";
+						army_info += UnitTypeToName(type);
+						army_info += "-" + std::to_string(unit_totals[type]) + ", ";
 						num_per_line++;
 					}
 				}
@@ -1684,12 +1686,12 @@ namespace sc2 {
 		message += "Current time: " + std::to_string(frames_passed / FRAME_TIME) + "\n";
 		for (const auto &unit : enemy_attacks)
 		{
-			message += Utility::UnitTypeIdToString(unit.first->unit_type.ToType());
+			message += UnitTypeToName(unit.first->unit_type.ToType());
 			message += ":\n";
 			for (const auto &attack : unit.second)
 			{
 				message += "    ";
-				message += Utility::UnitTypeIdToString(attack.unit->unit_type.ToType());
+				message += UnitTypeToName(attack.unit->unit_type.ToType());
 				message += " - " + std::to_string(attack.impact_frame) + "\n";
 			}
 		}
@@ -1700,7 +1702,7 @@ namespace sc2 {
 	{
 		for (const auto& unit : mediator.scouting_manager.enemy_unit_saved_position)
 		{
-			Debug()->DebugTextOut(Utility::UnitTypeIdToString(unit.first->unit_type), ToPoint3D(unit.second.pos), Color(255, 128, 128), 20);
+			Debug()->DebugTextOut(UnitTypeToName(unit.first->unit_type), ToPoint3D(unit.second.pos), Color(255, 128, 128), 20);
 			if (unit.first->unit_type == SIEGE_TANK || unit.first->unit_type == SIEGE_TANK_SIEGED)
 				Debug()->DebugSphereOut(ToPoint3D(unit.second.pos), 14, Color(255, 128, 128));
 		}
