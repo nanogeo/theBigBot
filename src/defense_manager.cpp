@@ -152,29 +152,32 @@ void DefenseManager::UpdateOngoingAttacks()
 	}
 	if (!scary_attack)
 	{
-		// make sure build is continuing
-		mediator->UnPauseBuildOrder();
+		if (mediator->GetBuildOrderStatus() == false)
+		{
+			// make sure build is continuing
+			mediator->UnPauseBuildOrder();
 
-		// stop unnecessary production
-		if (reset_warpgate_production)
-			mediator->CancelWarpgateUnitProduction();
-		else
-			mediator->SetUnitProduction(prev_warpgate_production);
+			// stop unnecessary production
+			if (reset_warpgate_production)
+				mediator->CancelWarpgateUnitProduction();
+			else
+				mediator->SetUnitProduction(prev_warpgate_production);
 
-		if (reset_robo_production)
-			mediator->CancelRoboUnitProduction();
-		else
-			mediator->SetUnitProduction(prev_robo_production);
+			if (reset_robo_production)
+				mediator->CancelRoboUnitProduction();
+			else
+				mediator->SetUnitProduction(prev_robo_production);
 
-		if (reset_stargate_production)
-			mediator->CancelStargateUnitProduction();
-		else
-			mediator->SetUnitProduction(prev_stargate_production);
+			if (reset_stargate_production)
+				mediator->CancelStargateUnitProduction();
+			else
+				mediator->SetUnitProduction(prev_stargate_production);
 
 
-		reset_warpgate_production = false;
-		reset_robo_production = false;
-		reset_stargate_production = false;
+			reset_warpgate_production = false;
+			reset_robo_production = false;
+			reset_stargate_production = false;
+		}
 
 	}
 }

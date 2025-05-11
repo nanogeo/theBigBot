@@ -479,6 +479,11 @@ void Mediator::SetBuildOrder(BuildOrder build)
 	SendChat("Tag:" + GetMapName(), ChatChannel::Team);
 }
 
+bool Mediator::GetBuildOrderStatus()
+{
+	return build_order_manager.run_build_order;
+}
+
 void Mediator::PauseBuildOrder()
 {
 	build_order_manager.PauseBuildOrder();

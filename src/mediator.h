@@ -115,6 +115,7 @@ public:
 	void SetBalanceIncome(bool);
 
 	void SetBuildOrder(BuildOrder);
+	bool GetBuildOrderStatus();
 	void PauseBuildOrder();
 	void UnPauseBuildOrder();
 	void SetWorkerRushDefenseBuidOrder();
