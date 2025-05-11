@@ -291,7 +291,7 @@ namespace sc2 {
 			units = &tempests;
 			break;
 		default:
-			std::cerr << "Error unknown unit type in ArmyGroup::RemoveUnit" << std::endl;
+			std::cerr << "Error unknown unit type in ArmyGroup::RemoveUnit " << UnitTypeToName(unit->unit_type.ToType()) << std::endl;
 			mediator->LogMinorError();
 			return;
 		}
