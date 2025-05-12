@@ -228,6 +228,9 @@ namespace sc2 {
 	{
 		if (unit == nullptr)
 			return; // TODO log error and callstack
+
+		mediator->SetUnitCommand(unit, ABILITY_ID::STOP, 1);
+
 		all_units.erase(std::remove(all_units.begin(), all_units.end(), unit), all_units.end());
 		new_units.erase(std::remove(new_units.begin(), new_units.end(), unit), new_units.end());
 		standby_units.erase(std::remove(standby_units.begin(), standby_units.end(), unit), standby_units.end());
@@ -1301,7 +1304,46 @@ namespace sc2 {
 			}
 		}
 		const Unit* enemy_minerals = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Neutral), mediator->GetEnemyStartLocation());
+		if (enemy_minerals->mineral_contents == 0)
+		{
+			// found the unbuildable plate need to find minerals
+			Units close_neutral_units = Utility::NClosestUnits(mediator->GetUnits(Unit::Alliance::Neutral), mediator->GetEnemyStartLocation(), 10);
+			for (const auto& neutral : close_neutral_units)
+			{
+				if (neutral->mineral_contents > 0)
+				{
+					enemy_minerals = neutral;
+					break;
+				}
+			}
+			if (enemy_minerals->mineral_contents == 0)
+			{
+				std::cerr << "Error could not find minerals close to " << std::to_string(mediator->GetEnemyStartLocation().x) << ", " << 
+					std::to_string(mediator->GetEnemyStartLocation().y) << " in ArmyGroup::DefendLocation" << std::endl;
+				mediator->LogMinorError();
+			}
+		}
+
 		const Unit* base_minerals = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Neutral), target_pos);
+		if (base_minerals->mineral_contents == 0)
+		{
+			// found the unbuildable plate need to find minerals
+			Units close_neutral_units = Utility::NClosestUnits(mediator->GetUnits(Unit::Alliance::Neutral), target_pos, 10);
+			for (const auto& neutral : close_neutral_units)
+			{
+				if (neutral->mineral_contents > 0)
+				{
+					base_minerals = neutral;
+					break;
+				}
+			}
+			if (base_minerals->mineral_contents == 0)
+			{
+				std::cerr << "Error could not find minerals close to " << std::to_string(target_pos.x) << ", " << std::to_string(target_pos.y) << 
+					" in ArmyGroup::DefendLocation" << std::endl;
+				mediator->LogMinorError();
+			}
+		}
 		for (const auto &unit : all_units)
 		{
 			if (unit->unit_type == PROBE)
