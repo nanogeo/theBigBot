@@ -305,21 +305,21 @@ UnitCost UnitProductionManager::CalculateCostOfProduction()
 	if (warpgate_production != UNIT_TYPEID::INVALID)
 	{
 		UnitCost warpgate_cost = Utility::GetCost(warpgate_production) * 
-			(mediator->GetNumBuildActions(GATEWAY) + mediator->GetUnits(Unit::Alliance::Self, IsUnits({ GATEWAY, WARP_GATE })).size());
+			(mediator->GetNumBuildActions(GATEWAY) + (int)mediator->GetUnits(Unit::Alliance::Self, IsUnits({ GATEWAY, WARP_GATE })).size());
 		mineral_cost += (float)warpgate_cost.mineral_cost * 60.0f / Utility::GetTrainingTime(warpgate_production);
 		gas_cost += (float)warpgate_cost.vespene_cost * 60.0f / Utility::GetTrainingTime(warpgate_production);
 	}
 	if (robo_production != UNIT_TYPEID::INVALID)
 	{
 		UnitCost robo_cost = Utility::GetCost(robo_production) *
-			(mediator->GetNumBuildActions(ROBO) + mediator->GetUnits(Unit::Alliance::Self, IsUnit(ROBO)).size());
+			(mediator->GetNumBuildActions(ROBO) + (int)mediator->GetUnits(Unit::Alliance::Self, IsUnit(ROBO)).size());
 		mineral_cost += (float)robo_cost.mineral_cost * 60.0f / Utility::GetTrainingTime(robo_production);
 		gas_cost += (float)robo_cost.vespene_cost * 60.0f / Utility::GetTrainingTime(robo_production);
 	}
 	if (stargate_production != UNIT_TYPEID::INVALID)
 	{
 		UnitCost stargate_cost = Utility::GetCost(stargate_production) *
-			(mediator->GetNumBuildActions(STARGATE) + mediator->GetUnits(Unit::Alliance::Self, IsUnit(STARGATE)).size());
+			(mediator->GetNumBuildActions(STARGATE) + (int)mediator->GetUnits(Unit::Alliance::Self, IsUnit(STARGATE)).size());
 		mineral_cost += (float)stargate_cost.mineral_cost * 60.0f / Utility::GetTrainingTime(stargate_production);
 		gas_cost += (float)stargate_cost.vespene_cost * 60.0f / Utility::GetTrainingTime(stargate_production);
 	}

@@ -2750,8 +2750,8 @@ bool Utility::CanAffordUpgrade(UPGRADE_ID upgrade, const ObservationInterface* o
 		std::cerr << "Error invalid upgrade id in CanAffordUpgrade " << UpgradeIDToName(upgrade) << std::endl;
 		return false;
 	}
-	bool enough_minerals = observation->GetMinerals() >= cost.mineral_cost;
-	bool enough_vespene = observation->GetVespene() >= cost.vespene_cost;
+	bool enough_minerals = observation->GetMinerals() >= (uint32_t)cost.mineral_cost;
+	bool enough_vespene = observation->GetVespene() >= (uint32_t)cost.vespene_cost;
 	return enough_minerals && enough_vespene;
 }
 

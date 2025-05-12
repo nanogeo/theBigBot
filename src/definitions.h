@@ -372,11 +372,11 @@ struct WarpgateStatus
 
 struct UnitCost
 {
-	uint32_t mineral_cost = 0;
-	uint32_t vespene_cost = 0;
-	uint32_t supply = 0;
+	int mineral_cost = 0;
+	int vespene_cost = 0;
+	int supply = 0;
 	UnitCost() {};
-	UnitCost(uint32_t x, uint32_t y, uint32_t z)
+	UnitCost(int x, int y, int z)
 	{
 		mineral_cost = x;
 		vespene_cost = y;
@@ -396,7 +396,7 @@ struct UnitCost
 		vespene_cost += other.vespene_cost;
 		supply += other.supply;
 	}
-	UnitCost operator*(const uint32_t num) const
+	UnitCost operator*(const int num) const
 	{
 		return UnitCost(mineral_cost * num, vespene_cost * num, supply * num);
 	}

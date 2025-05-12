@@ -902,6 +902,22 @@ void WorkerManager::BalanceWorkers()
 		{
 			// build more production
 		}
+		else if (future_resources.mineral_cost < 0 && future_resources.vespene_cost > 0)
+		{
+			PullOutOfGas(1);
+		}
+		else if (future_resources.mineral_cost > 0 && future_resources.vespene_cost < 0)
+		{
+			if (removed_gas_miners > 0)
+			{
+				removed_gas_miners--;
+			}
+			else
+			{
+				if (mediator->GetNumBuildActions(ASSIMILATOR) == 0 && mediator->HasBuildingUnderConstruction(ASSIMILATOR) == false)
+					mediator->BuildBuilding(ASSIMILATOR);
+			}
+		}
 	}
 
 	while (first_2_mineral_patch_spaces.size() > 0 && (close_3_mineral_patch_extras.size() > 0 || far_3_mineral_patch_extras.size() > 0))
@@ -1003,7 +1019,7 @@ void WorkerManager::BuildWorkers()
 
 void WorkerManager::PullOutOfGas()
 {
-	removed_gas_miners = mediator->GetUnits(Unit::Alliance::Self, IsUnit(ASSIMILATOR)).size() * 3;
+	removed_gas_miners = (int)mediator->GetUnits(Unit::Alliance::Self, IsUnit(ASSIMILATOR)).size() * 3;
 	Units gas_workers;
 	for (const auto &worker : assimilators_reversed)
 	{
