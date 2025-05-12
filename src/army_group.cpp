@@ -1303,43 +1303,25 @@ namespace sc2 {
 				i--;
 			}
 		}
-		const Unit* enemy_minerals = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Neutral), mediator->GetEnemyStartLocation());
-		if (enemy_minerals->mineral_contents == 0)
+		const Unit* enemy_minerals = nullptr;
+		const Unit* base_minerals = nullptr;
+
+		if (enemy_minerals == nullptr)
 		{
-			// found the unbuildable plate need to find minerals
-			Units close_neutral_units = Utility::NClosestUnits(mediator->GetUnits(Unit::Alliance::Neutral), mediator->GetEnemyStartLocation(), 10);
-			for (const auto& neutral : close_neutral_units)
+			enemy_minerals = Utility::ClosestTo(mediator->GetUnits(IsUnits(MINERAL_PATCH)), mediator->GetEnemyStartLocation());
+			if (enemy_minerals == nullptr)
 			{
-				if (neutral->mineral_contents > 0)
-				{
-					enemy_minerals = neutral;
-					break;
-				}
-			}
-			if (enemy_minerals->mineral_contents == 0)
-			{
-				std::cerr << "Error could not find minerals close to " << std::to_string(mediator->GetEnemyStartLocation().x) << ", " << 
+				std::cerr << "Error could not find minerals close to " << std::to_string(mediator->GetEnemyStartLocation().x) << ", " <<
 					std::to_string(mediator->GetEnemyStartLocation().y) << " in ArmyGroup::DefendLocation" << std::endl;
 				mediator->LogMinorError();
 			}
 		}
-
-		const Unit* base_minerals = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Neutral), target_pos);
-		if (base_minerals->mineral_contents == 0)
+		if (base_minerals == nullptr)
 		{
-			// found the unbuildable plate need to find minerals
-			Units close_neutral_units = Utility::NClosestUnits(mediator->GetUnits(Unit::Alliance::Neutral), target_pos, 10);
-			for (const auto& neutral : close_neutral_units)
+			base_minerals = Utility::ClosestTo(mediator->GetUnits(IsUnits(MINERAL_PATCH)), target_pos);
+			if (base_minerals == nullptr)
 			{
-				if (neutral->mineral_contents > 0)
-				{
-					base_minerals = neutral;
-					break;
-				}
-			}
-			if (base_minerals->mineral_contents == 0)
-			{
-				std::cerr << "Error could not find minerals close to " << std::to_string(target_pos.x) << ", " << std::to_string(target_pos.y) << 
+				std::cerr << "Error could not find minerals close to " << std::to_string(target_pos.x) << ", " << std::to_string(target_pos.y) <<
 					" in ArmyGroup::DefendLocation" << std::endl;
 				mediator->LogMinorError();
 			}
@@ -1348,6 +1330,28 @@ namespace sc2 {
 		{
 			if (unit->unit_type == PROBE)
 			{
+				if (enemy_minerals == nullptr)
+				{
+					enemy_minerals = Utility::ClosestTo(mediator->GetUnits(IsUnits(MINERAL_PATCH)), mediator->GetEnemyStartLocation());
+					if (enemy_minerals == nullptr)
+					{
+						std::cerr << "Error could not find minerals close to " << std::to_string(mediator->GetEnemyStartLocation().x) << ", " <<
+							std::to_string(mediator->GetEnemyStartLocation().y) << " in ArmyGroup::DefendLocation" << std::endl;
+						mediator->LogMinorError();
+						continue;
+					}
+				}
+				if (base_minerals == nullptr)
+				{
+					base_minerals = Utility::ClosestTo(mediator->GetUnits(IsUnits(MINERAL_PATCH)), target_pos);
+					if (base_minerals == nullptr)
+					{
+						std::cerr << "Error could not find minerals close to " << std::to_string(target_pos.x) << ", " << std::to_string(target_pos.y) <<
+							" in ArmyGroup::DefendLocation" << std::endl;
+						mediator->LogMinorError();
+						continue;
+					}
+				}
 				if (unit->weapon_cooldown == 0)
 				{
 					Units units_in_range = Utility::GetUnitsInRange(mediator->GetUnits(Unit::Alliance::Enemy), unit, 0);
