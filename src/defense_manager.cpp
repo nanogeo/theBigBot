@@ -114,10 +114,14 @@ void DefenseManager::UpdateOngoingAttacks()
 				if (mediator->GetNumBuildActions(BATTERY) == 0)
 					mediator->BuildDefensiveBuilding(BATTERY, attack.location);
 				// pull workers
+				int max_works_to_pull = 8;
 				for (const auto& worker : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PROBE)), attack.location, 10))
 				{
+					if (max_works_to_pull == 0)
+						break;
 					if (mediator->RemoveWorker(worker) == RemoveWorkerResult::NOT_FOUND)
 						continue;
+					max_works_to_pull--;
 					attack.pulled_workers.push_back(worker);
 					ArmyGroup* army_group = mediator->GetArmyGroupDefendingBase(attack.location);
 					if (army_group)
