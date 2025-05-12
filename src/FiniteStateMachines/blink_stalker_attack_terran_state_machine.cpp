@@ -381,7 +381,7 @@ void BlinkStalkerAttackTerranAttack::TickState()
 	}
 	else
 	{
-		if (state_machine->attack_location = BlinkAtackLocation::natural_defensive)
+		if (state_machine->attack_location == BlinkAtackLocation::natural_defensive)
 		{
 			Point2D stalkers_center = Utility::MedianCenter(state_machine->attacking_stalkers);
 			Point2D stalker_line_pos = state_machine->attached_army_group->attack_path_line.FindClosestPoint(stalkers_center);
