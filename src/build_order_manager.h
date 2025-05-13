@@ -162,7 +162,7 @@ public:
 	bool WarpInUnits(BuildOrderResultArgData);
 	bool PullOutOfGas(BuildOrderResultArgData);
 	bool IncreaseExtraPylons(BuildOrderResultArgData);
-	bool MicroChargelotAllin(BuildOrderResultArgData);
+	bool StartChargelotAllIn(BuildOrderResultArgData);
 	bool RemoveScoutToProxy(BuildOrderResultArgData);
 	bool SafeRallyPoint(BuildOrderResultArgData);
 	bool DTHarass(BuildOrderResultArgData);
@@ -219,6 +219,7 @@ public:
 
 
 	void SetEarlyPoolInterrupt();
+	void SetChargeAllInInterrupt();
 	void SetChargeTransition();
 	void SetMinorProxyRaxResponse();
 	void SetMajorProxyRaxResponse();
@@ -546,9 +547,9 @@ struct BuildOrderData
 			str += "increase extra pylons by ";
 			str += std::to_string(result_arg.amount);
 		}
-		else if (result == &BuildOrderManager::MicroChargelotAllin)
+		else if (result == &BuildOrderManager::StartChargelotAllIn)
 		{
-			str += "micro chargelot allin";
+			str += "start chargelot all in";
 		}
 		else if (result == &BuildOrderManager::RemoveScoutToProxy)
 		{

@@ -670,12 +670,17 @@ bool BuildOrderManager::SpawnUnits(BuildOrderResultArgData data)
 
 bool BuildOrderManager::WarpInUnits(BuildOrderResultArgData data)
 {
+	if (mediator->WarpInUnits(data.unitId, data.amount, mediator->GetNaturalLocation()))
+		return true;
 	return false;
 }
 
 bool BuildOrderManager::PullOutOfGas(BuildOrderResultArgData data)
 {
-	mediator->PullOutOfGas();
+	if (data.amount == 0)
+		mediator->PullOutOfGas();
+	else
+		mediator->PullOutOfGas(data.amount);
 	return true;
 }
 
@@ -685,16 +690,10 @@ bool BuildOrderManager::IncreaseExtraPylons(BuildOrderResultArgData data)
 	return true;
 }
 
-bool BuildOrderManager::MicroChargelotAllin(BuildOrderResultArgData data)
+bool BuildOrderManager::StartChargelotAllIn(BuildOrderResultArgData data)
 {
-	/*if (mediator->GetUnits(IsFriendlyUnit(PRISM)).size() > 0)
-	{
-		const Unit* prism = mediator->GetUnits(IsFriendlyUnit(PRISM))[0];
-		ChargelotAllInStateMachine* chargelotFSM = new ChargelotAllInStateMachine(mediator, "Chargelot allin", mediator->locations->warp_prism_locations, mediator->GetUnits(IsFriendlyUnit(ZEALOT)), prism, mediator->Observation()->GetGameLoop() / FRAME_TIME);
-		mediator->active_FSMs.push_back(chargelotFSM);
-		return true;
-	}*/
-	return false;
+	mediator->StartChargelotAllInStateMachine();
+	return true;
 }
 
 bool BuildOrderManager::RemoveScoutToProxy(BuildOrderResultArgData data)
@@ -863,13 +862,13 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 {
 	ScoutInfoZerg info = mediator->GetScoutInfoZerg();
 	
-	if (info.third_timing != 0 && info.third_timing < 90)
+	/*if (info.third_timing != 0 && info.third_timing < 90)
 	{
 		// 3 hatch before pool
 		mediator->SendChat("Tag:scout_triple_hatch", ChatChannel::Team);
 		return true;
 	}
-	else if (mediator->GetGameLoop() / FRAME_TIME >= 90)
+	else if (mediator->GetGameLoop() / FRAME_TIME >= 90 && info.pool_timing == 0)
 	{
 		// late pool
 		mediator->SendChat("Tag:scout_late_pool", ChatChannel::Team);
@@ -879,7 +878,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 	{
 		return false;
 	}
-	else if (info.pool_timing < 25)
+	else */if (info.pool_timing < 25)
 	{
 		// 12 pool
 		SetEarlyPoolInterrupt(); // TODO new interrupt for 12 pool
@@ -894,6 +893,14 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		build_order_step = 0;
 		std::cerr << "Early pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag:scout_pool_first", ChatChannel::Team);
+	}
+	else if (info.gas_timing == 0)
+	{
+		// gasless
+		SetChargeAllInInterrupt();
+		build_order_step = 0;
+		std::cerr << "Early pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
+		mediator->SendChat("Tag:scout_gasless", ChatChannel::Team);
 	}
 	else if (info.pool_timing >= 45)
 	{
@@ -1171,6 +1178,34 @@ void BuildOrderManager::SetEarlyPoolInterrupt()
 	};
 }
 
+void BuildOrderManager::SetChargeAllInInterrupt()
+{
+	build_order = { 
+					Data(&BuildOrderManager::TimePassed,			Condition(97.0f),				&BuildOrderManager::BuildBuilding,					Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::TimePassed,			Condition(101.0f),				&BuildOrderManager::BuildBuilding,					Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(127.0f),				&BuildOrderManager::BuildBuilding,					Result(TWILIGHT)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::ResearchWarpgate,				Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::ChronoBuilding,					Result(CYBERCORE)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::TrainAdept,						Result(ADEPT, 1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(152.0f),				&BuildOrderManager::PullOutOfGas,					Result(2)),
+					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),				&BuildOrderManager::BuildBuilding,					Result(ROBO)),
+					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),				&BuildOrderManager::BuildBuilding,					Result(GATEWAY)),
+					Data(&BuildOrderManager::HasGas,				Condition(100),					&BuildOrderManager::PullOutOfGas,					Result(4)),
+					Data(&BuildOrderManager::TimePassed,			Condition(172.0f),				&BuildOrderManager::BuildBuilding,					Result(PYLON)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),			&BuildOrderManager::ResearchCharge,					Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),			&BuildOrderManager::ChronoTillFinished,				Result(TWILIGHT)),
+					Data(&BuildOrderManager::NumWorkers,			Condition(32),					&BuildOrderManager::CutWorkers,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(189.0f),				&BuildOrderManager::BuildBuildingMulti,				Result({GATEWAY, GATEWAY, GATEWAY, GATEWAY, GATEWAY, GATEWAY})),
+					Data(&BuildOrderManager::TimePassed,			Condition(215.0f),				&BuildOrderManager::TrainPrism,						Result(PRISM)),
+					Data(&BuildOrderManager::TimePassed,			Condition(215.0f),				&BuildOrderManager::ChronoBuilding,					Result(ROBO)),
+					//Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::IncreaseExtraPylons,			Result(1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::ContinueBuildingPylons,			Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(225.0f),				&BuildOrderManager::WarpInUnits,					Result(ZEALOT, 2)),
+					Data(&BuildOrderManager::TimePassed,			Condition(245.0f),				&BuildOrderManager::WarpInUnits,					Result(ZEALOT, 2)),
+					Data(&BuildOrderManager::TimePassed,			Condition(245.0f),				&BuildOrderManager::StartChargelotAllIn,			Result()),
+	};
+}
+
 void BuildOrderManager::SetChargeTransition()
 {
 	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::CancelWarpgateUnitProduction,		Result()),
@@ -1276,7 +1311,7 @@ void BuildOrderManager::SetWorkerRushDefense()
 	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CancelImmediatelySemiSaturateGasses,Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CancelImmediatelySaturateGasses,	Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::PullOutOfGas,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::PullOutOfGas,						Result(0)),
 					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CutWorkers,							Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(GATEWAY),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(GATEWAY),			&BuildOrderManager::OptionalChronoBuilding,				Result(GATEWAY)),
@@ -1606,7 +1641,7 @@ void BuildOrderManager::SetChargelotAllin()
 					Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::ContinueBuildingPylons,			Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(235.0f),				&BuildOrderManager::WarpInUnits,					Result(ZEALOT, 2)),
 					Data(&BuildOrderManager::TimePassed,			Condition(255.0f),				&BuildOrderManager::WarpInUnits,					Result(ZEALOT, 2)),
-					Data(&BuildOrderManager::TimePassed,			Condition(255.0f),				&BuildOrderManager::MicroChargelotAllin,			Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(255.0f),				&BuildOrderManager::StartChargelotAllIn,			Result()),
 	};
 }
 
@@ -1640,7 +1675,7 @@ void BuildOrderManager::SetChargelotAllinOld()
 					Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::ContinueBuildingPylons,			Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(235.0f),				&BuildOrderManager::WarpInUnits,					Result(ZEALOT, 2)),
 					Data(&BuildOrderManager::TimePassed,			Condition(255.0f),				&BuildOrderManager::WarpInUnits,					Result(ZEALOT, 2)),
-					Data(&BuildOrderManager::TimePassed,			Condition(255.0f),				&BuildOrderManager::MicroChargelotAllin,			Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(255.0f),				&BuildOrderManager::StartChargelotAllIn,			Result()),
 	};
 }
 

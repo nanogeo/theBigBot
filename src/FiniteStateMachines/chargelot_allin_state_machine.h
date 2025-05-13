@@ -51,21 +51,37 @@ class ChargelotAllInStateMachine : public StateMachine
 {
 public:
     Units zealots;
-    const Unit* prism;
+    const Unit* prism = nullptr;
     float last_warp_in_time;
     std::vector<Point2D> prism_spots;
     int prism_spots_index;
-    Point2D next_warp_in_location;
+    Point2D next_warp_in_location = Point2D(0, 0);
     ChargelotAllInStateMachine(TheBigBot* agent, std::string name, std::vector<Point2D> prism_locations, 
-        Units zealots, const Unit* prism, float last_warp_in_time) : StateMachine(agent, name)
+        float last_warp_in_time) : StateMachine(agent, name)
     {
         current_state = new ChargeAllInMovingToWarpinSpot(agent, this);
         prism_spots = prism_locations;
-        this->zealots = zealots;
-        this->prism = prism;
         this->last_warp_in_time = last_warp_in_time;
         prism_spots_index = 0;
         current_state->EnterState();
+    }
+    void RunStateMachine() override;
+
+    bool AddUnit(const Unit* unit) override
+    {
+        switch (unit->unit_type.ToType())
+        {
+        case ZEALOT:
+            zealots.push_back(unit);
+            return true;
+        case PRISM:
+            if (prism == nullptr || prism->is_alive == false)
+            {
+                prism = unit;
+                return true;
+            }
+        }
+        return false;
     }
 };
 

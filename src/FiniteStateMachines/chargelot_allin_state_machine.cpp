@@ -1,5 +1,5 @@
 
-
+#include "definitions.h"
 #include "chargelot_allin_state_machine.h"
 #include "theBigBot.h"
 
@@ -17,17 +17,11 @@ std::string ChargeAllInMovingToWarpinSpot::toString()
 
 void ChargeAllInMovingToWarpinSpot::TickState()
 {
+	if (state_machine->prism == nullptr)
+		return;
 	// move prism to spot
 	if (Distance2D(state_machine->prism->pos, state_machine->next_warp_in_location) > 1)
-		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->next_warp_in_location);
-	for (const auto& zealot : state_machine->zealots)
-	{
-		if (zealot->orders.size() == 0)
-		{
-			Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
-			agent->Actions()->UnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, pos);
-		}
-	}
+		agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::GENERAL_MOVE, state_machine->next_warp_in_location, 1);
 	return;
 }
 
@@ -42,13 +36,13 @@ void ChargeAllInMovingToWarpinSpot::EnterState()
 
 void ChargeAllInMovingToWarpinSpot::ExitState()
 {
-	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMPHASINGMODE);
+	agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMPHASINGMODE, 1);
 }
 
 State* ChargeAllInMovingToWarpinSpot::TestTransitions()
 {
-	float time_left = state_machine->last_warp_in_time + 20 - agent->Observation()->GetGameLoop() / FRAME_TIME;
-	if (time_left < 2)
+	float time_left = state_machine->last_warp_in_time + 20 - agent->mediator.GetCurrentTime();
+	if (time_left < 2 && agent->mediator.IsPathable(state_machine->prism->pos))
 		return new ChargeAllInWarpingIn(agent, state_machine);
 	return nullptr;
 }
@@ -64,57 +58,34 @@ std::string ChargeAllInWarpingIn::toString()
 
 void ChargeAllInWarpingIn::TickState()
 {
-	/*for (const auto& zealot : state_machine->zealots)
+	if (state_machine->prism->unit_type != PRISM_SIEGED)
 	{
-		if (zealot->orders.size() == 0)
-		{
-			Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0];
-			agent->Actions()->UnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, pos);
-		}
+		agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMPHASINGMODE, 10);
+		return;
 	}
-
-	bool all_gates_ready = true;
 	Units gates = agent->Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
-	for (const auto& warpgate : gates)
+	bool all_gates_ready = agent->mediator.GetNumWarpgatesReady() == gates.size();
+
+	if (all_gates_ready && agent->mediator.WarpInUnitsAt(ZEALOT, gates.size(), state_machine->prism->pos))
 	{
-		if (agent->warpgate_status[warpgate].frame_ready > 0)
-		{
-			all_gates_ready = false;
-			break;
-		}
+		state_machine->last_warp_in_time = agent->mediator.GetCurrentTime();
 	}
-	if (gates.size() > 0 && all_gates_ready && Utility::CanAfford(UNIT_TYPEID::PROTOSS_ZEALOT, gates.size(), agent->Observation()))
-	{
-		std::vector<Point2D> spots = agent->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
-		if (spots.size() >= gates.size())
-		{
-			for (int i = 0; i < gates.size(); i++)
-			{
-				Point3D pos = Point3D(gates[i]->pos.x, gates[i]->pos.y, agent->Observation()->TerrainHeight(gates[i]->pos));
-				//agent->Debug()->DebugSphereOut(pos, 1, Color(255, 0, 255));
-				agent->Actions()->UnitCommand(gates[i], ABILITY_ID::TRAINWARP_ZEALOT, spots[i]);
-				agent->warpgate_status[gates[i]].used = true;
-				agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(20 * FRAME_TIME);
-				state_machine->last_warp_in_time = agent->Observation()->GetGameLoop() / FRAME_TIME;
-			}
-		}
-	}*/
 }
 
 void ChargeAllInWarpingIn::EnterState()
 {
 	if (state_machine->prism->unit_type != UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)
-		agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMPHASINGMODE);
+		agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMPHASINGMODE, 1);
 }
 
 void ChargeAllInWarpingIn::ExitState()
 {
-	agent->Actions()->UnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMTRANSPORTMODE);
+	agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMTRANSPORTMODE, 1);
 }
 
 State* ChargeAllInWarpingIn::TestTransitions()
 {
-	float time_left = state_machine->last_warp_in_time + 20 - agent->Observation()->GetGameLoop() / FRAME_TIME;
+	float time_left = state_machine->last_warp_in_time + 20 - agent->mediator.GetCurrentTime();
 	if (time_left < 16 && time_left > 10)
 		return new ChargeAllInMovingToWarpinSpot(agent, state_machine);
 	// if last warp in time >3 and < 8
@@ -124,4 +95,35 @@ State* ChargeAllInWarpingIn::TestTransitions()
 
 #pragma endregion
 
+
+void ChargelotAllInStateMachine::RunStateMachine()
+{
+	StateMachine::RunStateMachine();
+
+	for (const auto& zealot : zealots)
+	{
+		if (zealot->orders.size() == 0)
+		{
+			const Unit* closest_base = Utility::ClosestTo(agent->mediator.GetUnits(Unit::Alliance::Enemy,
+				IsUnits({ HATCHERY, LAIR, HIVE, COMMAND_CENTER, PLANETARY, ORBITAL, NEXUS })), zealot->pos);
+			if (closest_base != nullptr)
+			{
+				agent->mediator.SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, closest_base->pos, 1);
+			}
+			else
+			{
+				const Unit* closest_building = Utility::ClosestTo(agent->mediator.GetUnits(Unit::Alliance::Enemy, IsBuilding()), zealot->pos);
+				if (closest_building != nullptr)
+				{
+					agent->mediator.SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, closest_building->pos, 1);
+				}
+				else
+				{
+					Point2D pos = agent->Observation()->GetGameInfo().enemy_start_locations[0]; // TODO scour map instead
+					agent->mediator.SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, pos, 1);
+				}
+			}
+		}
+	}
+}
 }

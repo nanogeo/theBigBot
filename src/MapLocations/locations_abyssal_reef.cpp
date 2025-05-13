@@ -55,13 +55,13 @@ namespace sc2 {
 
 		pylon_locations = { P(159, 55),
 							P(160, 25),
+							P(141, 12),
 							P(121, 24),
 							P(130, 19),
 							P(161, 43),
 							P(166, 48),
 							P(158, 25),
 							P(168, 35),
-							P(141, 12),
 							P(164, 11),
 							P(173, 26),
 							P(153, 51),
@@ -325,6 +325,14 @@ namespace sc2 {
 
 		worker_rush_defense_group = P(169, 20.5);
 		worker_rush_defense_attack = P(31, 123.5);
+
+		warp_prism_locations = {P(46, 60),
+								P(76, 75),
+								P(91, 119),
+								P(57, 130),
+								P(31, 129),
+								P(34, 95) };
+
 	}
 
 }

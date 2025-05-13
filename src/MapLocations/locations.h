@@ -163,6 +163,8 @@ public:
 	Point2D worker_rush_defense_group;
 	Point2D worker_rush_defense_attack;
 
+	std::vector<Point2D> warp_prism_locations;
+
     Locations() {}
 	// TODO take a Point2D not Point3D
     Locations(Point3D start_location, std::string map_name)

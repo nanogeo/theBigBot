@@ -40,8 +40,14 @@ public:
 
 	void SetWarpInAtProxy(bool);
 	std::vector<Point2D> FindWarpInSpots(Point2D);
+	std::vector<Point2D> FindWarpInSpotsAt(Point2D);
 	void UpdateWarpgateStatus();
+	int NumWarpgatesReady();
 	UnitCost CalculateCostOfProduction();
+
+	void WarpInUnit(UNIT_TYPEID, Point2D);
+	bool WarpInUnits(UNIT_TYPEID, int, Point2D);
+	bool WarpInUnitsAt(UNIT_TYPEID, int, Point2D);
 };
 
 

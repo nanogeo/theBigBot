@@ -1035,16 +1035,55 @@ void WorkerManager::PullOutOfGas()
 void WorkerManager::PullOutOfGas(int num)
 {
 	removed_gas_miners = std::min(removed_gas_miners + num, (int)mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(ASSIMILATOR)).size() * 3);
-	Units gas_workers;
+	Units workers_to_remove;
 	int removed = 0;
-	for (const auto& worker : assimilators_reversed)
+
+	// remove from gasses with 3 workers
+	for (const auto& gas : assimilators)
 	{
-		gas_workers.push_back(worker.first);
-		removed++;
-		if (removed >= num)
+		if (gas.second.workers[2] == nullptr)
+			continue;
+
+		const Unit* worker = nullptr;
+		for (int i = 0; i < 3; i++)
+		{
+			bool carrying_gas = false;
+			for (const auto& buff : gas.second.workers[i]->buffs)
+			{
+				if (buff == BUFF_ID::CARRYHARVESTABLEVESPENEGEYSERGASPROTOSS) // check if in the geiser
+				{
+					carrying_gas = true;
+					break;
+				}
+			}
+			if (carrying_gas && i != 2)
+				continue;
+			worker = gas.second.workers[i];
 			break;
+		}
+		if (worker != nullptr)
+		{
+			workers_to_remove.push_back(worker);
+			removed++;
+			if (removed >= num)
+				break;
+		}
 	}
-	for (const auto& worker : gas_workers)
+	if (removed < num)
+	{
+		// we didnt find enough 3rds so find any worker to remove
+		for (const auto& worker : assimilators_reversed)
+		{
+			if (std::find(workers_to_remove.begin(), workers_to_remove.end(), worker.first) != workers_to_remove.end())
+				continue;
+			workers_to_remove.push_back(worker.first);
+			removed++;
+			if (removed >= num)
+				break;
+		}
+	}
+
+	for (const auto& worker : workers_to_remove)
 	{
 		RemoveWorker(worker);
 		PlaceWorker(worker);

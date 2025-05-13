@@ -265,6 +265,20 @@ std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to)
 	return spots;
 }
 
+std::vector<Point2D> UnitProductionManager::FindWarpInSpotsAt(Point2D pos)
+{
+	std::vector<Point2D> spots = FindWarpInSpots(pos);
+	for (size_t i = 0; i < spots.size(); i++)
+	{
+		if (Distance2D(spots[i], pos) > 10)
+		{
+			spots.erase(spots.begin() + i);
+			i--;
+		}
+	}
+	return spots;
+}
+
 void UnitProductionManager::UpdateWarpgateStatus()
 {
 	for (const auto& warpgate : mediator->GetUnits(Unit::Alliance::Self, IsUnit(WARP_GATE)))
@@ -296,6 +310,17 @@ void UnitProductionManager::UpdateWarpgateStatus()
 		if (status->frame_ready > 0 && status->frame_ready <= mediator->GetGameLoop())
 			status->frame_ready = 0;
 	}
+}
+
+int UnitProductionManager::NumWarpgatesReady()
+{
+	int gates_ready = 0;
+	for (const auto& status : warpgate_status)
+	{
+		if (status.second.frame_ready == 0)
+			gates_ready++;
+	}
+	return gates_ready;
 }
 
 UnitCost UnitProductionManager::CalculateCostOfProduction()
@@ -332,5 +357,65 @@ UnitCost UnitProductionManager::CalculateCostOfProduction()
 	return UnitCost((int)mineral_cost, (int)gas_cost, 0);
 }
 
+void UnitProductionManager::WarpInUnit(UNIT_TYPEID unit_type, Point2D pos)
+{
+	if (mediator->CanAfford(unit_type, 1))
+	{
+		for (const auto& warpgate : warpgates)
+		{
+			if (warpgate_status[warpgate].frame_ready == 0)
+			{
+				mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(unit_type), pos, 0);
+				warpgate_status[warpgate].used = true;
+				warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(unit_type) * FRAME_TIME);
+				return;
+			}
+		}
+	}
+}
+
+bool UnitProductionManager::WarpInUnits(UNIT_TYPEID unit_type, int num, Point2D pos)
+{
+	std::vector<Point2D> spots = FindWarpInSpots(pos);
+	if (spots.size() < num || mediator->CanAfford(unit_type, num) == false || NumWarpgatesReady() < num)
+		return false;
+
+	int spot_num = 0;
+	for (const auto& warpgate : warpgates)
+	{
+		if (warpgate_status[warpgate].frame_ready == 0)
+		{
+			mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(unit_type), spots[spot_num], 0);
+			warpgate_status[warpgate].used = true;
+			warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(unit_type) * FRAME_TIME);
+			spot_num++;
+		}
+		if (spot_num >= num)
+			return true;
+	}
+	return true;
+}
+
+bool UnitProductionManager::WarpInUnitsAt(UNIT_TYPEID unit_type, int num, Point2D pos)
+{
+	std::vector<Point2D> spots = FindWarpInSpotsAt(pos);
+	if (spots.size() < num || mediator->CanAfford(unit_type, num) == false || NumWarpgatesReady() < num)
+		return false;
+
+	int spot_num = 0;
+	for (const auto& warpgate : warpgates)
+	{
+		if (warpgate_status[warpgate].frame_ready == 0)
+		{
+			mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(unit_type), spots[spot_num], 0);
+			warpgate_status[warpgate].used = true;
+			warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(unit_type) * FRAME_TIME);
+			spot_num++;
+		}
+		if (spot_num >= num)
+			return true;
+	}
+	return true;
+}
 
 }

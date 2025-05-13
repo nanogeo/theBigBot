@@ -297,6 +297,12 @@ namespace sc2 {
 
 		worker_rush_defense_group = P(162, 113.5);
 		worker_rush_defense_attack = P(22, 66.5);
+
+		warp_prism_locations = { P(89, 38),
+								P(77, 86),
+								P(27, 83),
+								P(26, 40),
+								P(56, 22) };
 	}
 	
 }

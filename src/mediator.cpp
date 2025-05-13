@@ -14,6 +14,7 @@
 #include "scout_protoss_state_machine.h"
 #include "stalker_base_defense_terran_state_machine.h"
 #include "worker_rush_defense_state_machine.h"
+#include "chargelot_allin_state_machine.h"
 
 
 
@@ -579,6 +580,57 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 				pending_buildings--;
 
 	}
+	// no point found but if building is a gateway/tech building then we can try in more spots
+	if (std::find(tech_buildings.begin(), tech_buildings.end(), unit_type) != tech_buildings.end())
+	{
+		possible_locations = agent->locations->gateway_locations;
+	}
+	else if (unit_type == GATEWAY)
+	{
+		possible_locations = agent->locations->tech_locations;
+	}
+	else
+	{
+		std::cerr << "Error no viable point found in GetLocation for type " << UnitTypeToName(unit_type) << std::endl;
+		std::cerr << "Possible locations:" << std::endl;
+		for (const auto& location : possible_locations)
+		{
+			std::cerr << location.x << ", " << location.y << std::endl;
+		}
+		std::cerr << std::endl;
+		return Point2D(0, 0);
+	}
+
+	for (const auto& point : possible_locations)
+	{
+		bool blocked = false;
+		bool in_base = !(unit_type == PYLON || unit_type == ASSIMILATOR);
+		bool in_energy_field = (unit_type == PYLON || unit_type == ASSIMILATOR || unit_type == NEXUS);
+		for (const auto& building : agent->Observation()->GetUnits(IsBuilding()))
+		{
+			if (Distance2D(building->pos, point) < 1)
+			{
+				blocked = true;
+				break;
+			}
+			if (!in_energy_field && building->unit_type == PYLON)
+			{
+				if (Distance2D(Point2D(building->pos), point) < 6.5)
+				{
+					in_energy_field = true;
+				}
+			}
+			if (building->unit_type == NEXUS && Distance2D(building->pos, point) < 22)
+				in_base = true;
+		}
+		if (in_base && !blocked && in_energy_field)
+			if (pending_buildings == 0)
+				return point;
+			else
+				pending_buildings--;
+
+	}
+
 	std::cerr << "Error no viable point found in GetLocation for type " << UnitTypeToName(unit_type) << std::endl;
 	std::cerr << "Possible locations:" << std::endl;
 	for (const auto& location : possible_locations)
@@ -1008,6 +1060,16 @@ void Mediator::StartOracleHarassStateMachine(ArmyGroup* army)
 	oracle_fsm->attached_army_group = army;
 }
 
+void Mediator::StartChargelotAllInStateMachine()
+{
+	ChargelotAllInStateMachine* chargelot_fsm = new ChargelotAllInStateMachine(agent, "chargelot all in", agent->locations->warp_prism_locations, GetCurrentTime());
+	finite_state_machine_manager.active_state_machines.push_back(chargelot_fsm);
+
+	ArmyGroup* chargelot_army = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ZEALOT, PRISM }, 30, 50);
+	chargelot_army->state_machine = chargelot_fsm;
+	chargelot_fsm->attached_army_group = chargelot_army;
+}
+
 bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)
 {
 	const Unit* scout = nullptr;
@@ -1193,6 +1255,11 @@ void Mediator::PullOutOfGas()
 	worker_manager.PullOutOfGas();
 }
 
+void Mediator::PullOutOfGas(int num)
+{
+	worker_manager.PullOutOfGas(num);
+}
+
 UnitCost Mediator::CalculateIncome()
 {
 	return worker_manager.CalculateIncome();
@@ -1268,6 +1335,31 @@ void Mediator::SetWarpInAtProxy(bool status)
 UnitCost Mediator::CalculateCostOfProduction()
 {
 	return unit_production_manager.CalculateCostOfProduction();
+}
+
+int Mediator::GetNumWarpgatesReady()
+{
+	return unit_production_manager.NumWarpgatesReady();
+}
+
+void Mediator::WarpInUnit(UNIT_TYPEID unit_type, Point2D pos)
+{
+	unit_production_manager.WarpInUnit(unit_type, pos);
+}
+
+bool Mediator::WarpInUnits(UNIT_TYPEID unit_type, int num, Point2D pos)
+{
+	return unit_production_manager.WarpInUnits(unit_type, num, pos);
+}
+
+bool Mediator::WarpInUnitsAt(UNIT_TYPEID unit_type, int num, Point2D pos)
+{
+	return unit_production_manager.WarpInUnitsAt(unit_type, num, pos);
+}
+
+std::vector<Point2D> Mediator::FindWarpInSpots(Point2D pos)
+{
+	return unit_production_manager.FindWarpInSpots(pos);
 }
 
 ArmyGroup* Mediator::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)

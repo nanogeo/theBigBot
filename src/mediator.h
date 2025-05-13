@@ -150,6 +150,7 @@ public:
 	void CreateFourGateBlinkFSM();
 	void CreateAdeptHarassProtossFSM();
 	void StartOracleHarassStateMachine(ArmyGroup*);
+	void StartChargelotAllInStateMachine();
 	bool RemoveScoutToProxy(UNIT_TYPEID, int);
 	void CreateAdeptBaseDefenseTerranFSM();
 	void CreateWorkerRushDefenseFSM();
@@ -168,6 +169,7 @@ public:
 	void PlaceWorker(const Unit*);
 	RemoveWorkerResult RemoveWorker(const Unit*);
 	void PullOutOfGas();
+	void PullOutOfGas(int);
 	UnitCost CalculateIncome();
 
 	void SetUnitProduction(UNIT_TYPEID);
@@ -179,6 +181,11 @@ public:
 	void CancelStargateUnitProduction();
 	void SetWarpInAtProxy(bool);
 	UnitCost CalculateCostOfProduction();
+	int GetNumWarpgatesReady();
+	void WarpInUnit(UNIT_TYPEID, Point2D);
+	bool WarpInUnits(UNIT_TYPEID, int, Point2D);
+	bool WarpInUnitsAt(UNIT_TYPEID, int, Point2D);
+	std::vector<Point2D> FindWarpInSpots(Point2D);
 
 	ArmyGroup* CreateArmyGroup(ArmyRole, std::vector<UNIT_TYPEID>, int, int);
 	ArmyGroup* GetArmyGroupDefendingBase(Point2D);
