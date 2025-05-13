@@ -918,9 +918,16 @@ namespace sc2 {
 
 		Point2D guard_move_to = Utility::PointBetween(door_closed_pos, closest_to_door->pos, (float)std::min(4.0, std::max(0.0, (dist_to_closest / 2) - 1)));
 
+		// hold position when door is fully closed to prevent being pushed away by pulled probes
+		if (Distance2D(guard_move_to, door_closed_pos) < .5 && Distance2D(guard->pos, door_closed_pos) < .5)
+		{
+			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_HOLDPOSITION, 10);
+			return;
+		}
 
 		// TODO use fire control to find the best target
 		const Unit* closest_to_guard = Utility::ClosestTo(enemies, guard->pos);
+		
 		if (Distance2D(closest_to_guard->pos, guard->pos) < Utility::RealRange(guard, closest_to_guard))
 		{
 			// enemy in range
