@@ -2453,7 +2453,7 @@ ABILITY_ID Utility::GetWarpAbility(UNIT_TYPEID unitId)
 	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
 		return ABILITY_ID::TRAINWARP_DARKTEMPLAR;
 	default:
-		std::cout << "Error invalid unit id in GetTrainAbility " << UnitTypeToName(unitId) << std::endl;
+		std::cout << "Error invalid unit id in GetWarpAbility " << UnitTypeToName(unitId) << std::endl;
 		return ABILITY_ID::BUILD_CANCEL;
 	}
 }
@@ -2475,7 +2475,7 @@ int Utility::GetWarpCooldown(UNIT_TYPEID unitId)
 	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
 		return 32;
 	default:
-		std::cout << "Error invalid unit id in GetTrainAbility " << UnitTypeToName(unitId) << std::endl;
+		std::cout << "Error invalid unit id in GetWarpCooldown " << UnitTypeToName(unitId) << std::endl;
 		return 0;
 	}
 }
