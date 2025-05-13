@@ -924,6 +924,11 @@ namespace sc2 {
 			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_HOLDPOSITION, 10);
 			return;
 		}
+		if (guard->weapon_cooldown != 0 && (Distance2D(guard->pos, door_closed_pos) < .5 || Distance2D(guard->pos, door_open_pos) > Distance2D(door_closed_pos, door_open_pos)))
+		{
+			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_HOLDPOSITION, 10);
+			return;
+		}
 
 		// TODO use fire control to find the best target
 		const Unit* closest_to_guard = Utility::ClosestTo(enemies, guard->pos);
