@@ -159,9 +159,7 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 			mediator->LogMinorError();
 			return;
 		}
-		*(closest->worker) = worker;
 		NewPlaceWorkerInGas(worker, closest->mineral_patch);
-		gas_spaces.erase(std::remove(gas_spaces.begin(), gas_spaces.end(), closest), gas_spaces.end());
 
 		return;
 	}
@@ -227,9 +225,7 @@ void WorkerManager::PlaceWorker(const Unit* worker)
 			mediator->LogMinorError();
 			return;
 		}
-		*(closest->worker) = worker;
 		NewPlaceWorkerInGas(worker, closest->mineral_patch);
-		gas_spaces.erase(std::remove(gas_spaces.begin(), gas_spaces.end(), closest), gas_spaces.end());
 
 		return;
 	}
@@ -316,6 +312,22 @@ void WorkerManager::NewPlaceWorkerInGas(const Unit* worker, const Unit* gas)
 	if (assimilators.find(gas) == assimilators.end())
 	{
 		assimilators[gas] = assimilator_data();
+	}
+	for (size_t i = 0; i < 3; i++)
+	{
+		if (assimilators[gas].workers[i] == nullptr)
+		{
+			assimilators[gas].workers[i] = worker;
+			for (size_t j = 0; j < gas_spaces.size(); j++)
+			{
+				if (*(gas_spaces[j]->worker) == worker)
+				{
+					gas_spaces.erase(gas_spaces.begin() + j);
+					break;
+				}
+			}
+			break;
+		}
 	}
 	Point2D assimilator_position = gas->pos;
 	Units townhalls = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS));
