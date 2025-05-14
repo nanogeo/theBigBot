@@ -1203,7 +1203,7 @@ void BuildOrderManager::SetChargeAllInInterrupt()
 					Data(&BuildOrderManager::NumWorkers,			Condition(32),					&BuildOrderManager::CutWorkers,						Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(189.0f),				&BuildOrderManager::BuildBuildingMulti,				Result({GATEWAY, GATEWAY, GATEWAY, GATEWAY, GATEWAY, GATEWAY})),
 					Data(&BuildOrderManager::TimePassed,			Condition(215.0f),				&BuildOrderManager::TrainPrism,						Result(PRISM)),
-					Data(&BuildOrderManager::TimePassed,			Condition(215.0f),				&BuildOrderManager::ChronoBuilding,					Result(ROBO)),
+					Data(&BuildOrderManager::TimePassed,			Condition(215.0f),				&BuildOrderManager::OptionalChronoBuilding,			Result(ROBO)),
 					//Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::IncreaseExtraPylons,			Result(1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::ContinueBuildingPylons,			Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(225.0f),				&BuildOrderManager::WarpInUnits,					Result(ZEALOT, 2)),
