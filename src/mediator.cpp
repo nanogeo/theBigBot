@@ -1702,7 +1702,12 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 	}
 
 	if (unit->is_building && unit->alliance == Unit::Alliance::Self)
-		RebuildBuilding(unit->pos, unit->unit_type);
+	{
+		if (unit->unit_type == WARP_GATE)
+			RebuildBuilding(unit->pos, GATEWAY);
+		else
+			RebuildBuilding(unit->pos, unit->unit_type);
+	}
 }
 void Mediator::OnUpgradeCompleted(UPGRADE_ID upgrade)
 {
