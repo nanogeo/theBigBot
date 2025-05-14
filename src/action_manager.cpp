@@ -536,6 +536,9 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 
 bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 {
+	if (mediator->GetGameLoop() % 2 == 0) // TODO avoid double chronoing a building
+		return false;
+
 	const Unit* building = data->unit;
 	if (building->orders.size() == 0)
 	{
