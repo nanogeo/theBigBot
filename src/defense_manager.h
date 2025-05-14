@@ -30,6 +30,7 @@ class DefenseManager
 public:
 	Mediator* mediator;
 	std::vector<OngoingAttack> ongoing_attacks;
+	bool temp_unit_production = false;
 	bool reset_warpgate_production = false;
 	UNIT_TYPEID prev_warpgate_production = UNIT_TYPEID::INVALID;
 	bool reset_robo_production = false;

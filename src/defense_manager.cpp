@@ -68,42 +68,46 @@ void DefenseManager::UpdateOngoingAttacks()
 			// pause build
 			//mediator->PauseBuildOrder();
 
-			// warp in or make units from gates
-			if (mediator->CheckUpgrade(UPGRADE_ID::WARPGATERESEARCH))
+			if (!temp_unit_production)
 			{
-				if (mediator->GetWarpgateProduction() == UNIT_TYPEID::INVALID)
+				temp_unit_production = true;
+				// warp in or make units from gates
+				if (mediator->CheckUpgrade(UPGRADE_ID::WARPGATERESEARCH))
 				{
-					mediator->SetUnitProduction(STALKER);
-					reset_warpgate_production = true;
+					if (mediator->GetWarpgateProduction() == UNIT_TYPEID::INVALID)
+					{
+						mediator->SetUnitProduction(STALKER);
+						reset_warpgate_production = true;
+					}
+					else
+					{
+						prev_warpgate_production = mediator->GetWarpgateProduction();
+						mediator->SetUnitProduction(STALKER);
+					}
+				}
+
+				// make units from other tech structures
+				if (mediator->GetRoboProduction() == UNIT_TYPEID::INVALID)
+				{
+					mediator->SetUnitProduction(IMMORTAL);
+					reset_robo_production = true;
 				}
 				else
 				{
-					prev_warpgate_production = mediator->GetWarpgateProduction();
-					mediator->SetUnitProduction(STALKER);
+					prev_robo_production = mediator->GetRoboProduction();
+					mediator->SetUnitProduction(IMMORTAL);
 				}
-			}
 
-			// make units from other tech structures
-			if (mediator->GetRoboProduction() == UNIT_TYPEID::INVALID)
-			{
-				mediator->SetUnitProduction(IMMORTAL);
-				reset_robo_production = true;
-			}
-			else
-			{
-				prev_robo_production = mediator->GetRoboProduction();
-				mediator->SetUnitProduction(IMMORTAL);
-			}
-
-			if (mediator->GetStargateProduction() == UNIT_TYPEID::INVALID)
-			{
-				mediator->SetUnitProduction(VOID_RAY);
-				reset_stargate_production = true;
-			}
-			else
-			{
-				prev_stargate_production = mediator->GetStargateProduction();
-				mediator->SetUnitProduction(VOID_RAY);
+				if (mediator->GetStargateProduction() == UNIT_TYPEID::INVALID)
+				{
+					mediator->SetUnitProduction(VOID_RAY);
+					reset_stargate_production = true;
+				}
+				else
+				{
+					prev_stargate_production = mediator->GetStargateProduction();
+					mediator->SetUnitProduction(VOID_RAY);
+				}
 			}
 
 			if (attack.location == mediator->GetNaturalLocation() && attack.status <= -50 && attack.pulled_workers.size() == 0)
@@ -156,7 +160,7 @@ void DefenseManager::UpdateOngoingAttacks()
 	}
 	if (!scary_attack)
 	{
-		if (mediator->GetBuildOrderStatus() == false)
+		if (temp_unit_production)
 		{
 			// make sure build is continuing
 			mediator->UnPauseBuildOrder();
@@ -181,6 +185,7 @@ void DefenseManager::UpdateOngoingAttacks()
 			reset_warpgate_production = false;
 			reset_robo_production = false;
 			reset_stargate_production = false;
+			temp_unit_production = false;
 		}
 
 	}
