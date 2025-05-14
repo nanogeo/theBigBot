@@ -1045,6 +1045,12 @@ void OracleHarassAttackMineralLine::ExitState()
 
 void OracleHarassAttackMineralLine::OnUnitDestroyedListener(const Unit* unit)
 {
+	if (unit == nullptr)
+	{
+		std::cerr << "nullptr passed into OracleHarassAttackMineralLine::OnUnitDestroyedListener" << std::endl;
+		agent->mediator.LogMinorError();
+		return;
+	}
 	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed\n";
 	if (target_drone != nullptr && unit->tag == target_drone->tag)
 	{

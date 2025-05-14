@@ -326,8 +326,14 @@ namespace sc2 {
 		}
     }
 
-    void TheBigBot::OnUnitDestroyed(const Unit *unit)
+    void TheBigBot::OnUnitDestroyed(const Unit* unit)
     {
+		if (unit == nullptr)
+		{
+			std::cerr << "nullptr passed into OnUnitDestroyed" << std::endl;
+			mediator.LogMinorError();
+			return;
+		}
         //std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed\n";
 		try
 		{
