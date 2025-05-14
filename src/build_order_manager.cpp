@@ -1022,6 +1022,13 @@ bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
 {
 	build_order_step = 0;
 	Set2GateProxyRobo();
+	if (mediator->scouting_manager.enemy_unit_counts[FORGE] > 0)
+	{
+		// cannon rush
+		build_order_step = 0;
+		mediator->SendChat("Tag:scout_cannon_rush", ChatChannel::Team);
+		return false;
+	}
 	switch (mediator->scouting_manager.enemy_unit_counts[GATEWAY])
 	{
 	case 0:
