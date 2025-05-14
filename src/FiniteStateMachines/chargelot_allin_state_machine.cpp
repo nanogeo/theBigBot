@@ -41,6 +41,9 @@ void ChargeAllInMovingToWarpinSpot::ExitState()
 
 State* ChargeAllInMovingToWarpinSpot::TestTransitions()
 {
+	if (state_machine->prism == nullptr)
+		return nullptr;
+
 	float time_left = state_machine->last_warp_in_time + 20 - agent->mediator.GetCurrentTime();
 	if (time_left < 2 && agent->mediator.IsPathable(state_machine->prism->pos))
 		return new ChargeAllInWarpingIn(agent, state_machine);
@@ -58,6 +61,9 @@ std::string ChargeAllInWarpingIn::toString()
 
 void ChargeAllInWarpingIn::TickState()
 {
+	if (state_machine->prism == nullptr)
+		return;
+
 	if (state_machine->prism->unit_type != PRISM_SIEGED)
 	{
 		agent->mediator.SetUnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMPHASINGMODE, 10);
@@ -85,6 +91,9 @@ void ChargeAllInWarpingIn::ExitState()
 
 State* ChargeAllInWarpingIn::TestTransitions()
 {
+	if (state_machine->prism == nullptr)
+		return nullptr;
+
 	float time_left = state_machine->last_warp_in_time + 20 - agent->mediator.GetCurrentTime();
 	if (time_left < 16 && time_left > 10)
 		return new ChargeAllInMovingToWarpinSpot(agent, state_machine);
@@ -126,4 +135,33 @@ void ChargelotAllInStateMachine::RunStateMachine()
 		}
 	}
 }
+
+
+bool ChargelotAllInStateMachine::AddUnit(const Unit* unit)
+{
+	switch (unit->unit_type.ToType())
+	{
+	case ZEALOT:
+		zealots.push_back(unit);
+		return true;
+	case PRISM:
+		if (prism == nullptr || prism->is_alive == false)
+		{
+			prism = unit;
+			agent->mediator.CancelWarpgateUnitProduction();
+			return true;
+		}
+	}
+	return false;
+}
+
+void ChargelotAllInStateMachine::RemoveUnit(const Unit* unit)
+{
+	if (unit == prism)
+	{
+		agent->mediator.SetUnitProduction(ZEALOT);
+		prism = nullptr;
+	}
+}
+
 }

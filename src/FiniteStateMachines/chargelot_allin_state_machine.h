@@ -67,22 +67,8 @@ public:
     }
     void RunStateMachine() override;
 
-    bool AddUnit(const Unit* unit) override
-    {
-        switch (unit->unit_type.ToType())
-        {
-        case ZEALOT:
-            zealots.push_back(unit);
-            return true;
-        case PRISM:
-            if (prism == nullptr || prism->is_alive == false)
-            {
-                prism = unit;
-                return true;
-            }
-        }
-        return false;
-    }
+    bool AddUnit(const Unit* unit) override;
+    void RemoveUnit(const Unit* unit) override;
 };
 
 
