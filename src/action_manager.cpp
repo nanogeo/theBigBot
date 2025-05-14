@@ -73,7 +73,7 @@ bool ActionManager::ActionBuildBuildingWhenSafe(ActionArgData* data)
 {
 	if (mediator->CanAfford(data->unitId, 1) && 
 		Utility::DistanceToClosest(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), data->position) > 10 &&
-		(data->unitId == PYLON || data->unitId == NEXUS || Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PYLON)), data->position) < 6.5)) // TODO add CanAfford?
+		(data->unitId == PYLON || data->unitId == NEXUS || Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PYLON)), data->position) < 6.5))
 	{
 		const Unit* builder = mediator->GetBuilder(data->position);
 		if (builder == nullptr)
