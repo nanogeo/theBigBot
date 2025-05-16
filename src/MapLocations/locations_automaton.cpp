@@ -202,10 +202,10 @@ namespace sc2 {
 
 		initial_scout_pos = P(33.5, 50.5);
 
-		main_scout_path = { P(22, 60.5),
-							P(22, 76.5),
+		main_scout_path = { P(38.5, 59.5),
 							P(39.5, 73),
-							P(38.5, 59.5) };
+							P(22, 76.5),
+							P(22, 60.5) };
 
 		natural_scout_path = { P(26, 38.5),
 								P(34, 26),
