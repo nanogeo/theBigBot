@@ -133,6 +133,7 @@ public:
 	static bool IsOnHighGround(Point3D, Point3D);
 	static float GetTimeBuilt(const Unit*, float);
 	static AbilityID UnitToWarpInAbility(UNIT_TYPEID);
+	static UNIT_TYPEID GetBuildStructure(UNIT_TYPEID);
 	static int GetTrainingTime(UNIT_TYPEID);
 	static bool IsFacing(const Unit*, const Unit*);
 	static float GetFacingAngle(const Unit*, const Unit*);
@@ -159,6 +160,7 @@ public:
 	static bool IsMassive(UNIT_TYPEID);
 	static bool IsStructure(UNIT_TYPEID);
 	static bool IsMelee(UNIT_TYPEID);
+	static bool OnSameLevel(Point3D, Point3D);
 
 	static std::string AbilityIdToString(ABILITY_ID);
 

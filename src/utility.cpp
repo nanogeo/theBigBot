@@ -1557,6 +1557,8 @@ float Utility::GetGroundRange(const Unit* unit)
 	{
 	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
 		return 7.0f;
+	case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
+		return 6.0f;
 	case UNIT_TYPEID::PROTOSS_PROBE:
 		return .1f;
 	case UNIT_TYPEID::PROTOSS_ZEALOT:
@@ -1673,6 +1675,8 @@ float Utility::GetAirRange(const Unit* unit)
 	{
 	case UNIT_TYPEID::PROTOSS_PHOTONCANNON: // protoss
 		return 7.0f;
+	case UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
+		return 6.0f;
 	case UNIT_TYPEID::PROTOSS_SENTRY:
 		return 5.0f;
 	case UNIT_TYPEID::PROTOSS_STALKER:
@@ -2176,6 +2180,38 @@ AbilityID Utility::UnitToWarpInAbility(UNIT_TYPEID type)
 		return ABILITY_ID::TRAINWARP_DARKTEMPLAR;
 	default:
 		return ABILITY_ID::INVALID;
+	}
+}
+
+UNIT_TYPEID Utility::GetBuildStructure(UNIT_TYPEID type)
+{
+	switch (type)
+	{
+	case ZEALOT:
+	case SENTRY:
+	case STALKER:
+	case ADEPT:
+	case HIGH_TEMPLAR:
+	case DARK_TEMPLAR:
+		return GATEWAY;
+	case OBSERVER:
+	case PRISM:
+	case IMMORTAL:
+	case COLOSSUS:
+	case DISRUPTOR:
+		return ROBO;
+	case PHOENIX:
+	case VOID_RAY:
+	case ORACLE:
+	case CARRIER:
+	case TEMPEST:
+		return STARGATE;
+	case PROBE:
+	case MOTHERSHIP:
+		return NEXUS;
+	default:
+		std::cerr << "Error unknown unit in GetBuildStructure " << UnitTypeToName(type) << std::endl;
+		return UNIT_TYPEID::INVALID;
 	}
 }
 
@@ -3210,6 +3246,11 @@ bool Utility::IsMelee(UNIT_TYPEID type)
 		return true;
 	}
 	return false;
+}
+
+bool Utility::OnSameLevel(Point3D pos1, Point3D pos2)
+{
+	return pos1.z + .1 > pos2.z && pos1.z - .1 < pos2.z;
 }
 
 std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
