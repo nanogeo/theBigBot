@@ -2997,7 +2997,7 @@ bool Utility::IsArmored(UNIT_TYPEID type)
 	case CANNON:
 	case BATTERY:
 	case TWILIGHT:
-	case TEMPLAR_ARCHIVES:
+	case TEMPLAR_ARCHIVE:
 	case STARGATE:
 	case FLEET_BEACON:
 	case DARK_SHRINE:
@@ -3132,7 +3132,7 @@ bool Utility::IsStructure(UNIT_TYPEID type)
 	case CANNON:
 	case BATTERY:
 	case TWILIGHT:
-	case TEMPLAR_ARCHIVES:
+	case TEMPLAR_ARCHIVE:
 	case STARGATE:
 	case FLEET_BEACON:
 	case DARK_SHRINE:

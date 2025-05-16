@@ -703,7 +703,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type, int index)
 	case TWILIGHT:
 	case STARGATE:
 	case ROBO_BAY:
-	case TEMPLAR_ARCHIVES:
+	case TEMPLAR_ARCHIVE:
 	case DARK_SHRINE:
 	case FLEET_BEACON:
 	case FORGE:
@@ -720,7 +720,7 @@ Point2D Mediator::GetProxyLocation(UNIT_TYPEID unit_type)
 {
 	std::vector<Point2D> possible_locations;
 
-	std::vector<UNIT_TYPEID> tech_buildings = { FORGE, TWILIGHT, ROBO, ROBO_BAY, STARGATE, FLEET_BEACON, DARK_SHRINE, TEMPLAR_ARCHIVES };
+	std::vector<UNIT_TYPEID> tech_buildings = { FORGE, TWILIGHT, ROBO, ROBO_BAY, STARGATE, FLEET_BEACON, DARK_SHRINE, TEMPLAR_ARCHIVE };
 	if (std::find(tech_buildings.begin(), tech_buildings.end(), unit_type) != tech_buildings.end())
 	{
 		possible_locations = agent->locations->proxy_tech_locations;
