@@ -123,6 +123,7 @@ public:
 	bool ImmediatelySemiSaturateGasses(BuildOrderResultArgData);
 	bool CancelImmediatelySemiSaturateGasses(BuildOrderResultArgData);
 	bool BalanceIncome(BuildOrderResultArgData);
+	bool TrainUnit(BuildOrderResultArgData);
 	bool TrainStalker(BuildOrderResultArgData);
 	bool TrainAdept(BuildOrderResultArgData);
 	bool TrainZealot(BuildOrderResultArgData);
@@ -356,6 +357,15 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::BalanceIncome)
 		{
 			str += "balance income";
+		}
+		else if (result == &BuildOrderManager::TrainUnit)
+		{
+			str += "build ";
+			str += std::to_string(result_arg.amount);
+			str += ' ';
+			str += UnitTypeToName(result_arg.unitId);
+			if (result_arg.amount > 1)
+				str += 's';
 		}
 		else if (result == &BuildOrderManager::TrainStalker)
 		{

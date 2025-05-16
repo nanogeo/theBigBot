@@ -231,6 +231,50 @@ bool Mediator::CanBuildBuilding(UNIT_TYPEID unitId)
 	return Utility::CanBuildBuilding(unitId, agent->Observation());
 }
 
+bool Mediator::CanTrainUnit(UNIT_TYPEID unit_type)
+{
+	if (CanAfford(unit_type, 1) == false)
+		return false;
+
+	switch (unit_type)
+	{
+	case MOTHERSHIP:
+		if (GetUnits(Unit::Alliance::Self, IsFinishedUnit(NEXUS)).size() == 0)
+			return false;
+	case TEMPEST:
+	case CARRIER:
+		if (GetUnits(Unit::Alliance::Self, IsFinishedUnit(FLEET_BEACON)).size() == 0)
+			return false;
+	case ORACLE:
+	case VOID_RAY:
+	case PHOENIX:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(STARGATE)).size() > 0;
+	case DISRUPTOR:
+	case COLOSSUS:
+		if (GetUnits(Unit::Alliance::Self, IsFinishedUnit(ROBO_BAY)).size() == 0)
+			return false;
+	case PRISM:
+	case OBSERVER:
+	case IMMORTAL:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(ROBO)).size() > 0;
+	case HIGH_TEMPLAR:
+	case DARK_TEMPLAR:
+		if ((unit_type == HIGH_TEMPLAR && GetUnits(Unit::Alliance::Self, IsFinishedUnit(TEMPLAR_ARCHIVE)).size() == 0) ||
+			(unit_type == DARK_TEMPLAR && GetUnits(Unit::Alliance::Self, IsFinishedUnit(DARK_SHRINE)).size() == 0))
+			return false;
+	case SENTRY:
+	case ADEPT:
+	case STALKER:
+		if (GetUnits(Unit::Alliance::Self, IsFinishedUnit(CYBERCORE)).size() == 0)
+			return false;
+	case ZEALOT:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(GATEWAY)).size() > 0;
+	case PROBE:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(NEXUS)).size() > 0;
+
+	}
+}
+
 bool Mediator::IsUnitOccupied(const Unit* unit)
 {
 	for (ArmyGroup* army_group : army_manager.army_groups)

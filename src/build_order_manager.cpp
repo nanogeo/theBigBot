@@ -225,6 +225,34 @@ bool BuildOrderManager::BalanceIncome(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::TrainUnit(BuildOrderResultArgData data)
+{
+	if (mediator->GetGameLoop() % 2 == 0)
+		return false;
+
+	if (mediator->CanAfford(data.unitId, data.amount) && mediator->CanTrainUnit(data.unitId))
+	{
+		UNIT_TYPEID build_structure = Utility::GetBuildStructure(data.unitId);
+		Units structures_ready;
+		for (const auto& structure : mediator->GetUnits(IsFriendlyUnit(build_structure)))
+		{
+			if (structure->build_progress == 1 && structure->orders.size() == 0)
+			{
+				structures_ready.push_back(structure);
+			}
+		}
+		if (structures_ready.size() >= data.amount)
+		{
+			for (int i = 0; i < data.amount; i++)
+			{
+				mediator->SetUnitCommand(structures_ready[i], Utility::GetTrainAbility(data.unitId), 0);
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
 bool BuildOrderManager::TrainStalker(BuildOrderResultArgData data)
 {
 	if (mediator->CanAfford(STALKER, data.amount) && mediator->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0)
