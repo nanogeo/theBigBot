@@ -152,6 +152,11 @@ bool Mediator::IsPathable(Point2D pos)
 	return agent->Observation()->IsPathable(pos);
 }
 
+bool Mediator::IsBuildable(Point2D pos)
+{
+	return agent->Observation()->IsPlacable(pos);
+}
+
 bool Mediator::HasBuildingCompleted(UNIT_TYPEID buildingId)
 {
 	for (const auto& building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
@@ -379,6 +384,13 @@ void Mediator::LogMinorError()
 	}
 }
 
+void Mediator::DebugSphere(Point3D pos, float radius, Color color)
+{
+#ifndef BUILD_FOR_LADDER
+	agent->Debug()->DebugSphereOut(pos, radius, color);
+#endif 
+}
+
 const Unit* Mediator::GetBuilder(Point2D position)
 {
 	return worker_manager.GetBuilder(position);
@@ -565,7 +577,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 		}
 	}
 
-	std::vector<UNIT_TYPEID> tech_buildings = { FORGE, TWILIGHT, ROBO, ROBO_BAY, STARGATE, FLEET_BEACON, DARK_SHRINE, TEMPLAR_ARCHIVES };
+	std::vector<UNIT_TYPEID> tech_buildings = { FORGE, TWILIGHT, ROBO, ROBO_BAY, STARGATE, FLEET_BEACON, DARK_SHRINE, TEMPLAR_ARCHIVE };
 	if (std::find(tech_buildings.begin(), tech_buildings.end(), unit_type) != tech_buildings.end())
 	{
 		possible_locations = agent->locations->tech_locations;
@@ -614,7 +626,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 					in_energy_field = true;
 				}
 			}
-			if (building->unit_type == NEXUS && Distance2D(building->pos, point) < 22)
+			if (building->unit_type == NEXUS && Distance2D(building->pos, point) < 22 && Utility::OnSameLevel(building->pos, ToPoint3D(point)))
 				in_base = true;
 		}
 		if (in_base && !blocked && in_energy_field)
@@ -864,6 +876,8 @@ Point2D Mediator::FindLocation(UNIT_TYPEID unit_type, Point2D location)
 			for (float j = -7; j <= 6; j += 1)
 			{
 				Point2D curr_pos = pylon->pos + Point2D(i, j);
+				if (IsBuildable(curr_pos) == false)
+					continue;
 				if (Distance2D(location, enemy_main) < Distance2D(curr_pos, enemy_main))
 					continue;
 				bool blocked = false;
@@ -916,6 +930,87 @@ Point2D Mediator::FindLocation(UNIT_TYPEID unit_type, Point2D location)
 			return Distance2D(a, location) < Distance2D(b, location);
 		});
 	}
+
+	return possible_locations[0];
+}
+
+Point2D Mediator::FindBuildLocationNear(UNIT_TYPEID unit_type, Point2D location)
+{
+
+	std::vector<Point2D> spots;
+	Units pylons = GetUnits(Unit::Alliance::Self, IsFinishedUnit(UNIT_TYPEID::PROTOSS_PYLON));
+
+	std::sort(pylons.begin(), pylons.end(), [location](const Unit*& a, const Unit*& b) -> bool
+	{
+		return Distance2D(a->pos, location) < Distance2D(b->pos, location);
+	});
+
+	std::vector<Point2D> possible_locations;
+	for (const auto& pylon : pylons)
+	{
+		for (float i = -7; i <= 6; i += 1)
+		{
+			for (float j = -7; j <= 6; j += 1)
+			{
+				Point2D curr_pos = pylon->pos + Point2D(i, j);
+				if (agent->Query()->Placement(Utility::GetBuildAbility(unit_type), curr_pos))
+					possible_locations.push_back(curr_pos);
+			}
+		}
+	}
+
+	if (possible_locations.size() == 0)
+	{
+		std::cerr << "Error no viable point found in GetProxyLocation for type " << UnitTypeToName(unit_type) << std::endl;
+		LogMinorError();
+		return Point2D(0, 0);
+	}
+	
+	std::sort(possible_locations.begin(), possible_locations.end(), [location](const Point2D& a, const Point2D& b) -> bool
+	{
+		return Distance2D(a, location) < Distance2D(b, location);
+	});
+
+	return possible_locations[0];
+}
+
+Point2D Mediator::FindBuildLocationNearWithinNexusRange(UNIT_TYPEID unit_type, Point2D location)
+{
+
+	std::vector<Point2D> spots;
+	Units nexi = GetUnits(Unit::Alliance::Self, IsUnit(NEXUS));
+	Units pylons = GetUnits(Unit::Alliance::Self, IsFinishedUnit(UNIT_TYPEID::PROTOSS_PYLON));
+
+	std::sort(pylons.begin(), pylons.end(), [location](const Unit*& a, const Unit*& b) -> bool
+	{
+		return Distance2D(a->pos, location) < Distance2D(b->pos, location);
+	});
+
+	std::vector<Point2D> possible_locations;
+	for (const auto& pylon : pylons)
+	{
+		for (float i = -7; i <= 6; i += 1)
+		{
+			for (float j = -7; j <= 6; j += 1)
+			{
+				Point2D curr_pos = pylon->pos + Point2D(i, j);
+				if (Utility::DistanceToClosest(nexi, curr_pos) < RANGE_BATTERY_OVERCHARGE && agent->Query()->Placement(Utility::GetBuildAbility(unit_type), curr_pos))
+					possible_locations.push_back(curr_pos);
+			}
+		}
+	}
+
+	if (possible_locations.size() == 0)
+	{
+		std::cerr << "Error no viable point found in GetProxyLocation for type " << UnitTypeToName(unit_type) << std::endl;
+		LogMinorError();
+		return Point2D(0, 0);
+	}
+
+	std::sort(possible_locations.begin(), possible_locations.end(), [location](const Point2D& a, const Point2D& b) -> bool
+	{
+		return Distance2D(a, location) < Distance2D(b, location);
+	});
 
 	return possible_locations[0];
 }
@@ -1266,6 +1361,11 @@ void Mediator::BuildDefensiveBuilding(UNIT_TYPEID type, Point2D location)
 	worker_manager.RemoveWorker(builder);
 
 	action_manager.AddAction(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, type, pos)));
+}
+
+float Mediator::JudgeFight(Units enemy_units, Units friendly_units, float enemy_battery_energy, float friendly_battery_energy, bool sim_city)
+{
+	return defense_manager.JudgeFight(enemy_units, friendly_units, enemy_battery_energy, friendly_battery_energy, sim_city);
 }
 
 std::vector<OngoingAttack> Mediator::GetOngoingAttacks()

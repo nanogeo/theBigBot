@@ -72,6 +72,7 @@ public:
 	int GetSupplyCap();
 	ImageData GetPathingGrid();
 	bool IsPathable(Point2D);
+	bool IsBuildable(Point2D);
 	bool HasBuildingCompleted(UNIT_TYPEID);
 	bool HasBuildingUnderConstruction(UNIT_TYPEID);
 	bool HasBuildingStarted(UNIT_TYPEID);
@@ -84,6 +85,7 @@ public:
 	bool CanAffordUpgrade(UPGRADE_ID);
 	bool CheckUpgrade(UPGRADE_ID);
 	bool CanBuildBuilding(UNIT_TYPEID);
+	bool CanTrainUnit(UNIT_TYPEID);
 	bool IsUnitOccupied(const Unit*);
 	int GetUpgradeLevel(UpgradeType);
 	const Unit* GetMostRecentBuilding(UNIT_TYPEID);
@@ -96,6 +98,7 @@ public:
 
 	void SendChat(std::string, ChatChannel);
 	void LogMinorError();
+	void DebugSphere(Point3D, float, Color);
 
 	const Unit* GetBuilder(Point2D);
 	bool BuildBuilding(UNIT_TYPEID);
@@ -127,6 +130,8 @@ public:
 	Point2D GetNaturalDefensiveLocation(UNIT_TYPEID);
 	Point2D GetFirstPylonLocation();
 	Point2D FindLocation(UNIT_TYPEID, Point2D);
+	Point2D FindBuildLocationNear(UNIT_TYPEID, Point2D);
+	Point2D FindBuildLocationNearWithinNexusRange(UNIT_TYPEID, Point2D);
 
 	void ContinueBuildingPylons();
 	void ContinueMakingWorkers();
@@ -162,6 +167,7 @@ public:
 	void AddToDefense(int, int);
 	void AddToDefense(Point2D, int);
 	void BuildDefensiveBuilding(UNIT_TYPEID, Point2D);
+	float JudgeFight(Units, Units, float, float, bool);
 	
 	std::vector<OngoingAttack> GetOngoingAttacks();
 	float GetWorstOngoingAttackValue();
