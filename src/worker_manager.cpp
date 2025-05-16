@@ -815,9 +815,9 @@ void WorkerManager::DistributeWorkers()
 			}
 		}
 		const Unit* assimilator = assimilators_reversed[worker].assimilator;
-		if (assimilators[assimilator].workers[2] != nullptr)
+		if (assimilators[assimilator].workers[1] != nullptr)
 		{
-			// 3 workers assigned to gas
+			// 2 or 3 workers assigned to gas
 			if (worker->orders.size() == 0 || worker->orders[0].ability_id == ABILITY_ID::ATTACK)
 			{
 				mediator->SetUnitCommand(worker, ABILITY_ID::SMART, assimilator, 0);
