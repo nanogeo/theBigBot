@@ -91,6 +91,13 @@ bool BuildOrderManager::HasBuildingStarted(Condition data)
 	return false;
 }
 
+bool BuildOrderManager::HasNumBuildingStarted(Condition data)
+{
+	if (mediator->GetUnits(IsFriendlyUnit(data.unitId)).size() >= data.amount)
+		return true;
+	return false;
+}
+
 bool BuildOrderManager::IsResearching(Condition data)
 {
 	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
@@ -1275,7 +1282,7 @@ void BuildOrderManager::SetChargeAllInInterrupt()
 					Data(&BuildOrderManager::TimePassed,			Condition(127.0f),				&BuildOrderManager::BuildBuilding,					Result(TWILIGHT)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::ResearchWarpgate,				Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::ChronoBuilding,					Result(CYBERCORE)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::TrainAdept,						Result(ADEPT, 1)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::TrainUnit,						Result(ADEPT, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(152.0f),				&BuildOrderManager::PullOutOfGas,					Result(2)),
 					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),				&BuildOrderManager::BuildBuilding,					Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),				&BuildOrderManager::BuildBuilding,					Result(GATEWAY)),
@@ -1285,7 +1292,7 @@ void BuildOrderManager::SetChargeAllInInterrupt()
 					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),			&BuildOrderManager::ChronoTillFinished,				Result(TWILIGHT)),
 					Data(&BuildOrderManager::NumWorkers,			Condition(32),					&BuildOrderManager::CutWorkers,						Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(189.0f),				&BuildOrderManager::BuildBuildingMulti,				Result({GATEWAY, GATEWAY, GATEWAY, GATEWAY, GATEWAY, GATEWAY})),
-					Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::TrainPrism,						Result(PRISM)),
+					Data(&BuildOrderManager::HasNumBuildingStarted,	Condition(GATEWAY, 8),			&BuildOrderManager::TrainUnit,						Result(PRISM, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::OptionalChronoBuilding,			Result(ROBO)),
 					//Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::IncreaseExtraPylons,			Result(1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::ContinueBuildingPylons,			Result()),

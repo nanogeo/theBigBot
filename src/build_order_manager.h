@@ -106,6 +106,7 @@ public:
 	bool NumWorkers(BuildOrderConditionArgData);
 	bool HasBuilding(BuildOrderConditionArgData);
 	bool HasBuildingStarted(BuildOrderConditionArgData);
+	bool HasNumBuildingStarted(BuildOrderConditionArgData);
 	bool IsResearching(BuildOrderConditionArgData);
 	bool HasGas(BuildOrderConditionArgData);
 	bool HasUnits(BuildOrderConditionArgData);
@@ -280,6 +281,12 @@ struct BuildOrderData
 			str += "a ";
 			str += UnitTypeToName(condition_arg.unitId);
 			str += " has started building, ";
+		}
+		else if (condition == &BuildOrderManager::HasNumBuildingStarted)
+		{
+			str += condition_arg.amount + "a ";
+			str += UnitTypeToName(condition_arg.unitId);
+			str += " have started building, ";
 		}
 		else if (condition == &BuildOrderManager::IsResearching)
 		{
