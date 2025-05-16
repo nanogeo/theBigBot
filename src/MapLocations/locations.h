@@ -109,6 +109,8 @@ public:
 
 	std::vector<Point2D> defensive_natural_battery_locations;
 
+	Point2D gateway_walloff;
+
 	std::vector<Point2D> attack_path_short;
 	PathManager attack_path_short_line;
     std::vector<Point2D> attack_path;
@@ -164,6 +166,8 @@ public:
 	Point2D worker_rush_defense_attack;
 
 	std::vector<Point2D> warp_prism_locations;
+
+	Point2D main_ramp_forcefield;
 
     Locations() {}
 	// TODO take a Point2D not Point3D

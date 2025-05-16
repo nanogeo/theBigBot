@@ -148,6 +148,7 @@ public:
 	void OutsideControl();
 	void ScoutBases();
 	void DenyBase();
+	void DefendMainRamp();
 
 	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>, bool = false);
 	int AttackLine(Units, float, float, std::vector<std::vector<UNIT_TYPEID>>, bool = false);

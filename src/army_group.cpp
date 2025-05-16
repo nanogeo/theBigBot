@@ -1524,6 +1524,139 @@ namespace sc2 {
 			mediator->MarkArmyGroupForDeletion(this);
 	}
 
+	void ArmyGroup::DefendMainRamp()
+	{
+		for (int i = 0; i < new_units.size(); i++)
+		{
+			AddUnit(new_units[i]);
+			i--;
+		}
+		Units enemy_units = mediator->GetUnits(Unit::Alliance::Enemy);
+
+		// if supply > x, kill walloff gateway and move attack
+		if (all_units.size() > 12 && 
+			(enemy_units.size() == 0 ||
+			mediator->JudgeFight(all_units, enemy_units, 0, 0, false) > 50 || 
+			Utility::DistanceToClosest(enemy_units, target_pos) > 3))
+		{
+			Point2D walloff_pos = mediator->GetWallOffLocation(GATEWAY);
+			const Unit* walloff_gate = Utility::ClosestUnitTo(mediator->GetUnits(Unit::Alliance::Self, IsUnits({ GATEWAY, WARP_GATE })), walloff_pos);
+			if (Distance2D(walloff_pos, walloff_gate->pos) < 1)
+			{
+				mediator->SetUnitsCommand(all_units, ABILITY_ID::ATTACK, walloff_gate, 1);
+			}
+			else
+			{
+				mediator->CreateArmyGroup(ArmyRole::attack, { ADEPT, STALKER, SENTRY }, desired_units, max_units);
+				mediator->MarkArmyGroupForDeletion(this);
+				mediator->SetUnitsCommand(all_units, ABILITY_ID::ATTACK, mediator->GetEnemyStartLocation(), 1);
+			}
+			return;
+		}
+
+		// else 
+		for (const auto& unit : all_units)
+		{
+			// if enemies get too close, kite away individually
+			const Unit* closest_enemy = Utility::ClosestTo(enemy_units, unit->pos);
+			if (Distance2D(closest_enemy->pos, unit->pos) < 3)
+				mediator->SetUnitCommand(unit, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(closest_enemy->pos, unit->pos, Distance2D(closest_enemy->pos, unit->pos) + 2), 1);
+			else if (Distance2D(unit->pos, target_pos) > 6) // move units close to ramp
+				mediator->SetUnitCommand(unit, ABILITY_ID::MOVE_MOVE, target_pos, 1);
+
+			// attack enemies on ramp
+			if (unit->weapon_cooldown == 0)
+				mediator->AddUnitToAttackers(unit);
+		}
+		
+		// battery overcharge to heal buildings/units
+		Units batteries = mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(BATTERY));
+		Units nexi = mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS));
+		if (mediator->IsBatteryOverchargeOffCooldown() && batteries.size() > 0 && nexi.size() > 0)
+		{
+			for (const auto& building : mediator->GetUnits(Unit::Alliance::Self, IsBuilding()))
+			{
+				if (building->health / building->health_max < .75 && building->shield < 1)
+				{
+					mediator->SetUnitCommand(Utility::ClosestTo(nexi, building->pos), ABILITY_ID::BATTERYOVERCHARGE, Utility::ClosestTo(batteries, building->pos), 1);
+					break;
+				}
+			}
+		}
+		bool overcharge_active = false;
+		for (const auto& battery : batteries)
+		{
+			for (const auto& buff : battery->buffs)
+			{
+				if (buff == BUFF_ID::BATTERYOVERCHARGE)
+				{
+					overcharge_active = true;
+					break;
+				}
+			}
+			//if (overcharge_active == false)
+			//	continue;
+
+			Units close_units = mediator->GetUnits(Unit::Alliance::Self);
+			for (auto itr = close_units.begin(); itr != close_units.end();)
+			{
+				if ((*itr)->build_progress < 1|| 
+					Distance2D((*itr)->pos, battery->pos) > Utility::RealRange(battery, (*itr)) ||
+					((*itr)->shield == (*itr)->shield_max && overcharge_active) ||
+					(((*itr)->shield > 10 || (*itr)->health > 50) && overcharge_active == false))
+				{
+					itr = close_units.erase(itr);
+				}
+				else
+				{
+					itr++;
+				}
+			}
+			if (close_units.size() > 0)
+			{
+				// sort from least to most health
+				std::sort(close_units.begin(), close_units.end(), [](const Unit*& a, const Unit*& b) -> bool
+				{
+					return a->health + a->shield < b->health + b->shield;
+				});
+				mediator->SetUnitCommand(battery, ABILITY_ID::SMART, close_units[0], 1);
+				mediator->DebugSphere(close_units[0]->pos, 2, Color(255, 0, 0));
+			}
+
+			break;
+		}
+
+		// forcefield if necessary
+		if (overcharge_active == false && 
+			Utility::DistanceToClosest(mediator->GetUnits(IsUnit(UNIT_TYPEID::NEUTRAL_FORCEFIELD)), target_pos) > .1 &&
+			enemy_units.size() > 2 &&
+			Distance2D(Utility::NthClosestTo(enemy_units, target_pos, 2)->pos, target_pos) < 3)
+		{
+			Units available_sentries;
+			bool forcefield_cast = false;
+			for (const auto& sentry : sentries)
+			{
+				if (sentry->energy >= 50)
+				{
+					if (Distance2D(sentry->pos, target_pos) < 9)
+					{
+						mediator->SetUnitCommand(sentry, ABILITY_ID::EFFECT_FORCEFIELD, target_pos, 10);
+						forcefield_cast = true;
+						break;
+					}
+					else
+					{
+						available_sentries.push_back(sentry);
+					}
+				}
+			}
+			if (forcefield_cast == false && available_sentries.size() > 0)
+			{
+				mediator->SetUnitCommand(Utility::ClosestTo(available_sentries, target_pos), ABILITY_ID::EFFECT_FORCEFIELD, target_pos, 10);
+			}
+		}
+	}
+
 	// returns: 0 - normal operation, 1 - all units dead or in standby, 2 - reached the end of the attack path
 	int ArmyGroup::AttackLine(float dispersion, float target_range, std::vector<std::vector<UNIT_TYPEID>> target_priority, bool limit_advance)
 	{

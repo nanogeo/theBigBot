@@ -27,7 +27,7 @@ namespace sc2 {
 		};
 
 		bool swap = start.x == 29.5 && start.y == 138.5;
-
+		
 		this->start_location = start;
 
 		base_locations = { P(130.5, 21.5),
@@ -67,17 +67,16 @@ namespace sc2 {
 							P(141, 20),
 							P(132, 11) };
 
-		
 		first_pylon_location_zerg = P(123, 48);
 		first_pylon_location_protoss = P(121, 35);
 		first_pylon_location_terran = P(116, 37);
 
-		gateway_locations = { P(118.5, 37.5),
-							P(118.5, 34.5),
+		gateway_locations = { P(122.5, 37.5),
 							P(115.5, 31.5),
 							P(118.5, 31.5),
-							P(122.5, 37.5),
-							P(123.5, 34.5),
+							P(118.5, 37.5),
+							P(118.5, 34.5),
+							P(117.5, 37.5),
 							P(120.5, 52.5),
 							P(120.5, 48.5),
 							P(88.75, 27.75),
@@ -109,7 +108,7 @@ namespace sc2 {
 									P(128.5, 79.5),
 									P(138.5, 89.5) };
 
-		cyber_core_locations = { P(115.5, 34.5),
+		cyber_core_locations = { P(123.5, 34.5),
 									P(120.5, 32.5),
 									P(120.5, 45.5) };
 
@@ -134,6 +133,7 @@ namespace sc2 {
 												P(125, 48),
 												P(126, 52) };
 
+		gateway_walloff = P(126.5, 33.5);
 
 		attack_path_short = { P(123, 50),
 								P(118.5, 50.1),
@@ -305,6 +305,8 @@ namespace sc2 {
 								P(40, 148),
 								P(22, 118),
 								P(42, 80) };
+
+		main_ramp_forcefield = P(125, 37);
 	}
 	
 }

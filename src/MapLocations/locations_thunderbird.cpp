@@ -73,14 +73,13 @@ namespace sc2 {
 							P(124, 33),
 							P(144, 14),
 							P(159, 14) };
-
 		
 		first_pylon_location_zerg = P(143, 50);
-		first_pylon_location_protoss = P(156, 35);
+		first_pylon_location_protoss = P(157, 35);
 		first_pylon_location_terran = P(138, 33);
 
 		gateway_locations = { P(155.5, 37.5),
-							P(158.5, 36.5),
+							P(159.5, 38.5),
 							P(136.25, 30.25),
 							P(140.75, 34.25),
 							P(136.5, 27.5),
@@ -122,7 +121,7 @@ namespace sc2 {
 									P(76.5, 48.5),
 									P(73.5, 52.5 ) };
 
-		cyber_core_locations = { P(153.5, 34.5),
+		cyber_core_locations = { P(154.5, 34.5),
 									P(140.25, 34.25),
 									P(140.5, 53.5) };
 
@@ -147,6 +146,8 @@ namespace sc2 {
 												P(143, 55),
 												P(145, 55),
 												P(147, 50) };
+
+		gateway_walloff = P(151.5, 33.5);
 
 		attack_path_short = { P(142, 49),
 								P(137.5, 51),
@@ -314,6 +315,8 @@ namespace sc2 {
 								P(30, 142),
 								P(31, 109),
 								P(55, 78) };
+
+		main_ramp_forcefield = P(153, 37);
 	}
 	
 }

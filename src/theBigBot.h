@@ -161,6 +161,147 @@ public:
 	}
 };
 
+class ZealotRushBot : public sc2::Agent {
+public:
+	ZealotRushBot() : Agent() {};
+	const Unit* probe = nullptr;
+
+
+	virtual void OnGameStart()
+	{
+		//Debug()->DebugGiveAllUpgrades();
+		//Debug()->DebugFastBuild();
+		//Debug()->DebugGiveAllResources();
+		Debug()->SendDebug();
+	}
+
+	virtual void OnStep()
+	{
+		// abyssal reef
+		Point2D rally = Point2D(56, 118);
+		Point2D pylon = Point2D(77, 99);
+		Point2D pylon2 = pylon + Point2D(2, 3);
+		std::vector<Point2D> gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
+		Point2D swap = Point2D(200, 144);
+		if (Observation()->GetStartLocation().x == 38.5 && Observation()->GetStartLocation().y == 122.5)
+		{
+		// acropolis
+		/*Point2D rally = Point2D(136, 50);
+		Point2D pylon = Point2D(113, 65);
+		Point2D pylon2 = pylon + Point2D(2, 3);
+		std::vector<Point2D> gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
+		Point2D swap = Point2D(176, 172);
+		if (Observation()->GetStartLocation().x == 142.5 && Observation()->GetStartLocation().y == 33.5)
+		{*/
+		// automation
+		/*Point2D rally = Point2D(34, 50);
+		Point2D pylon = Point2D(62, 65);
+		Point2D pylon2 = pylon + Point2D(2, 3);
+		std::vector<Point2D> gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
+		Point2D swap = Point2D(184, 180);
+		if (Observation()->GetStartLocation().x == 29.5 && Observation()->GetStartLocation().y == 65.5)
+		{*/
+		// ephemeron
+		/*Point2D rally = Point2D(34, 122);
+		Point2D pylon = Point2D(60, 99);
+		Point2D pylon2 = pylon + Point2D(2, 3);
+		std::vector<Point2D> gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
+		Point2D swap = Point2D(160, 160);
+		if (Observation()->GetStartLocation().x == 29.5 && Observation()->GetStartLocation().y == 138.5)
+		{*/
+		// interloper
+		/*Point2D rally = Point2D(34, 122);
+		Point2D pylon = Point2D(50, 117);
+		Point2D pylon2 = pylon + Point2D(2, 3);
+		std::vector<Point2D> gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
+		Point2D swap = Point2D(152, 168);
+		if (Observation()->GetStartLocation().x == 26.5 && Observation()->GetStartLocation().y == 137.5)
+		{*/
+		// thunderbird
+		/*Point2D rally = Point2D(40, 118);
+		Point2D pylon = Point2D(70, 95);
+		Point2D pylon2 = pylon + Point2D(2, 3);
+		std::vector<Point2D> gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
+		Point2D swap = Point2D(192, 156);
+		if (Observation()->GetStartLocation().x == 38.5 && Observation()->GetStartLocation().y == 133.5)
+		{*/
+			rally = swap - rally;
+			pylon = swap - pylon;
+			pylon2 = swap - pylon2;
+			for (int i = 0; i < 4; i++)
+			{
+				gates[i] = swap - gates[i];
+			}
+
+		}
+
+
+		if (probe == nullptr && Observation()->GetUnits(IsUnit(PROBE)).size() > 0)
+			probe = Observation()->GetUnits(IsUnit(PROBE))[0];
+		
+		if (Observation()->GetUnits(IsUnit(NEXUS)).size() > 0 &&
+			Observation()->GetUnits(IsUnit(NEXUS))[0]->orders.size() == 0 &&
+			Observation()->GetUnits(IsUnit(PROBE)).size() < 14)
+			Actions()->UnitCommand(Observation()->GetUnits(IsUnit(NEXUS))[0], ABILITY_ID::TRAIN_PROBE);
+
+		if (Observation()->GetUnits(IsUnit(PYLON)).size() == 0)
+		{
+			if (Distance2D(probe->pos, pylon) > 1)
+				Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, pylon);
+			else
+				Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon);
+		}
+		else if (Observation()->GetUnits(IsUnit(GATEWAY)).size() < 4)
+		{
+			Point2D gate_pos = gates[Observation()->GetUnits(IsUnit(GATEWAY)).size()];
+
+			if (Distance2D(probe->pos, gate_pos) > 1)
+				Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, gate_pos);
+			else
+				Actions()->UnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, gate_pos);
+		}
+		else if (Observation()->GetUnits(IsUnit(PYLON)).size() < 2)
+		{
+			if (Distance2D(probe->pos, pylon2) > 1)
+				Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, pylon2);
+			else
+				Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon2);
+		}
+
+		if (Observation()->GetGameLoop() % 5 == 0)
+			return;
+
+		for (const auto& gate : Observation()->GetUnits(IsUnit(GATEWAY)))
+		{
+			if (gate->build_progress < 1)
+				Actions()->UnitCommand(gate, ABILITY_ID::SMART, rally);
+
+			if (gate->build_progress == 1 && gate->orders.size() == 0)
+				Actions()->UnitCommand(gate, ABILITY_ID::TRAIN_ZEALOT);
+		}
+		for (const auto& nexus : Observation()->GetUnits(IsUnit(NEXUS)))
+		{
+			if (nexus->energy > 50)
+			{
+				bool ignore = false;
+				for (const auto& gate : Observation()->GetUnits(IsUnit(GATEWAY)))
+				{
+					for (const auto& buff : gate->buffs)
+					{
+						if (buff == BUFF_ID::CHRONOBOOSTENERGYCOST)
+							ignore = true;
+					}
+					if (ignore == false)
+					{
+						Actions()->UnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, gate);
+						break;
+					}
+				}
+			}
+		}
+	}
+};
+
 class TheBigBot : public sc2::Agent
 {
 public:

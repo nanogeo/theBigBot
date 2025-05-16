@@ -299,7 +299,8 @@ enum ArmyRole
 	observer_scout,
 	oracle_harass,
 	scout_bases,
-	deny_outer_base
+	deny_outer_base,
+	defend_main_ramp
 };
 
 const std::map<ArmyRole, std::string> ARMY_ROLE_TO_STRING = {	{ArmyRole::none, "None"},
@@ -317,7 +318,8 @@ const std::map<ArmyRole, std::string> ARMY_ROLE_TO_STRING = {	{ArmyRole::none, "
 																{ArmyRole::observer_scout, "Observer scout"},
 																{ArmyRole::oracle_harass, "Oracle harass"},
 																{ArmyRole::scout_bases, "Scout bases"},
-																{ArmyRole::deny_outer_base, "Deny outer base"} };
+																{ArmyRole::deny_outer_base, "Deny outer base"},
+																{ArmyRole::defend_main_ramp, "Defend main ramp"} };
 
 struct ScoutInfoZerg
 {

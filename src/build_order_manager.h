@@ -166,6 +166,7 @@ public:
 	bool StartChargelotAllIn(BuildOrderResultArgData);
 	bool RemoveScoutToProxy(BuildOrderResultArgData);
 	bool SafeRallyPoint(BuildOrderResultArgData);
+	bool SafeRallyPointFromRamp(BuildOrderResultArgData);
 	bool DTHarass(BuildOrderResultArgData);
 	bool UseProxyDoubleRobo(BuildOrderResultArgData);
 	bool MicroImmortalDrop(BuildOrderResultArgData);
@@ -182,6 +183,7 @@ public:
 	bool SendAdeptHarassProtoss(BuildOrderResultArgData);
 	bool CheckForEarlyPool(BuildOrderResultArgData);
 	bool BuildNaturalDefensiveBuilding(BuildOrderResultArgData);
+	bool BuildMainDefensiveBuilding(BuildOrderResultArgData);
 	bool ReturnToOracleGatewaymanPvZ(BuildOrderResultArgData);
 	bool ReturnTo4GateBlink(BuildOrderResultArgData);
 	bool SetUnitProduction(BuildOrderResultArgData);
@@ -193,6 +195,8 @@ public:
 	bool CheckForProxyRax(BuildOrderResultArgData);
 	bool CheckProtossOpenning(BuildOrderResultArgData);
 	bool ScoutBases(BuildOrderResultArgData);
+	bool WallOffRamp(BuildOrderResultArgData);
+	bool DefendMainRamp(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string
@@ -225,6 +229,7 @@ public:
 	void SetMinorProxyRaxResponse();
 	void SetMajorProxyRaxResponse();
 	void SetWorkerRushDefense();
+	void SetProxyGateResponse();
 
 };
 
@@ -569,6 +574,10 @@ struct BuildOrderData
 		{
 			str += "change rally point to safe pos";
 		}
+		else if (result == &BuildOrderManager::SafeRallyPointFromRamp)
+		{
+			str += "change rally point to away from ramp";
+		}
 		else if (result == &BuildOrderManager::DTHarass)
 		{
 			str += "start DT harass";
@@ -629,6 +638,10 @@ struct BuildOrderData
 		{
 			str += "build defensive building at natural";
 		}
+		else if (result == &BuildOrderManager::BuildMainDefensiveBuilding)
+		{
+			str += "build defensive building in main";
+			}
 		else if (result == &BuildOrderManager::ReturnToOracleGatewaymanPvZ)
 		{
 			str += "return to oracle gatewayman PvZ";
@@ -672,7 +685,11 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::ScoutBases)
 		{
 			str += "scout bases";
-			}
+		}
+		else if (result == &BuildOrderManager::WallOffRamp)
+		{
+			str += "wall off ramp";
+		}
 
 		return str;
 	}

@@ -69,7 +69,6 @@ namespace sc2 {
 							P(27, 79),
 							P(27, 92),
 							P(37, 135) };
-
 		
 		first_pylon_location_zerg = P(34, 108);
 		first_pylon_location_protoss = P(45, 125);
@@ -146,6 +145,8 @@ namespace sc2 {
 												P(32, 108),
 												P(36, 112),
 												P(31, 110) };
+
+		gateway_walloff = P(39.5, 126.5);
 
 		attack_path_short = { P(36, 104.5),
 								P(37, 100.5),
@@ -311,6 +312,8 @@ namespace sc2 {
 								P(136, 24),
 								P(154, 58),
 								P(148, 94) };
+
+		main_ramp_forcefield = P(41, 123);
 	}
 	
 }

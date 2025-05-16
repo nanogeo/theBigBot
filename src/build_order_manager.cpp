@@ -741,6 +741,17 @@ bool BuildOrderManager::SafeRallyPoint(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::SafeRallyPointFromRamp(BuildOrderResultArgData data)
+{
+	for (const auto& building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
+	{
+		float dist = Distance2D(mediator->GetMainRampForcefieldLocation(), building->pos);
+		Point2D pos = Utility::PointBetween(mediator->GetMainRampForcefieldLocation(), building->pos, dist + 2);
+		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos, 0);
+	}
+	return true;
+}
+
 bool BuildOrderManager::DTHarass(BuildOrderResultArgData data)
 {
 	/*if (mediator->enemy_race == Race::Terran)
@@ -889,7 +900,7 @@ bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
 bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 {
 	ScoutInfoZerg info = mediator->GetScoutInfoZerg();
-	
+
 	if (info.third_timing != 0 && info.third_timing < 90)
 	{
 		// 3 hatch before pool
@@ -948,6 +959,20 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 bool BuildOrderManager::BuildNaturalDefensiveBuilding(BuildOrderResultArgData data)
 {
 	Point2D pos = mediator->GetNaturalDefensiveLocation(data.unitId);
+	const Unit* builder = mediator->GetBuilder(pos);
+	if (builder == nullptr)
+	{
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		return false;
+	}
+	mediator->RemoveWorker(builder);
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
+	return true;
+}
+
+bool BuildOrderManager::BuildMainDefensiveBuilding(BuildOrderResultArgData data)
+{
+	Point2D pos = mediator->FindBuildLocationNearWithinNexusRange(data.unitId, mediator->GetFirstPylonLocation());
 	const Unit* builder = mediator->GetBuilder(pos);
 	if (builder == nullptr)
 	{
@@ -1049,12 +1074,12 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
 {
 	build_order_step = 0;
-	Set2GateProxyRobo();
 	if (mediator->scouting_manager.enemy_unit_counts[FORGE] > 0)
 	{
 		// cannon rush
 		build_order_step = 0;
 		mediator->SendChat("Tag:scout_cannon_rush", ChatChannel::Team);
+		Set2GateProxyRobo();
 		return false;
 	}
 	switch (mediator->scouting_manager.enemy_unit_counts[GATEWAY])
@@ -1063,16 +1088,19 @@ bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
 		// proxy
 		build_order_step = 0;
 		mediator->SendChat("Tag:scout_proxy_gate", ChatChannel::Team);
+		SetProxyGateResponse();
 		break;
 	case 1:
 		// 1 gate expand
 		build_order_step = 0;
 		mediator->SendChat("Tag:scout_1_gate_expand", ChatChannel::Team);
+		Set2GateProxyRobo();
 		break;
 	case 2:
 		// 2 gate
 		build_order_step = 0;
 		mediator->SendChat("Tag:scout_2_gate", ChatChannel::Team);
+		Set2GateProxyRobo();
 		break;
 	}
 	return false;
@@ -1081,6 +1109,26 @@ bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
 bool BuildOrderManager::ScoutBases(BuildOrderResultArgData data)
 {
 	mediator->CreateArmyGroup(ArmyRole::scout_bases, { ADEPT, STALKER }, 1, 1);
+	return true;
+}
+
+bool BuildOrderManager::WallOffRamp(BuildOrderResultArgData data)
+{
+	Point2D pos = mediator->GetWallOffLocation(data.unitId);
+	const Unit* builder = mediator->GetBuilder(pos);
+	if (builder == nullptr)
+	{
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		return false;
+	}
+	mediator->BuildBuilding(data.unitId, pos, builder);
+	return true;
+}
+
+bool BuildOrderManager::DefendMainRamp(BuildOrderResultArgData data)
+{
+	mediator->CreateArmyGroup(ArmyRole::defend_main_ramp, {ADEPT, STALKER, SENTRY}, 10, 20);
+	mediator->MarkArmyGroupForDeletion(mediator->GetArmyGroupDefendingBase(mediator->GetStartLocation()));
 	return true;
 }
 
@@ -1360,6 +1408,30 @@ void BuildOrderManager::SetWorkerRushDefense()
 					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::ContinueChronos,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::ZealotSimpleAttack,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
+	};
+}
+
+
+void BuildOrderManager::SetProxyGateResponse()
+{
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::WallOffRamp,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(73.0f),			&BuildOrderManager::BuildBuilding,						Result(CYBERCORE)),
+					Data(&BuildOrderManager::TimePassed,			Condition(94.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(98.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(ADEPT, 1)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(SENTRY, 1)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::SafeRallyPointFromRamp,				Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(127.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(142.0f),			&BuildOrderManager::TrainUnit,							Result(ADEPT, 1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(142.0f),			&BuildOrderManager::DefendMainRamp,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::TrainUnit,							Result(SENTRY, 1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
 	};
 }
 

@@ -1015,6 +1015,24 @@ Point2D Mediator::FindBuildLocationNearWithinNexusRange(UNIT_TYPEID unit_type, P
 	return possible_locations[0];
 }
 
+Point2D Mediator::GetWallOffLocation(UNIT_TYPEID unit_type)
+{
+	switch (unit_type)
+	{
+	case GATEWAY:
+		return agent->locations->gateway_walloff;
+	default:
+		std::cerr << "Error: unknown unit type passed into GetWallOffLocation " << UnitTypeToName(unit_type) << std::endl;
+		LogMinorError();
+		return Point2D(0, 0);
+	}
+}
+
+Point2D Mediator::GetMainRampForcefieldLocation()
+{
+	return agent->locations->main_ramp_forcefield;
+}
+
 void Mediator::ContinueBuildingPylons()
 {
 	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));

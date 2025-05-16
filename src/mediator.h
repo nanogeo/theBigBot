@@ -132,6 +132,8 @@ public:
 	Point2D FindLocation(UNIT_TYPEID, Point2D);
 	Point2D FindBuildLocationNear(UNIT_TYPEID, Point2D);
 	Point2D FindBuildLocationNearWithinNexusRange(UNIT_TYPEID, Point2D);
+	Point2D GetWallOffLocation(UNIT_TYPEID);
+	Point2D GetMainRampForcefieldLocation();
 
 	void ContinueBuildingPylons();
 	void ContinueMakingWorkers();
