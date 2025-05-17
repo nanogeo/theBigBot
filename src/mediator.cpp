@@ -251,6 +251,7 @@ bool Mediator::CanBuildBuilding(UNIT_TYPEID unit_type)
 	case STARGATE:
 	case ROBO:
 	case TWILIGHT:
+	case BATTERY:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(CYBERCORE)).size() > 0;
 	case CYBERCORE:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(GATEWAY)).size() > 0;
