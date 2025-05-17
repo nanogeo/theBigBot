@@ -114,6 +114,7 @@ public:
 	static Point2D MedianCenter(std::vector<Point2D>);
 	static const Unit* GetMostDamagedUnit(Units);
 	static Point2D PointBetween(Point2D, Point2D, float);
+	static Point2D RunAwayCircle(Point2D, Point2D, float, float);
 	static Point2D ClosestIntersectionTo(Point2D, double, Point2D, double, Point2D);
 	static int DangerLevel(const Unit *, const ObservationInterface*);
 	static int DangerLevelAt(const Unit *, Point2D, const ObservationInterface*);

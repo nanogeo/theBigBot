@@ -701,13 +701,47 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 	//int build_time = data->index;
 	const Unit* scout = data->unit;
 
+	
 	if (Distance2D(scout->pos, data->position) > 1 && !pylon_placed)
 	{
 		mediator->SetUnitCommand(scout, ABILITY_ID::GENERAL_MOVE, data->position, 0);
 	}
-	else if (Distance2D(scout->pos, data->position) < 1 && !pylon_placed && mediator->GetGameLoop() / FRAME_TIME >= data->index)
+	else if (Distance2D(scout->pos, data->position) < 5 && !pylon_placed)
 	{
-		mediator->SetUnitCommand(scout, ABILITY_ID::BUILD_PYLON, data->position, 0);
+		if (mediator->GetGameLoop() / FRAME_TIME >= data->index)
+		{
+			mediator->SetUnitCommand(scout, ABILITY_ID::BUILD_PYLON, data->position, 0);
+		}
+		else if (Utility::DistanceToClosest(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), scout->pos) < 3)
+		{
+			const Unit* enemy = Utility::ClosestTo(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), scout->pos);
+			if (Utility::GetUnitsThatCanAttack(mediator->GetUnits(Unit::Alliance::Enemy), scout, 0).size() > 0)
+			{
+				const Unit* base_minerals = Utility::ClosestTo(mediator->GetUnits(IsUnits(MINERAL_PATCH)), mediator->GetStartLocation());
+				if (base_minerals == nullptr)
+				{
+					std::cerr << "Error could not find minerals close to " << std::to_string(mediator->GetStartLocation().x) << ", " << std::to_string(mediator->GetStartLocation().y) <<
+						" in ActionManager::ActionRemoveScoutToProxy" << std::endl;
+					mediator->LogMinorError();
+				}
+				else
+				{
+					mediator->SetUnitCommand(scout, ABILITY_ID::SMART, base_minerals, 1);
+				}
+			}
+			else
+			{
+				Point2D run_away_pos = Point2D(0, 0);
+				float angle = 15;
+				while (mediator->IsPathable(run_away_pos) == false)
+				{
+					run_away_pos = Utility::RunAwayCircle(enemy->pos, scout->pos, 2, angle);
+					angle += 15;
+				}
+				mediator->DebugSphere(mediator->ToPoint3D(run_away_pos), .5, Color(0, 0, 255));
+				mediator->SetUnitCommand(scout, ABILITY_ID::GENERAL_MOVE, run_away_pos, 1);
+			}
+		}
 	}
 	else if (pylon_placed)
 	{
@@ -716,12 +750,42 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 			mediator->PlaceWorker(data->unit);
 			return true;
 		}
-		if (pylon_finished)
+		if (pylon_finished && mediator->CanBuildBuilding(data->unitId))
 		{
 			std::vector<Point2D> building_locations = mediator->GetProxyLocations(data->unitId);
 			Point2D pos = building_locations[0];
 			active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(scout, data->unitId, pos)));
 			return true;
+		}
+		else if (Utility::DistanceToClosest(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), scout->pos) < 3)
+		{
+			const Unit* enemy = Utility::ClosestTo(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), scout->pos);
+			if (Utility::GetUnitsThatCanAttack(mediator->GetUnits(Unit::Alliance::Enemy), scout, 0).size() > 0)
+			{
+				const Unit* base_minerals = Utility::ClosestTo(mediator->GetUnits(IsUnits(MINERAL_PATCH)), mediator->GetStartLocation());
+				if (base_minerals == nullptr)
+				{
+					std::cerr << "Error could not find minerals close to " << std::to_string(mediator->GetStartLocation().x) << ", " << std::to_string(mediator->GetStartLocation().y) <<
+						" in ActionManager::ActionRemoveScoutToProxy" << std::endl;
+					mediator->LogMinorError();
+				}
+				else
+				{
+					mediator->SetUnitCommand(scout, ABILITY_ID::SMART, base_minerals, 1);
+				}
+			}
+			else
+			{
+				Point2D run_away_pos = Point2D(0, 0);
+				float angle = 15;
+				while (mediator->IsPathable(run_away_pos) == false || Distance2D(run_away_pos, data->position) < 1)
+				{
+					run_away_pos = Utility::RunAwayCircle(enemy->pos, scout->pos, 2, angle);
+					angle += 15;
+				}
+				mediator->DebugSphere(mediator->ToPoint3D(run_away_pos), .5, Color(0, 0, 255));
+				mediator->SetUnitCommand(scout, ABILITY_ID::GENERAL_MOVE, run_away_pos, 1);
+			}
 		}
 	}
 	return false;

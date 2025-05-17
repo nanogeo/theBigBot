@@ -560,6 +560,22 @@ Point2D Utility::PointBetween(Point2D start, Point2D end, float dist)
 	return Point2D(start.x + dist * (end.x - start.x) / total_dist, start.y + dist * (end.y - start.y) / total_dist);
 }
 
+Point2D Utility::RunAwayCircle(Point2D start, Point2D end, float dist, float theta)
+{
+	theta = theta * PI / 180;
+	float total_dist = Distance2D(start, end);
+	if (total_dist == 0)
+	{
+		//std::cout << "Warning RunAwayCircle called on the same point";
+		return start;
+	}
+	Point2D unit_vector = (end - start) / total_dist;
+	Point2D offset_vector = Point2D(unit_vector.x * cos(theta) - unit_vector.y * sin(theta), 
+									unit_vector.x * sin(theta) + unit_vector.y * cos(theta));
+
+	return end + offset_vector * dist;
+}
+
 Point2D Utility::ClosestIntersectionTo(Point2D center1, double radius1, Point2D center2, double radius2, Point2D point)
 {
 	double dist = Distance2D(center1, center2);
