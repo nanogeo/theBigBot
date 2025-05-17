@@ -139,7 +139,6 @@ public:
 	static float GetFacingAngle(const Unit*, const Unit*);
 	static const Unit* AimingAt(const Unit*, Units);
 	static float BuildingSize(UNIT_TYPEID);
-	static bool CanBuildBuilding(UNIT_TYPEID, const ObservationInterface*);
 	static const Unit* GetLeastFullPrism(Units);
 	static ABILITY_ID GetBuildAbility(UNIT_TYPEID);
 	static ABILITY_ID GetTrainAbility(UNIT_TYPEID);

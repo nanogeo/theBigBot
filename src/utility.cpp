@@ -2353,17 +2353,6 @@ float Utility::BuildingSize(UNIT_TYPEID buildingId)
 	return 1.5;
 }
 
-bool Utility::CanBuildBuilding(UNIT_TYPEID buildingId, const ObservationInterface* observation)
-{
-	if (CanAfford(buildingId, 1, observation))
-	{
-		if (buildingId == UNIT_TYPEID::PROTOSS_GATEWAY)
-			return BuildingsReady(UNIT_TYPEID::PROTOSS_PYLON, observation) > 0; // TODO add other requirements
-		return true;
-	}
-	return false;
-}
-
 int Utility::BuildingsReady(UNIT_TYPEID buildingId, const ObservationInterface* observation)
 {
 	int ready = 0;

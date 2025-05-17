@@ -231,9 +231,40 @@ bool Mediator::CheckUpgrade(UPGRADE_ID upgrade_id)
 	return upgrade_manager.CheckUpgrade(upgrade_id);
 }
 
-bool Mediator::CanBuildBuilding(UNIT_TYPEID unitId)
+bool Mediator::CanBuildBuilding(UNIT_TYPEID unit_type)
 {
-	return Utility::CanBuildBuilding(unitId, agent->Observation());
+	if (CanAfford(unit_type, 1) == false)
+		return false;
+
+	switch (unit_type)
+	{
+	case FLEET_BEACON:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(STARGATE)).size() > 0;
+			return false;
+	case ROBO_BAY:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(ROBO)).size() > 0;
+			return false;
+	case TEMPLAR_ARCHIVE:
+	case DARK_SHRINE:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(TWILIGHT)).size() > 0;
+			return false;
+	case STARGATE:
+	case ROBO:
+	case TWILIGHT:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(CYBERCORE)).size() > 0;
+	case CYBERCORE:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(GATEWAY)).size() > 0;
+	case GATEWAY:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(PYLON)).size() > 0;
+	case PYLON:
+	case ASSIMILATOR:
+	case NEXUS:
+		return true;
+	default:
+		std::cerr << "Error, unknown unit type in CanBuildBuiding " << UnitTypeToName(unit_type) << std::endl;
+		LogMinorError();
+		return false;
+	}
 }
 
 bool Mediator::CanTrainUnit(UNIT_TYPEID unit_type)
@@ -276,7 +307,10 @@ bool Mediator::CanTrainUnit(UNIT_TYPEID unit_type)
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(GATEWAY)).size() > 0;
 	case PROBE:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(NEXUS)).size() > 0;
-
+	default:
+		std::cerr << "Error, unknown unit type in CanTrainUnit " << UnitTypeToName(unit_type) << std::endl;
+		LogMinorError();
+		return false;
 	}
 }
 
