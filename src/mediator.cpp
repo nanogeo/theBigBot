@@ -256,6 +256,7 @@ bool Mediator::CanBuildBuilding(UNIT_TYPEID unit_type)
 	case CYBERCORE:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(GATEWAY)).size() > 0;
 	case GATEWAY:
+	case FORGE:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(PYLON)).size() > 0;
 	case PYLON:
 	case ASSIMILATOR:
