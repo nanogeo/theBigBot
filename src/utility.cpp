@@ -3262,6 +3262,18 @@ std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
 		return "train observer";
 	case ABILITY_ID::TRAIN_WARPPRISM:
 		return "train warpprism";
+	case ABILITY_ID::TRAIN_PHOENIX:
+		return "train phoenix";
+	case ABILITY_ID::TRAIN_ORACLE:
+		return "train oracle";
+	case ABILITY_ID::TRAIN_VOIDRAY:
+		return "train void ray";
+	case ABILITY_ID::TRAIN_CARRIER:
+		return "train carrier";
+	case ABILITY_ID::TRAIN_TEMPEST:
+		return "train tempest";
+	case ABILITY_ID::TRAIN_MOTHERSHIP:
+		return "train mothership";
 	case ABILITY_ID::RESEARCH_WARPGATE:
 		return "research warpgate";
 	case ABILITY_ID::RESEARCH_BLINK:
@@ -3296,10 +3308,53 @@ std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
 		return "harvest gather probe";
 	case ABILITY_ID::SMART:
 		return "smart";
+	case ABILITY_ID::ATTACK:
+	case ABILITY_ID::ATTACK_ATTACK:
+		return "attack";
+	case ABILITY_ID::STOP:
+		return "stop";
+	case ABILITY_ID::GENERAL_HOLDPOSITION:
+		return "hold position";
+	case ABILITY_ID::BUILD_PYLON:
+		return "build pylon";
+	case ABILITY_ID::BUILD_NEXUS:
+		return "build nexus";
+	case ABILITY_ID::BUILD_GATEWAY:
+		return "build gateway";
+	case ABILITY_ID::BUILD_FORGE:
+		return "build forge";
+	case ABILITY_ID::BUILD_CYBERNETICSCORE:
+		return "build cybercore";
+	case ABILITY_ID::BUILD_PHOTONCANNON:
+		return "build cannon";
+	case ABILITY_ID::BUILD_SHIELDBATTERY:
+		return "build battery";
+	case ABILITY_ID::BUILD_TWILIGHTCOUNCIL:
+		return "build twilight";
+	case ABILITY_ID::BUILD_STARGATE:
+		return "build stargate";
+	case ABILITY_ID::BUILD_ROBOTICSFACILITY:
+		return "build robo";
+	case ABILITY_ID::BUILD_ROBOTICSBAY:
+		return "build robo bay";
+	case ABILITY_ID::BUILD_TEMPLARARCHIVE:
+		return "build templar archive";
+	case ABILITY_ID::BUILD_DARKSHRINE:
+		return "build dark shrine";
+	case ABILITY_ID::BUILD_FLEETBEACON:
+		return "build fleet beacon";
+	case ABILITY_ID::BUILD_ASSIMILATOR:
+		return "build assimilator";
+	case ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST:
+		return "chrono";
+	case ABILITY_ID::BATTERYOVERCHARGE:
+		return "battery overcharge";
+	case ABILITY_ID::BEHAVIOR_PULSARBEAMON:
+		return "pulsar beam on";
+	case ABILITY_ID::BEHAVIOR_PULSARBEAMOFF:
+		return "pulsar beam off";
 	default:
-		//std::cout << "Error invalid abilityId in AbilityIdToString\n";
 		return "Error invalid abilityId in AbilityIdToString";
-		break;
 	}
 }
 
