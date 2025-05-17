@@ -1130,7 +1130,6 @@ bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
 
 bool BuildOrderManager::DoubleCheckProxyGate(BuildOrderResultArgData data)
 {
-	build_order_step = 0;
 	if (mediator->scouting_manager.enemy_unit_counts[FORGE] > 0)
 	{
 		// cannon rush
