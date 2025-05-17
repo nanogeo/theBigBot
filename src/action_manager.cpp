@@ -175,7 +175,14 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data)
 			return true;
 		}
 	}
-	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && mediator->CanBuildBuilding(buildingId))
+	if (builder->weapon_cooldown == 0 &&
+		Distance2D(builder->pos, mediator->GetEnemyStartLocation()) > 15 &&
+		Utility::DistanceToClosest(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), builder->pos) < 5)
+	{
+		const Unit* enemy = Utility::ClosestTo(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), builder->pos);
+		mediator->SetUnitCommand(builder, ABILITY_ID::ATTACK, enemy, 1);
+	}
+	else if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && mediator->CanBuildBuilding(buildingId))
 	{
 		if (buildingId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
 		{
