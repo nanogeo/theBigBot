@@ -169,6 +169,7 @@ public:
 	bool RemoveScoutToProxy(BuildOrderResultArgData);
 	bool SafeRallyPoint(BuildOrderResultArgData);
 	bool SafeRallyPointFromRamp(BuildOrderResultArgData);
+	bool SetRallyPointToRamp(BuildOrderResultArgData);
 	bool DTHarass(BuildOrderResultArgData);
 	bool UseProxyDoubleRobo(BuildOrderResultArgData);
 	bool MicroImmortalDrop(BuildOrderResultArgData);
@@ -196,9 +197,11 @@ public:
 	bool CheckTankCount(BuildOrderResultArgData);
 	bool CheckForProxyRax(BuildOrderResultArgData);
 	bool CheckProtossOpenning(BuildOrderResultArgData);
+	bool DoubleCheckProxyGate(BuildOrderResultArgData);
 	bool ScoutBases(BuildOrderResultArgData);
 	bool WallOffRamp(BuildOrderResultArgData);
 	bool DefendMainRamp(BuildOrderResultArgData);
+	bool SackUnit(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string
@@ -590,6 +593,10 @@ struct BuildOrderData
 		{
 			str += "change rally point to away from ramp";
 		}
+		else if (result == &BuildOrderManager::SetRallyPointToRamp)
+		{
+			str += "change rally point to ramp";
+		}
 		else if (result == &BuildOrderManager::DTHarass)
 		{
 			str += "start DT harass";
@@ -694,6 +701,10 @@ struct BuildOrderData
 		{
 			str += "check protoss openning";
 		}
+		else if (result == &BuildOrderManager::DoubleCheckProxyGate)
+		{
+			str += "double check proxy gate";
+		}
 		else if (result == &BuildOrderManager::ScoutBases)
 		{
 			str += "scout bases";
@@ -701,6 +712,14 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::WallOffRamp)
 		{
 			str += "wall off ramp";
+		}
+		else if (result == &BuildOrderManager::DefendMainRamp)
+		{
+			str += "defend main ramp";
+		}
+		else if (result == &BuildOrderManager::SackUnit)
+		{
+			str += "sack unit";
 		}
 
 		return str;

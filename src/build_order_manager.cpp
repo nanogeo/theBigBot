@@ -764,6 +764,16 @@ bool BuildOrderManager::SafeRallyPointFromRamp(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::SetRallyPointToRamp(BuildOrderResultArgData data)
+{
+	for (const auto& building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
+	{
+		Point2D pos = Utility::PointBetween(building->pos, mediator->GetMainRampForcefieldLocation(), 2);
+		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos, 0);
+	}
+	return true;
+}
+
 bool BuildOrderManager::DTHarass(BuildOrderResultArgData data)
 {
 	/*if (mediator->enemy_race == Race::Terran)
@@ -1118,6 +1128,40 @@ bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
 	return false;
 }
 
+bool BuildOrderManager::DoubleCheckProxyGate(BuildOrderResultArgData data)
+{
+	build_order_step = 0;
+	if (mediator->scouting_manager.enemy_unit_counts[FORGE] > 0)
+	{
+		// cannon rush
+		mediator->SendChat("Tag:scout_cannon_rush", ChatChannel::Team);
+		return true;
+	}
+	switch (mediator->scouting_manager.enemy_unit_counts[GATEWAY])
+	{
+	case 0:
+		// proxy
+		return true;
+	case 1:
+		// 1 gate expand
+		build_order_step = 3;
+		mediator->SendChat("Tag:scout_1_gate_expand", ChatChannel::Team);
+		Set2GateProxyRobo();
+		RemoveScoutToProxy(BuildOrderResultArgData(ROBO, 0));
+		SetRallyPointToRamp(BuildOrderResultArgData(GATEWAY));
+		break;
+	case 2:
+		// 2 gate
+		build_order_step = 3;
+		mediator->SendChat("Tag:scout_2_gate", ChatChannel::Team);
+		Set2GateProxyRobo();
+		RemoveScoutToProxy(BuildOrderResultArgData(ROBO, 0));
+		SetRallyPointToRamp(BuildOrderResultArgData(GATEWAY));
+		break;
+	}
+	return false;
+}
+
 bool BuildOrderManager::ScoutBases(BuildOrderResultArgData data)
 {
 	mediator->CreateArmyGroup(ArmyRole::scout_bases, { ADEPT, STALKER }, 1, 1);
@@ -1141,6 +1185,19 @@ bool BuildOrderManager::DefendMainRamp(BuildOrderResultArgData data)
 {
 	mediator->CreateArmyGroup(ArmyRole::defend_main_ramp, {ADEPT, STALKER, SENTRY}, 10, 20);
 	mediator->MarkArmyGroupForDeletion(mediator->GetArmyGroupDefendingBase(mediator->GetStartLocation()));
+	return true;
+}
+
+bool BuildOrderManager::SackUnit(BuildOrderResultArgData data)
+{
+	Units units = mediator->GetUnits(Unit::Alliance::Self, IsUnit(data.unitId));
+	const Unit* furthest_from_base = Utility::FurthestFrom(units, mediator->GetStartLocation());
+	if (furthest_from_base != nullptr && Distance2D(furthest_from_base->pos, mediator->GetStartLocation()) > 30)
+	{
+		if (data.unitId == PROBE)
+			mediator->RemoveWorker(furthest_from_base);
+		mediator->SetUnitCommand(furthest_from_base, ABILITY_ID::MOVE_MOVE, mediator->GetEnemyStartLocation(), 10);
+	}
 	return true;
 }
 
@@ -1428,6 +1485,7 @@ void BuildOrderManager::SetProxyGateResponse()
 {
 	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::WallOffRamp,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(73.0f),			&BuildOrderManager::BuildBuilding,						Result(CYBERCORE)),
+					Data(&BuildOrderManager::TimePassed,			Condition(80.0f),			&BuildOrderManager::DoubleCheckProxyGate,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(94.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(98.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(ADEPT, 1)),
@@ -1569,7 +1627,9 @@ void BuildOrderManager::Set2GateProxyRobo()
 					//Data(&BuildOrderManager::TimePassed,			Condition(80.0f),			&BuildOrderManager::RemoveScoutToProxy,					Result(ROBO, 0)), // TODO swap this back for better opponents
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(117.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(ROBO),			&BuildOrderManager::NOP,								Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(125.0f),			&BuildOrderManager::SackUnit,							Result(PROBE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(146.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(153.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
