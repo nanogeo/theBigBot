@@ -223,6 +223,7 @@ public:
 	void SetThreeGateRobo();
 	void SetPvPOpenner();
 	void Set2GateProxyRobo();
+	void SetReturnTo2GateProxyRobo();
 	void Set1GateExpand();
 
 	void SetRecessedCannonRush();
