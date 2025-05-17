@@ -86,14 +86,14 @@ bool BuildOrderManager::HasBuilding(Condition data)
 
 bool BuildOrderManager::HasBuildingStarted(Condition data)
 {
-	if (mediator->GetUnits(IsFriendlyUnit(data.unitId)).size() > 0)
+	if (mediator->GetUnits(Unit::Alliance::Self, IsNonPlaceholderUnit(data.unitId)).size() > 0)
 		return true;
 	return false;
 }
 
 bool BuildOrderManager::HasNumBuildingStarted(Condition data)
 {
-	if (mediator->GetUnits(IsFriendlyUnit(data.unitId)).size() >= data.amount)
+	if (mediator->GetUnits(Unit::Alliance::Self, IsNonPlaceholderUnit(data.unitId)).size() >= data.amount)
 		return true;
 	return false;
 }
