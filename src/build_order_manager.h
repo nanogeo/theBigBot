@@ -112,6 +112,7 @@ public:
 	bool HasUnits(BuildOrderConditionArgData);
 
 	// Build order results
+	bool NOP(BuildOrderResultArgData);
 	bool BuildBuilding(BuildOrderResultArgData);
 	bool BuildFirstPylon(BuildOrderResultArgData);
 	bool BuildBuildingMulti(BuildOrderResultArgData);
@@ -314,7 +315,11 @@ struct BuildOrderData
 
 
 		// Result
-		if (result == &BuildOrderManager::BuildBuilding)
+		if (result == &BuildOrderManager::NOP)
+		{
+			str += "NOP";
+		}
+		else if (result == &BuildOrderManager::BuildBuilding)
 		{
 			str += "build a ";
 			str += UnitTypeToName(result_arg.unitId);

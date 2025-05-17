@@ -125,6 +125,11 @@ bool BuildOrderManager::HasUnits(Condition data)
 	return false;
 }
 
+bool BuildOrderManager::NOP(BuildOrderResultArgData data)
+{
+	return true;
+}
+
 bool BuildOrderManager::BuildBuilding(BuildOrderResultArgData data)
 {
 	Point2D pos = mediator->GetLocation(data.unitId);
