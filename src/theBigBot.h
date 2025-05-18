@@ -122,6 +122,20 @@ public:
 
 	virtual void OnStep()
 	{
+		if (Observation()->GetGameLoop() == 100)
+		{
+			Debug()->DebugCreateUnit(SPAWNING_POOL, Observation()->GetStartLocation() + Point2D(8, 0), 2, 1);
+			Debug()->DebugCreateUnit(EXTRACTOR, Observation()->GetStartLocation() + Point2D(-8, 0), 2, 1);
+			Debug()->SendDebug();
+		}
+
+		if (Observation()->GetGameLoop() >= 4700 && Observation()->GetGameLoop() % 700 == 500)
+		{
+			Debug()->DebugCreateUnit(ZERGLING, Observation()->GetStartLocation(), 2, 20);
+			Debug()->DebugGiveAllUpgrades();
+			Debug()->SendDebug();
+		}
+		Actions()->UnitCommand(Observation()->GetUnits(IsUnit(ZERGLING)), ABILITY_ID::ATTACK, Observation()->GetGameInfo().enemy_start_locations[0]);
 		for (const auto& unit : Observation()->GetUnits(IsUnit(MARAUDER)))
 		{
 			if (attacks.find(unit) == attacks.end())
