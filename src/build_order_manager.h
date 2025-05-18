@@ -196,7 +196,7 @@ public:
 	bool AddToNaturalDefense(BuildOrderResultArgData);
 	bool CheckTankCount(BuildOrderResultArgData);
 	bool CheckForProxyRax(BuildOrderResultArgData);
-	bool CheckProtossOpenning(BuildOrderResultArgData);
+	bool CheckProtossOpening(BuildOrderResultArgData);
 	bool DoubleCheckProxyGate(BuildOrderResultArgData);
 	bool ScoutBases(BuildOrderResultArgData);
 	bool WallOffRamp(BuildOrderResultArgData);
@@ -698,7 +698,7 @@ struct BuildOrderData
 		{
 			str += "check for proxy rax";
 		}
-		else if (result == &BuildOrderManager::CheckProtossOpenning)
+		else if (result == &BuildOrderManager::CheckProtossOpening)
 		{
 			str += "check protoss openning";
 		}

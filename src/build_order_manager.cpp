@@ -1093,13 +1093,12 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 	return false;
 }
 
-bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
+bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 {
 	build_order_step = 0;
 	if (mediator->scouting_manager.enemy_unit_counts[FORGE] > 0)
 	{
 		// cannon rush
-		build_order_step = 0;
 		mediator->SendChat("Tag:scout_cannon_rush", ChatChannel::Team);
 		Set2GateProxyRobo();
 		return false;
@@ -1108,19 +1107,16 @@ bool BuildOrderManager::CheckProtossOpenning(BuildOrderResultArgData data)
 	{
 	case 0:
 		// proxy
-		build_order_step = 0;
 		mediator->SendChat("Tag:scout_proxy_gate", ChatChannel::Team);
 		SetProxyGateResponse();
 		break;
 	case 1:
 		// 1 gate expand
-		build_order_step = 0;
 		mediator->SendChat("Tag:scout_1_gate_expand", ChatChannel::Team);
 		Set2GateProxyRobo();
 		break;
 	case 2:
 		// 2 gate
-		build_order_step = 0;
 		mediator->SendChat("Tag:scout_2_gate", ChatChannel::Team);
 		Set2GateProxyRobo();
 		break;
@@ -1143,16 +1139,16 @@ bool BuildOrderManager::DoubleCheckProxyGate(BuildOrderResultArgData data)
 		return true;
 	case 1:
 		// 1 gate expand
-		build_order_step = 3;
 		mediator->SendChat("Tag:scout_1_gate_expand", ChatChannel::Team);
+		build_order_step = 3;
 		SetReturnTo2GateProxyRobo();
 		RemoveScoutToProxy(BuildOrderResultArgData(ROBO, 0));
 		SetRallyPointToRamp(BuildOrderResultArgData(GATEWAY));
 		break;
 	case 2:
 		// 2 gate
-		build_order_step = 3;
 		mediator->SendChat("Tag:scout_2_gate", ChatChannel::Team);
+		build_order_step = 3;
 		SetReturnTo2GateProxyRobo();
 		RemoveScoutToProxy(BuildOrderResultArgData(ROBO, 0));
 		SetRallyPointToRamp(BuildOrderResultArgData(GATEWAY));
@@ -1613,7 +1609,7 @@ void BuildOrderManager::SetPvPOpenner()
 					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result(0)),
 					Data(&BuildOrderManager::TimePassed,			Condition(55.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(63.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
-					Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::CheckProtossOpenning,				Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::CheckProtossOpening,				Result(ASSIMILATOR)),
 	};
 }
 
