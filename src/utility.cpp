@@ -25,6 +25,13 @@ bool IsFinishedUnit::operator()(const Unit& unit_) const {
 	return unit_.unit_type == m_type && unit_.build_progress == 1;
 }
 
+IsNotFinishedUnit::IsNotFinishedUnit(UNIT_TYPEID type_) : m_type(type_) {
+}
+
+bool IsNotFinishedUnit::operator()(const Unit& unit_) const {
+	return unit_.unit_type == m_type && unit_.build_progress < 1;
+}
+
 IsFightingUnit::IsFightingUnit(Unit::Alliance alliance_) : m_type(alliance_) {
 }
 

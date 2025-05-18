@@ -111,7 +111,9 @@ void DefenseManager::UpdateOngoingAttacks()
 			}
 
 			// make a new battery
-			if (attack.location == mediator->GetNaturalLocation() && attack.status <= -50 && mediator->GetNumBuildActions(BATTERY) == 0)
+			if (attack.location == mediator->GetNaturalLocation() && attack.status <= -50 && 
+				mediator->GetNumBuildActions(BATTERY) == 0 && 
+				mediator->GetUnits(Unit::Alliance::Self, IsNotFinishedUnit(BATTERY)).size() <= 1)
 				mediator->BuildDefensiveBuilding(BATTERY, attack.location);
 
 			/*if (attack.location == mediator->GetNaturalLocation() && attack.status <= -50 && attack.pulled_workers.size() == 0)

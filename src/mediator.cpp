@@ -863,8 +863,36 @@ Point2D Mediator::GetNaturalDefensiveLocation(UNIT_TYPEID unit_type)
 			if (!blocked && in_energy_field)
 				return point;
 		}
-		std::cerr << "Error no viable point found in GetNaturalDefensiveLocation for type " << UnitTypeToName(unit_type) << std::endl;
-		return Point2D(0, 0);
+		// find pylon close to nat and enemy base
+		Units pylons = GetUnits(Unit::Alliance::Self, IsFinishedUnit(PYLON));
+		if (pylons.size() == 0)
+		{
+			std::cerr << "Error no pylons found in GetNaturalDefensiveLocation for type " << UnitTypeToName(unit_type) << std::endl;
+			LogMinorError();
+			return Point2D(0, 0);
+		}
+
+		Point2D nat_pos = GetNaturalLocation();
+		Point2D enemy_pos = GetEnemyStartLocation();
+
+		std::sort(pylons.begin(), pylons.end(), [nat_pos, enemy_pos](const Unit*& a, const Unit*& b) -> bool
+		{
+			return Distance2D(a->pos, nat_pos) * 2 + Distance2D(a->pos, enemy_pos) < Distance2D(b->pos, nat_pos) * 2 + Distance2D(b->pos, enemy_pos);
+		});
+
+		Point2D pylon_pos = pylons[0]->pos;
+		// find position near that pylon
+		Point2D close_pos = FindBuildLocationNearWithinNexusRange(BATTERY, pylon_pos);
+		if (close_pos == Point2D(0, 0))
+		{
+			std::cerr << "Error no viable point found in GetNaturalDefensiveLocation for type " << UnitTypeToName(unit_type) << std::endl;
+			LogMinorError();
+			return Point2D(0, 0);
+		}
+		else
+		{
+			return close_pos;
+		}
 	}
 	if (unit_type == PYLON)
 		return Utility::PointBetween(agent->locations->nexi_locations[1], agent->locations->natural_door_closed, 4);
@@ -997,7 +1025,7 @@ Point2D Mediator::FindBuildLocationNear(UNIT_TYPEID unit_type, Point2D location)
 
 	if (possible_locations.size() == 0)
 	{
-		std::cerr << "Error no viable point found in GetProxyLocation for type " << UnitTypeToName(unit_type) << std::endl;
+		std::cerr << "Error no viable point found in FindBuildLocationNear for type " << UnitTypeToName(unit_type) << std::endl;
 		LogMinorError();
 		return Point2D(0, 0);
 	}
@@ -1022,6 +1050,7 @@ Point2D Mediator::FindBuildLocationNearWithinNexusRange(UNIT_TYPEID unit_type, P
 		return Distance2D(a->pos, location) < Distance2D(b->pos, location);
 	});
 
+	Point2D door_guard_pos = agent->locations->natural_door_closed;
 	std::vector<Point2D> possible_locations;
 	for (const auto& pylon : pylons)
 	{
@@ -1030,6 +1059,10 @@ Point2D Mediator::FindBuildLocationNearWithinNexusRange(UNIT_TYPEID unit_type, P
 			for (float j = -7; j <= 6; j += 1)
 			{
 				Point2D curr_pos = pylon->pos + Point2D(i, j);
+				// leave hole to get out of natural
+				if ((curr_pos.x + 1 > door_guard_pos.x && curr_pos.x - 1 < door_guard_pos.x) ||
+					(curr_pos.y + 1 > door_guard_pos.y && curr_pos.y - 1 < door_guard_pos.y))
+					continue;
 				if (Utility::DistanceToClosest(nexi, curr_pos) < RANGE_BATTERY_OVERCHARGE && agent->Query()->Placement(Utility::GetBuildAbility(unit_type), curr_pos))
 					possible_locations.push_back(curr_pos);
 			}
@@ -1038,7 +1071,7 @@ Point2D Mediator::FindBuildLocationNearWithinNexusRange(UNIT_TYPEID unit_type, P
 
 	if (possible_locations.size() == 0)
 	{
-		std::cerr << "Error no viable point found in GetProxyLocation for type " << UnitTypeToName(unit_type) << std::endl;
+		std::cerr << "Error no viable point found in FindBuildLocationNearWithinNexusRange for type " << UnitTypeToName(unit_type) << std::endl;
 		LogMinorError();
 		return Point2D(0, 0);
 	}

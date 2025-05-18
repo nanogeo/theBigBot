@@ -17,6 +17,15 @@ private:
     UNIT_TYPEID m_type;
 };
 
+struct IsNotFinishedUnit {
+	explicit IsNotFinishedUnit(UNIT_TYPEID type_);
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	UNIT_TYPEID m_type;
+};
+
 struct IsFightingUnit {
 	explicit IsFightingUnit(Unit::Alliance alliance_);
 
