@@ -1100,6 +1100,7 @@ bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 	{
 		// cannon rush
 		mediator->SendChat("Tag:scout_cannon_rush", ChatChannel::Team);
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckBaseForCannons, new ActionArgData(0)));
 		Set2GateProxyRobo();
 		return false;
 	}
@@ -1130,6 +1131,11 @@ bool BuildOrderManager::DoubleCheckProxyGate(BuildOrderResultArgData data)
 	{
 		// cannon rush
 		mediator->SendChat("Tag:scout_cannon_rush", ChatChannel::Team);
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckBaseForCannons, new ActionArgData(0)));
+		build_order_step = 3;
+		SetReturnTo2GateProxyRobo();
+		RemoveScoutToProxy(BuildOrderResultArgData(ROBO, 0));
+		SetRallyPointToRamp(BuildOrderResultArgData(GATEWAY));
 		return true;
 	}
 	switch (mediator->scouting_manager.enemy_unit_counts[GATEWAY])

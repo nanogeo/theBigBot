@@ -224,6 +224,10 @@ namespace sc2 {
 
 		enemy_natural = P(40.5, 103.5);
 
+		for (const auto& pos : main_scout_path)
+		{
+			self_main_scout_path.push_back(convert_location(pos, true));
+		}
 		
 		Point2D entrance_point = P(92, 142);
 		Point2D exit_point = P(33, 79);

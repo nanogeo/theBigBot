@@ -127,6 +127,8 @@ public:
     std::vector<Point2D> possible_3rds;
     Point2D enemy_natural;
 
+	std::vector<Point2D> self_main_scout_path;
+
 	OraclePath oracle_path;
 
 
