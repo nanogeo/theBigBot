@@ -148,8 +148,19 @@ public:
 	void CancelAllActionsOfType(bool(sc2::ActionManager::* action)(ActionArgData*));
 	UnitCost CalculateCostOfCurrentBuildActions();
 
-	ScoutInfoTerran GetScoutInfoTerran();
-	ScoutInfoZerg GetScoutInfoZerg();
+	float GetFirstGasTiming();
+	float GetSecondGasTiming();
+	float GetNaturalTiming();
+	float GetThirdTiming();
+	float GetFirstBarrackTiming();
+	float GetFactoryTiming();
+	float GetFirstGateTiming();
+	float GetSecondGateTiming();
+	float GetFirstPylonTiming();
+	float GetSecondPylonTiming();
+	UNIT_TYPEID GetTechChoice();
+	float GetSpawningPoolTiming();
+	float GetRoachWarrenTiming();
 	int GetEnemyUnitCount(UNIT_TYPEID);
 
 	StateMachine* GetStateMachineByName(std::string);

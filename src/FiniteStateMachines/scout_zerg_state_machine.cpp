@@ -10,8 +10,7 @@ namespace sc2 {
 
 void ScoutZInitialMove::TickState()
 {
-	if (state_machine->scout->orders.size() == 0 || state_machine->scout->orders[0].target_pos != state_machine->current_target)
-		agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target);
+	agent->mediator.SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutZInitialMove::EnterState()
@@ -64,14 +63,32 @@ void ScoutZScoutMain::ExitState()
 
 State* ScoutZScoutMain::TestTransitions()
 {
-	if (agent->mediator.scouting_manager.spawning_pool_time > 0 &&
-		agent->mediator.GetCurrentTime() > agent->mediator.scouting_manager.spawning_pool_time + 60)
+	if (state_machine->index >= state_machine->main_scout_path.size())
+	{
+		if (agent->mediator.scouting_manager.natural_timing == 0)
+		{
+			return new ScoutZScoutNatural(agent, state_machine);
+		}
+		else if (agent->mediator.scouting_manager.third_timing == 0 &&
+					((agent->mediator.scouting_manager.spawning_pool_timing > 0 && agent->mediator.scouting_manager.first_gas_timing > 0) ||
+					agent->mediator.GetCurrentTime() > 120))
+		{
+			return new ScoutZLookFor3rd(agent, state_machine);
+		}
+		else
+		{
+			state_machine->index = 0;
+			state_machine->current_target = state_machine->main_scout_path[state_machine->index];
+		}
+	}
+
+
+	if (agent->mediator.scouting_manager.spawning_pool_timing > 0 &&
+		agent->mediator.GetCurrentTime() > agent->mediator.scouting_manager.spawning_pool_timing + 60)
 	{
 		agent->mediator.MarkStateMachineForDeletion(state_machine);
 		return nullptr;
 	}
-	if (state_machine->index >= state_machine->main_scout_path.size())
-		return new ScoutZScoutNatural(agent, state_machine);
 	return nullptr;
 }
 
@@ -86,19 +103,13 @@ std::string ScoutZScoutMain::toString()
 
 void ScoutZScoutNatural::TickState()
 {
-	if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 2)
-	{
-		state_machine->index++;
-		if (state_machine->index < state_machine->natural_scout_path.size())
-			state_machine->current_target = state_machine->natural_scout_path[state_machine->index];
-	}
-	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target);
+	agent->mediator.SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutZScoutNatural::EnterState()
 {
 	state_machine->index = 0;
-	state_machine->current_target = state_machine->natural_scout_path[0];
+	state_machine->current_target = agent->mediator.GetEnemyNaturalLocation();
 }
 
 void ScoutZScoutNatural::ExitState()
@@ -108,14 +119,8 @@ void ScoutZScoutNatural::ExitState()
 
 State* ScoutZScoutNatural::TestTransitions()
 {
-	if (agent->mediator.scouting_manager.spawning_pool_time > 0 &&
-		agent->mediator.GetCurrentTime() > agent->mediator.scouting_manager.spawning_pool_time + 60)
-	{
-		agent->mediator.MarkStateMachineForDeletion(state_machine);
-		return nullptr;
-	}
-	if (state_machine->index >= state_machine->natural_scout_path.size())
-		return new ScoutZLookFor3rd(agent, state_machine);
+	if (agent->mediator.scouting_manager.natural_timing > 0 || Distance2D(state_machine->scout->pos, state_machine->current_target) < 2)
+		return new ScoutZScoutMain(agent, state_machine);
 	return nullptr;
 }
 
@@ -152,7 +157,7 @@ void ScoutZLookFor3rd::ExitState()
 
 State* ScoutZLookFor3rd::TestTransitions()
 {
-	if (state_machine->index >= state_machine->possible_3rds.size())
+	if (state_machine->index >= state_machine->possible_3rds.size() || agent->mediator.scouting_manager.third_timing > 0)
 		return new ScoutZScoutMain(agent, state_machine);
 	return nullptr;
 }
@@ -165,14 +170,13 @@ std::string ScoutZLookFor3rd::toString()
 #pragma endregion
 
 ScoutZergStateMachine::ScoutZergStateMachine(TheBigBot* agent, std::string name, const Unit* scout, 
-	Point2D enemy_main, std::vector<Point2D> main_scout_path, std::vector<Point2D> natural_scout_path, 
+	Point2D enemy_main, std::vector<Point2D> main_scout_path, 
 	Point2D enemy_natural_pos, std::vector<Point2D> possible_3rds) : StateMachine(agent, name)
 {
     current_state = new ScoutZInitialMove(agent, this);
     this->scout = scout;
     this->enemy_main = enemy_main;
     this->main_scout_path = main_scout_path;
-    this->natural_scout_path = natural_scout_path;
     this->enemy_natural_pos = enemy_natural_pos;
     this->possible_3rds = possible_3rds;
 
@@ -181,51 +185,9 @@ ScoutZergStateMachine::ScoutZergStateMachine(TheBigBot* agent, std::string name,
 
 ScoutZergStateMachine::~ScoutZergStateMachine()
 {
-	agent->mediator.worker_manager.PlaceWorker(scout);
+	if (scout != nullptr && scout->is_alive)
+		agent->mediator.worker_manager.PlaceWorker(scout);
 }
 
-void ScoutZergStateMachine::CheckScoutingInfo()
-{
-    for (const auto& unit : agent->Observation()->GetUnits())
-    {
-        if (unit->alliance == Unit::Alliance::Enemy && unit->display_type == Unit::DisplayType::Visible)
-        {
-            if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_SPAWNINGPOOL && agent->scout_info_zerg.pool_timing == 0)
-            {
-                //std::cout << "pool built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-                agent->scout_info_zerg.pool_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / FRAME_TIME);
-            }
-            else if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_ROACHWARREN && agent->scout_info_zerg.roach_warren_timing == 0)
-            {
-                //std::cout << "roach warren built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-                agent->scout_info_zerg.roach_warren_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / FRAME_TIME);
-            }
-            else if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_EXTRACTOR && agent->scout_info_zerg.gas_timing == 0)
-            {
-                //std::cout << "gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-                agent->scout_info_zerg.gas_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / FRAME_TIME);
-            }
-            else if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_HATCHERY && agent->scout_info_zerg.natural_timing == 0)
-            {
-                if (Distance2D(unit->pos, enemy_natural_pos) < 2)
-                {
-                    //std::cout << "natural built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-                    agent->scout_info_zerg.natural_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / FRAME_TIME);
-                }
-            }
-            else if (unit->unit_type.ToType() == UNIT_TYPEID::ZERG_HATCHERY && agent->scout_info_zerg.third_timing == 0)
-            {
-                for (const auto& pos : possible_3rds)
-                {
-                    if (Distance2D(unit->pos, pos) < 2)
-                    {
-                        //std::cout << "third built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-                        agent->scout_info_zerg.third_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / FRAME_TIME);
-                    }
-                }
-            }
-        }
-    }
-}
 
 }

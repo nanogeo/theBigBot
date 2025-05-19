@@ -326,7 +326,6 @@ public:
     bool debug_mode = false;
 	int frames_passed = 0;
 	int seconds_passed = 0;
-    ScoutInfoZerg scout_info_zerg; // TODO create scouting manager
     ScoutInfoTerran scout_info_terran;
     Race enemy_race = Race::Random;
     std::vector<std::vector<bool>> grid_map;

@@ -921,9 +921,7 @@ bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
 
 bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 {
-	ScoutInfoZerg info = mediator->GetScoutInfoZerg();
-
-	if (info.third_timing != 0 && info.third_timing < 90)
+	if (mediator->GetThirdTiming() != 0 && mediator->GetThirdTiming() < 180)
 	{
 		// 3 hatch before pool
 		SetChargeAllInInterrupt();
@@ -931,7 +929,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		std::cerr << "Chargelot all in interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag:scout_triple_hatch", ChatChannel::Team);
 	}
-	else if (mediator->GetGameLoop() / FRAME_TIME >= 90 && info.pool_timing == 0)
+	else if (mediator->GetCurrentTime() >= 90 && mediator->GetSpawningPoolTiming() == 0)
 	{
 		// late pool
 		SetChargeAllInInterrupt();
@@ -939,11 +937,11 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		std::cerr << "Chargelot all in interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag:scout_late_pool", ChatChannel::Team);
 	}
-	else if (info.pool_timing == 0)
+	else if (mediator->GetSpawningPoolTiming() == 0)
 	{
 		return false;
 	}
-	else if (info.pool_timing < 25)
+	else if (mediator->GetSpawningPoolTiming() < 25)
 	{
 		// 12 pool
 		SetEarlyPoolInterrupt(); // TODO new interrupt for 12 pool
@@ -951,7 +949,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		std::cerr << "Early pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag:scout_12_pool", ChatChannel::Team);
 	}
-	else if (info.pool_timing < 45)
+	else if (mediator->GetSpawningPoolTiming() < 45)
 	{
 		// pool first
 		SetEarlyPoolInterrupt();
@@ -959,7 +957,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		std::cerr << "Early pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag:scout_pool_first", ChatChannel::Team);
 	}
-	else if (info.gas_timing == 0)
+	else if (mediator->GetFirstGasTiming() == 0)
 	{
 		// gasless
 		SetChargeAllInInterrupt();
@@ -967,7 +965,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		std::cerr << "Chargelot all in interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag:scout_gasless", ChatChannel::Team);
 	}
-	else if (info.pool_timing >= 45)
+	else if (mediator->GetSpawningPoolTiming() >= 45)
 	{
 		// hatch first
 		mediator->SendChat("Tag:scout_hatch_pool", ChatChannel::Team);

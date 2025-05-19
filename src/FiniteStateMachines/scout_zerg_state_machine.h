@@ -92,17 +92,14 @@ public:
     std::vector<Point2D> possible_3rds;
     Point2D enemy_natural_pos;
     Point2D current_target;
-    ScoutZergStateMachine(TheBigBot* agent, std::string name, const Unit* scout, Point2D enemy_main, std::vector<Point2D> main_scout_path, std::vector<Point2D> natural_scout_path, Point2D enemy_natural_pos, std::vector<Point2D> possible_3rds);
+    ScoutZergStateMachine(TheBigBot* agent, std::string name, const Unit* scout, Point2D enemy_main, std::vector<Point2D> main_scout_path, Point2D enemy_natural_pos, std::vector<Point2D> possible_3rds);
 
     ~ScoutZergStateMachine();
 
     void RunStateMachine() override
     {
         StateMachine::RunStateMachine();
-        CheckScoutingInfo();
     }
-
-    void CheckScoutingInfo();
 };
 
 

@@ -246,8 +246,8 @@ void ScoutingManager::AddNewUnit(const Unit* unit)
 			third_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
 		break;
 	case BARRACKS:
-		if (first_barrack_time == 0)
-			first_barrack_time = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+		if (first_barrack_timing == 0)
+			first_barrack_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
 		break;
 	case FACTORY:
 		if (factory_timing == 0)
@@ -272,12 +272,12 @@ void ScoutingManager::AddNewUnit(const Unit* unit)
 			tech_choice = unit->unit_type;
 		break;
 	case SPAWNING_POOL:
-		if (spawning_pool_time == 0)
-			spawning_pool_time = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+		if (spawning_pool_timing == 0)
+			spawning_pool_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
 		break;
 	case ROACH_WARREN:
-		if (roach_warren_time == 0)
-			roach_warren_time = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
+		if (roach_warren_timing == 0)
+			roach_warren_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
 		break;
 	}
 }

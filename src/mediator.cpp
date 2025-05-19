@@ -488,7 +488,7 @@ bool Mediator::SendScout()
 	case Race::Zerg:
 	{
 		ScoutZergStateMachine* scout_fsm = new ScoutZergStateMachine(agent, "Scout Zerg", scouter, agent->locations->initial_scout_pos,
-			agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural, agent->locations->possible_3rds);
+			agent->locations->main_scout_path, agent->locations->enemy_natural, agent->locations->possible_3rds);
 		finite_state_machine_manager.AddStateMachine(scout_fsm);
 		break;
 	}
@@ -1223,14 +1223,69 @@ UnitCost Mediator::CalculateCostOfCurrentBuildActions()
 	return total;
 }
 
-ScoutInfoTerran Mediator::GetScoutInfoTerran()
+float Mediator::GetFirstGasTiming()
 {
-	return agent->scout_info_terran;
+	return scouting_manager.first_gas_timing;
 }
 
-ScoutInfoZerg Mediator::GetScoutInfoZerg()
+float Mediator::GetSecondGasTiming()
 {
-	return agent->scout_info_zerg;
+	return scouting_manager.second_gas_timing;
+}
+
+float Mediator::GetNaturalTiming()
+{
+	return scouting_manager.natural_timing;
+}
+
+float Mediator::GetThirdTiming()
+{
+	return scouting_manager.third_timing;
+}
+
+float Mediator::GetFirstBarrackTiming()
+{
+	return scouting_manager.first_barrack_timing;
+}
+
+float Mediator::GetFactoryTiming()
+{
+	return scouting_manager.factory_timing;
+}
+
+float Mediator::GetFirstGateTiming()
+{
+	return scouting_manager.first_gate_timing;
+}
+
+float Mediator::GetSecondGateTiming()
+{
+	return scouting_manager.second_gate_timing;
+}
+
+float Mediator::GetFirstPylonTiming()
+{
+	return scouting_manager.first_pylon_timing;
+}
+
+float Mediator::GetSecondPylonTiming()
+{
+	return scouting_manager.second_pylon_timing;
+}
+
+UNIT_TYPEID Mediator::GetTechChoice()
+{
+	return scouting_manager.tech_choice;
+}
+
+float Mediator::GetSpawningPoolTiming()
+{
+	return scouting_manager.spawning_pool_timing;
+}
+
+float Mediator::GetRoachWarrenTiming()
+{
+	return scouting_manager.roach_warren_timing;
 }
 
 int Mediator::GetEnemyUnitCount(UNIT_TYPEID type)

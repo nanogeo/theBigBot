@@ -22,7 +22,7 @@ public:
 	float third_timing = 0;
 
 	// Terran scouting info
-	float first_barrack_time = 0;
+	float first_barrack_timing = 0;
 	float factory_timing = 0;
 	FirstRaxProduction first_rax_production = FirstRaxProduction::idle;
 
@@ -34,8 +34,8 @@ public:
 	UNIT_TYPEID tech_choice = UNIT_TYPEID::INVALID;
 
 	// Zerg scouting info
-	float spawning_pool_time = 0;
-	float roach_warren_time = 0;
+	float spawning_pool_timing = 0;
+	float roach_warren_timing = 0;
 	
 
 	ScoutingManager(Mediator* mediator)
