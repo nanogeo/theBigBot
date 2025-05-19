@@ -930,7 +930,6 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		build_order_step = 0;
 		std::cerr << "Chargelot all in interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag:scout_triple_hatch", ChatChannel::Team);
-		return true;
 	}
 	else if (mediator->GetGameLoop() / FRAME_TIME >= 90 && info.pool_timing == 0)
 	{
@@ -939,7 +938,6 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		build_order_step = 0;
 		std::cerr << "Chargelot all in interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag:scout_late_pool", ChatChannel::Team);
-		return true;
 	}
 	else if (info.pool_timing == 0)
 	{
