@@ -70,7 +70,7 @@ namespace sc2 {
 							P(156, 25),
 							P(126, 32) };
 		
-		first_pylon_location_zerg = P(134, 35);
+		first_pylon_location_zerg = P(136, 38);
 		first_pylon_location_protoss = P(147, 21);
 		first_pylon_location_terran = P(158, 37);
 	
@@ -80,7 +80,7 @@ namespace sc2 {
 							P(158.5, 34.5),
 							P(155.5, 32.5),
 							P(161.5, 34.5),
-							P(131.5, 34.5),
+							P(133.5, 37.5),
 							P(139.5, 37.5),
 							P(156.5, 60.5),
 							P(159.5, 58.5),
@@ -117,7 +117,7 @@ namespace sc2 {
 
 		cyber_core_locations = { P(147.5, 23.5),
 									P(160.5, 37.5),
-									P(135.75, 37.25) };
+									P(131.75, 34.25) };
 
 		tech_locations = { P(162.5, 25.5),
 							P(165.5, 25.5),
@@ -135,9 +135,9 @@ namespace sc2 {
 		proxy_tech_locations = { P(66.5, 83.5),
 								P(106.5, 99.5) };
 
-		defensive_natural_battery_locations = { P(139, 35),
+		defensive_natural_battery_locations = { P(136, 36),
+												P(139, 35),
 												P(134, 35),
-												P(131, 33),
 												P(135, 31) };
 
 		gateway_walloff = P(148.5, 26.5);
