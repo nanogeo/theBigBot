@@ -137,6 +137,11 @@ int Mediator::GetSupplyUsed()
 	return agent->Observation()->GetFoodUsed();
 }
 
+int Mediator::GetArmySupply()
+{
+	return agent->Observation()->GetFoodArmy();
+}
+
 int Mediator::GetSupplyCap()
 {
 	return agent->Observation()->GetFoodCap();

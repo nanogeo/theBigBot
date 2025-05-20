@@ -69,6 +69,7 @@ public:
 	int GetUniqueId();
 	int GetNumWorkers();
 	int GetSupplyUsed();
+	int GetArmySupply();
 	int GetSupplyCap();
 	ImageData GetPathingGrid();
 	bool IsPathable(Point2D);

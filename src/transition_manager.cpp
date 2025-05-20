@@ -113,9 +113,9 @@ void TransitionManager::WorkerRushTransitionEnterAction()
 
 bool TransitionManager::ScourTransitionCondition()
 {
-	if ((mediator->GetCurrentTime() > 300 && 
-		Utility::DistanceToClosest(mediator->GetUnits(IsUnits({NEXUS, COMMAND_CENTER, ORBITAL, PLANETARY, HATCHERY, LAIR, HIVE})), mediator->GetEnemyStartLocation()) > 15)
-		|| mediator->GetCurrentTime() > 600)
+	if ((mediator->GetCurrentTime() > 300 && Utility::DistanceToClosest(mediator->GetUnits(IsUnits({NEXUS, COMMAND_CENTER, ORBITAL, PLANETARY, HATCHERY, LAIR, HIVE})), mediator->GetEnemyStartLocation()) > 15)
+		|| (mediator->GetCurrentTime() > 600 && mediator->GetArmySupply() > 30)
+		|| mediator->GetCurrentTime() > 900)
 	{
 		return true;
 	}
