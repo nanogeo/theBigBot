@@ -1443,10 +1443,6 @@ void Mediator::CreateWorkerRushDefenseFSM()
 	finite_state_machine_manager.active_state_machines.push_back(worker_rush_defense_fsm);
 }
 
-
-	finite_state_machine_manager.active_state_machines.push_back(worker_rush_defense_fsm);
-}
-
 void Mediator::MarkStateMachineForDeletion(StateMachine* state_machine)
 {
 	finite_state_machine_manager.MarkStateMachineForDeletion(state_machine);
