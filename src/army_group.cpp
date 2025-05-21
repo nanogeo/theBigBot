@@ -1543,7 +1543,13 @@ namespace sc2 {
 			const Unit* walloff_gate = Utility::ClosestUnitTo(mediator->GetUnits(Unit::Alliance::Self, IsUnits({ GATEWAY, WARP_GATE })), walloff_pos);
 			if (Distance2D(walloff_pos, walloff_gate->pos) < 1)
 			{
-				mediator->SetUnitsCommand(all_units, ABILITY_ID::ATTACK, walloff_gate, 1);
+				for (const auto& unit : all_units)
+				{
+					if (Distance2D(unit->pos, walloff_pos) > 3)
+						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, walloff_gate, 0);
+					else
+						mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, walloff_gate, 0);
+				}
 			}
 			else
 			{
