@@ -8,7 +8,6 @@ namespace sc2
 
 class Mediator;
 class AdeptHarassProtoss;
-class TheBigBot;
 class ArmyGroup;
 
 #pragma region AdeptHarassProtoss
@@ -17,9 +16,9 @@ class AdeptHarassProtossMoveAcross : public State
 {
 public:
 	class AdeptHarassProtoss* state_machine;
-	AdeptHarassProtossMoveAcross(TheBigBot* agent, AdeptHarassProtoss* state_machine)
+	AdeptHarassProtossMoveAcross(Mediator* mediator, AdeptHarassProtoss* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -33,9 +32,9 @@ class AdeptHarassProtossConsolidate : public State
 {
 public:
 	class AdeptHarassProtoss* state_machine;
-	AdeptHarassProtossConsolidate(TheBigBot* agent, AdeptHarassProtoss* state_machine)
+	AdeptHarassProtossConsolidate(Mediator* mediator, AdeptHarassProtoss* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -49,9 +48,9 @@ class AdeptHarassProtossShadeIntoBase : public State
 {
 public:
 	class AdeptHarassProtoss* state_machine;
-	AdeptHarassProtossShadeIntoBase(TheBigBot* agent, AdeptHarassProtoss* state_machine)
+	AdeptHarassProtossShadeIntoBase(Mediator* mediator, AdeptHarassProtoss* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -65,9 +64,9 @@ class AdeptHarassProtossShadeToOtherSide : public State
 {
 public:
 	class AdeptHarassProtoss* state_machine;
-	AdeptHarassProtossShadeToOtherSide(TheBigBot* agent, AdeptHarassProtoss* state_machine)
+	AdeptHarassProtossShadeToOtherSide(Mediator* mediator, AdeptHarassProtoss* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -81,9 +80,9 @@ class AdeptHarassProtossKillProbes : public State
 {
 public:
 	class AdeptHarassProtoss* state_machine;
-	AdeptHarassProtossKillProbes(TheBigBot* agent, AdeptHarassProtoss* state_machine)
+	AdeptHarassProtossKillProbes(Mediator* mediator, AdeptHarassProtoss* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -110,7 +109,7 @@ public:
 	int index = 0;
 	int event_id;
 
-	AdeptHarassProtoss(TheBigBot* agent, std::string name, Units adepts, std::vector<Point2D> consolidation_points);
+	AdeptHarassProtoss(Mediator* mediator, std::string name, Units adepts, std::vector<Point2D> consolidation_points);
 
 	~AdeptHarassProtoss();
 

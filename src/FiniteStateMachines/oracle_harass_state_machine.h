@@ -7,7 +7,6 @@ namespace sc2
 
 class Mediator;
 class OracleHarassStateMachine;
-class TheBigBot;
 class ArmyGroup;
 
 class OracleScout : public State {
@@ -36,7 +35,7 @@ public:
 	OracleHarassStateMachine* state_machine;
 	Point2D denfensive_position;
 	int event_id;
-	OracleDefendLocation(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D denfensive_position);
+	OracleDefendLocation(Mediator* mediator, OracleHarassStateMachine* state_machine, Point2D denfensive_position);
 	virtual std::string toString() override;
 	void TickState() override;
 	virtual void EnterState() override;
@@ -52,7 +51,7 @@ public:
 	OracleHarassStateMachine* state_machine;
 	LineSegmentLinearX* line;
 	int event_id;
-	OracleDefendLine(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D start, Point2D end);
+	OracleDefendLine(Mediator* mediator, OracleHarassStateMachine* state_machine, Point2D start, Point2D end);
 	virtual std::string toString() override;
 	void TickState() override;
 	virtual void EnterState() override;
@@ -68,7 +67,7 @@ class OracleDefendArmyGroup : public State {
 public:
 	OracleHarassStateMachine* state_machine;
 	int event_id;
-	OracleDefendArmyGroup(TheBigBot* agent, OracleHarassStateMachine* state_machine);
+	OracleDefendArmyGroup(Mediator* mediator, OracleHarassStateMachine* state_machine);
 	virtual std::string toString() override;
 	void TickState() override;
 	virtual void EnterState() override;
@@ -83,9 +82,9 @@ class OracleHarassGroupUp : public State {
 public:
 	OracleHarassStateMachine* state_machine;
 	Point2D consolidation_pos;
-	OracleHarassGroupUp(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D consolidation_pos)
+	OracleHarassGroupUp(Mediator* mediator, OracleHarassStateMachine* state_machine, Point2D consolidation_pos)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->consolidation_pos = consolidation_pos;
 	}
@@ -100,9 +99,9 @@ class OracleHarassMoveToEntrance : public State {
 public:
 	OracleHarassStateMachine* state_machine;
 	Point2D entrance_pos;
-	OracleHarassMoveToEntrance(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D entrance_pos)
+	OracleHarassMoveToEntrance(Mediator* mediator, OracleHarassStateMachine* state_machine, Point2D entrance_pos)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->entrance_pos = entrance_pos;
 	}
@@ -120,7 +119,7 @@ public:
 	const Unit* target_drone = nullptr;
 	int event_id;
 	bool lost_oracle = false;
-	OracleHarassAttackMineralLine(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D exit_pos);
+	OracleHarassAttackMineralLine(Mediator* mediator, OracleHarassStateMachine* state_machine, Point2D exit_pos);
 	virtual std::string toString() override;
 	void TickState() override;
 	virtual void EnterState() override;
@@ -134,9 +133,9 @@ class OracleHarassReturnToBase : public State {
 public:
 	OracleHarassStateMachine* state_machine;
 	std::vector<Point2D> exfil_path;
-	OracleHarassReturnToBase(TheBigBot* agent, OracleHarassStateMachine* state_machine, std::vector<Point2D> exfil_path)
+	OracleHarassReturnToBase(Mediator* mediator, OracleHarassStateMachine* state_machine, std::vector<Point2D> exfil_path)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->exfil_path = exfil_path;
 	}
@@ -161,8 +160,8 @@ public:
 	bool harass_direction = true;
 	size_t harass_index = 0;
 	int event_id;
-	OracleHarassStateMachine(TheBigBot* agent, Units oracles, Point2D third_base_pos, Point2D door_guard_pos, std::string name);
-	OracleHarassStateMachine(TheBigBot* agent, Units oracles, std::string name);
+	OracleHarassStateMachine(Mediator* mediator, Units oracles, Point2D third_base_pos, Point2D door_guard_pos, std::string name);
+	OracleHarassStateMachine(Mediator* mediator, Units oracles, std::string name);
 
 	~OracleHarassStateMachine();
 

@@ -8,7 +8,6 @@ namespace sc2
 
 class Mediator;
 class StalkerBaseDefenseTerran;
-class TheBigBot;
 class ArmyGroup;
 
 
@@ -19,9 +18,9 @@ class StalkerBaseDefenseTerranDefendFront : public State
 public:
 	class StalkerBaseDefenseTerran* state_machine;
 	bool forward = true;
-	StalkerBaseDefenseTerranDefendFront(TheBigBot* agent, StalkerBaseDefenseTerran* state_machine)
+	StalkerBaseDefenseTerranDefendFront(Mediator* medaitor, StalkerBaseDefenseTerran* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -35,9 +34,9 @@ class StalkerBaseDefenseTerranMoveAcross : public State
 {
 public:
 	class StalkerBaseDefenseTerran* state_machine;
-	StalkerBaseDefenseTerranMoveAcross(TheBigBot* agent, StalkerBaseDefenseTerran* state_machine)
+	StalkerBaseDefenseTerranMoveAcross(Mediator* medaitor, StalkerBaseDefenseTerran* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -54,9 +53,9 @@ public:
 	Point2D attack_pos;
 	Point2D retreat_pos;
 	bool shields_regening = false;
-	ScoutBaseDefenseTerranHarrassFront(TheBigBot* agent, StalkerBaseDefenseTerran* state_machine, Point2D adept_scout_shade, Point2D adept_scout_runaway)
+	ScoutBaseDefenseTerranHarrassFront(Mediator* medaitor, StalkerBaseDefenseTerran* state_machine, Point2D adept_scout_shade, Point2D adept_scout_runaway)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->attack_pos = adept_scout_shade;
 		this->retreat_pos = adept_scout_runaway;
@@ -80,7 +79,7 @@ public:
 	const Unit* target = nullptr;
 	std::vector<Point2D> front_of_base;
 	int event_id;
-	StalkerBaseDefenseTerran(TheBigBot* agent, std::string name, const Unit* stalker, std::vector<Point2D> front_of_base);
+	StalkerBaseDefenseTerran(Mediator* medaitor, std::string name, const Unit* stalker, std::vector<Point2D> front_of_base);
 	~StalkerBaseDefenseTerran();
 
 	void OnUnitDestroyedListener(const Unit*);

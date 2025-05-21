@@ -7,12 +7,12 @@ namespace sc2 {
 #pragma region OracleDefendLocation
 
 
-OracleDefendLocation::OracleDefendLocation(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D denfensive_position)
+OracleDefendLocation::OracleDefendLocation(Mediator* mediator, OracleHarassStateMachine* state_machine, Point2D denfensive_position)
 {
-	this->agent = agent;
+	this->mediator = mediator;
 	this->state_machine = state_machine;
 	this->denfensive_position = denfensive_position;
-	event_id = agent->GetUniqueId();
+	event_id = mediator->GetUniqueId();
 }
 
 std::string OracleDefendLocation::toString()
@@ -22,14 +22,14 @@ std::string OracleDefendLocation::toString()
 
 void OracleDefendLocation::TickState()
 {
-	Units enemy_units = agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
+	Units enemy_units = mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
 	if (enemy_units.size() > 0 && Utility::DistanceToClosest(enemy_units, denfensive_position) < 10)
 	{
 		for (const auto &oracle : state_machine->oracles)
 		{
-			float now = agent->Observation()->GetGameLoop() / FRAME_TIME;
+			float now = mediator->GetGameLoop() / FRAME_TIME;
 			bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .61;
-			bool beam_active = agent->mediator.IsOracleBeamActive(oracle);
+			bool beam_active = mediator->IsOracleBeamActive(oracle);
 			bool beam_activatable = false;
 
 			if (!beam_active && oracle->energy >= 40)
@@ -41,18 +41,18 @@ void OracleDefendLocation::TickState()
 				if (Distance2D(oracle->pos, closest_unit->pos) > 4)
 				{
 					float dist = Distance2D(oracle->pos, closest_unit->pos);
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), false);
+					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), 0);
 				}
 				else if (weapon_ready)
 				{
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit, false);
+					mediator->SetUnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit, 0);
 					state_machine->time_last_attacked[oracle] = now;
 					state_machine->has_attacked[oracle] = false;
 					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 255, 0));
 				}
 				else if (state_machine->has_attacked[oracle])
 				{
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, 0);
 					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 				}
 				else
@@ -64,16 +64,16 @@ void OracleDefendLocation::TickState()
 			{
 				if (Distance2D(oracle->pos, closest_unit->pos) < 3)
 				{
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, false);
+					mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, 0);
 				}
 				else
 				{
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, 0);
 				}
 			}
 			else
 			{
-				agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, 0);
 				//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
 			}
 			//agent->Debug()->DebugTextOut(std::to_string(now - state_machine->time_last_attacked[oracle]), Point2D(.7, .7), Color(0, 255, 255), 20);
@@ -85,13 +85,13 @@ void OracleDefendLocation::TickState()
 	{
 		for (const auto &oracle : state_machine->oracles)
 		{
-			if (agent->mediator.IsOracleBeamActive(oracle))
+			if (mediator->IsOracleBeamActive(oracle))
 			{
-				agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+				mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
 			}
 
 			if (Distance2D(oracle->pos, denfensive_position) > 1)
-				agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, denfensive_position);
+				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, denfensive_position, 0);
 		}
 	}
 
@@ -102,17 +102,17 @@ void OracleDefendLocation::EnterState()
 {
 	for (const auto &oracle : state_machine->oracles)
 	{
-		agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, denfensive_position);
+		mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, denfensive_position, 0);
 	}
 	std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
 		this->OnUnitDamagedListener(unit, health, shields);
 	};
-	agent->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
+	mediator->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
 
 	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
 		this->OnUnitDestroyedListener(unit);
 	};
-	agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+	mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 }
 
 void OracleDefendLocation::ExitState()
@@ -120,10 +120,10 @@ void OracleDefendLocation::ExitState()
 	for (const auto &oracle : state_machine->oracles)
 	{
 		// remove event onUnitDamaged
-		agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+		mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
 	}
-	agent->RemoveListenerToOnUnitDamagedEvent(event_id);
-	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+	mediator->RemoveListenerToOnUnitDamagedEvent(event_id);
+	mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
 	return;
 }
 
@@ -135,13 +135,13 @@ State* OracleDefendLocation::TestTransitions()
 		{
 			state_machine->harass_direction = true;
 			state_machine->harass_index = 0;
-			return new OracleHarassGroupUp(agent, state_machine, agent->locations->oracle_path.entrance_point);
+			return new OracleHarassGroupUp(mediator, state_machine, mediator->GetLocations().oracle_path.entrance_point);
 		}
 		else
 		{
 			state_machine->harass_direction = false;
-			state_machine->harass_index = (int)agent->locations->oracle_path.entrance_points.size() - 1;
-			return new OracleHarassGroupUp(agent, state_machine, agent->locations->oracle_path.exit_point);
+			state_machine->harass_index = (int)mediator->GetLocations().oracle_path.entrance_points.size() - 1;
+			return new OracleHarassGroupUp(mediator, state_machine, mediator->GetLocations().oracle_path.exit_point);
 		}
 	}
 	return nullptr;
@@ -181,9 +181,9 @@ void OracleDefendLocation::OnUnitDestroyedListener(const Unit* unit)
 
 #pragma region OracleDefendLine
 
-OracleDefendLine::OracleDefendLine(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D start, Point2D end)
+OracleDefendLine::OracleDefendLine(Mediator* mediator, OracleHarassStateMachine* state_machine, Point2D start, Point2D end)
 {
-	this->agent = agent;
+	this->mediator = mediator;
 	this->state_machine = state_machine;
 
 	double slope = (start.y - end.y) / (start.x - end.x);
@@ -193,7 +193,7 @@ OracleDefendLine::OracleDefendLine(TheBigBot* agent, OracleHarassStateMachine* s
 
 	line = new LineSegmentLinearX((float)line_a, (float)line_b, start.x, end.x);
 
-	event_id = agent->GetUniqueId();
+	event_id = mediator->GetUniqueId();
 }
 
 std::string OracleDefendLine::toString()
@@ -203,7 +203,7 @@ std::string OracleDefendLine::toString()
 
 void OracleDefendLine::TickState()
 {
-	Units enemy_units = agent->Observation()->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
+	Units enemy_units = mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
 	for (int i = 0; i < enemy_units.size(); i++) // remove any enemies too far from defense location
 	{
 		Point2D closest_pos = line->FindClosestPoint(enemy_units[i]->pos);
@@ -217,9 +217,9 @@ void OracleDefendLine::TickState()
 	{
 		for (const auto& oracle : state_machine->oracles)
 		{
-			float now = agent->Observation()->GetGameLoop() / FRAME_TIME;
+			float now = mediator->GetGameLoop() / FRAME_TIME;
 			bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .61;
-			bool beam_active = agent->mediator.IsOracleBeamActive(oracle);
+			bool beam_active = mediator->IsOracleBeamActive(oracle);
 			bool beam_activatable = false;
 
 			if (!beam_active && oracle->energy >= 40 && enemy_units.size() > 5)
@@ -231,21 +231,21 @@ void OracleDefendLine::TickState()
 				if (Distance2D(oracle->pos, closest_unit->pos) > 4)
 				{
 					float dist = Distance2D(oracle->pos, closest_unit->pos);
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), false);
+					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), 0);
 				}
 				else if (weapon_ready)
 				{
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit, false);
+					mediator->SetUnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit, 0);
 					state_machine->time_last_attacked[oracle] = now;
 					state_machine->has_attacked[oracle] = false;
 					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 255, 0));
 				}
 				else if (state_machine->has_attacked[oracle])
 				{
-					if ((agent->Observation()->GetUnit(oracle->engaged_target_tag) == nullptr || 
-						Distance2D(oracle->pos, agent->Observation()->GetUnit(oracle->engaged_target_tag)->pos) > 3) ||
+					if ((mediator->GetUnit(oracle->engaged_target_tag) == nullptr ||
+						Distance2D(oracle->pos, mediator->GetUnit(oracle->engaged_target_tag)->pos) > 3) ||
 						Distance2D(oracle->pos, closest_unit->pos) > 3)  // only move if target is getting away
-						agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+						mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, 0);
 					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 				}
 				else
@@ -257,16 +257,16 @@ void OracleDefendLine::TickState()
 			{
 				if (Distance2D(oracle->pos, closest_unit->pos) < 2)
 				{
-					agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, 0, false);
+					mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, 0);
 				}
 				else
 				{
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, 0);
 				}
 			}
 			else
 			{
-				agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, false);
+				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, 0);
 				//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
 			}
 			//agent->Debug()->DebugTextOut(std::to_string(now - state_machine->time_last_attacked[oracle]), Point2D(.7, .7), Color(0, 255, 255), 20);
@@ -278,9 +278,9 @@ void OracleDefendLine::TickState()
 	{
 		for (const auto& oracle : state_machine->oracles)
 		{
-			if (agent->mediator.IsOracleBeamActive(oracle))
+			if (mediator->IsOracleBeamActive(oracle))
 			{
-				agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+				mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
 				continue;
 			}
 
@@ -294,18 +294,18 @@ void OracleDefendLine::TickState()
 			}
 			else if (dist_to_start < 1)
 			{
-				agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetEndPoint());
+				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetEndPoint(), 0);
 			}
 			else if (dist_to_end < 1)
 			{
-				agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetStartPoint());
+				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetStartPoint(), 0);
 			}
 			else
 			{
 				if (dist_to_end < dist_to_start)
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetEndPoint());
+					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetEndPoint(), 0);
 				else
-					agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetStartPoint());
+					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetStartPoint(), 0);
 			}
 		}
 	}
@@ -317,17 +317,17 @@ void OracleDefendLine::EnterState()
 {
 	for (const auto& oracle : state_machine->oracles)
 	{
-		agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetStartPoint());
+		mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, line->GetStartPoint(), 0);
 	}
 	std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
 		this->OnUnitDamagedListener(unit, health, shields);
 	};
-	agent->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
+	mediator->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
 
 	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
 		this->OnUnitDestroyedListener(unit);
 	};
-	agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+	mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 
 	/*std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
 		this->OnUnitCreatedListener(unit);
@@ -340,10 +340,10 @@ void OracleDefendLine::ExitState()
 	for (const auto& oracle : state_machine->oracles)
 	{
 		// remove event onUnitDamaged
-		agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+		mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
 	}
-	agent->RemoveListenerToOnUnitDamagedEvent(event_id);
-	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+	mediator->RemoveListenerToOnUnitDamagedEvent(event_id);
+	mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
 	//agent->RemoveListenerToOnUnitCreatedEvent(event_id);
 	return;
 }
@@ -361,20 +361,20 @@ State* OracleDefendLine::TestTransitions()
 				break;
 			}
 		}
-		if (low_energy || agent->mediator.GetOngoingAttacks().size() > 0)
+		if (low_energy || mediator->GetOngoingAttacks().size() > 0)
 			return nullptr;
 
-		if (agent->Observation()->GetGameLoop() % 2 == 0)
+		if (mediator->GetGameLoop() % 2 == 0)
 		{
 			state_machine->harass_direction = true;
 			state_machine->harass_index = 0;
-			return new OracleHarassGroupUp(agent, state_machine, agent->locations->oracle_path.entrance_point);
+			return new OracleHarassGroupUp(mediator, state_machine, mediator->GetLocations().oracle_path.entrance_point);
 		}
 		else
 		{
 			state_machine->harass_direction = false;
-			state_machine->harass_index = (int)agent->locations->oracle_path.entrance_points.size() - 1;
-			return new OracleHarassGroupUp(agent, state_machine, agent->locations->oracle_path.exit_point);
+			state_machine->harass_index = (int)mediator->GetLocations().oracle_path.entrance_points.size() - 1;
+			return new OracleHarassGroupUp(mediator, state_machine, mediator->GetLocations().oracle_path.exit_point);
 		}
 	}
 	return nullptr;
@@ -427,11 +427,11 @@ void OracleDefendLine::OnUnitCreatedListener(const Unit* unit)
 
 #pragma region OracleDefendArmyGroup
 
-OracleDefendArmyGroup::OracleDefendArmyGroup(TheBigBot* agent, OracleHarassStateMachine* state_machine)
+OracleDefendArmyGroup::OracleDefendArmyGroup(Mediator* mediator, OracleHarassStateMachine* state_machine)
 {
-	this->agent = agent;
+	this->mediator = mediator;
 	this->state_machine = state_machine;
-	event_id = agent->GetUniqueId();
+	event_id = mediator->GetUniqueId();
 }
 
 std::string OracleDefendArmyGroup::toString()
@@ -448,12 +448,12 @@ void OracleDefendArmyGroup::TickState()
 		center = state_machine->attached_army_group->attack_path_line.GetPointFrom(median_center, 2, false);
 	}
 
-	Units enemy_units = agent->Observation()->GetUnits(IsUnits(Utility::GetBurrowedUnitTypes()));
+	Units enemy_units = mediator->GetUnits(IsUnits(Utility::GetBurrowedUnitTypes()));
 
 	bool revelation_cast = false;
 	for (const auto &oracle : state_machine->oracles)
 	{
-		if (agent->mediator.IsOracleCasting(oracle))
+		if (mediator->IsOracleCasting(oracle))
 		{
 			revelation_cast = true;
 			break;
@@ -493,20 +493,20 @@ void OracleDefendArmyGroup::TickState()
 			}
 			if (highest_over_75 != nullptr)
 			{
-				agent->Actions()->UnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
+				mediator->SetUnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos, 0);
 				//agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
 
 			}
 			else if (lowest_over_25 != nullptr)
 			{
-				agent->Actions()->UnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos);
+				mediator->SetUnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos, 0);
 				//agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
 			}
 		}
 	}
 
 
-	Units enemy_lings = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ZERGLING));
+	Units enemy_lings = mediator->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ZERGLING));
 	int num_close_lings = 0;
 	for (const auto &ling : enemy_lings)
 	{
@@ -518,7 +518,7 @@ void OracleDefendArmyGroup::TickState()
 		int num_stalkers_with_blink = 0;
 		for (const auto &stalker : state_machine->attached_army_group->stalkers)
 		{
-			if (agent->mediator.IsStalkerBlinkOffCooldown(stalker))
+			if (mediator->IsStalkerBlinkOffCooldown(stalker))
 				num_stalkers_with_blink++;
 		}
 		float percent_stalkers_with_blink = 1;
@@ -547,7 +547,7 @@ void OracleDefendArmyGroup::TickState()
 		int num_oracles_active = 0;
 		for (const auto &oracle : state_machine->oracles)
 		{
-			if (agent->mediator.IsOracleBeamActive(oracle))
+			if (mediator->IsOracleBeamActive(oracle))
 				num_oracles_active++;
 		}
 		/*
@@ -580,9 +580,9 @@ void OracleDefendArmyGroup::TickState()
 					break;
 				if (oracle->energy > 10 && Utility::DistanceToClosest(enemy_lings, oracle->pos) > 5)
 				{
-					if (agent->mediator.IsOracleBeamActive(oracle))
+					if (mediator->IsOracleBeamActive(oracle))
 					{
-						agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+						mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
 						num_oracles_active--;
 					}
 				}
@@ -601,9 +601,9 @@ void OracleDefendArmyGroup::TickState()
 					break;
 				if (oracle->energy > 40)
 				{
-					if (agent->mediator.IsOracleBeamActive(oracle) == false)
+					if (mediator->IsOracleBeamActive(oracle) == false)
 					{
-						agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, 0);
+						mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, 0);
 						num_oracles_active++;
 					}
 				}
@@ -621,9 +621,9 @@ void OracleDefendArmyGroup::TickState()
 		{
 			if (oracle->energy > 10 && (enemy_lings.size() == 0 || Utility::DistanceToClosest(enemy_lings, oracle->pos)))
 			{
-				if (agent->mediator.IsOracleBeamActive(oracle))
+				if (mediator->IsOracleBeamActive(oracle))
 				{
-					agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+					mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
 				}
 			}
 		}
@@ -632,16 +632,16 @@ void OracleDefendArmyGroup::TickState()
 	// add event listeners for oracle
 	for (const auto &oracle : state_machine->oracles)
 	{
-		if (agent->mediator.IsOracleCasting(oracle))
+		if (mediator->IsOracleCasting(oracle))
 		{
 			continue;
 		}
-		if (agent->mediator.IsOracleBeamActive(oracle) == false)
+		if (mediator->IsOracleBeamActive(oracle) == false)
 		{
-			agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center);
+			mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center, 0);
 			continue;
 		}
-		float now = agent->Observation()->GetGameLoop() / FRAME_TIME;
+		float now = mediator->GetCurrentTime();
 		bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .8; //.61
 
 		/*agent->Debug()->DebugTextOut("weapon ready " + std::to_string(weapon_ready), Point2D(.2, .35), Color(0, 255, 0), 20);
@@ -654,22 +654,22 @@ void OracleDefendArmyGroup::TickState()
 			const Unit* closest_unit = Utility::ClosestTo(enemy_lings, oracle->pos);
 			if (closest_unit == nullptr || Distance2D(closest_unit->pos, oracle->pos) > 6)
 			{
-				agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center);
+				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center, 0);
 				continue;
 			}
 
 
-			agent->Actions()->UnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit);
+			mediator->SetUnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit, 0);
 			//agent->Debug()->DebugSphereOut(closest_unit->pos, .75, Color(0, 255, 255));
 
 			state_machine->target[oracle] = closest_unit->tag;
-			state_machine->time_last_attacked[oracle] = agent->Observation()->GetGameLoop() / FRAME_TIME;
+			state_machine->time_last_attacked[oracle] = mediator->GetCurrentTime();
 			state_machine->has_attacked[oracle] = false;
 			//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
 		}
 		else if (state_machine->has_attacked[oracle])
 		{
-			agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center);
+			mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center, 0);
 
 			//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 		}
@@ -686,22 +686,22 @@ void OracleDefendArmyGroup::EnterState()
 	std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
 		this->OnUnitDamagedListener(unit, health, shields);
 	};
-	agent->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
+	mediator->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
 
 	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
 		this->OnUnitDestroyedListener(unit);
 	};
-	agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+	mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 }
 
 void OracleDefendArmyGroup::ExitState()
 {
 	for (const auto &oracle : state_machine->oracles)
 	{
-		agent->mediator.SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+		mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
 	}
-	agent->RemoveListenerToOnUnitDamagedEvent(event_id);
-	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+	mediator->RemoveListenerToOnUnitDamagedEvent(event_id);
+	mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
 	return;
 }
 
@@ -763,7 +763,7 @@ void OracleHarassGroupUp::EnterState()
 	state_machine->sent_harass = true;
 	for (const auto &oracle : state_machine->oracles)
 	{
-		agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, consolidation_pos);
+		mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, consolidation_pos, 0);
 	}
 }
 
@@ -772,23 +772,23 @@ State* OracleHarassGroupUp::TestTransitions()
 	if (state_machine->oracles.size() < 2)
 	{
 		// delete sm and ag
-		agent->mediator.MarkStateMachineForDeletion(state_machine);
-		agent->mediator.MarkArmyGroupForDeletion(state_machine->attached_army_group);
+		mediator->MarkStateMachineForDeletion(state_machine);
+		mediator->MarkArmyGroupForDeletion(state_machine->attached_army_group);
 		return nullptr;
 	}
 
-	if (agent->mediator.GetWorstOngoingAttackValue() < -50)
+	if (mediator->GetWorstOngoingAttackValue() < -50)
 	{
 		// delete sm and ag
-		agent->mediator.MarkStateMachineForDeletion(state_machine);
-		agent->mediator.MarkArmyGroupForDeletion(state_machine->attached_army_group);
+		mediator->MarkStateMachineForDeletion(state_machine);
+		mediator->MarkArmyGroupForDeletion(state_machine->attached_army_group);
 		return nullptr;
 	}
 
 	for (const auto& oracle : state_machine->oracles)
 	{
 		if (oracle->orders.size() == 0)
-			agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, consolidation_pos);
+			mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, consolidation_pos, 0);
 	}
 	for (const auto &oracle : state_machine->oracles)
 	{
@@ -798,9 +798,9 @@ State* OracleHarassGroupUp::TestTransitions()
 		}
 	}
 	if (state_machine->harass_direction)
-		return new OracleHarassMoveToEntrance(agent, state_machine, agent->locations->oracle_path.entrance_points[state_machine->harass_index]);
+		return new OracleHarassMoveToEntrance(mediator, state_machine, mediator->GetLocations().oracle_path.entrance_points[state_machine->harass_index]);
 	else
-		return new OracleHarassMoveToEntrance(agent, state_machine, agent->locations->oracle_path.exit_points[state_machine->harass_index]);
+		return new OracleHarassMoveToEntrance(mediator, state_machine, mediator->GetLocations().oracle_path.exit_points[state_machine->harass_index]);
 
 }
 
@@ -808,7 +808,7 @@ void OracleHarassGroupUp::TickState()
 {
 	for (const auto &oracle : state_machine->oracles)
 	{
-		agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, consolidation_pos);
+		mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, consolidation_pos, 0);
 	}
 }
 
@@ -830,7 +830,7 @@ void OracleHarassMoveToEntrance::EnterState()
 {
 	for (const auto &oracle : state_machine->oracles)
 	{
-		agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, entrance_pos);
+		mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, entrance_pos, 0);
 	}
 }
 
@@ -844,16 +844,16 @@ State* OracleHarassMoveToEntrance::TestTransitions()
 		}
 	}
 	if (state_machine->harass_direction)
-		return new OracleHarassAttackMineralLine(agent, state_machine, agent->locations->oracle_path.exit_points[state_machine->harass_index]);
+		return new OracleHarassAttackMineralLine(mediator, state_machine, mediator->GetLocations().oracle_path.exit_points[state_machine->harass_index]);
 	else
-		return new OracleHarassAttackMineralLine(agent, state_machine, agent->locations->oracle_path.entrance_points[state_machine->harass_index]);
+		return new OracleHarassAttackMineralLine(mediator, state_machine, mediator->GetLocations().oracle_path.entrance_points[state_machine->harass_index]);
 }
 
 void OracleHarassMoveToEntrance::TickState()
 {
 	for (const auto &oracle : state_machine->oracles)
 	{
-		agent->Actions()->UnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, entrance_pos);
+		mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, entrance_pos, 0);
 	}
 }
 
@@ -866,12 +866,12 @@ void OracleHarassMoveToEntrance::ExitState()
 
 #pragma region OracleHarassAttackMineralLine
 
-OracleHarassAttackMineralLine::OracleHarassAttackMineralLine(TheBigBot* agent, OracleHarassStateMachine* state_machine, Point2D exit_pos)
+OracleHarassAttackMineralLine::OracleHarassAttackMineralLine(Mediator* mediator, OracleHarassStateMachine* state_machine, Point2D exit_pos)
 {
-	this->agent = agent;
+	this->mediator = mediator;
 	this->state_machine = state_machine;
 	this->exit_pos = exit_pos;
-	event_id = agent->GetUniqueId();
+	event_id = mediator->GetUniqueId();
 }
 
 std::string OracleHarassAttackMineralLine::toString()
@@ -881,12 +881,12 @@ std::string OracleHarassAttackMineralLine::toString()
 
 void OracleHarassAttackMineralLine::EnterState()
 {
-	agent->mediator.SetUnitsCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMON, 0);
+	mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMON, 0);
 
 	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
 		this->OnUnitDestroyedListener(unit);
 	};
-	agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+	mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 }
 
 State* OracleHarassAttackMineralLine::TestTransitions()
@@ -902,9 +902,9 @@ State* OracleHarassAttackMineralLine::TestTransitions()
 		}
 	}
 	if (state_machine->harass_direction)
-		return new OracleHarassReturnToBase(agent, state_machine, agent->locations->oracle_path.exfi_paths[state_machine->harass_index]);
+		return new OracleHarassReturnToBase(mediator, state_machine, mediator->GetLocations().oracle_path.exfi_paths[state_machine->harass_index]);
 	else
-		return new OracleHarassReturnToBase(agent, state_machine, agent->locations->oracle_path.exfi_paths[state_machine->harass_index - 1]);
+		return new OracleHarassReturnToBase(mediator, state_machine, mediator->GetLocations().oracle_path.exfi_paths[state_machine->harass_index - 1]);
 }
 	
 void OracleHarassAttackMineralLine::TickState()
@@ -912,7 +912,7 @@ void OracleHarassAttackMineralLine::TickState()
 	bool weapons_ready = true;
 	for (const auto &oracle : state_machine->oracles)
 	{
-		float now = agent->Observation()->GetGameLoop() / FRAME_TIME;
+		float now = mediator->GetCurrentTime();
 		bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .8; //.61
 		if (!weapon_ready)
 		{
@@ -927,22 +927,22 @@ void OracleHarassAttackMineralLine::TickState()
 	float d = (float)(sqrt(pow(oracle_center.x - exit_pos.x, 2) + pow(oracle_center.y - exit_pos.y, 2)));
 	Point2D l1 = Point2D(oracle_center.x + 2 * (exit_pos.x - oracle_center.x) / d + 3, oracle_center.y + 2 * (exit_pos.y - oracle_center.y) / d - (3 / s));
 	Point2D l2 = Point2D(oracle_center.x + 2 * (exit_pos.x - oracle_center.x) / d - 3, oracle_center.y + 2 * (exit_pos.y - oracle_center.y) / d + (3 / s));
-	Point3D L1 = agent->ToPoint3D(l1) + Point3D(0, 0, .2f);
-	Point3D L2 = agent->ToPoint3D(l2) + Point3D(0, 0, .2f);
+	Point3D L1 = mediator->ToPoint3D(l1) + Point3D(0, 0, .2f);
+	Point3D L2 = mediator->ToPoint3D(l2) + Point3D(0, 0, .2f);
 
 	//agent->Debug()->DebugLineOut(L1, L2, Color(255, 0, 255));
 
 
 	if (weapons_ready)
 	{
-		Units drones = agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_DRONE));
+		Units drones = mediator->GetUnits(IsUnit(UNIT_TYPEID::ZERG_DRONE));
 		if (drones.size() == 0)
 		{
 			if (Distance2D(oracle_center, exit_pos) > 4)
-				agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4));
+				mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4), 0);
 			else
-				agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
-			//agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
+				mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos, 0);
+			//SetUnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
 			//agent->Debug()->DebugSphereOut(state_machine->oracles[0]->pos, 1, Color(0, 255, 255));
 			return;
 		}
@@ -954,14 +954,14 @@ void OracleHarassAttackMineralLine::TickState()
 		Point2D exit_vector = Point2D(exit_pos.x - ideal_pos.x, exit_pos.y - ideal_pos.y);
 		//agent->Debug()->DebugSphereOut(agent->ToPoint3D(ideal_pos), 1, Color(255, 255, 0));
 
-		/*for (const auto &extractor : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_EXTRACTOR)))
+		/*for (const auto &extractor : mediator->GetUnits(IsUnit(UNIT_TYPEID::ZERG_EXTRACTOR)))
 		{
 			agent->Debug()->DebugSphereOut(extractor->pos, 3, Color(255, 0, 255));
 		}*/
 
 		for (const auto &drone : drones)
 		{
-			if (Utility::DistanceToClosest(agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_EXTRACTOR)), drone->pos) < 3)
+			if (Utility::DistanceToClosest(mediator->GetUnits(IsUnit(UNIT_TYPEID::ZERG_EXTRACTOR)), drone->pos) < 3)
 				continue;
 			Point2D drone_vector = Point2D(drone->pos.x - ideal_pos.x, drone->pos.y - ideal_pos.y);
 			float dot_product = exit_vector.x * drone_vector.x + exit_vector.y * drone_vector.y;
@@ -992,10 +992,10 @@ void OracleHarassAttackMineralLine::TickState()
 		if (target_drone == nullptr)
 		{
 			if (Distance2D(oracle_center, exit_pos) > 4)
-				agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4));
+				mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4), 0);
 			else
-				agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
-			//agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
+				mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos, 0);
+			//SetUnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
 			//agent->Debug()->DebugSphereOut(state_machine->oracles[0]->pos, 1, Color(0, 255, 255));
 			return;
 		}
@@ -1005,12 +1005,12 @@ void OracleHarassAttackMineralLine::TickState()
 		agent->Debug()->DebugSphereOut(target_drone->pos, 1, Color(0, 255, 255));*/
 
 
-		agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::ATTACK_ATTACK, target_drone);
+		mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::ATTACK_ATTACK, target_drone, 0);
 
 
 		for (const auto &oracle : state_machine->oracles)
 		{
-			state_machine->time_last_attacked[oracle] = agent->Observation()->GetGameLoop() / FRAME_TIME;
+			state_machine->time_last_attacked[oracle] = mediator->GetCurrentTime();
 			state_machine->has_attacked[oracle] = false;
 			//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
 		}
@@ -1018,10 +1018,10 @@ void OracleHarassAttackMineralLine::TickState()
 	else if (state_machine->has_attacked[state_machine->oracles[0]])
 	{
 		if (Distance2D(oracle_center, exit_pos) > 4)
-			agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4));
+			mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4), 0);
 		else
-			agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
-		//agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
+			mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos, 0);
+		//SetUnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exit_pos);
 
 		/*for (const auto &oracle : state_machine->oracles)
 		{
@@ -1039,8 +1039,8 @@ void OracleHarassAttackMineralLine::TickState()
 
 void OracleHarassAttackMineralLine::ExitState()
 {
-	agent->mediator.SetUnitsCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
-	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+	mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+	mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
 }
 
 void OracleHarassAttackMineralLine::OnUnitDestroyedListener(const Unit* unit)
@@ -1048,7 +1048,7 @@ void OracleHarassAttackMineralLine::OnUnitDestroyedListener(const Unit* unit)
 	if (unit == nullptr)
 	{
 		std::cerr << "nullptr passed into OracleHarassAttackMineralLine::OnUnitDestroyedListener" << std::endl;
-		agent->mediator.LogMinorError();
+		mediator->LogMinorError();
 		return;
 	}
 	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed\n";
@@ -1081,24 +1081,24 @@ std::string OracleHarassReturnToBase::toString()
 
 void OracleHarassReturnToBase::EnterState()
 {
-	agent->mediator.SetUnitsCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+	mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
 	for (int i = 0; i < exfil_path.size(); i++)
 	{
-		agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exfil_path[i], i > 0);
+		mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, exfil_path[i], 0, i > 0);
 	}
-	agent->Actions()->UnitCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, agent->locations->start_location, true);
+	mediator->SetUnitsCommand(state_machine->oracles, ABILITY_ID::GENERAL_MOVE, mediator->GetStartLocation(), 0, true);
 }
 
 State* OracleHarassReturnToBase::TestTransitions()
 {
 	for (const auto &oracle : state_machine->oracles)
 	{
-		if (Distance2D(oracle->pos, agent->locations->start_location) > 40)
+		if (Distance2D(oracle->pos, mediator->GetStartLocation()) > 40)
 			return nullptr;
 	}
 	// delete sm and ag
-	agent->mediator.MarkStateMachineForDeletion(state_machine);
-	agent->mediator.MarkArmyGroupForDeletion(state_machine->attached_army_group);
+	mediator->MarkStateMachineForDeletion(state_machine);
+	mediator->MarkArmyGroupForDeletion(state_machine->attached_army_group);
 	return nullptr;
 }
 
@@ -1109,7 +1109,7 @@ void OracleHarassReturnToBase::TickState()
 
 void OracleHarassReturnToBase::ExitState()
 {
-	/*for (const auto& oracle : agent->Observation()->GetUnits(IsFriendlyUnit(ORACLE)))
+	/*for (const auto& oracle : mediator->GetUnits(IsFriendlyUnit(ORACLE)))
 	{
 		if (std::find(state_machine->oracles.begin(), state_machine->oracles.end(), oracle) == state_machine->oracles.end())
 		{
@@ -1125,19 +1125,19 @@ void OracleHarassReturnToBase::ExitState()
 
 #pragma region OracleHarassStateMachine
 
-OracleHarassStateMachine::OracleHarassStateMachine(TheBigBot* agent, Units oracles, Point2D third_base_pos, 
-	Point2D door_guard_pos, std::string name) : StateMachine(agent, name)
+OracleHarassStateMachine::OracleHarassStateMachine(Mediator* mediator, Units oracles, Point2D third_base_pos,
+	Point2D door_guard_pos, std::string name) : StateMachine(mediator, name)
 {
 	this->oracles = oracles;
 	this->third_base_pos = third_base_pos;
 	this->door_guard_pos = door_guard_pos;
-	event_id = agent->GetUniqueId();
+	event_id = mediator->GetUniqueId();
 	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
 		this->OnUnitDestroyedListener(unit);
 	};
-	agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+	mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 
-	current_state = new OracleDefendLine(agent, this, third_base_pos, door_guard_pos);
+	current_state = new OracleDefendLine(mediator, this, third_base_pos, door_guard_pos);
 	for (int i = 0; i < oracles.size(); i++)
 	{
 		time_last_attacked[oracles[i]] = 0;
@@ -1146,26 +1146,26 @@ OracleHarassStateMachine::OracleHarassStateMachine(TheBigBot* agent, Units oracl
 	current_state->EnterState();
 }
 
-OracleHarassStateMachine::OracleHarassStateMachine(TheBigBot* agent, Units oracles, std::string name) : StateMachine(agent, name)
+OracleHarassStateMachine::OracleHarassStateMachine(Mediator* mediator, Units oracles, std::string name) : StateMachine(mediator, name)
 {
 	this->oracles = oracles;
-	event_id = agent->GetUniqueId();
+	event_id = mediator->GetUniqueId();
 	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
 		this->OnUnitDestroyedListener(unit);
 	};
-	agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+	mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 
-	if (agent->Observation()->GetGameLoop() % 2 == 0)
+	if (mediator->GetGameLoop() % 2 == 0)
 	{
 		harass_direction = true;
 		harass_index = 0;
-		current_state = new OracleHarassGroupUp(agent, this, agent->locations->oracle_path.entrance_point);
+		current_state = new OracleHarassGroupUp(mediator, this, mediator->GetLocations().oracle_path.entrance_point);
 	}
 	else
 	{
 		harass_direction = false;
-		harass_index = agent->locations->oracle_path.entrance_points.size() - 1;
-		current_state = new OracleHarassGroupUp(agent, this, agent->locations->oracle_path.exit_point);
+		harass_index = mediator->GetLocations().oracle_path.entrance_points.size() - 1;
+		current_state = new OracleHarassGroupUp(mediator, this, mediator->GetLocations().oracle_path.exit_point);
 	}
 	
 	for (size_t i = 0; i < oracles.size(); i++)
@@ -1178,7 +1178,7 @@ OracleHarassStateMachine::OracleHarassStateMachine(TheBigBot* agent, Units oracl
 
 OracleHarassStateMachine::~OracleHarassStateMachine()
 {
-	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+	mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
 }
 
 void OracleHarassStateMachine::AddOracle(const Unit* oracle)

@@ -9,7 +9,6 @@ namespace sc2
 class Mediator;
 
 class CannonRushTerran;
-class TheBigBot;
 class ArmyGroup;
 
 #pragma region CannonRushTerran
@@ -19,9 +18,9 @@ class CannonRushTerranMoveAcross : public State
 public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
-	CannonRushTerranMoveAcross(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranMoveAcross(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 	}
@@ -39,9 +38,9 @@ public:
 	const Unit* probe;
 	int curr_index;
 	Point2D current_target;
-	CannonRushTerranFindAvaibleCorner(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, int curr_index)
+	CannonRushTerranFindAvaibleCorner(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe, int curr_index)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 		this->curr_index = curr_index;
@@ -62,9 +61,9 @@ public:
 	std::vector<Point2D> main_scout_path;
 	Point2D current_target;
 	bool gas_stolen;
-	CannonRushTerranScout(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, int index, std::vector<Point2D> main_scout_path, bool gas_stolen)
+	CannonRushTerranScout(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe, int index, std::vector<Point2D> main_scout_path, bool gas_stolen)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 		this->index = index;
@@ -83,9 +82,9 @@ class CannonRushTerranFindThreePylonWallOff : public State
 public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
-	CannonRushTerranFindThreePylonWallOff(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranFindThreePylonWallOff(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 	}
@@ -103,9 +102,9 @@ public:
 	const Unit* probe;
 	int scouting_index;
 	const Unit* gas;
-	CannonRushTerranGasSteal(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, int scouting_index, const Unit* gas)
+	CannonRushTerranGasSteal(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe, int scouting_index, const Unit* gas)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 		this->scouting_index = scouting_index;
@@ -123,9 +122,9 @@ class CannonRushTerranMoveAcross2 : public State
 public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
-	CannonRushTerranMoveAcross2(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranMoveAcross2(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 	}
@@ -142,9 +141,9 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	int index;
-	CannonRushTerranFindWallOffSpot(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, int index)
+	CannonRushTerranFindWallOffSpot(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe, int index)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 		this->index = index;
@@ -165,10 +164,10 @@ public:
 	Point2D cannon_move_to;
 	std::vector<BuildingPlacement> wall_pos;
 	int index = 0;
-	CannonRushTerranWallOff(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos,
+	CannonRushTerranWallOff(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos,
 		Point2D cannon_move_to, std::vector<BuildingPlacement> wall_pos)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 		this->cannon_pos = cannon_pos;
@@ -193,10 +192,10 @@ public:
 	bool cannon_placed = false;
 	std::vector<BuildingPlacement> wall = {};
 	bool wall_set = false;
-	CannonRushTerranCannonFirstWallOff(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos,
+	CannonRushTerranCannonFirstWallOff(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe, Point2D cannon_pos,
 		std::vector<BuildingPlacement> pylon_wall_pos, std::vector<BuildingPlacement> gateway_wall_pos)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 		this->cannon_pos = cannon_pos;
@@ -216,9 +215,9 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	Point2D stand_by_spot;
-	CannonRushTerranStandBy(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D stand_by_spot)
+	CannonRushTerranStandBy(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe, Point2D stand_by_spot)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 		this->stand_by_spot = stand_by_spot;
@@ -237,9 +236,9 @@ public:
 	const Unit* probe;
 	std::vector<Point2D> loop_path;
 	int index = 0;
-	CannonRushTerranStandByLoop(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, std::vector<Point2D> loop_path)
+	CannonRushTerranStandByLoop(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe, std::vector<Point2D> loop_path)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 		this->loop_path = loop_path;
@@ -257,9 +256,9 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	Point2D pylon_pos;
-	CannonRushTerranExtraPylon(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranExtraPylon(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 	}
@@ -277,9 +276,9 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	Point2D cannon_pos;
-	CannonRushTerranExtraCannon(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranExtraCannon(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 	}
@@ -297,9 +296,9 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	Point2D gate_pos;
-	CannonRushTerranBuildGateway(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranBuildGateway(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 	}
@@ -317,9 +316,9 @@ public:
 	class CannonRushTerran* state_machine;
 	const Unit* probe;
 	Point2D stargate_pos;
-	CannonRushTerranBuildStargate(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe)
+	CannonRushTerranBuildStargate(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 	}
@@ -339,9 +338,9 @@ public:
 	bool probe_busy = false;
 	Point2D stand_by_spot;
 	UNIT_TYPEID next_unit = UNIT_TYPEID::INVALID;
-	CannonRushTerranStandByPhase2(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* probe, Point2D stand_by_spot)
+	CannonRushTerranStandByPhase2(Mediator* mediator, CannonRushTerran* state_machine, const Unit* probe, Point2D stand_by_spot)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->probe = probe;
 		this->stand_by_spot = stand_by_spot;
@@ -362,7 +361,7 @@ class CannonRushTerranUnitMicro : public State
 public:
 	class CannonRushTerran* state_machine;
 	ArmyGroup* army = nullptr;
-	CannonRushTerranUnitMicro(TheBigBot* agent, CannonRushTerran* state_machine, const Unit* zealot);
+	CannonRushTerranUnitMicro(Mediator* mediator, CannonRushTerran* state_machine, const Unit* zealot);
 	virtual std::string toString() override;
 	void TickState() override;
 	virtual void EnterState() override;
@@ -386,7 +385,7 @@ public:
 	std::vector<Point2D> gateway_places;
 
 	int event_id;
-	CannonRushTerran(TheBigBot* agent, std::string name, const Unit* probe, int variation);
+	CannonRushTerran(Mediator* mediator, std::string name, const Unit* probe, int variation);
 
 	~CannonRushTerran();
 

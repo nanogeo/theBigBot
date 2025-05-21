@@ -7,13 +7,13 @@
 
 namespace sc2 {
 
-class TheBigBot;
+class Mediator;
 class ArmyGroup;
 
 class State
 {
 public:
-    TheBigBot* agent = nullptr;
+    Mediator* mediator = nullptr;
     virtual std::string toString();
     virtual void TickState();
     virtual void EnterState();
@@ -25,18 +25,18 @@ public:
 class StateMachine
 {
 public:
-    TheBigBot* agent = nullptr;
+    Mediator* mediator = nullptr;
     State* current_state = nullptr;
     std::string name;
     ArmyGroup* attached_army_group = nullptr;
-    StateMachine(TheBigBot* agent, std::string name) 
+    StateMachine(Mediator* mediator, std::string name)
     {
-        this->agent = agent;
+        this->mediator = mediator;
         this->name = name;
     }
-    StateMachine(TheBigBot* agent, State* starting_state, std::string name) 
+    StateMachine(Mediator* mediator, State* starting_state, std::string name)
     {
-        this->agent = agent;
+        this->mediator = mediator;
         current_state = starting_state;
         this->name = name;
         current_state->EnterState();

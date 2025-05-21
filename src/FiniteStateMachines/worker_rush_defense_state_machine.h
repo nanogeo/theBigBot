@@ -19,9 +19,9 @@ public:
 	Point2D group_pos;
 	float enter_time = 0;;
 	class WorkerRushDefenseStateMachine* state_machine;
-	WorkerRushDefenseGroupUp(TheBigBot* agent, WorkerRushDefenseStateMachine* state_machine)
+	WorkerRushDefenseGroupUp(Mediator* mediator, WorkerRushDefenseStateMachine* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -35,9 +35,9 @@ class WorkerRushDefenseInitialMove : public State
 {
 public:
 	class WorkerRushDefenseStateMachine* state_machine;
-	WorkerRushDefenseInitialMove(TheBigBot* agent, WorkerRushDefenseStateMachine* state_machine)
+	WorkerRushDefenseInitialMove(Mediator* mediator, WorkerRushDefenseStateMachine* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -51,9 +51,9 @@ class WorkerRushDefenseDefend : public State
 {
 public:
 	class WorkerRushDefenseStateMachine* state_machine;
-	WorkerRushDefenseDefend(TheBigBot* agent, WorkerRushDefenseStateMachine* state_machine)
+	WorkerRushDefenseDefend(Mediator* mediator, WorkerRushDefenseStateMachine* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -70,7 +70,7 @@ public:
 	Units workers;
 	const Unit* grouping_mineral_patch;
 	const Unit* attacking_mineral_patch;
-	WorkerRushDefenseStateMachine(TheBigBot*, std::string);
+	WorkerRushDefenseStateMachine(Mediator*, std::string);
 };
 
 

@@ -6,12 +6,11 @@ namespace sc2
 {
 
 class Mediator;
+class BlinkStalkerAttackTerran;
+class ArmyGroup;
 
 #pragma region BlinkStalkerAttackTerran
 
-class BlinkStalkerAttackTerran;
-class TheBigBot;
-class ArmyGroup;
 
 enum BlinkAtackLocation
 {
@@ -26,9 +25,9 @@ class BlinkStalkerAttackTerranMoveAcross : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranMoveAcross(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
+	BlinkStalkerAttackTerranMoveAcross(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -42,9 +41,9 @@ class BlinkStalkerAttackTerranWarpIn : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranWarpIn(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
+	BlinkStalkerAttackTerranWarpIn(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -58,9 +57,9 @@ class BlinkStalkerAttackTerranConsolidate : public State
 {
 public:
 	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranConsolidate(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
+	BlinkStalkerAttackTerranConsolidate(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -75,9 +74,9 @@ class BlinkStalkerAttackTerranAttack : public State
 public:
 	class BlinkStalkerAttackTerran* state_machine;
 	const Unit* target = nullptr;
-	BlinkStalkerAttackTerranAttack(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
+	BlinkStalkerAttackTerranAttack(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -93,9 +92,9 @@ public:
 	class BlinkStalkerAttackTerran* state_machine;
 	const Unit* target;
 	float enter_time = 0;
-	BlinkStalkerAttackTerranSnipeUnit(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine, const Unit* target)
+	BlinkStalkerAttackTerranSnipeUnit(Mediator* mediator, BlinkStalkerAttackTerran* state_machine, const Unit* target)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->target = target;
 	}
@@ -111,9 +110,9 @@ class BlinkStalkerAttackTerranBlinkUp : public State
 public:
 	class BlinkStalkerAttackTerran* state_machine;
 	Units stalkers_to_blink;
-	BlinkStalkerAttackTerranBlinkUp(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
+	BlinkStalkerAttackTerranBlinkUp(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -128,9 +127,9 @@ class BlinkStalkerAttackTerranLeaveHighground : public State
 public:
 	class BlinkStalkerAttackTerran* state_machine;
 	Units stalkers_to_blink;
-	BlinkStalkerAttackTerranLeaveHighground(TheBigBot* agent, BlinkStalkerAttackTerran* state_machine)
+	BlinkStalkerAttackTerranLeaveHighground(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -161,7 +160,7 @@ public:
 	bool warping_in = false;
 
 
-	BlinkStalkerAttackTerran(TheBigBot* agent, std::string name, Point2D consolidation_pos, 
+	BlinkStalkerAttackTerran(Mediator* mediator, std::string name, Point2D consolidation_pos,
 		Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos);
 
 

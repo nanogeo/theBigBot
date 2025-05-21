@@ -10,7 +10,7 @@ namespace sc2
 class Mediator;
 
 class AdeptBaseDefenseTerran;
-class TheBigBot;
+class Mediator;
 class ArmyGroup;
 
 class AdeptBaseDefenseTerranClearBase : public State
@@ -18,9 +18,9 @@ class AdeptBaseDefenseTerranClearBase : public State
 public:
 	class AdeptBaseDefenseTerran* state_machine;
 	bool checked_dead_space = false;
-	AdeptBaseDefenseTerranClearBase(TheBigBot* agent, AdeptBaseDefenseTerran* state_machine)
+	AdeptBaseDefenseTerranClearBase(Mediator* mediator, AdeptBaseDefenseTerran* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -35,9 +35,9 @@ class AdeptBaseDefenseTerranDefendFront : public State
 public:
 	class AdeptBaseDefenseTerran* state_machine;
 	bool forward = true;
-	AdeptBaseDefenseTerranDefendFront(TheBigBot* agent, AdeptBaseDefenseTerran* state_machine)
+	AdeptBaseDefenseTerranDefendFront(Mediator* mediator, AdeptBaseDefenseTerran* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -51,9 +51,9 @@ class AdeptBaseDefenseTerranMoveAcross : public State
 {
 public:
 	class AdeptBaseDefenseTerran* state_machine;
-	AdeptBaseDefenseTerranMoveAcross(TheBigBot* agent, AdeptBaseDefenseTerran* state_machine)
+	AdeptBaseDefenseTerranMoveAcross(Mediator* mediator, AdeptBaseDefenseTerran* state_machine)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
 	virtual std::string toString() override;
@@ -75,10 +75,10 @@ public:
 	std::vector<Point2D> adept_scout_nat_path;
 	std::vector<Point2D> adept_scout_base_spots;
 	int base_spots_index;
-	AdeptBaseDefenseTerranScoutBase(TheBigBot* agent, AdeptBaseDefenseTerran* state_machine, Point2D adept_scout_shade, Point2D adept_scout_runaway,
+	AdeptBaseDefenseTerranScoutBase(Mediator* mediator, AdeptBaseDefenseTerran* state_machine, Point2D adept_scout_shade, Point2D adept_scout_runaway,
 		Point2D adept_scout_ramptop, std::vector<Point2D> adept_scout_nat_path, std::vector<Point2D> adept_scout_base_spots)
 	{
-		this->agent = agent;
+		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->adept_scout_shade = adept_scout_shade;
 		this->adept_scout_runaway = adept_scout_runaway;
@@ -109,7 +109,7 @@ public:
 	const Unit* target = nullptr;
 	std::vector<Point2D> front_of_base;
 	int event_id;
-	AdeptBaseDefenseTerran(TheBigBot* agent, std::string name, Point2D dead_space_spot, std::vector<Point2D> front_of_base);
+	AdeptBaseDefenseTerran(Mediator* mediator, std::string name, Point2D dead_space_spot, std::vector<Point2D> front_of_base);
 	~AdeptBaseDefenseTerran();
 
 	bool AddUnit(const Unit*) override;

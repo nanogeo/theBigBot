@@ -8,7 +8,6 @@ namespace sc2
 
 class Mediator;
 class ChargelotAllInStateMachine;
-class TheBigBot;
 class ArmyGroup;
 
 
@@ -18,9 +17,9 @@ class ArmyGroup;
 class ChargeAllInMovingToWarpinSpot : public State {
 public:
     ChargelotAllInStateMachine* state_machine;
-    ChargeAllInMovingToWarpinSpot(TheBigBot* agent, ChargelotAllInStateMachine* state_machine)
+    ChargeAllInMovingToWarpinSpot(Mediator* mediator, ChargelotAllInStateMachine* state_machine)
     {
-        this->agent = agent;
+        this->mediator = mediator;
         this->state_machine = state_machine;
     }
     virtual std::string toString() override;
@@ -33,9 +32,9 @@ public:
 class ChargeAllInWarpingIn : public State {
 public:
     ChargelotAllInStateMachine* state_machine;
-    ChargeAllInWarpingIn(TheBigBot* agent, ChargelotAllInStateMachine* state_machine)
+    ChargeAllInWarpingIn(Mediator* mediator, ChargelotAllInStateMachine* state_machine)
     {
-        this->agent = agent;
+        this->mediator = mediator;
         this->state_machine = state_machine;
     }
     virtual std::string toString() override;
@@ -56,10 +55,10 @@ public:
     std::vector<Point2D> prism_spots;
     int prism_spots_index;
     Point2D next_warp_in_location = Point2D(0, 0);
-    ChargelotAllInStateMachine(TheBigBot* agent, std::string name, std::vector<Point2D> prism_locations, 
-        float last_warp_in_time) : StateMachine(agent, name)
+    ChargelotAllInStateMachine(Mediator* mediator, std::string name, std::vector<Point2D> prism_locations,
+        float last_warp_in_time) : StateMachine(mediator, name)
     {
-        current_state = new ChargeAllInMovingToWarpinSpot(agent, this);
+        current_state = new ChargeAllInMovingToWarpinSpot(mediator, this);
         prism_spots = prism_locations;
         this->last_warp_in_time = last_warp_in_time;
         prism_spots_index = 0;

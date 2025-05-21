@@ -8,7 +8,6 @@ namespace sc2
 
 class Mediator;
 class ScoutZergStateMachine;
-class TheBigBot;
 class ArmyGroup;
 
 #pragma region Scout Z
@@ -18,9 +17,9 @@ class ScoutZInitialMove : public State
 {
 public:
     ScoutZergStateMachine* state_machine;
-    ScoutZInitialMove(TheBigBot* agent, ScoutZergStateMachine* state_machine)
+    ScoutZInitialMove(Mediator* mediator, ScoutZergStateMachine* state_machine)
     {
-        this->agent = agent;
+        this->mediator = mediator;
         this->state_machine = state_machine;
     }
     virtual std::string toString() override;
@@ -34,9 +33,9 @@ class ScoutZScoutMain : public State
 {
 public:
     ScoutZergStateMachine* state_machine;
-    ScoutZScoutMain(TheBigBot* agent, ScoutZergStateMachine* state_machine)
+    ScoutZScoutMain(Mediator* mediator, ScoutZergStateMachine* state_machine)
     {
-        this->agent = agent;
+        this->mediator = mediator;
         this->state_machine = state_machine;
     }
     virtual std::string toString() override;
@@ -50,9 +49,9 @@ class ScoutZScoutNatural : public State
 {
 public:
     ScoutZergStateMachine* state_machine;
-    ScoutZScoutNatural(TheBigBot* agent, ScoutZergStateMachine* state_machine)
+    ScoutZScoutNatural(Mediator* mediator, ScoutZergStateMachine* state_machine)
     {
-        this->agent = agent;
+        this->mediator = mediator;
         this->state_machine = state_machine;
     }
     virtual std::string toString() override;
@@ -66,9 +65,9 @@ class ScoutZLookFor3rd : public State
 {
 public:
     ScoutZergStateMachine* state_machine;
-    ScoutZLookFor3rd(TheBigBot* agent, ScoutZergStateMachine* state_machine)
+    ScoutZLookFor3rd(Mediator* mediator, ScoutZergStateMachine* state_machine)
     {
-        this->agent = agent;
+        this->mediator = mediator;
         this->state_machine = state_machine;
     }
     virtual std::string toString() override;
@@ -92,14 +91,10 @@ public:
     std::vector<Point2D> possible_3rds;
     Point2D enemy_natural_pos;
     Point2D current_target;
-    ScoutZergStateMachine(TheBigBot* agent, std::string name, const Unit* scout, Point2D enemy_main, std::vector<Point2D> main_scout_path, Point2D enemy_natural_pos, std::vector<Point2D> possible_3rds);
+    ScoutZergStateMachine(Mediator* mediator, std::string name, const Unit* scout, Point2D enemy_main, 
+        std::vector<Point2D> main_scout_path, Point2D enemy_natural_pos, std::vector<Point2D> possible_3rds);
 
     ~ScoutZergStateMachine();
-
-    void RunStateMachine() override
-    {
-        StateMachine::RunStateMachine();
-    }
 };
 
 

@@ -1,6 +1,6 @@
 
 #include "adept_base_defense_terran_state_machine.h"
-#include "theBigBot.h"
+#include "mediator.h"
 
 namespace sc2 {
 
@@ -20,15 +20,15 @@ void AdeptBaseDefenseTerranClearBase::TickState()
 		}
 		else
 		{
-			agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->dead_space_spot);
+			mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->dead_space_spot, 0);
 			return;
 		}
 	}
 	if (state_machine->target == nullptr)
 	{
-		for (const auto& unit : agent->Observation()->GetUnits(Unit::Alliance::Enemy))
+		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
 		{
-			if (Distance2D(unit->pos, agent->locations->start_location) < 20 || Distance2D(unit->pos, agent->locations->nexi_locations[1]) < 15)
+			if (Distance2D(unit->pos, mediator->GetStartLocation()) < 20 || Distance2D(unit->pos, mediator->GetNaturalLocation()) < 15)
 			{
 				state_machine->target = unit;
 				break;
@@ -36,7 +36,7 @@ void AdeptBaseDefenseTerranClearBase::TickState()
 		}
 		if (state_machine->target == nullptr)
 		{
-			agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->front_of_base[0]);
+			mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->front_of_base[0], 0);
 		}
 	}
 	else
@@ -46,14 +46,14 @@ void AdeptBaseDefenseTerranClearBase::TickState()
 			// TODO move infront of units based on distance away
 			if (Distance2D(state_machine->target->pos, state_machine->adept->pos) <= 4 && state_machine->adept->weapon_cooldown == 0)
 			{
-				agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::ATTACK_ATTACK, state_machine->target);
+				mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::ATTACK_ATTACK, state_machine->target, 0);
 				state_machine->attack_status = true;
 			}
 			else
 			{
-				agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->target->pos);
-				if (state_machine->frame_shade_used + 225 < agent->Observation()->GetGameLoop()) // TODO should be 246?
-					agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::EFFECT_ADEPTPHASESHIFT, state_machine->target->pos);
+				mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->target->pos, 0);
+				if (state_machine->frame_shade_used + 225 < mediator->GetGameLoop()) // TODO should be 246?
+					mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::EFFECT_ADEPTPHASESHIFT, state_machine->target->pos, 0);
 
 			}
 		}
@@ -63,7 +63,7 @@ void AdeptBaseDefenseTerranClearBase::TickState()
 		}
 		if (state_machine->shade != nullptr)
 		{
-			agent->Actions()->UnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, state_machine->target->pos);
+			mediator->SetUnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, state_machine->target->pos, 0);
 		}
 	}
 }
@@ -72,7 +72,7 @@ void AdeptBaseDefenseTerranClearBase::EnterState()
 {
 	if (state_machine->adept == nullptr)
 		return;
-	agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->dead_space_spot);
+	mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->dead_space_spot, 0);
 }
 
 void AdeptBaseDefenseTerranClearBase::ExitState()
@@ -85,13 +85,13 @@ State* AdeptBaseDefenseTerranClearBase::TestTransitions()
 	if (state_machine->adept == nullptr)
 		return nullptr;
 	if (Distance2D(state_machine->adept->pos, state_machine->front_of_base[0]) < 5 || Distance2D(state_machine->adept->pos, state_machine->front_of_base[1]) < 5)
-		return new AdeptBaseDefenseTerranDefendFront(agent, state_machine);
+		return new AdeptBaseDefenseTerranDefendFront(mediator, state_machine);
 
 	if (state_machine->target == nullptr)
 	{
-		for (const auto& unit : agent->Observation()->GetUnits(Unit::Alliance::Enemy))
+		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
 		{
-			if (Distance2D(unit->pos, agent->locations->start_location) < 20 || Distance2D(unit->pos, agent->locations->nexi_locations[0]) < 15)
+			if (Distance2D(unit->pos, mediator->GetStartLocation()) < 20 || Distance2D(unit->pos, mediator->GetNaturalLocation()) < 15)
 			{
 				state_machine->target = unit;
 				break;
@@ -117,7 +117,7 @@ void AdeptBaseDefenseTerranDefendFront::TickState()
 {
 	if (state_machine->target == nullptr)
 	{
-		for (const auto& unit : agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_REAPER)))
+		for (const auto& unit : mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_REAPER)))
 		{
 			state_machine->target = unit;
 			break;
@@ -126,13 +126,13 @@ void AdeptBaseDefenseTerranDefendFront::TickState()
 		{
 			if (forward)
 			{
-				agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->front_of_base[1]);
+				mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->front_of_base[1], 0);
 				if (Distance2D(state_machine->adept->pos, state_machine->front_of_base[1]) < 1)
 					forward = false;
 			}
 			else
 			{
-				agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->front_of_base[0]);
+				mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->front_of_base[0], 0);
 				if (Distance2D(state_machine->adept->pos, state_machine->front_of_base[0]) < 1)
 					forward = true;
 			}
@@ -145,14 +145,14 @@ void AdeptBaseDefenseTerranDefendFront::TickState()
 			// TODO move infront of units based on distance away
 			if (Distance2D(state_machine->target->pos, state_machine->adept->pos) <= 4 && state_machine->adept->weapon_cooldown == 0)
 			{
-				agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::ATTACK_ATTACK, state_machine->target);
+				mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::ATTACK_ATTACK, state_machine->target, 0);
 				state_machine->attack_status = true;
 			}
 			else
 			{
-				agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->target->pos);
-				if (state_machine->frame_shade_used + 225 < agent->Observation()->GetGameLoop())// TODO should be 246?
-					agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::EFFECT_ADEPTPHASESHIFT, state_machine->target->pos);
+				mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->target->pos, 0);
+				if (state_machine->frame_shade_used + 225 < mediator->GetGameLoop())// TODO should be 246?
+					mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::EFFECT_ADEPTPHASESHIFT, state_machine->target->pos, 0);
 
 			}
 		}
@@ -162,7 +162,7 @@ void AdeptBaseDefenseTerranDefendFront::TickState()
 		}
 		if (state_machine->shade != nullptr)
 		{
-			agent->Actions()->UnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, state_machine->target->pos);
+			mediator->SetUnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, state_machine->target->pos, 0);
 		}
 	}
 
@@ -181,10 +181,10 @@ void AdeptBaseDefenseTerranDefendFront::ExitState()
 
 State* AdeptBaseDefenseTerranDefendFront::TestTransitions()
 {
-	Units gates = agent->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY));
-	Units other_units = agent->Observation()->GetUnits(IsUnits({ UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_STALKER }));
-	if (other_units.size() > 1 || agent->scout_info_terran.first_rax_production != reaper || (gates.size() > 0 && gates[0]->orders.size() > 0 && gates[0]->orders[0].progress > .9))
-		return new AdeptBaseDefenseTerranMoveAcross(agent, state_machine);
+	Units gates = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY));
+	Units other_units = mediator->GetUnits(IsUnits({ UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_STALKER }));
+	if (other_units.size() > 1 || mediator->scouting_manager.first_rax_production != reaper || (gates.size() > 0 && gates[0]->orders.size() > 0 && gates[0]->orders[0].progress > .9))
+		return new AdeptBaseDefenseTerranMoveAcross(mediator, state_machine);
 	return nullptr;
 }
 
@@ -201,7 +201,7 @@ void AdeptBaseDefenseTerranMoveAcross::TickState()
 {
 	if (state_machine->target == nullptr)
 	{
-		for (const auto& unit : agent->Observation()->GetUnits(Unit::Alliance::Enemy))
+		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
 		{
 			if (Distance2D(state_machine->adept->pos, unit->pos) < 8)
 			{
@@ -211,12 +211,12 @@ void AdeptBaseDefenseTerranMoveAcross::TickState()
 		}
 		if (state_machine->target == nullptr)
 		{
-			agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, agent->locations->adept_scout_runaway);
-			if (state_machine->frame_shade_used + 225 < agent->Observation()->GetGameLoop()) // TODO should be 246?
-				agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::EFFECT_ADEPTPHASESHIFT, agent->locations->adept_scout_runaway);
+			mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, mediator->GetLocations().adept_scout_runaway, 0);
+			if (state_machine->frame_shade_used + 225 < mediator->GetGameLoop()) // TODO should be 246?
+				mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::EFFECT_ADEPTPHASESHIFT, mediator->GetLocations().adept_scout_runaway, 0);
 
 			if (state_machine->shade != nullptr)
-				agent->Actions()->UnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, agent->locations->adept_scout_runaway);
+				mediator->SetUnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, mediator->GetLocations().adept_scout_runaway, 0);
 		}
 	}
 	else
@@ -232,14 +232,14 @@ void AdeptBaseDefenseTerranMoveAcross::TickState()
 			// TODO move infront of units based on distance away
 			if (Distance2D(state_machine->target->pos, state_machine->adept->pos) <= 4 && state_machine->adept->weapon_cooldown == 0)
 			{
-				agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::ATTACK_ATTACK, state_machine->target);
+				mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::ATTACK_ATTACK, state_machine->target, 0);
 				state_machine->attack_status = true;
 			}
 			else
 			{
-				agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->target->pos);
-				if (state_machine->frame_shade_used + 225 < agent->Observation()->GetGameLoop()) // TODO should be 246?
-					agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::EFFECT_ADEPTPHASESHIFT, agent->locations->adept_scout_runaway);
+				mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, state_machine->target->pos, 0);
+				if (state_machine->frame_shade_used + 225 < mediator->GetGameLoop()) // TODO should be 246?
+					mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::EFFECT_ADEPTPHASESHIFT, mediator->GetLocations().adept_scout_runaway, 0);
 
 			}
 		}
@@ -249,7 +249,7 @@ void AdeptBaseDefenseTerranMoveAcross::TickState()
 		}
 		if (state_machine->shade != nullptr)
 		{
-			agent->Actions()->UnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, agent->locations->adept_scout_runaway);
+			mediator->SetUnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, mediator->GetLocations().adept_scout_runaway, 0);
 		}
 	}
 }
@@ -266,9 +266,9 @@ void AdeptBaseDefenseTerranMoveAcross::ExitState()
 
 State* AdeptBaseDefenseTerranMoveAcross::TestTransitions()
 {
-	if (Distance2D(state_machine->adept->pos, agent->locations->adept_scout_runaway) < 3)
-		return new AdeptBaseDefenseTerranScoutBase(agent, state_machine, agent->locations->adept_scout_shade, agent->locations->adept_scout_runaway,
-			agent->locations->adept_scout_ramptop, agent->locations->adept_scout_nat_path, agent->locations->adept_scout_base_spots);
+	if (Distance2D(state_machine->adept->pos, mediator->GetLocations().adept_scout_runaway) < 3)
+		return new AdeptBaseDefenseTerranScoutBase(mediator, state_machine, mediator->GetLocations().adept_scout_shade, mediator->GetLocations().adept_scout_runaway,
+			mediator->GetLocations().adept_scout_ramptop, mediator->GetLocations().adept_scout_nat_path, mediator->GetLocations().adept_scout_base_spots);
 	return nullptr;
 }
 
@@ -284,7 +284,7 @@ std::string AdeptBaseDefenseTerranMoveAcross::toString()
 void AdeptBaseDefenseTerranScoutBase::TickState()
 {
 	Point2D furthest_point = adept_scout_shade;
-	Units enemy_units = agent->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
+	Units enemy_units = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
 	/*for (const auto& unit : enemy_units)
 	{
 		double range = Utility::RealRange(unit, state_machine->adept) + 2;
@@ -310,9 +310,9 @@ void AdeptBaseDefenseTerranScoutBase::TickState()
 		}
 		furthest_point = Utility::PointBetween(closest_enemy->pos, state_machine->adept->pos, 9);
 	}
-	//agent->Debug()->DebugSphereOut(agent->ToPoint3D(furthest_point), .5, Color(255, 255, 0));
+	//agent->Debug()->DebugSphereOut(mediator->ToPoint3D(furthest_point), .5, Color(255, 255, 0));
 
-	const Unit* closest_unit = Utility::ClosestTo(agent->Observation()->GetUnits(Unit::Alliance::Enemy), state_machine->adept->pos);
+	const Unit* closest_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), state_machine->adept->pos);
 
 	if (state_machine->attack_status == true)
 	{
@@ -323,26 +323,26 @@ void AdeptBaseDefenseTerranScoutBase::TickState()
 	{
 		if (state_machine->adept->shield < 5)
 			shields_regening = true;
-		agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, furthest_point);
+		mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, furthest_point, 0);
 	}
 	else if (shields_regening)
 	{
 		if (state_machine->adept->shield >= 65)
 			shields_regening = false;
-		agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, furthest_point);
+		mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, furthest_point, 0);
 	}
 	else if (Distance2D(closest_unit->pos, state_machine->adept->pos) <= 4)
 	{
-		agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::ATTACK_ATTACK, closest_unit);
+		mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::ATTACK_ATTACK, closest_unit, 0);
 		state_machine->attack_status = true;
 	}
 	else
 	{
-		agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, adept_scout_shade);
+		mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, adept_scout_shade, 0);
 	}
 	/*else if (Distance2D(closest_unit->pos, state_machine->adept->pos) <= 4)
 	{
-		agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::ATTACK_ATTACK, closest_unit);
+		mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::ATTACK_ATTACK, closest_unit, 0);
 		state_machine->attack_status = true;
 	}
 	else
@@ -351,33 +351,33 @@ void AdeptBaseDefenseTerranScoutBase::TickState()
 		{
 			if (state_machine->adept->shield >= 65)
 				shields_regening = false;
-			agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, furthest_point);
+			mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, furthest_point, 0);
 		}
 		else
 		{
-			agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, adept_scout_shade);
+			mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, adept_scout_shade, 0);
 		}
 	}*/
 
 
-	if (agent->Observation()->GetGameLoop() > state_machine->frame_shade_used + 225) // TODO should be 246?
+	if (mediator->GetGameLoop() > state_machine->frame_shade_used + 225) // TODO should be 246?
 	{
-		agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::EFFECT_ADEPTPHASESHIFT, shade_target);
+		mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::EFFECT_ADEPTPHASESHIFT, shade_target, 0);
 	}
 	/*else if ((state_machine->shade != nullptr || Utility::DangerLevelAt(state_machine->adept, Utility::PointBetween(state_machine->adept->pos, adept_scout_shade, 1), agent->Observation()) > 0) && Distance2D(state_machine->adept->pos, adept_scout_runaway) > 1)
 	{
-		agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, adept_scout_runaway);
+		mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, adept_scout_runaway, 0);
 	}
 	else if ((state_machine->shade == nullptr || Utility::DangerLevel(state_machine->adept, agent->Observation()) == 0) && Distance2D(state_machine->adept->pos, adept_scout_shade) > 1)
 	{
-		agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, adept_scout_shade);
+		mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::GENERAL_MOVE, adept_scout_shade, 0);
 	}*/
 
 	if (state_machine->shade != nullptr)
 	{
-		if (agent->Observation()->GetGameLoop() > state_machine->frame_shade_used + 150)
+		if (mediator->GetGameLoop() > state_machine->frame_shade_used + 150)
 		{
-			agent->Actions()->UnitCommand(state_machine->adept, ABILITY_ID::CANCEL_ADEPTPHASESHIFT);
+			mediator->SetUnitCommand(state_machine->adept, ABILITY_ID::CANCEL_ADEPTPHASESHIFT, 0);
 			UpdateShadeTarget();
 		}
 		else
@@ -390,7 +390,7 @@ void AdeptBaseDefenseTerranScoutBase::TickState()
 					shade_target = adept_scout_base_spots[base_spots_index];
 			}
 
-			agent->Actions()->UnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, shade_target);
+			mediator->SetUnitCommand(state_machine->shade, ABILITY_ID::GENERAL_MOVE, shade_target, 0);
 		}
 	}
 }
@@ -453,30 +453,30 @@ void AdeptBaseDefenseTerranScoutBase::UpdateShadeTarget()
 
 #pragma region AdeptBaseDefenseTerran
 
-AdeptBaseDefenseTerran::AdeptBaseDefenseTerran(TheBigBot* agent, std::string name, Point2D dead_space_spot, 
-	std::vector<Point2D> front_of_base) : StateMachine(agent, name)
+AdeptBaseDefenseTerran::AdeptBaseDefenseTerran(Mediator* mediator, std::string name, Point2D dead_space_spot, 
+	std::vector<Point2D> front_of_base) : StateMachine(mediator, name)
 {
-	current_state = new AdeptBaseDefenseTerranClearBase(agent, this);
+	current_state = new AdeptBaseDefenseTerranClearBase(mediator, this);
 	this->dead_space_spot = dead_space_spot;
 	this->front_of_base = front_of_base;
 
-	event_id = agent->GetUniqueId();
+	event_id = mediator->GetUniqueId();
 	std::function<void(const Unit*)> onUnitCreated = [=](const Unit* unit) {
 		this->OnUnitCreatedListener(unit);
 	};
-	agent->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
+	mediator->AddListenerToOnUnitCreatedEvent(event_id, onUnitCreated);
 
 	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
 		this->OnUnitDestroyedListener(unit);
 	};
-	agent->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+	mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
 
 	current_state->EnterState();
 }
 AdeptBaseDefenseTerran::~AdeptBaseDefenseTerran()
 {
-	agent->RemoveListenerToOnUnitCreatedEvent(event_id);
-	agent->RemoveListenerToOnUnitDestroyedEvent(event_id);
+	mediator->RemoveListenerToOnUnitCreatedEvent(event_id);
+	mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
 }
 
 bool AdeptBaseDefenseTerran::AddUnit(const Unit* unit)
@@ -484,7 +484,7 @@ bool AdeptBaseDefenseTerran::AddUnit(const Unit* unit)
 	if (unit->unit_type != ADEPT || adept != nullptr)
 		return false;
 	adept = unit;
-	agent->Actions()->UnitCommand(adept, ABILITY_ID::GENERAL_MOVE, dead_space_spot);
+	mediator->SetUnitCommand(adept, ABILITY_ID::GENERAL_MOVE, dead_space_spot, 0);
 	return true;
 }
 
@@ -493,7 +493,7 @@ void AdeptBaseDefenseTerran::OnUnitCreatedListener(const Unit* unit)
 	if (shade == nullptr && unit->unit_type == UNIT_TYPEID::PROTOSS_ADEPTPHASESHIFT && Distance2D(unit->pos, adept->pos) < .5)
 	{
 		shade = unit;
-		frame_shade_used = agent->Observation()->GetGameLoop();
+		frame_shade_used = mediator->GetGameLoop();
 	}
 }
 

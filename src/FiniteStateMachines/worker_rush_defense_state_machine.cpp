@@ -10,22 +10,22 @@ namespace sc2 {
 
 void WorkerRushDefenseGroupUp::TickState()
 {
-	int worker_diff = 1 + (int)Utility::GetUnitsWithin(agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })),
-		agent->mediator.GetStartLocation(), 20).size() - (int)(state_machine->workers.size() + new_workers.size());
+	int worker_diff = 1 + (int)Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })),
+		mediator->GetStartLocation(), 20).size() - (int)(state_machine->workers.size() + new_workers.size());
 
 	for (int i = 0; i < worker_diff; i++)
 	{
-		const Unit* worker = agent->mediator.GetBuilder(agent->mediator.GetStartLocation());
+		const Unit* worker = mediator->GetBuilder(mediator->GetStartLocation());
 		if (worker == nullptr)
 			break;
-		if (agent->mediator.RemoveWorker(worker) == RemoveWorkerResult::NOT_FOUND)
+		if (mediator->RemoveWorker(worker) == RemoveWorkerResult::NOT_FOUND)
 		{
 			std::cerr << "Worker not found when trying to remove in WorkerRushDefenseGroupUp::TickState" << std::endl;
-			agent->mediator.LogMinorError();
+			mediator->LogMinorError();
 		}
 		new_workers.push_back(worker);
 
-		agent->mediator.SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, group_pos, 0);
+		mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, group_pos, 0);
 
 	}
 
@@ -38,25 +38,25 @@ void WorkerRushDefenseGroupUp::TickState()
 		}
 		else
 		{
-			agent->mediator.SetUnitCommand(*itr, ABILITY_ID::GENERAL_MOVE, group_pos, 0);
+			mediator->SetUnitCommand(*itr, ABILITY_ID::GENERAL_MOVE, group_pos, 0);
 			itr++;
 		}
 	}
 
 	for (const auto &worker : state_machine->workers)
 	{
-		agent->Actions()->UnitCommand(worker, ABILITY_ID::SMART, state_machine->grouping_mineral_patch);
+		mediator->SetUnitCommand(worker, ABILITY_ID::SMART, state_machine->grouping_mineral_patch, 0);
 	}
 }
 
 void WorkerRushDefenseGroupUp::EnterState()
 {
 	group_pos = Utility::PointBetween(state_machine->grouping_mineral_patch->pos,
-		Utility::ClosestTo(agent->mediator.GetUnits(IsUnit(NEXUS)), state_machine->grouping_mineral_patch->pos)->pos, 2.5);
+		Utility::ClosestTo(mediator->GetUnits(IsUnit(NEXUS)), state_machine->grouping_mineral_patch->pos)->pos, 2.5);
 
-	agent->mediator.SetUnitsCommand(state_machine->workers, ABILITY_ID::GENERAL_MOVE, group_pos, 0);
+	mediator->SetUnitsCommand(state_machine->workers, ABILITY_ID::GENERAL_MOVE, group_pos, 0);
 
-	enter_time = agent->mediator.GetCurrentTime();
+	enter_time = mediator->GetCurrentTime();
 }
 
 void WorkerRushDefenseGroupUp::ExitState()
@@ -78,8 +78,8 @@ State* WorkerRushDefenseGroupUp::TestTransitions()
 				max_dist = dist;
 		}
 	}
-	if (max_dist <= .3 || agent->mediator.GetCurrentTime() > enter_time + 4)
-		return new WorkerRushDefenseInitialMove(agent, state_machine);
+	if (max_dist <= .3 || mediator->GetCurrentTime() > enter_time + 4)
+		return new WorkerRushDefenseInitialMove(mediator, state_machine);
 	return nullptr;
 }
 
@@ -97,7 +97,7 @@ void WorkerRushDefenseInitialMove::TickState()
 {
 	for (const auto& worker : state_machine->workers)
 	{
-		agent->Actions()->UnitCommand(worker, ABILITY_ID::SMART, state_machine->attacking_mineral_patch);
+		mediator->SetUnitCommand(worker, ABILITY_ID::SMART, state_machine->attacking_mineral_patch, 0);
 	}
 }
 
@@ -105,7 +105,7 @@ void WorkerRushDefenseInitialMove::EnterState()
 {
 	for (const auto& worker : state_machine->workers)
 	{
-		agent->Actions()->UnitCommand(worker, ABILITY_ID::SMART, state_machine->attacking_mineral_patch);
+		mediator->SetUnitCommand(worker, ABILITY_ID::SMART, state_machine->attacking_mineral_patch, 0);
 	}
 }
 
@@ -118,12 +118,12 @@ State* WorkerRushDefenseInitialMove::TestTransitions()
 {
 	for (const auto& worker : state_machine->workers)
 	{
-		if (Utility::GetUnitsInRange(agent->mediator.GetUnits(Unit::Alliance::Enemy), worker, 0).size() > 0)
-			return new WorkerRushDefenseDefend(agent, state_machine);
+		if (Utility::GetUnitsInRange(mediator->GetUnits(Unit::Alliance::Enemy), worker, 0).size() > 0)
+			return new WorkerRushDefenseDefend(mediator, state_machine);
 	}
-	if (Utility::DistanceToClosest(agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnits({SCV, DRONE, PROBE})), agent->mediator.GetStartLocation()) < 
-		Distance2D(Utility::MedianCenter(state_machine->workers), agent->mediator.GetStartLocation()))
-		return new WorkerRushDefenseDefend(agent, state_machine);
+	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({SCV, DRONE, PROBE})), mediator->GetStartLocation()) < 
+		Distance2D(Utility::MedianCenter(state_machine->workers), mediator->GetStartLocation()))
+		return new WorkerRushDefenseDefend(mediator, state_machine);
 
 	return nullptr;
 }
@@ -140,20 +140,20 @@ std::string WorkerRushDefenseInitialMove::toString()
 
 void WorkerRushDefenseDefend::TickState()
 {
-	int worker_diff = 1 + (int)Utility::GetUnitsWithin(agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })),
-		agent->mediator.GetStartLocation(), 20).size() - (int)state_machine->workers.size();
+	int worker_diff = 1 + (int)Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })),
+		mediator->GetStartLocation(), 20).size() - (int)state_machine->workers.size();
 
 	if (worker_diff > 0)
 	{
 		for (int i = 0; i < worker_diff; i++)
 		{
-			const Unit* worker = agent->mediator.GetBuilder(agent->mediator.GetStartLocation());
+			const Unit* worker = mediator->GetBuilder(mediator->GetStartLocation());
 			if (worker == nullptr)
 				break;
-			if (agent->mediator.RemoveWorker(worker) == RemoveWorkerResult::NOT_FOUND)
+			if (mediator->RemoveWorker(worker) == RemoveWorkerResult::NOT_FOUND)
 			{
 				std::cerr << "Worker not found when trying to remove in WorkerRushDefenseDefend::TickState" << std::endl;
-				agent->mediator.LogMinorError();
+				mediator->LogMinorError();
 			}
 			state_machine->workers.push_back(worker);
 		}
@@ -165,7 +165,7 @@ void WorkerRushDefenseDefend::TickState()
 			const Unit* worker = Utility::GetMostDamagedUnit(state_machine->workers);
 			if (worker)
 			{
-				agent->mediator.PlaceWorker(worker);
+				mediator->PlaceWorker(worker);
 				state_machine->workers.erase(std::remove(state_machine->workers.begin(), state_machine->workers.end(), worker), state_machine->workers.end());
 			}
 
@@ -182,19 +182,19 @@ void WorkerRushDefenseDefend::TickState()
 		}
 		else if (state_machine->workers[i]->health + state_machine->workers[i]->shield <= 5)
 		{
-			agent->mediator.PlaceWorker(state_machine->workers[i]);
+			mediator->PlaceWorker(state_machine->workers[i]);
 			state_machine->workers.erase(state_machine->workers.begin() + i);
 			i--;
 		}
 		else if (state_machine->workers[i]->weapon_cooldown == 0)
 		{
-			const Unit* closest_enemy = Utility::ClosestTo(agent->mediator.GetUnits(Unit::Alliance::Enemy), state_machine->workers[i]->pos);
+			const Unit* closest_enemy = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), state_machine->workers[i]->pos);
 			if (closest_enemy != nullptr)
-				agent->mediator.SetUnitCommand(state_machine->workers[i], ABILITY_ID::ATTACK, agent->mediator.GetEnemyNaturalLocation(), 0);
+				mediator->SetUnitCommand(state_machine->workers[i], ABILITY_ID::ATTACK, mediator->GetEnemyNaturalLocation(), 0);
 		}
 		else
 		{
-			agent->mediator.SetUnitCommand(state_machine->workers[i], ABILITY_ID::SMART, state_machine->grouping_mineral_patch, 0);
+			mediator->SetUnitCommand(state_machine->workers[i], ABILITY_ID::SMART, state_machine->grouping_mineral_patch, 0);
 		}
 	}
 }
@@ -213,7 +213,7 @@ State* WorkerRushDefenseDefend::TestTransitions()
 {
 	// TODO transition out when enemy leaves or is vanquished
 	if (state_machine->workers.size() <= 1)
-		agent->mediator.MarkStateMachineForDeletion(state_machine);
+		mediator->MarkStateMachineForDeletion(state_machine);
 	return nullptr;
 }
 
@@ -225,12 +225,12 @@ std::string WorkerRushDefenseDefend::toString()
 #pragma endregion
 
 
-WorkerRushDefenseStateMachine::WorkerRushDefenseStateMachine(TheBigBot* agent, std::string name) : StateMachine(agent, name)
+WorkerRushDefenseStateMachine::WorkerRushDefenseStateMachine(Mediator* mediator, std::string name) : StateMachine(mediator, name)
 {
-	this->attacking_mineral_patch = agent->mediator.GetWorkerRushDefenseAttackingMineralPatch();
-	this->grouping_mineral_patch = agent->mediator.GetWorkerRushDefenseGroupingMineralPatch();
+	this->attacking_mineral_patch = mediator->GetWorkerRushDefenseAttackingMineralPatch();
+	this->grouping_mineral_patch = mediator->GetWorkerRushDefenseGroupingMineralPatch();
 
-	current_state = new WorkerRushDefenseGroupUp(agent, this);
+	current_state = new WorkerRushDefenseGroupUp(mediator, this);
 	current_state->EnterState();
 }
 

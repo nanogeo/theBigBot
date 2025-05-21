@@ -757,8 +757,8 @@ bool BuildOrderManager::SafeRallyPointFromRamp(BuildOrderResultArgData data)
 {
 	for (const auto& building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
-		float dist = Distance2D(mediator->GetMainRampForcefieldLocation(), building->pos);
-		Point2D pos = Utility::PointBetween(mediator->GetMainRampForcefieldLocation(), building->pos, dist + 2);
+		float dist = Distance2D(mediator->GetLocations().main_ramp_forcefield, building->pos);
+		Point2D pos = Utility::PointBetween(mediator->GetLocations().main_ramp_forcefield, building->pos, dist + 2);
 		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos, 0);
 	}
 	return true;
@@ -768,7 +768,7 @@ bool BuildOrderManager::SetRallyPointToRamp(BuildOrderResultArgData data)
 {
 	for (const auto& building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
-		Point2D pos = Utility::PointBetween(building->pos, mediator->GetMainRampForcefieldLocation(), 2);
+		Point2D pos = Utility::PointBetween(building->pos, mediator->GetLocations().main_ramp_forcefield, 2);
 		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos, 0);
 	}
 	return true;

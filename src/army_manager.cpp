@@ -198,7 +198,7 @@ ArmyGroup* ArmyManager::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> 
 		army = new ArmyGroup(mediator, FindExposedBase(), role, unit_types);
 		break;
 	case ArmyRole::defend_main_ramp:
-		army = new ArmyGroup(mediator, mediator->GetMainRampForcefieldLocation(), role, unit_types);
+		army = new ArmyGroup(mediator, mediator->GetLocations().main_ramp_forcefield, role, unit_types);
 		break;
 	default:
 		std::cerr << "Unknown ArmyRole in CreateArmyGroup" << std::endl;

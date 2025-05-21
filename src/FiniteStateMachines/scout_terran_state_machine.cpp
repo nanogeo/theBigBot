@@ -1,6 +1,6 @@
 
 #include "scout_terran_state_machine.h"
-#include "theBigBot.h"
+#include "mediator.h"
 
 
 namespace sc2 {
@@ -12,7 +12,7 @@ namespace sc2 {
 void ScoutTInitialMove::TickState()
 {
 	if (state_machine->scout->orders.size() == 0 || state_machine->scout->orders[0].target_pos != state_machine->current_target)
-		agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target);
+		mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutTInitialMove::EnterState()
@@ -28,7 +28,7 @@ void ScoutTInitialMove::ExitState()
 State* ScoutTInitialMove::TestTransitions()
 {
 	if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 1)
-		return new ScoutTScoutMain(agent, state_machine);
+		return new ScoutTScoutMain(mediator, state_machine);
 	return nullptr;
 }
 
@@ -49,7 +49,7 @@ void ScoutTScoutMain::TickState()
 		if (state_machine->index < state_machine->main_scout_path.size())
 			state_machine->current_target = state_machine->main_scout_path[state_machine->index];
 	}
-	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target);
+	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutTScoutMain::EnterState()
@@ -65,23 +65,23 @@ void ScoutTScoutMain::ExitState()
 
 State* ScoutTScoutMain::TestTransitions()
 {
-	if (agent->scout_info_terran.barrackes_timing > 0 && agent->Observation()->GetGameLoop() / FRAME_TIME >= agent->scout_info_terran.barrackes_timing + 46 + 12)
+	if (mediator->scouting_manager.first_barrack_timing > 0 && mediator->GetCurrentTime() >= mediator->scouting_manager.first_barrack_timing + 46 + 12)
 	{
-		return new ScoutTScoutRax(agent, state_machine);
+		return new ScoutTScoutRax(mediator, state_machine);
 	}
 	if (state_machine->index >= state_machine->main_scout_path.size())
 	{
-		if (agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_BARRACKS)).size() > 1 ||
-			agent->mediator.scouting_manager.first_barrack_timing == 0 ||
-			agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_REFINERY)).size() > 1)
+		if (mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_BARRACKS)).size() > 1 ||
+			mediator->scouting_manager.first_barrack_timing == 0 ||
+			mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_REFINERY)).size() > 1)
 		{
 			state_machine->index = 0;
 			state_machine->current_target = state_machine->main_scout_path[0];
-			agent->mediator.scouting_manager.CheckTerranScoutingInfoEarly();
+			mediator->scouting_manager.CheckTerranScoutingInfoEarly();
 		}
 		else
 		{
-			return new ScoutTScoutNatural(agent, state_machine);
+			return new ScoutTScoutNatural(mediator, state_machine);
 		}
 	}
 	return nullptr;
@@ -104,7 +104,7 @@ void ScoutTScoutNatural::TickState()
 		if (state_machine->index < state_machine->natural_scout_path.size())
 			state_machine->current_target = state_machine->natural_scout_path[state_machine->index];
 	}
-	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target);
+	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutTScoutNatural::EnterState()
@@ -120,9 +120,9 @@ void ScoutTScoutNatural::ExitState()
 
 State* ScoutTScoutNatural::TestTransitions()
 {
-	if (agent->scout_info_terran.natural_timing > 0 || state_machine->index >= state_machine->natural_scout_path.size())
+	if (mediator->scouting_manager.natural_timing > 0 || state_machine->index >= state_machine->natural_scout_path.size())
 	{
-		return new ScoutTScoutMain(agent, state_machine);
+		return new ScoutTScoutMain(mediator, state_machine);
 	}
 	return nullptr;
 }
@@ -143,8 +143,8 @@ void ScoutTScoutRax::TickState()
 
 void ScoutTScoutRax::EnterState()
 {
-	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, agent->Observation()->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0]->pos);
-	rax = agent->Observation()->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0];
+	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0]->pos, 0);
+	rax = mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0];
 }
 
 void ScoutTScoutRax::ExitState()
@@ -154,17 +154,17 @@ void ScoutTScoutRax::ExitState()
 
 State* ScoutTScoutRax::TestTransitions()
 {
-	if (agent->Observation()->GetGameLoop() / FRAME_TIME >= agent->scout_info_terran.barrackes_timing + 46 + 20 || agent->Observation()->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_MARINE)).size() > 0)
+	if (mediator->GetCurrentTime() >= mediator->scouting_manager.first_barrack_timing + 46 + 20 || mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_MARINE)).size() > 0)
 	{
-		agent->scout_info_terran.first_rax_production = FirstRaxProduction::reaper;
+		mediator->scouting_manager.first_rax_production = FirstRaxProduction::reaper;
 
-		for (const auto& unit : agent->Observation()->GetUnits(Unit::Alliance::Enemy))
+		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
 		{
 			if (unit->unit_type == UNIT_TYPEID::TERRAN_BARRACKSTECHLAB)
 			{
 				if (Distance2D(unit->pos, rax->pos) < 3)
 				{
-					agent->scout_info_terran.first_rax_production = FirstRaxProduction::techlab;
+					mediator->scouting_manager.first_rax_production = FirstRaxProduction::techlab;
 					break;
 				}
 			}
@@ -172,17 +172,17 @@ State* ScoutTScoutRax::TestTransitions()
 			{
 				if (Distance2D(unit->pos, rax->pos) < 3)
 				{
-					agent->scout_info_terran.first_rax_production = FirstRaxProduction::reactor;
+					mediator->scouting_manager.first_rax_production = FirstRaxProduction::reactor;
 					break;
 				}
 			}
 			else if (unit->unit_type == UNIT_TYPEID::TERRAN_MARINE)
 			{
-				agent->scout_info_terran.first_rax_production = FirstRaxProduction::marine;
+				mediator->scouting_manager.first_rax_production = FirstRaxProduction::marine;
 				break;
 			}
 		}
-		return new ScoutTReturnToBase(agent, state_machine);
+		return new ScoutTReturnToBase(mediator, state_machine);
 	}
 	return nullptr;
 }
@@ -198,11 +198,11 @@ std::string ScoutTScoutRax::toString()
 
 void ScoutTReturnToBase::TickState()
 {
-	for (const auto& unit : agent->Observation()->GetUnits(Unit::Alliance::Enemy))
+	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
 	{
 		if (unit->unit_type == UNIT_TYPEID::TERRAN_MARINE)
 		{
-			agent->scout_info_terran.first_rax_production = FirstRaxProduction::marine;
+			mediator->scouting_manager.first_rax_production = FirstRaxProduction::marine;
 			break;
 		}
 	}
@@ -211,7 +211,7 @@ void ScoutTReturnToBase::TickState()
 
 void ScoutTReturnToBase::EnterState()
 {
-	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, agent->locations->start_location);
+	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, mediator->GetLocations().start_location, 0);
 }
 
 void ScoutTReturnToBase::ExitState()
@@ -221,9 +221,9 @@ void ScoutTReturnToBase::ExitState()
 
 State* ScoutTReturnToBase::TestTransitions()
 {
-	if (Distance2D(state_machine->scout->pos, agent->locations->start_location) <= 20)
+	if (Distance2D(state_machine->scout->pos, mediator->GetLocations().start_location) <= 20)
 	{
-		agent->mediator.MarkStateMachineForDeletion(state_machine);
+		mediator->MarkStateMachineForDeletion(state_machine);
 		return nullptr;
 	}
 	return nullptr;
@@ -239,46 +239,8 @@ std::string ScoutTReturnToBase::toString()
 
 ScoutTerranStateMachine::~ScoutTerranStateMachine()
 {
-	agent->mediator.worker_manager.PlaceWorker(scout);
+	mediator->worker_manager.PlaceWorker(scout);
 }
 
-void ScoutTerranStateMachine::CheckScoutingInfo()
-{
-	for (const auto& unit : agent->Observation()->GetUnits())
-	{
-		if (unit->alliance == Unit::Alliance::Enemy && unit->display_type == Unit::DisplayType::Visible)
-		{
-			if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_BARRACKS && agent->scout_info_terran.barrackes_timing == 0)
-			{
-				//std::cout << "barracks built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-				agent->scout_info_terran.barrackes_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / FRAME_TIME);
-			}
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_FACTORY && agent->scout_info_terran.factory_timing == 0)
-			{
-				//std::cout << "factory built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-				agent->scout_info_terran.factory_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / FRAME_TIME);
-			}
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_COMMANDCENTER && agent->scout_info_terran.natural_timing == 0 && unit->build_progress < 1)
-			{
-				//std::cout << "natural built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-				agent->scout_info_terran.natural_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / FRAME_TIME);
-			}
-			else if (unit->unit_type.ToType() == UNIT_TYPEID::TERRAN_REFINERY)
-			{
-				if (agent->scout_info_terran.gas_timing == 0)
-				{
-					//std::cout << "gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-					agent->scout_info_terran.gas_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / FRAME_TIME);
-					agent->scout_info_terran.gas_pos = unit->pos;
-				}
-				else if (agent->scout_info_terran.second_gas_timing == 0 && unit->pos != agent->scout_info_terran.gas_pos)
-				{
-					//std::cout << "second gas built at " << std::to_string(Utility::GetTimeBuilt(unit, agent->Observation())) << std::endl;
-					agent->scout_info_terran.second_gas_timing = Utility::GetTimeBuilt(unit, agent->Observation()->GetGameLoop() / FRAME_TIME);
-				}
-			}
-		}
-	}
-}
 
 }

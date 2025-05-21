@@ -492,28 +492,28 @@ bool Mediator::SendScout()
 	{
 	case Race::Zerg:
 	{
-		ScoutZergStateMachine* scout_fsm = new ScoutZergStateMachine(agent, "Scout Zerg", scouter, agent->locations->initial_scout_pos,
+		ScoutZergStateMachine* scout_fsm = new ScoutZergStateMachine(this, "Scout Zerg", scouter, agent->locations->initial_scout_pos,
 			agent->locations->main_scout_path, agent->locations->enemy_natural, agent->locations->possible_3rds);
 		finite_state_machine_manager.AddStateMachine(scout_fsm);
 		break;
 	}
 	case Race::Terran:
 	{
-		ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(agent, "Scout Terran", scouter, agent->locations->initial_scout_pos,
+		ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(this, "Scout Terran", scouter, agent->locations->initial_scout_pos,
 			agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural);
 		finite_state_machine_manager.AddStateMachine(scout_fsm);
 		break;
 	}
 	case Race::Protoss:
 	{
-		ScoutProtossStateMachine* scout_fsm = new ScoutProtossStateMachine(agent, "Scout Protoss", scouter, agent->locations->initial_scout_pos,
+		ScoutProtossStateMachine* scout_fsm = new ScoutProtossStateMachine(this, "Scout Protoss", scouter, agent->locations->initial_scout_pos,
 			agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural);
 		finite_state_machine_manager.AddStateMachine(scout_fsm);
 		break;
 	}
 	default: // TODO make a dedicated random scout state machine
 	{
-		ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(agent, "Scout Random", scouter, agent->locations->initial_scout_pos,
+		ScoutTerranStateMachine* scout_fsm = new ScoutTerranStateMachine(this, "Scout Random", scouter, agent->locations->initial_scout_pos,
 			agent->locations->main_scout_path, agent->locations->natural_scout_path, agent->locations->enemy_natural);
 		finite_state_machine_manager.AddStateMachine(scout_fsm);
 		break;
@@ -1102,9 +1102,9 @@ Point2D Mediator::GetWallOffLocation(UNIT_TYPEID unit_type)
 	}
 }
 
-Point2D Mediator::GetMainRampForcefieldLocation()
+const Locations& Mediator::GetLocations()
 {
-	return agent->locations->main_ramp_forcefield;
+	return *(agent->locations);
 }
 
 void Mediator::ContinueBuildingPylons()
@@ -1320,7 +1320,7 @@ void Mediator::CreateFourGateBlinkFSM()
 	army->attack_path = GetStalkerAttackPath();
 	army->attack_path_line = GetStalkerAttackLine();
 
-	BlinkStalkerAttackTerran* blink_fsm = new BlinkStalkerAttackTerran(agent, "4 gate blink pressure", agent->locations->blink_presure_consolidation,
+	BlinkStalkerAttackTerran* blink_fsm = new BlinkStalkerAttackTerran(this, "4 gate blink pressure", agent->locations->blink_presure_consolidation,
 		agent->locations->blink_pressure_prism_consolidation, agent->locations->blink_pressure_blink_up, agent->locations->blink_pressure_blink_down);
 	finite_state_machine_manager.active_state_machines.push_back(blink_fsm);
 	army->state_machine = blink_fsm;
@@ -1329,7 +1329,7 @@ void Mediator::CreateFourGateBlinkFSM()
 
 void Mediator::CreateAdeptHarassProtossFSM()
 {
-	AdeptHarassProtoss* adept_fsm = new AdeptHarassProtoss(agent, "adept harass protoss", GetUnits(IsFriendlyUnit(ADEPT)), agent->locations->adept_harrass_protoss_consolidation);
+	AdeptHarassProtoss* adept_fsm = new AdeptHarassProtoss(this, "adept harass protoss", GetUnits(IsFriendlyUnit(ADEPT)), agent->locations->adept_harrass_protoss_consolidation);
 	finite_state_machine_manager.active_state_machines.push_back(adept_fsm);
 
 	ArmyGroup* adept_army = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ADEPT }, 2, 2);
@@ -1339,7 +1339,7 @@ void Mediator::CreateAdeptHarassProtossFSM()
 
 void Mediator::StartOracleHarassStateMachine(ArmyGroup* army)
 {
-	OracleHarassStateMachine* oracle_fsm = new OracleHarassStateMachine(agent, {}, "Oracle harass");
+	OracleHarassStateMachine* oracle_fsm = new OracleHarassStateMachine(this, {}, "Oracle harass");
 	finite_state_machine_manager.active_state_machines.push_back(oracle_fsm);
 
 	army->state_machine = oracle_fsm;
@@ -1348,7 +1348,7 @@ void Mediator::StartOracleHarassStateMachine(ArmyGroup* army)
 
 void Mediator::StartChargelotAllInStateMachine()
 {
-	ChargelotAllInStateMachine* chargelot_fsm = new ChargelotAllInStateMachine(agent, "chargelot all in", agent->locations->warp_prism_locations, GetCurrentTime());
+	ChargelotAllInStateMachine* chargelot_fsm = new ChargelotAllInStateMachine(this, "chargelot all in", agent->locations->warp_prism_locations, GetCurrentTime());
 	finite_state_machine_manager.active_state_machines.push_back(chargelot_fsm);
 
 	ArmyGroup* chargelot_army = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ZEALOT, PRISM }, 30, 50);
@@ -1423,7 +1423,7 @@ bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)
 
 void Mediator::CreateAdeptBaseDefenseTerranFSM()
 {
-	AdeptBaseDefenseTerran* adept_defense_fsm = new AdeptBaseDefenseTerran(agent, "Adept base defense", 
+	AdeptBaseDefenseTerran* adept_defense_fsm = new AdeptBaseDefenseTerran(this, "Adept base defense",
 		agent->locations->main_early_dead_space, agent->locations->natural_front);
 	finite_state_machine_manager.active_state_machines.push_back(adept_defense_fsm);
 
@@ -1438,7 +1438,11 @@ void Mediator::CreateWorkerRushDefenseFSM()
 		GetStartLocation(), 20.0f);
 
 	WorkerRushDefenseStateMachine* worker_rush_defense_fsm =
-		new WorkerRushDefenseStateMachine(agent, "Worker rush defense");
+		new WorkerRushDefenseStateMachine(this, "Worker rush defense");
+
+	finite_state_machine_manager.active_state_machines.push_back(worker_rush_defense_fsm);
+}
+
 
 	finite_state_machine_manager.active_state_machines.push_back(worker_rush_defense_fsm);
 }

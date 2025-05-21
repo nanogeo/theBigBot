@@ -1,6 +1,6 @@
 
 #include "scout_zerg_state_machine.h"
-#include "theBigBot.h"
+#include "mediator.h"
 
 
 namespace sc2 {
@@ -10,7 +10,7 @@ namespace sc2 {
 
 void ScoutZInitialMove::TickState()
 {
-	agent->mediator.SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutZInitialMove::EnterState()
@@ -26,7 +26,7 @@ void ScoutZInitialMove::ExitState()
 State* ScoutZInitialMove::TestTransitions()
 {
 	if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 1)
-		return new ScoutZScoutMain(agent, state_machine);
+		return new ScoutZScoutMain(mediator, state_machine);
 	return nullptr;
 }
 
@@ -47,7 +47,7 @@ void ScoutZScoutMain::TickState()
 		if (state_machine->index < state_machine->main_scout_path.size())
 			state_machine->current_target = state_machine->main_scout_path[state_machine->index];
 	}
-	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target);
+	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutZScoutMain::EnterState()
@@ -65,15 +65,15 @@ State* ScoutZScoutMain::TestTransitions()
 {
 	if (state_machine->index >= state_machine->main_scout_path.size())
 	{
-		if (agent->mediator.scouting_manager.natural_timing == 0)
+		if (mediator->scouting_manager.natural_timing == 0)
 		{
-			return new ScoutZScoutNatural(agent, state_machine);
+			return new ScoutZScoutNatural(mediator, state_machine);
 		}
-		else if (agent->mediator.scouting_manager.third_timing == 0 &&
-					((agent->mediator.scouting_manager.spawning_pool_timing > 0 && agent->mediator.scouting_manager.first_gas_timing > 0) ||
-					agent->mediator.GetCurrentTime() > 120))
+		else if (mediator->scouting_manager.third_timing == 0 &&
+					((mediator->scouting_manager.spawning_pool_timing > 0 && mediator->scouting_manager.first_gas_timing > 0) ||
+					mediator->GetCurrentTime() > 120))
 		{
-			return new ScoutZLookFor3rd(agent, state_machine);
+			return new ScoutZLookFor3rd(mediator, state_machine);
 		}
 		else
 		{
@@ -83,10 +83,10 @@ State* ScoutZScoutMain::TestTransitions()
 	}
 
 
-	if (agent->mediator.scouting_manager.spawning_pool_timing > 0 &&
-		agent->mediator.GetCurrentTime() > agent->mediator.scouting_manager.spawning_pool_timing + 60)
+	if (mediator->scouting_manager.spawning_pool_timing > 0 &&
+		mediator->GetCurrentTime() > mediator->scouting_manager.spawning_pool_timing + 60)
 	{
-		agent->mediator.MarkStateMachineForDeletion(state_machine);
+		mediator->MarkStateMachineForDeletion(state_machine);
 		return nullptr;
 	}
 	return nullptr;
@@ -103,13 +103,13 @@ std::string ScoutZScoutMain::toString()
 
 void ScoutZScoutNatural::TickState()
 {
-	agent->mediator.SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutZScoutNatural::EnterState()
 {
 	state_machine->index = 0;
-	state_machine->current_target = agent->mediator.GetEnemyNaturalLocation();
+	state_machine->current_target = mediator->GetEnemyNaturalLocation();
 }
 
 void ScoutZScoutNatural::ExitState()
@@ -119,8 +119,8 @@ void ScoutZScoutNatural::ExitState()
 
 State* ScoutZScoutNatural::TestTransitions()
 {
-	if (agent->mediator.scouting_manager.natural_timing > 0 || Distance2D(state_machine->scout->pos, state_machine->current_target) < 2)
-		return new ScoutZScoutMain(agent, state_machine);
+	if (mediator->scouting_manager.natural_timing > 0 || Distance2D(state_machine->scout->pos, state_machine->current_target) < 2)
+		return new ScoutZScoutMain(mediator, state_machine);
 	return nullptr;
 }
 
@@ -141,7 +141,7 @@ void ScoutZLookFor3rd::TickState()
 		if (state_machine->index < state_machine->possible_3rds.size())
 			state_machine->current_target = state_machine->possible_3rds[state_machine->index];
 	}
-	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target);
+	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutZLookFor3rd::EnterState()
@@ -157,8 +157,8 @@ void ScoutZLookFor3rd::ExitState()
 
 State* ScoutZLookFor3rd::TestTransitions()
 {
-	if (state_machine->index >= state_machine->possible_3rds.size() || agent->mediator.scouting_manager.third_timing > 0)
-		return new ScoutZScoutMain(agent, state_machine);
+	if (state_machine->index >= state_machine->possible_3rds.size() || mediator->scouting_manager.third_timing > 0)
+		return new ScoutZScoutMain(mediator, state_machine);
 	return nullptr;
 }
 
@@ -169,11 +169,11 @@ std::string ScoutZLookFor3rd::toString()
 
 #pragma endregion
 
-ScoutZergStateMachine::ScoutZergStateMachine(TheBigBot* agent, std::string name, const Unit* scout, 
+ScoutZergStateMachine::ScoutZergStateMachine(Mediator* mediator, std::string name, const Unit* scout, 
 	Point2D enemy_main, std::vector<Point2D> main_scout_path, 
-	Point2D enemy_natural_pos, std::vector<Point2D> possible_3rds) : StateMachine(agent, name)
+	Point2D enemy_natural_pos, std::vector<Point2D> possible_3rds) : StateMachine(mediator, name)
 {
-    current_state = new ScoutZInitialMove(agent, this);
+    current_state = new ScoutZInitialMove(mediator, this);
     this->scout = scout;
     this->enemy_main = enemy_main;
     this->main_scout_path = main_scout_path;
@@ -186,7 +186,7 @@ ScoutZergStateMachine::ScoutZergStateMachine(TheBigBot* agent, std::string name,
 ScoutZergStateMachine::~ScoutZergStateMachine()
 {
 	if (scout != nullptr && scout->is_alive)
-		agent->mediator.worker_manager.PlaceWorker(scout);
+		mediator->worker_manager.PlaceWorker(scout);
 }
 
 

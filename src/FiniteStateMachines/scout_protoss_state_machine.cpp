@@ -12,7 +12,7 @@ namespace sc2 {
 void ScoutPInitialMove::TickState()
 {
 	if (state_machine->scout->orders.size() == 0 || state_machine->scout->orders[0].target_pos != state_machine->current_target)
-		agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target);
+		mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutPInitialMove::EnterState()
@@ -29,10 +29,10 @@ State* ScoutPInitialMove::TestTransitions()
 {
 	if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 1)
 	{
-		if (agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() > 0)
-			return new ScoutPScoutPylon(agent, state_machine);
+		if (mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() > 0)
+			return new ScoutPScoutPylon(mediator, state_machine);
 		else
-			return new ScoutPScoutMain(agent, state_machine, false);
+			return new ScoutPScoutMain(mediator, state_machine, false);
 	}
 	return nullptr;
 }
@@ -50,17 +50,17 @@ void ScoutPScoutPylon::TickState()
 {
 	if (state_machine->scout->orders.size() == 0)
 	{
-		Units pylons = agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON));
+		Units pylons = mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON));
 		if (pylons.size() > 0)
-			agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, pylons[0]->pos);
+			mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, pylons[0]->pos, 0);
 	}
 }
 
 void ScoutPScoutPylon::EnterState()
 {
-	Units pylons = agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON));
+	Units pylons = mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON));
 	if (pylons.size() > 0)
-		agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, pylons[0]->pos);
+		mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, pylons[0]->pos, 0);
 }
 
 void ScoutPScoutPylon::ExitState()
@@ -70,11 +70,11 @@ void ScoutPScoutPylon::ExitState()
 
 State* ScoutPScoutPylon::TestTransitions()
 {
-	Units pylons = agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON));
+	Units pylons = mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON));
 	if (pylons.size() == 0)
-		return new ScoutPScoutMain(agent, state_machine, false);
+		return new ScoutPScoutMain(mediator, state_machine, false);
 	if (pylons.size() > 0 && Distance2D(state_machine->scout->pos, pylons[0]->pos) < 2)
-		return new ScoutPScoutMain(agent, state_machine, true);
+		return new ScoutPScoutMain(mediator, state_machine, true);
 	return nullptr;
 }
 
@@ -95,7 +95,7 @@ void ScoutPScoutMain::TickState()
 		if (state_machine->index < state_machine->main_scout_path.size())
 			state_machine->current_target = state_machine->main_scout_path[state_machine->index];
 	}
-	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target);
+	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutPScoutMain::EnterState()
@@ -111,12 +111,12 @@ void ScoutPScoutMain::ExitState()
 
 State* ScoutPScoutMain::TestTransitions()
 {
-	if (scouted_pylon == false && agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() > 0)
-		return new ScoutPScoutPylon(agent, state_machine);
+	if (scouted_pylon == false && mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() > 0)
+		return new ScoutPScoutPylon(mediator, state_machine);
 	if (state_machine->index >= state_machine->main_scout_path.size())
-		return new ScoutPScoutNatural(agent, state_machine);
-	if (agent->mediator.GetCurrentTime() > 120)
-		return new ScoutPReturnToBase(agent, state_machine);
+		return new ScoutPScoutNatural(mediator, state_machine);
+	if (mediator->GetCurrentTime() > 120)
+		return new ScoutPReturnToBase(mediator, state_machine);
 	return nullptr;
 }
 
@@ -131,14 +131,14 @@ std::string ScoutPScoutMain::toString()
 
 void ScoutPScoutNatural::TickState()
 {
-	if (state_machine->scout->orders.size() == 0 && Distance2D(state_machine->scout->pos, agent->mediator.GetEnemyNaturalLocation()) > 6)
-		agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, agent->mediator.GetEnemyNaturalLocation());
+	if (state_machine->scout->orders.size() == 0 && Distance2D(state_machine->scout->pos, mediator->GetEnemyNaturalLocation()) > 6)
+		mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, mediator->GetEnemyNaturalLocation(), 0);
 
 }
 
 void ScoutPScoutNatural::EnterState()
 {
-	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, agent->mediator.GetEnemyNaturalLocation());
+	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, mediator->GetEnemyNaturalLocation(), 0);
 }
 
 void ScoutPScoutNatural::ExitState()
@@ -148,9 +148,9 @@ void ScoutPScoutNatural::ExitState()
 
 State* ScoutPScoutNatural::TestTransitions()
 {
-	if (Distance2D(state_machine->scout->pos, agent->mediator.GetEnemyNaturalLocation()) < 8)
+	if (Distance2D(state_machine->scout->pos, mediator->GetEnemyNaturalLocation()) < 8)
 	{
-		return new ScoutPScoutMain(agent, state_machine, agent->mediator.GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() != 0);
+		return new ScoutPScoutMain(mediator, state_machine, mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() != 0);
 	}
 	return nullptr;
 }
@@ -172,7 +172,7 @@ void ScoutPReturnToBase::TickState()
 
 void ScoutPReturnToBase::EnterState()
 {
-	agent->Actions()->UnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, agent->locations->start_location);
+	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, mediator->GetStartLocation(), 0);
 }
 
 void ScoutPReturnToBase::ExitState()
@@ -182,9 +182,9 @@ void ScoutPReturnToBase::ExitState()
 
 State* ScoutPReturnToBase::TestTransitions()
 {
-	if (Distance2D(state_machine->scout->pos, agent->locations->start_location) <= 20)
+	if (Distance2D(state_machine->scout->pos, mediator->GetStartLocation()) <= 20)
 	{
-		agent->mediator.MarkStateMachineForDeletion(state_machine);
+		mediator->MarkStateMachineForDeletion(state_machine);
 		return nullptr;
 	}
 	return nullptr;
