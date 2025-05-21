@@ -218,7 +218,7 @@ void UnitCommandManager::ParseUnitCommands()
 				actions_this_frame++;
 #ifndef BUILD_FOR_LADDER
 				file << Utility::AbilityIdToString(itr->second.ability.ToType()) << ", 0 0, " << itr->second.target->tag << ", " << 
-					UnitTypeToName(mediator->GetUnit(itr->second.target->tag)->unit_type) << ", " << std::endl;
+					UnitTypeToName(itr->second.target->unit_type) << ", " << std::endl;
 #endif
 			}
 		}
