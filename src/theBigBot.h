@@ -192,6 +192,61 @@ public:
 	virtual void OnStep()
 	{
 		// abyssal reef
+		
+		Point2D cpylon = Point2D(42, 121);
+		Point2D cforge = Point2D(42.5, 118.5);
+		Point2D cpylon2 = Point2D(158, 35);
+		std::vector<Point2D> ccannons = { Point2D(161, 35), Point2D(155, 31), Point2D(159, 30) };
+		if (Observation()->GetStartLocation().x == 161.5 && Observation()->GetStartLocation().y == 21.5)
+		{
+			cpylon = Point2D(158, 23);
+			cforge = Point2D(157.5, 25.5);
+			cpylon2 = Point2D(44, 109);
+			ccannons = { Point2D(41, 109), Point2D(47, 113), Point2D(43, 114) };
+		}
+
+		if (probe == nullptr && Observation()->GetUnits(IsUnit(PROBE)).size() > 0)
+			probe = Observation()->GetUnits(IsUnit(PROBE))[0];
+
+		/*if (Observation()->GetUnits(IsUnit(NEXUS)).size() > 0 &&
+			Observation()->GetUnits(IsUnit(NEXUS))[0]->orders.size() == 0 &&
+			Observation()->GetUnits(IsUnit(PROBE)).size() < 13)
+			Actions()->UnitCommand(Observation()->GetUnits(IsUnit(NEXUS))[0], ABILITY_ID::TRAIN_PROBE);*/
+
+
+		if (Observation()->GetUnits(IsUnit(FORGE)).size() == 0 && Observation()->GetUnits(IsUnit(PYLON)).size() == 1)
+		{
+			const Unit* p = Utility::ClosestTo(Observation()->GetUnits(IsUnit(PROBE)), cforge);
+			if (Distance2D(p->pos, cforge) > 1)
+				Actions()->UnitCommand(p, ABILITY_ID::MOVE_MOVE, cforge);
+			else
+				Actions()->UnitCommand(p, ABILITY_ID::BUILD_FORGE, cforge);
+		}
+
+		if (Observation()->GetUnits(IsUnit(PYLON)).size() == 0)
+		{
+			if (Distance2D(probe->pos, cpylon) > 1)
+				Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, cpylon);
+			else
+				Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, cpylon);
+		}
+		else if (Observation()->GetUnits(Unit::Alliance::Self, IsUnit(PYLON)).size() == 1)
+		{
+			if (Distance2D(probe->pos, cpylon2) > 1)
+				Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, cpylon2);
+			else
+				Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PYLON, cpylon2);
+		}
+		else if (Observation()->GetUnits(IsUnit(CANNON)).size() < 3)
+		{
+			Point2D cannon_pos = ccannons[Observation()->GetUnits(IsUnit(FORGE)).size()];
+
+			if (Distance2D(probe->pos, cannon_pos) > 1)
+				Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, cannon_pos);
+			else
+				Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos);
+		}
+
 		Point2D rally = Point2D(56, 118);
 		Point2D pylon = Point2D(77, 99);
 		Point2D pylon2 = pylon + Point2D(2, 3);

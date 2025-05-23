@@ -200,6 +200,9 @@ ArmyGroup* ArmyManager::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> 
 	case ArmyRole::defend_main_ramp:
 		army = new ArmyGroup(mediator, mediator->GetLocations().main_ramp_forcefield, role, unit_types);
 		break;
+	case ArmyRole::cannon_rush_defense:
+		army = new ArmyGroup(mediator, role, unit_types);
+		break;
 	default:
 		std::cerr << "Unknown ArmyRole in CreateArmyGroup" << std::endl;
 		mediator->LogMinorError();
@@ -280,6 +283,9 @@ void ArmyManager::RunArmyGroups()
 			break;
 		case ArmyRole::defend_main_ramp:
 			army_groups[i]->DefendMainRamp();
+			break;
+		case ArmyRole::cannon_rush_defense:
+			army_groups[i]->DefendCannonRush();
 			break;
 		default:
 			std::cerr << "Unknown ArmyRole in RunArmyGroup" << std::endl;

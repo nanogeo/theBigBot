@@ -1090,9 +1090,6 @@ bool ActionManager::ActionCheckBaseForCannons(ActionArgData* data)
 	else
 		mediator->SetUnitCommand(data->unit, ABILITY_ID::GENERAL_MOVE, pos, 0);
 
-	// if there are cannons pull workers against them
-
-
 	return false;
 }
 
