@@ -2869,9 +2869,11 @@ namespace sc2 {
 	Point2D ArmyGroup::FindLimitToAdvance()
 	{
 		std::vector<Point2D> danger_points;
-		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ SIEGE_TANK_SIEGED })))
+		for (const auto& unit : mediator->GetEnemySavedPositions())
 		{
-			Point2D pos = mediator->GetUnitPosition(unit);
+			if (unit.first->unit_type != SIEGE_TANK_SIEGED)
+				continue;
+			Point2D pos = unit.second.pos;
 			std::vector<Point2D> intersection_points = attack_path_line.FindCircleIntersection(pos, 14);
 			Point2D danger_point = attack_path_line.GetFurthestBack(intersection_points);
 			danger_points.push_back(danger_point);
