@@ -1813,6 +1813,11 @@ Point2D Mediator::GetUnitPosition(const Unit* unit)
 	return Point2D(0, 0);
 }
 
+const std::map<const Unit*, EnemyUnitPosition> Mediator::GetEnemySavedPositions()
+{
+	return scouting_manager.enemy_unit_saved_position;
+}
+
 bool Mediator::IsStalkerBlinkOffCooldown(const Unit* unit)
 {
 	return ability_manager.IsStalkerBlinkOffCooldown(unit);

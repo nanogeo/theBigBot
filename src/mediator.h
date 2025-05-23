@@ -239,6 +239,7 @@ public:
 	const Unit* GetUnit(Tag);
 	AvailableAbilities GetAbilitiesForUnit(const Unit*);
 	Point2D GetUnitPosition(const Unit*);
+	const std::map<const Unit*, EnemyUnitPosition> GetEnemySavedPositions();
 
 	bool IsStalkerBlinkOffCooldown(const Unit*);
 	void SetStalkerOrder(const Unit*);
