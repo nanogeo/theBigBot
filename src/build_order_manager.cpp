@@ -1067,7 +1067,17 @@ bool BuildOrderManager::CheckTankCount(BuildOrderResultArgData data)
 bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 {
 	// get missing scvs
-	int missing_scvs = 0;
+	int missing_scvs = 19;
+	for (const auto& unit : mediator->GetEnemySavedPositions())
+	{
+		if (unit.first->unit_type != SCV)
+			continue;
+
+		if (Distance2D(unit.second.pos, mediator->GetEnemyStartLocation()) < 25 ||
+			Distance2D(unit.second.pos, mediator->GetEnemyNaturalLocation()) < 25 ||
+			Distance2D(unit.second.pos, mediator->GetStartLocation()) < 25)
+			missing_scvs--;
+	}
 
 	if (mediator->GetFirstBarrackTiming() == 0)
 	{
