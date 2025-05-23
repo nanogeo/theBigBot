@@ -249,6 +249,14 @@ void ScoutingManager::AddNewUnit(const Unit* unit)
 		if (first_barrack_timing == 0)
 			first_barrack_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());
 		break;
+	case BARRACKS_REACTOR:
+		if (first_rax_production == FirstRaxProduction::idle)
+			first_rax_production = FirstRaxProduction::reactor;
+		break;
+	case BARRACKS_TECH_LAB:
+		if (first_rax_production == FirstRaxProduction::idle)
+			first_rax_production = FirstRaxProduction::techlab;
+		break;
 	case FACTORY:
 		if (factory_timing == 0)
 			factory_timing = Utility::GetTimeBuilt(unit, mediator->GetCurrentTime());

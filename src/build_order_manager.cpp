@@ -1066,27 +1066,131 @@ bool BuildOrderManager::CheckTankCount(BuildOrderResultArgData data)
 
 bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 {
-	switch (mediator->scouting_manager.CheckTerranScoutingInfoEarly())
+	// get missing scvs
+	int missing_scvs = 0;
+
+	if (mediator->GetFirstBarrackTiming() == 0)
 	{
-	case 0:
-		mediator->SendChat("Tag:scout_no_proxy_rax", ChatChannel::Team);
-		return true;
-	case 1:
-		// minor proxy
-		SetMinorProxyRaxResponse();
-		build_order_step = 0;
-		std::cerr << "Minor proxy rax. build order step now " << std::to_string(build_order_step) << std::endl;
-		mediator->SendChat("Tag:scout_minor/possible_proxy_rax", ChatChannel::Team);
-		break;
-	case 2:
-		// major proxy
-		SetMajorProxyRaxResponse();
-		build_order_step = 0;
-		std::cerr << "Major proxy rax. build orde step now " << std::to_string(build_order_step) << std::endl;
-		mediator->SendChat("Tag:scout_major_proxy_rax", ChatChannel::Team);
-		break;
+		// proxy rax
+		switch (mediator->scouting_manager.enemy_unit_counts[REFINERY])
+		{
+		case 0:
+			// proxy marine
+			if (missing_scvs >= 2)
+			{
+				// major proxy rax marine
+				build_order_step = 0;
+				SetMajorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_major_proxy_rax_marine", ChatChannel::Team);
+				return false;
+			}
+			else if (missing_scvs == 1)
+			{
+				// minor proxy rax marine
+				build_order_step = 0;
+				SetMinorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_minor_proxy_rax_marine", ChatChannel::Team);
+				return false;
+			}
+			else
+			{
+				// cc first
+				mediator->SendChat("Tag:scout_cc_first", ChatChannel::Team);
+			}
+			break;
+		case 1:
+		case 2:
+			if (missing_scvs > 2)
+			{
+				// proxy reaper
+				build_order_step = 0;
+				SetMajorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_proxy_reaper", ChatChannel::Team);
+				return false;
+			}
+			else if (missing_scvs == 2)
+			{
+				// proxy marauder
+				build_order_step = 0;
+				SetMajorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_proxy_marauder", ChatChannel::Team);
+				return false;
+			}
+			else if (missing_scvs == 1)
+			{
+				// proxy rax + factory
+				build_order_step = 0;
+				SetMinorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_minro_proxy_rax/factory", ChatChannel::Team);
+				return false;
+			}
+			else
+			{
+				// late cc first
+				mediator->SendChat("Tag:scout_late_cc_first?", ChatChannel::Team);
+			}
+			break;
+		}
 	}
-	return false;
+	else
+	{
+		if (mediator->scouting_manager.enemy_unit_counts[BARRACKS] > 1)
+		{
+			// multi rax
+			mediator->SendChat("Tag:scout_multi_rax", ChatChannel::Team);
+		}
+		else
+		{
+			switch (mediator->scouting_manager.enemy_unit_counts[REFINERY])
+			{
+			case 0:
+				// gasless
+				if (missing_scvs > 2)
+				{
+					// hidden major proxy rax
+					build_order_step = 0;
+					SetMajorProxyRaxResponse();
+					mediator->SendChat("Tag:scout_hidden_major_proxy_rax_marine", ChatChannel::Team);
+					return false;
+				}
+				else if (missing_scvs > 1)
+				{
+					// hidden proxy rax
+					build_order_step = 0;
+					SetMinorProxyRaxResponse();
+					mediator->SendChat("Tag:scout_hidden_minor_proxy_rax_marine", ChatChannel::Team);
+					return false;
+				}
+				else
+				{
+					// gasless expand with scout
+					mediator->SendChat("Tag:scout_gasless_1_rax_expand", ChatChannel::Team);
+				}
+				break;
+			case 1:
+				// 1 rax expand
+				if (missing_scvs > 1)
+				{
+					// hidden proxy reaper expand
+					build_order_step = 0;
+					SetMinorProxyRaxResponse();
+					mediator->SendChat("Tag:scout_hidden_proxy_reaper", ChatChannel::Team);
+					return false;
+				}
+				else
+				{
+					// 1 rax expand with/out scout
+					mediator->SendChat("Tag:scout_1_rax_expand", ChatChannel::Team);
+				}
+				break;
+			case 2:
+				// double gas
+				mediator->SendChat("Tag:scout_double_gas", ChatChannel::Team);
+				break;
+			}
+		}
+	}
+	return true;
 }
 
 bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
