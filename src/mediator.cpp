@@ -1764,6 +1764,11 @@ std::vector<Point2D> Mediator::GetSelfMainScoutPath()
 	return agent->locations->self_main_scout_path;
 }
 
+std::vector<Point2D> Mediator::GetSelfNaturalScoutPath()
+{
+	return agent->locations->self_natural_scout_path;
+}
+
 std::string Mediator::GetMapName()
 {
 	return agent->Observation()->GetGameInfo().map_name;

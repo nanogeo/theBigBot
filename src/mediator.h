@@ -228,6 +228,7 @@ public:
 	std::vector<Point2D> GetAllBases();
 	std::vector<Point2D> GetPossibleEnemyThirdBaseLocations();
 	std::vector<Point2D> GetSelfMainScoutPath();
+	std::vector<Point2D> GetSelfNaturalScoutPath();
 
 	std::string GetMapName();
 	Race GetEnemyRace();
