@@ -957,6 +957,12 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		std::cerr << "Early pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag:scout_pool_first", ChatChannel::Team);
 	}
+	else if (mediator->GetRoachWarrenTiming() != 0)
+	{
+		// 2 base roach
+		mediator->SendChat("Tag:scout_2_base_roach", ChatChannel::Team);
+		return true;
+	}
 	else if (mediator->GetFirstGasTiming() == 0)
 	{
 		// gasless
