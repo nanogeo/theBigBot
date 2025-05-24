@@ -1669,7 +1669,8 @@ namespace sc2 {
 		std::map<const Unit*, Units> assigned_attackers;
 		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, PYLON, CANNON })))
 		{
-			if (Distance2D(unit->pos, mediator->GetStartLocation()) < 30)
+			if (Distance2D(unit->pos, mediator->GetStartLocation()) < 30 || 
+				Distance2D(unit->pos, mediator->GetNaturalLocation()) < 20)
 				assigned_attackers[unit] = {};
 		}
 
