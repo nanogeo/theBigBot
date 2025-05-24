@@ -72,18 +72,15 @@ void DefenseManager::UpdateOngoingAttacks()
 			{
 				temp_unit_production = true;
 				// warp in or make units from gates
-				if (mediator->CheckUpgrade(UPGRADE_ID::WARPGATERESEARCH))
+				if (mediator->GetWarpgateProduction() == UNIT_TYPEID::INVALID)
 				{
-					if (mediator->GetWarpgateProduction() == UNIT_TYPEID::INVALID)
-					{
-						mediator->SetUnitProduction(STALKER);
-						reset_warpgate_production = true;
-					}
-					else
-					{
-						prev_warpgate_production = mediator->GetWarpgateProduction();
-						mediator->SetUnitProduction(STALKER);
-					}
+					mediator->SetUnitProduction(STALKER);
+					reset_warpgate_production = true;
+				}
+				else
+				{
+					prev_warpgate_production = mediator->GetWarpgateProduction();
+					mediator->SetUnitProduction(STALKER);
 				}
 
 				// make units from other tech structures
