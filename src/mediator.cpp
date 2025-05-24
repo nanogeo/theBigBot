@@ -2003,16 +2003,38 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 
 	if (unit->unit_type == NEXUS)
 	{
+		if (!HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
+			action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
+
 		army_manager.RemoveDefenseGroupAt(unit->pos);
 		defense_manager.RemoveOngoingAttackAt(unit->pos);
-	}
+		for (auto itr = action_manager.active_actions.begin(); itr != action_manager.active_actions.end();)
+		{
+			if (((*itr)->action == &ActionManager::ActionBuildBuilding ||
+				(*itr)->action == &ActionManager::ActionBuildBuildingWhenSafe || 
+				(*itr)->action == &ActionManager::ActionBuildBuildingMulti) &&
+				Distance2D((*itr)->action_arg->position, unit->pos) < 15)
+			{
+				if ((*itr)->action_arg->unit && (*itr)->action_arg->unit->unit_type == PROBE)
+					PlaceWorker((*itr)->action_arg->unit);
 
-	if (unit->is_building && unit->alliance == Unit::Alliance::Self)
+				itr = action_manager.active_actions.erase(itr);
+			}
+			else
+			{
+				itr++;
+			}
+		}
+	}
+	else if (unit->is_building && unit->alliance == Unit::Alliance::Self)
 	{
-		if (unit->unit_type == WARP_GATE)
-			RebuildBuilding(unit->pos, GATEWAY);
-		else
-			RebuildBuilding(unit->pos, unit->unit_type);
+		if (Utility::DistanceToClosest(GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)), unit->pos) < 15)
+		{
+			if (unit->unit_type == WARP_GATE)
+				RebuildBuilding(unit->pos, GATEWAY);
+			else
+				RebuildBuilding(unit->pos, unit->unit_type);
+		}	
 	}
 }
 void Mediator::OnUpgradeCompleted(UPGRADE_ID upgrade)
