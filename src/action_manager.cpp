@@ -31,6 +31,7 @@ void ActionManager::AddAction(ActionData* action)
 
 bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 {
+	mediator->DebugSphere(mediator->ToPoint3D(data->position), 1, Color(255, 0, 128));
 	UNIT_TYPEID buildingId = data->unitId;
 	Point2D pos = data->position;
 	const Unit *builder = data->unit;
@@ -71,6 +72,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 
 bool ActionManager::ActionBuildBuildingWhenSafe(ActionArgData* data)
 {
+	mediator->DebugSphere(mediator->ToPoint3D(data->position), 1, Color(255, 128, 0));
 	if (mediator->CanAfford(data->unitId, 1) && 
 		Utility::DistanceToClosest(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), data->position) > 10 &&
 		(data->unitId == PYLON || data->unitId == NEXUS || Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PYLON)), data->position) < 6.5))
