@@ -1093,6 +1093,32 @@ bool ActionManager::ActionCheckBaseForCannons(ActionArgData* data)
 	return false;
 }
 
+bool ActionManager::ActionCheckNaturalForCannons(ActionArgData* data)
+{
+	if (data->unit == nullptr || data->unit->is_alive == false)
+	{
+		data->unit = mediator->GetBuilder(mediator->GetNaturalLocation());
+		if (data->unit == nullptr)
+			return false;
+		mediator->RemoveWorker(data->unit);
+	}
+
+	std::vector<Point2D> path = mediator->GetSelfNaturalScoutPath();
+	if (data->index >= path.size())
+	{
+		mediator->PlaceWorker(data->unit);
+		return true;
+	}
+
+	Point2D pos = path[data->index];
+
+	if (Distance2D(data->unit->pos, pos) < 2)
+		data->index++;
+	else
+		mediator->SetUnitCommand(data->unit, ABILITY_ID::GENERAL_MOVE, pos, 0);
+
+	return false;
+}
 
 bool ActionManager::ActionAttackLine(ActionArgData* data)
 {

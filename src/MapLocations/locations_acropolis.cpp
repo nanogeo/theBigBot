@@ -222,6 +222,11 @@ namespace sc2 {
 			self_main_scout_path.push_back(convert_location(pos, true));
 		}
 
+		for (const auto& pos : natural_scout_path)
+		{
+			self_natural_scout_path.push_back(convert_location(pos, true));
+		}
+
 		Point2D entrance_point = P(114, 22);
 		Point2D exit_point = P(152, 110);
 		std::vector<Point2D> entrance_points = { P(138, 25),

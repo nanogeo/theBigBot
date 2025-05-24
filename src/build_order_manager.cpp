@@ -1218,6 +1218,7 @@ bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 		mediator->SendChat("Tag:scout_cannon_rush", ChatChannel::Team);
 		mediator->CreateArmyGroup(ArmyRole::cannon_rush_defense, {}, 20, 20);
 		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckBaseForCannons, new ActionArgData(0)));
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckNaturalForCannons, new ActionArgData(0)));
 		Set2GateProxyRobo();
 		return false;
 	}
