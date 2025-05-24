@@ -60,7 +60,7 @@ void DefenseManager::UpdateOngoingAttacks()
 			total_energy += battery->energy;
 		}
 		bool sim_city = (mediator->GetEnemyRace() == Race::Zerg && mediator->GetNaturalLocation() == attack.location) ? true : false;
-		attack.status = JudgeFight(close_enemies, close_allies, 0.0f, total_energy, sim_city);
+		attack.status = JudgeFight(close_allies, close_enemies, 0.0f, total_energy, sim_city);
 		std::cerr << "Attack at " << attack.location.x << ", " << attack.location.y << " current value " << attack.status<< std::endl;
 		if (attack.status < 0)
 		{
@@ -194,7 +194,7 @@ void DefenseManager::UpdateOngoingAttacks()
 	}
 }
 
-float DefenseManager::JudgeFight(Units enemy_units, Units friendly_units, float enemy_battery_energy, float friendly_battery_energy, bool sim_city)
+float DefenseManager::JudgeFight(Units friendly_units, Units enemy_units, float enemy_battery_energy, float friendly_battery_energy, bool sim_city)
 {
 	/*std::vector<std::vector<UNIT_TYPEID>> prio;
 	switch (mediator->GetEnemyRace())

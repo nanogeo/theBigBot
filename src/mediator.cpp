@@ -1510,9 +1510,9 @@ void Mediator::BuildDefensiveBuilding(UNIT_TYPEID type, Point2D location)
 	action_manager.AddAction(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, type, pos)));
 }
 
-float Mediator::JudgeFight(Units enemy_units, Units friendly_units, float enemy_battery_energy, float friendly_battery_energy, bool sim_city)
+float Mediator::JudgeFight(Units friendly_units, Units enemy_units, float enemy_battery_energy, float friendly_battery_energy, bool sim_city)
 {
-	return defense_manager.JudgeFight(enemy_units, friendly_units, enemy_battery_energy, friendly_battery_energy, sim_city);
+	return defense_manager.JudgeFight(friendly_units, enemy_units, enemy_battery_energy, friendly_battery_energy, sim_city);
 }
 
 std::vector<OngoingAttack> Mediator::GetOngoingAttacks()

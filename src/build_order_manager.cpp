@@ -1347,7 +1347,7 @@ bool BuildOrderManager::AttackLine(BuildOrderResultArgData data)
 	Units eUnits = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
 	Units fUnits = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self));
 	
-	mediator->defense_manager.JudgeFight(eUnits, fUnits, 0.0f, 300.0f, true);
+	mediator->defense_manager.JudgeFight(fUnits, eUnits, 0.0f, 300.0f, true);
 	//ArmyGroup* army = mediator->CreateArmyGroup(ArmyRole::simple_attack, { ADEPT, STALKER, PRISM }, 3, 20);
 	//army->standby_pos = mediator->agent->locations->attack_path[0];
 	//army->using_standby = false;
