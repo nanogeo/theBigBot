@@ -13,6 +13,10 @@ class ArmyGroup;
 class State
 {
 public:
+    ~State()
+    {
+        ExitState();
+    }
     Mediator* mediator = nullptr;
     virtual std::string toString();
     virtual void TickState();
