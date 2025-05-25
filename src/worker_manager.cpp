@@ -82,6 +82,24 @@ const Unit* WorkerManager::GetWorker()
 			}
 		}
 	}
+	// if a worker wasn't found ignore the carrying minerals check
+	if (far_patches.size() > 0)
+	{
+		for (const auto& field : far_patches)
+		{
+			if (field.second.workers[1] != nullptr)
+			{
+				return field.second.workers[1];
+			}
+		}
+		for (const auto& field : far_patches)
+		{
+			if (field.second.workers[0] != nullptr)
+			{
+				return field.second.workers[0];
+			}
+		}
+	}
 	// check close mineral patches with <3 assigned harvesters
 	if (close_patches.size() > 0)
 	{
@@ -100,7 +118,26 @@ const Unit* WorkerManager::GetWorker()
 			}
 		}
 	}
-	//std::cout << "Error no available worker found";
+	// if a worker wasn't found ignore the carrying minerals check
+	if (close_patches.size() > 0)
+	{
+		for (const auto& field : close_patches)
+		{
+			if (field.second.workers[1] != nullptr)
+			{
+				return field.second.workers[1];
+			}
+		}
+		for (const auto& field : close_patches)
+		{
+			if (field.second.workers[0] != nullptr)
+			{
+				return field.second.workers[0];
+			}
+		}
+	}
+	std::cerr << "Error no available worker found in GetWorker";
+	mediator->LogMinorError();
 	return nullptr;
 }
 #pragma warning(pop)
@@ -132,12 +169,18 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 		else
 			return c;
 	}
-	//std::cout << "Error mineral patches reversed is empty in GetBuilder";
+	std::cerr << "Error no available worker found in GetBuilder";
+	mediator->LogMinorError();
 	return nullptr;
 }
 
 void WorkerManager::PlaceWorker(const Unit* worker)
 {
+	if (worker == nullptr)
+	{
+		std::cerr << "Error null worker found in PlaceWorker" << std::endl;
+		return;
+	}
 	if ((immediatelySaturateGasses || 
 		(immediatelySemiSaturateGasses && gas_spaces.size() > mediator->GetUnits(Unit::Alliance::Self, IsUnit(ASSIMILATOR)).size()))
 		&& gas_spaces.size() > removed_gas_miners)
@@ -630,6 +673,8 @@ void WorkerManager::SaturateGas(const Unit* gas)
 	for (int i = 0; i < 3; i++)
 	{
 		const Unit* worker = GetWorker();
+		if (worker == nullptr)
+			return;
 		RemoveWorker(worker);
 		PlaceWorkerInGas(worker, gas, i);
 		for (const auto &space : gas_spaces)
@@ -648,6 +693,8 @@ void WorkerManager::SemiSaturateGas(const Unit* gas)
 	for (int i = 0; i < 2; i++)
 	{
 		const Unit* worker = GetWorker();
+		if (worker == nullptr)
+			return;
 		RemoveWorker(worker);
 		PlaceWorkerInGas(worker, gas, i);
 		for (const auto& space : gas_spaces)
