@@ -239,7 +239,7 @@ public:
 		}
 		else if (Observation()->GetUnits(IsUnit(CANNON)).size() < 3)
 		{
-			Point2D cannon_pos = ccannons[Observation()->GetUnits(IsUnit(FORGE)).size()];
+			Point2D cannon_pos = ccannons[Observation()->GetUnits(IsUnit(CANNON)).size()];
 
 			if (Distance2D(probe->pos, cannon_pos) > 1)
 				Actions()->UnitCommand(probe, ABILITY_ID::MOVE_MOVE, cannon_pos);
