@@ -1566,6 +1566,11 @@ void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
 	case ADEPT:
 	case HIGH_TEMPLAR:
 	case DARK_TEMPLAR:
+		if (defense_manager.temp_unit_production)
+		{
+			defense_manager.reset_warpgate_production = false;
+			defense_manager.prev_warpgate_production = unit_type;
+		}
 		unit_production_manager.SetWarpgateProduction(unit_type);
 		break;
 	case IMMORTAL:
@@ -1573,6 +1578,11 @@ void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
 	case DISRUPTOR:
 	case OBSERVER:
 	case PRISM:
+		if (defense_manager.temp_unit_production)
+		{
+			defense_manager.reset_robo_production = false;
+			defense_manager.prev_robo_production = unit_type;
+		}
 		unit_production_manager.SetRoboProduction(unit_type);
 		break;
 	case PHOENIX:
@@ -1580,6 +1590,11 @@ void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
 	case ORACLE:
 	case CARRIER:
 	case TEMPEST:
+		if (defense_manager.temp_unit_production)
+		{
+			defense_manager.reset_stargate_production = false;
+			defense_manager.prev_stargate_production = unit_type;
+		}
 		unit_production_manager.SetStargateProduction(unit_type);
 		break;
 	default:
