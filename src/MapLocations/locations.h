@@ -170,7 +170,8 @@ public:
 
 	std::vector<Point2D> warp_prism_locations;
 
-	Point2D main_ramp_forcefield;
+	Point2D main_ramp_forcefield_top;
+	Point2D main_ramp_forcefield_mid;
 
     Locations() {}
 	// TODO take a Point2D not Point3D

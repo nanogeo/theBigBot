@@ -185,6 +185,7 @@ public:
 	
 	std::vector<OngoingAttack> GetOngoingAttacks();
 	float GetWorstOngoingAttackValue();
+	void SetAllowProductionInterrupt(bool);
 
 	void PlaceWorker(const Unit*);
 	RemoveWorkerResult RemoveWorker(const Unit*);

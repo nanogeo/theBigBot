@@ -202,6 +202,8 @@ public:
 	bool WallOffRamp(BuildOrderResultArgData);
 	bool DefendMainRamp(BuildOrderResultArgData);
 	bool SackUnit(BuildOrderResultArgData);
+	bool CancelBuilding(BuildOrderResultArgData);
+	bool StopTempUnitProduction(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string
@@ -721,6 +723,14 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::SackUnit)
 		{
 			str += "sack unit";
+		}
+		else if (result == &BuildOrderManager::CancelBuilding)
+		{
+			str += "cancel building";
+		}
+		else if (result == &BuildOrderManager::StopTempUnitProduction)
+		{
+			str += "stop temp unit production";
 		}
 
 		return str;

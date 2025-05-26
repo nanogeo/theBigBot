@@ -1564,15 +1564,24 @@ namespace sc2 {
 		for (const auto& unit : all_units)
 		{
 			// if enemies get too close, kite away individually
-			const Unit* closest_enemy = Utility::ClosestTo(enemy_units, unit->pos);
-			if (Distance2D(closest_enemy->pos, unit->pos) < 3)
-				mediator->SetUnitCommand(unit, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(closest_enemy->pos, unit->pos, Distance2D(closest_enemy->pos, unit->pos) + 2), 1);
-			else if (Distance2D(unit->pos, target_pos) > 6) // move units close to ramp
-				mediator->SetUnitCommand(unit, ABILITY_ID::MOVE_MOVE, target_pos, 1);
-
-			// attack enemies on ramp
+			if (mediator->GetAttackStatus(unit))
+				continue;
 			if (unit->weapon_cooldown == 0)
+			{
 				mediator->AddUnitToAttackers(unit);
+				mediator->SetUnitCommand(unit, ABILITY_ID::MOVE_MOVE, target_pos, 0);
+			}
+			else
+			{
+				const Unit* closest_enemy = Utility::ClosestTo(enemy_units, unit->pos);
+				float enemy_range = Utility::RealRange(closest_enemy, unit);
+				float unit_range = Utility::RealRange(unit, closest_enemy);
+				if ((enemy_range < unit_range || unit->shield / unit->shield_max < .5) && Distance2D(closest_enemy->pos, unit->pos) <= enemy_range)
+					mediator->SetUnitCommand(unit, ABILITY_ID::MOVE_MOVE, Utility::PointBetween(unit->pos, mediator->GetStartLocation(), unit_range), 1);
+				else if (Distance2D(unit->pos, target_pos) > 6) // move units close to ramp
+					mediator->SetUnitCommand(unit, ABILITY_ID::MOVE_MOVE, target_pos, 0);
+			}
+
 		}
 
 		bool overcharge_active = false;

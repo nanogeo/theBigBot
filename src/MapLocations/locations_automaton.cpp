@@ -315,7 +315,7 @@ namespace sc2 {
 								P(26, 40),
 								P(56, 22) };
 
-		main_ramp_forcefield = P(151, 129);
+		main_ramp_forcefield_top = P(151, 129);
 	}
 	
 }

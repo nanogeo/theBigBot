@@ -62,7 +62,7 @@ void DefenseManager::UpdateOngoingAttacks()
 		bool sim_city = (mediator->GetEnemyRace() == Race::Zerg && mediator->GetNaturalLocation() == attack.location) ? true : false;
 		attack.status = JudgeFight(close_allies, close_enemies, 0.0f, total_energy, sim_city);
 		std::cerr << "Attack at " << attack.location.x << ", " << attack.location.y << " current value " << attack.status<< std::endl;
-		if (attack.status < 0)
+		if (attack.status < 0 && run_defense_manager)
 		{
 			scary_attack = true;
 			// pause build

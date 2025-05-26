@@ -757,8 +757,8 @@ bool BuildOrderManager::SafeRallyPointFromRamp(BuildOrderResultArgData data)
 {
 	for (const auto& building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
-		float dist = Distance2D(mediator->GetLocations().main_ramp_forcefield, building->pos);
-		Point2D pos = Utility::PointBetween(mediator->GetLocations().main_ramp_forcefield, building->pos, dist + 2);
+		float dist = Distance2D(mediator->GetLocations().main_ramp_forcefield_top, building->pos);
+		Point2D pos = Utility::PointBetween(mediator->GetLocations().main_ramp_forcefield_top, building->pos, dist + 2);
 		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos, 0);
 	}
 	return true;
@@ -768,7 +768,7 @@ bool BuildOrderManager::SetRallyPointToRamp(BuildOrderResultArgData data)
 {
 	for (const auto& building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
-		Point2D pos = Utility::PointBetween(building->pos, mediator->GetLocations().main_ramp_forcefield, 2);
+		Point2D pos = Utility::PointBetween(building->pos, mediator->GetLocations().main_ramp_forcefield_top, 2);
 		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos, 0);
 	}
 	return true;
@@ -996,7 +996,7 @@ bool BuildOrderManager::BuildNaturalDefensiveBuilding(BuildOrderResultArgData da
 
 bool BuildOrderManager::BuildMainDefensiveBuilding(BuildOrderResultArgData data)
 {
-	Point2D pos = mediator->FindBuildLocationNearWithinNexusRange(data.unitId, mediator->GetFirstPylonLocation());
+	Point2D pos = mediator->FindBuildLocationNearWithinNexusRange(data.unitId, mediator->GetNaturalLocation());
 	const Unit* builder = mediator->GetBuilder(pos);
 	if (builder == nullptr)
 	{
@@ -1303,8 +1303,14 @@ bool BuildOrderManager::WallOffRamp(BuildOrderResultArgData data)
 
 bool BuildOrderManager::DefendMainRamp(BuildOrderResultArgData data)
 {
-	mediator->CreateArmyGroup(ArmyRole::defend_main_ramp, {ADEPT, STALKER, SENTRY}, 10, 20);
+	ArmyGroup* army = mediator->CreateArmyGroup(ArmyRole::defend_main_ramp, {ADEPT, STALKER, SENTRY}, 10, 20);
+	if(mediator->GetEnemyRace() == Race::Terran)
+		army->target_pos = mediator->GetLocations().main_ramp_forcefield_mid;
+
 	mediator->MarkArmyGroupForDeletion(mediator->GetArmyGroupDefendingBase(mediator->GetStartLocation()));
+	ArmyGroup* natural_army_group = mediator->GetArmyGroupDefendingBase(mediator->GetNaturalLocation());
+	if (natural_army_group)
+		mediator->MarkArmyGroupForDeletion(natural_army_group);
 	return true;
 }
 
@@ -1318,6 +1324,22 @@ bool BuildOrderManager::SackUnit(BuildOrderResultArgData data)
 			mediator->RemoveWorker(furthest_from_base);
 		mediator->SetUnitCommand(furthest_from_base, ABILITY_ID::MOVE_MOVE, mediator->GetEnemyStartLocation(), 10);
 	}
+	return true;
+}
+
+bool BuildOrderManager::CancelBuilding(BuildOrderResultArgData data)
+{
+	for (const auto& building : mediator->GetUnits(Unit::Alliance::Self, IsUnit(data.unitId)))
+	{
+		if (building->build_progress < 1)
+			mediator->SetUnitCommand(building, ABILITY_ID::CANCEL, 0);
+	}
+	return true;
+}
+
+bool BuildOrderManager::StopTempUnitProduction(BuildOrderResultArgData data)
+{
+	mediator->SetAllowProductionInterrupt(false);
 	return true;
 }
 
@@ -1530,57 +1552,25 @@ void BuildOrderManager::SetMinorProxyRaxResponse()
 void BuildOrderManager::SetMajorProxyRaxResponse()
 {
 	build_order = { Data(&BuildOrderManager::NumWorkers,			Condition(19),				&BuildOrderManager::CutWorkers,							Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(101.0f),			&BuildOrderManager::StopTempUnitProduction,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(101.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(101.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::TimePassed,			Condition(101.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(STALKER, 1)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(122.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,			Condition(122.0f),			&BuildOrderManager::AddToNaturalDefense,				Result(5)),
-					Data(&BuildOrderManager::TimePassed,			Condition(133.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(134.0f),			&BuildOrderManager::UncutWorkers,						Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(152.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
-					Data(&BuildOrderManager::NumWorkers,			Condition(22),				&BuildOrderManager::CutWorkers,							Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(165.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(170.0f),			&BuildOrderManager::ResearchWarpgate,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(179.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(187.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(192.0f),			&BuildOrderManager::UncutWorkers,						Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(208.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::CancelImmediatelySaturateGasses,	Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::ImmediatelySemiSaturateGasses,		Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(217.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(235.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(240.0f),			&BuildOrderManager::BuildBuilding,						Result(TWILIGHT)),
-					//Data(&BuildOrderManager::TimePassed,			Condition(248.0f),			&BuildOrderManager::TrainStalker,						Result(STALKER, 1)),
-					Data(&BuildOrderManager::TimePassed,			Condition(250.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::BuildBuilding,						Result(ROBO)),
-					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(125.0f),			&BuildOrderManager::DefendMainRamp,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(133.0f),			&BuildOrderManager::TrainUnit,							Result(SENTRY, 1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(152.0f),			&BuildOrderManager::TrainUnit,							Result(SENTRY, 1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(157.0f),			&BuildOrderManager::CancelBuilding,						Result(NEXUS)),
+					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),			&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(165.0f),			&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::ResearchWarpgate,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(276.0f),			&BuildOrderManager::ResearchBlink,						Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(276.0f),			&BuildOrderManager::ChronoTillFinished,					Result(TWILIGHT)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::TrainObserver,						Result()),
-					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
-					Data(&BuildOrderManager::HasUnits,				Condition(OBSERVER, 1),		&BuildOrderManager::TrainPrism,							Result()),
-					Data(&BuildOrderManager::HasUnits,				Condition(OBSERVER, 1),		&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
-					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
-					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::AddToNaturalDefense,				Result(-4)),
-					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::StartFourGateBlinkPressure,			Result()),
-
-					//Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({FORGE, FORGE})),
-					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::ResearchCharge,						Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::ContinueUpgrades,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::ContinueChronos,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(390.0f),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
-					Data(&BuildOrderManager::TimePassed,			Condition(410.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
-					Data(&BuildOrderManager::TimePassed,			Condition(460.0f),			&BuildOrderManager::ZealotDoubleprong,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(480.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 	};
 }
 

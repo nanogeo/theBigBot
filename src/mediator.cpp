@@ -1532,6 +1532,11 @@ float Mediator::GetWorstOngoingAttackValue()
 	return min;
 }
 
+void Mediator::SetAllowProductionInterrupt(bool value)
+{
+	defense_manager.run_defense_manager = value;
+}
+
 void Mediator::PlaceWorker(const Unit* worker)
 {
 	worker_manager.PlaceWorker(worker);
