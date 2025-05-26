@@ -124,18 +124,27 @@ public:
 	{
 		if (Observation()->GetGameLoop() == 100)
 		{
-			Debug()->DebugCreateUnit(SPAWNING_POOL, Observation()->GetStartLocation() + Point2D(8, 0), 2, 1);
-			Debug()->DebugCreateUnit(EXTRACTOR, Observation()->GetStartLocation() + Point2D(-8, 0), 2, 1);
+			Debug()->DebugCreateUnit(SPAWNING_POOL, Observation()->GetStartLocation() + Point2D(8, 0), 1, 1);
+			Debug()->DebugCreateUnit(EXTRACTOR, Observation()->GetStartLocation() + Point2D(-8, 0), 1, 1);
 			Debug()->SendDebug();
 		}
 
 		if (Observation()->GetGameLoop() >= 4700 && Observation()->GetGameLoop() % 700 == 500)
 		{
-			Debug()->DebugCreateUnit(ZERGLING, Observation()->GetStartLocation(), 2, 20);
+			Debug()->DebugCreateUnit(ZERGLING, Observation()->GetStartLocation(), 1, 15);
 			Debug()->DebugGiveAllUpgrades();
 			Debug()->SendDebug();
 		}
 		Actions()->UnitCommand(Observation()->GetUnits(IsUnit(ZERGLING)), ABILITY_ID::ATTACK, Observation()->GetGameInfo().enemy_start_locations[0]);
+
+		/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Self))
+		{
+			if (unit->orders.size() == 0)
+			{
+				Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, Point2D(70.5, 117.5));
+				Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, Observation()->GetGameInfo().enemy_start_locations[0], true);
+			}
+		}*/
 		for (const auto& unit : Observation()->GetUnits(IsUnit(MARAUDER)))
 		{
 			if (attacks.find(unit) == attacks.end())
@@ -175,9 +184,9 @@ public:
 	}
 };
 
-class ZealotRushBot : public sc2::Agent {
+class CannonRushBot : public sc2::Agent {
 public:
-	ZealotRushBot() : Agent() {};
+	CannonRushBot() : Agent() {};
 	const Unit* probe = nullptr;
 
 
@@ -191,8 +200,9 @@ public:
 
 	virtual void OnStep()
 	{
+
 		// abyssal reef
-		
+
 		Point2D cpylon = Point2D(42, 121);
 		Point2D cforge = Point2D(42.5, 118.5);
 		Point2D cpylon2 = Point2D(158, 35);
@@ -207,12 +217,6 @@ public:
 
 		if (probe == nullptr && Observation()->GetUnits(IsUnit(PROBE)).size() > 0)
 			probe = Observation()->GetUnits(IsUnit(PROBE))[0];
-
-		/*if (Observation()->GetUnits(IsUnit(NEXUS)).size() > 0 &&
-			Observation()->GetUnits(IsUnit(NEXUS))[0]->orders.size() == 0 &&
-			Observation()->GetUnits(IsUnit(PROBE)).size() < 13)
-			Actions()->UnitCommand(Observation()->GetUnits(IsUnit(NEXUS))[0], ABILITY_ID::TRAIN_PROBE);*/
-
 
 		if (Observation()->GetUnits(IsUnit(FORGE)).size() == 0 && Observation()->GetUnits(IsUnit(PYLON)).size() == 1)
 		{
@@ -246,7 +250,34 @@ public:
 			else
 				Actions()->UnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos);
 		}
+	}
 
+};
+
+class ZealotRushBot : public sc2::Agent {
+public:
+	ZealotRushBot() : Agent() {};
+	const Unit* probe = nullptr;
+
+
+	virtual void OnGameStart()
+	{
+		//Debug()->DebugGiveAllUpgrades();
+		//Debug()->DebugFastBuild();
+		//Debug()->DebugGiveAllResources();
+		Debug()->SendDebug();
+	}
+
+	virtual void OnStep()
+	{
+		if (Observation()->GetUnits(IsUnit(NEXUS)).size() > 0 &&
+			Observation()->GetUnits(IsUnit(NEXUS))[0]->orders.size() == 0 &&
+			Observation()->GetUnits(IsUnit(PROBE)).size() < 13)
+			Actions()->UnitCommand(Observation()->GetUnits(IsUnit(NEXUS))[0], ABILITY_ID::TRAIN_PROBE);
+
+
+
+		// abyssal reef
 		Point2D rally = Point2D(56, 118);
 		Point2D pylon = Point2D(77, 99);
 		Point2D pylon2 = pylon + Point2D(2, 3);
@@ -366,6 +397,143 @@ public:
 						break;
 					}
 				}
+			}
+		}
+	}
+};
+
+
+class Proxy4RaxBot : public sc2::Agent {
+public:
+	Proxy4RaxBot() : Agent() {};
+	Units scvs;
+
+
+	virtual void OnGameStart()
+	{
+		//Debug()->DebugGiveAllUpgrades();
+		//Debug()->DebugFastBuild();
+		//Debug()->DebugGiveAllResources();
+		Debug()->SendDebug();
+	}
+
+	virtual void OnStep()
+	{
+		// abyssal reef
+
+
+		Point2D rally = Point2D(70, 118);
+		Point2D rally2 = Point2D(38.5, 122);
+		Point2D raxmid = Point2D(77, 99);
+		Point2D depot1 = Point2D(155, 20);
+		Point2D depot2 = Point2D(74, 96);
+		std::vector<Point2D> rax = { raxmid + Point2D(3.5, 0.5), raxmid + Point2D(-1.5, 2.5), raxmid + Point2D(-3.5, -0.5), raxmid + Point2D(1.5, -2.5) };
+		Point2D swap = Point2D(200, 144);
+		if (Observation()->GetStartLocation().x == 38.5 && Observation()->GetStartLocation().y == 122.5)
+		{
+			// acropolis
+			rally = swap - rally;
+			rally2 = swap - rally2;
+			depot1 = swap - depot1;
+			depot2 = swap - depot2;
+			for (int i = 0; i < 4; i++)
+			{
+				rax[i] = swap - rax[i];
+			}
+
+		}
+
+
+		if (scvs.size() == 0 && Observation()->GetUnits(IsUnit(SCV)).size() > 0)
+		{
+			for (const auto& scv : Observation()->GetUnits(IsUnit(SCV)))
+			{
+				scvs.push_back(scv);
+				if (scvs.size() == 5)
+					break;
+			}
+		}
+
+		if (Observation()->GetGameLoop() < 10 &&
+			Observation()->GetUnits(IsUnit(COMMAND_CENTER))[0]->orders.size() == 0)
+			Actions()->UnitCommand(Observation()->GetUnits(IsUnit(COMMAND_CENTER))[0], ABILITY_ID::TRAIN_SCV);
+
+		if (Observation()->GetUnits(IsUnit(SUPPLY_DEPOT)).size() == 0 && Observation()->GetGameLoop() > 250)
+		{
+			if (Distance2D(scvs[0]->pos, depot1) > 1)
+				Actions()->UnitCommand(scvs[0], ABILITY_ID::MOVE_MOVE, depot1);
+			else
+				Actions()->UnitCommand(scvs[0], ABILITY_ID::BUILD_SUPPLYDEPOT, depot1);
+		}
+		else if (Observation()->GetUnits(IsUnit(SUPPLY_DEPOT)).size() == 1 && Observation()->GetGameLoop() > 250)
+		{
+			if (scvs[0] && scvs[0]->orders.size() == 0)
+			{
+				Actions()->UnitCommand(scvs[0], ABILITY_ID::SMART, Utility::ClosestTo(Observation()->GetUnits(IsUnits(MINERAL_PATCH)), scvs[0]->pos));
+			}
+		}
+		
+		if (Observation()->GetGameLoop() > 100 && Observation()->GetUnits(IsUnit(BARRACKS)).size() < 1)
+		{
+			Point2D pos = rax[0];
+
+			if (Distance2D(scvs[1]->pos, pos) > 1)
+				Actions()->UnitCommand(scvs[1], ABILITY_ID::MOVE_MOVE, pos);
+			else
+				Actions()->UnitCommand(scvs[1], ABILITY_ID::BUILD_BARRACKS, pos);
+		}
+		else if (Observation()->GetGameLoop() > 1600 && Observation()->GetUnits(IsUnit(BARRACKS)).size() < 4)
+		{
+			Point2D pos = rax[3];
+
+			if (Distance2D(scvs[1]->pos, pos) > 1)
+				Actions()->UnitCommand(scvs[1], ABILITY_ID::MOVE_MOVE, pos);
+			else
+				Actions()->UnitCommand(scvs[1], ABILITY_ID::BUILD_BARRACKS, pos);
+		}
+
+		if (Observation()->GetGameLoop() > 300 && Observation()->GetUnits(IsUnit(BARRACKS)).size() < 2)
+		{
+			Point2D pos = rax[1];
+
+			if (Distance2D(scvs[2]->pos, pos) > 1)
+				Actions()->UnitCommand(scvs[2], ABILITY_ID::MOVE_MOVE, pos);
+			else
+				Actions()->UnitCommand(scvs[2], ABILITY_ID::BUILD_BARRACKS, pos);
+		}
+		else if (Observation()->GetGameLoop() > 1900 && Observation()->GetUnits(IsUnit(SUPPLY_DEPOT)).size() < 2)
+		{
+			if (Distance2D(scvs[2]->pos, depot2) > 1)
+				Actions()->UnitCommand(scvs[2], ABILITY_ID::MOVE_MOVE, depot2);
+			else
+				Actions()->UnitCommand(scvs[2], ABILITY_ID::BUILD_SUPPLYDEPOT, depot2);
+		}
+
+		if (Observation()->GetGameLoop() > 560 && Observation()->GetUnits(IsUnit(BARRACKS)).size() < 3)
+		{
+			Point2D pos = rax[2];
+
+			if (Distance2D(scvs[3]->pos, pos) > 1)
+				Actions()->UnitCommand(scvs[3], ABILITY_ID::MOVE_MOVE, pos);
+			else
+				Actions()->UnitCommand(scvs[3], ABILITY_ID::BUILD_BARRACKS, pos);
+		}
+
+
+		if (Observation()->GetGameLoop() % 5 == 0)
+			return;
+
+		for (const auto& gate : Observation()->GetUnits(IsUnit(BARRACKS)))
+		{
+			if (gate->build_progress == 1 && gate->orders.size() == 0)
+				Actions()->UnitCommand(gate, ABILITY_ID::TRAIN_MARINE);
+		}
+		for (const auto& marine : Observation()->GetUnits(IsUnit(MARINE)))
+		{
+			if (marine->orders.size() == 0)
+			{
+				Actions()->UnitCommand(marine, ABILITY_ID::ATTACK, rally);
+				Actions()->UnitCommand(marine, ABILITY_ID::ATTACK, rally2, true);
 			}
 		}
 	}

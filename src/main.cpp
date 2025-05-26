@@ -167,7 +167,10 @@ int main(int argc, char* argv[])
     coordinator.SetMultithreaded(true);
     // Add the custom bot, it will control the players.
     sc2::TheBigBot bot1;
-	sc2::BlankBot bot2;
+	sc2::ZealotRushBot bot2;
+    //sc2::CannonRushBot bot2;
+    //sc2::BlankBot bot2;
+    //sc2::Proxy4RaxBot bot2;
 	
 	if (!true)
 	{
