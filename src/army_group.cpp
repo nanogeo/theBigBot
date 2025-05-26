@@ -1574,23 +1574,9 @@ namespace sc2 {
 			if (unit->weapon_cooldown == 0)
 				mediator->AddUnitToAttackers(unit);
 		}
-		
-		// battery overcharge to heal buildings/units
-		Units batteries = mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(BATTERY));
-		Units nexi = mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS));
-		if (mediator->IsBatteryOverchargeOffCooldown() && batteries.size() > 0 && nexi.size() > 0)
-		{
-			for (const auto& building : mediator->GetUnits(Unit::Alliance::Self, IsBuilding()))
-			{
-				if (building->health / building->health_max < .75 && building->shield < 1)
-				{
-					mediator->SetUnitCommand(Utility::ClosestTo(nexi, building->pos), ABILITY_ID::BATTERYOVERCHARGE, Utility::ClosestTo(batteries, building->pos), 1);
-					break;
-				}
-			}
-		}
+
 		bool overcharge_active = false;
-		for (const auto& battery : batteries)
+		for (const auto& battery : mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(BATTERY)))
 		{
 			for (const auto& buff : battery->buffs)
 			{
@@ -1600,36 +1586,6 @@ namespace sc2 {
 					break;
 				}
 			}
-			//if (overcharge_active == false)
-			//	continue;
-
-			Units close_units = mediator->GetUnits(Unit::Alliance::Self);
-			for (auto itr = close_units.begin(); itr != close_units.end();)
-			{
-				if ((*itr)->build_progress < 1|| 
-					Distance2D((*itr)->pos, battery->pos) > Utility::RealRange(battery, (*itr)) ||
-					((*itr)->shield == (*itr)->shield_max && overcharge_active) ||
-					(((*itr)->shield > 10 || (*itr)->health > 50) && overcharge_active == false))
-				{
-					itr = close_units.erase(itr);
-				}
-				else
-				{
-					itr++;
-				}
-			}
-			if (close_units.size() > 0)
-			{
-				// sort from least to most health
-				std::sort(close_units.begin(), close_units.end(), [](const Unit*& a, const Unit*& b) -> bool
-				{
-					return a->health + a->shield < b->health + b->shield;
-				});
-				mediator->SetUnitCommand(battery, ABILITY_ID::SMART, close_units[0], 1);
-				mediator->DebugSphere(close_units[0]->pos, 2, Color(255, 0, 0));
-			}
-
-			break;
 		}
 
 		// forcefield if necessary

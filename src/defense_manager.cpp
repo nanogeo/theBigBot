@@ -138,13 +138,6 @@ void DefenseManager::UpdateOngoingAttacks()
 				
 			}*/
 
-			// BATTERY_OVERCHARGE
-			if (mediator->IsBatteryOverchargeOffCooldown() && 
-				attack.status <= -50 && 
-				Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(BATTERY)), attack.location) < RANGE_BATTERY_OVERCHARGE) // TODO check this range 
-			{
-				UseBatteryOvercharge(attack.location);
-			}
 
 			// increase desired defenders
 			ArmyGroup* defense_group = mediator->GetArmyGroupDefendingBase(attack.location);
@@ -415,33 +408,70 @@ float DefenseManager::JudgeFight(Units friendly_units, Units enemy_units, float 
 	return total_dps; // simulated fight tied or took too long
 }
 
-void DefenseManager::UseBatteryOvercharge(Point2D location)  // BATTERY_OVERCHARGE
+void DefenseManager::UseBatteries()
 {
-	if (mediator->IsBatteryOverchargeOffCooldown() == false)
-		return;
-
-	Units fighting_units = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self));
+	// battery overcharge to heal buildings/units
+	// BATTERY_OVERCHARGE
 	Units batteries = mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(BATTERY));
-	const Unit* nexus = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(NEXUS)), location);
-
-	if (nexus == nullptr || Distance2D(nexus->pos, location) > 5) // arbitrary distance
-		return;
-
-	for (int i = (int)batteries.size() - 1; i >= 0; i--)
+	Units nexi = mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS));
+	if (mediator->IsBatteryOverchargeOffCooldown() && batteries.size() > 0 && nexi.size() > 0)
 	{
-		if (Distance2D(batteries[i]->pos, nexus->pos) > RANGE_BATTERY_OVERCHARGE)
-			batteries.erase(batteries.begin() + i);
+		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Self))
+		{
+			const Unit* closest = Utility::ClosestTo(batteries, unit->pos);
+			if (unit->build_progress < 1 || Distance2D(closest->pos, unit->pos) > Utility::RealRange(closest, unit))
+				continue;
+			if ((unit->is_building && unit->health / unit->health_max < .25 && unit->shield < 1) || 
+				(unit->health / unit->health_max < .5 && unit->shield < 1))
+			{
+				mediator->SetUnitCommand(Utility::ClosestTo(nexi, unit->pos), ABILITY_ID::BATTERYOVERCHARGE, Utility::ClosestTo(batteries, unit->pos), 1);
+				break;
+			}
+		}
+	}
+	bool overcharge_active = false;
+	for (const auto& battery : batteries)
+	{
+		for (const auto& buff : battery->buffs)
+		{
+			if (buff == BUFF_ID::BATTERYOVERCHARGE)
+			{
+				overcharge_active = true;
+				break;
+			}
+		}
+		//if (overcharge_active == false)
+		//	continue;
+
+		Units close_units = mediator->GetUnits(Unit::Alliance::Self);
+		for (auto itr = close_units.begin(); itr != close_units.end();)
+		{
+			if ((*itr)->build_progress < 1 ||
+				Distance2D((*itr)->pos, battery->pos) > Utility::RealRange(battery, (*itr)) ||
+				((*itr)->shield == (*itr)->shield_max && overcharge_active) ||
+				(((*itr)->shield > 10 || (*itr)->health > 50) && overcharge_active == false))
+			{
+				itr = close_units.erase(itr);
+			}
+			else
+			{
+				itr++;
+			}
+		}
+		if (close_units.size() > 0)
+		{
+			// sort from least to most health
+			std::sort(close_units.begin(), close_units.end(), [](const Unit*& a, const Unit*& b) -> bool
+			{
+				return a->health + a->shield < b->health + b->shield;
+			});
+			mediator->SetUnitCommand(battery, ABILITY_ID::SMART, close_units[0], 1);
+			mediator->DebugSphere(close_units[0]->pos, 2, Color(255, 0, 0));
+		}
+
+		break;
 	}
 
-	if (batteries.size() == 0)
-		return;
-
-	std::sort(batteries.begin(), batteries.end(), [fighting_units](const Unit*& a, const Unit*& b) -> bool
-	{
-		return Utility::GetUnitsWithin(fighting_units, a->pos, 6).size() > Utility::GetUnitsWithin(fighting_units, b->pos, 6).size();
-	});
-
-	mediator->SetUnitCommand(nexus, ABILITY_ID::BATTERYOVERCHARGE, batteries[0], 0);
 }
 
 void DefenseManager::RemoveOngoingAttackAt(Point2D location)

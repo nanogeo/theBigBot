@@ -71,6 +71,7 @@ void Mediator::RunManagers()
 	scouting_manager.UpdateInfo();
 
 	defense_manager.CheckForAttacks();
+	defense_manager.UseBatteries();
 
 	if (agent->Observation()->GetGameLoop() % 20 == 0)
 		defense_manager.UpdateOngoingAttacks();

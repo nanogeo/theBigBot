@@ -48,7 +48,7 @@ public:
 	void UpdateOngoingAttacks();
 	float JudgeFight(Units, Units, float, float, bool);
 
-	void UseBatteryOvercharge(Point2D);  // BATTERY_OVERCHARGE
+	void UseBatteries();
 	void RemoveOngoingAttackAt(Point2D);
 };
 
