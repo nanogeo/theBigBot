@@ -963,7 +963,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		mediator->SendChat("Tag:scout_2_base_roach", ChatChannel::Team);
 		return true;
 	}
-	else if (mediator->GetFirstGasTiming() == 0)
+	else if (mediator->GetCurrentTime() >= 90 && mediator->GetFirstGasTiming() == 0)
 	{
 		// gasless
 		SetChargeAllInInterrupt();
@@ -1636,7 +1636,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(48.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(48.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(68.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, CYBERCORE})),
-					Data(&BuildOrderManager::TimePassed,			Condition(75.0f),			&BuildOrderManager::CheckForEarlyPool,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::CheckForEarlyPool,					Result()),
 
 					Data(&BuildOrderManager::TimePassed,			Condition(95.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(102.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
