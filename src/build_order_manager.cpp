@@ -1085,7 +1085,7 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 			missing_scvs--;
 	}
 
-	if (mediator->GetFirstBarrackTiming() == 0)
+	if (mediator->GetFirstBarrackTiming() == 0 || Utility::DistanceToClosest(mediator->GetUnits(IsUnit(BARRACKS)), mediator->GetEnemyStartLocation()) > 25)
 	{
 		// proxy rax
 		switch (mediator->scouting_manager.enemy_unit_counts[REFINERY])
