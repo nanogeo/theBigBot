@@ -95,6 +95,8 @@ void UnitProductionManager::RunUnitProduction()
 			{
 				if (warpgate_status[warpgate].frame_ready == 0)
 				{
+					if (spots.size() == 0)
+						break;
 					TryActionResult result = mediator->TryWarpIn(warpgate, warpgate_production, spots.back());
 					while (result == TryActionResult::invalid_position && spots.size() > 1)
 					{
