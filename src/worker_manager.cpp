@@ -136,7 +136,7 @@ const Unit* WorkerManager::GetWorker()
 			}
 		}
 	}
-	std::cerr << "Error no available worker found in GetWorker";
+	std::cerr << "Error no available worker found in GetWorker" << std::endl;
 	mediator->LogMinorError();
 	return nullptr;
 }
@@ -169,7 +169,7 @@ const Unit* WorkerManager::GetBuilder(Point2D position)
 		else
 			return c;
 	}
-	std::cerr << "Error no available worker found in GetBuilder";
+	std::cerr << "Error no available worker found in GetBuilder" << std::endl;
 	mediator->LogMinorError();
 	return nullptr;
 }
