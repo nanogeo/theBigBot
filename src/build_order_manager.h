@@ -222,6 +222,7 @@ public:
 
 	void SetEarlyPoolInterrupt();
 	void SetChargeAllInInterrupt();
+	void SetChargeAllInInterruptTerran();
 	void SetChargeTransition();
 	void SetMinorProxyRaxResponse();
 	void SetMajorProxyRaxResponse();

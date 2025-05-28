@@ -981,7 +981,9 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 			}
 		}
 	}
-	return true;
+	build_order_step = 0; 
+	SetChargeAllInInterruptTerran();
+	return false;
 }
 
 bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
@@ -1312,6 +1314,32 @@ void BuildOrderManager::SetChargeAllInInterrupt()
 					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),			&BuildOrderManager::ChronoTillFinished,				Result(TWILIGHT)),
 					Data(&BuildOrderManager::NumWorkers,			Condition(32),					&BuildOrderManager::CutWorkers,						Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(189.0f),				&BuildOrderManager::BuildBuildingMulti,				Result({GATEWAY, GATEWAY, GATEWAY, GATEWAY, GATEWAY, GATEWAY})),
+					Data(&BuildOrderManager::HasNumBuildingStarted,	Condition(GATEWAY, 8),			&BuildOrderManager::TrainUnit,						Result(PRISM)),
+					Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::OptionalChronoBuilding,			Result(ROBO)),
+					//Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::IncreaseExtraPylons,			Result(1)),
+					Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::ContinueBuildingPylons,			Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(225.0f),				&BuildOrderManager::WarpInUnits,					Result(ZEALOT, 2)),
+					Data(&BuildOrderManager::TimePassed,			Condition(245.0f),				&BuildOrderManager::WarpInUnits,					Result(ZEALOT, 2)),
+					Data(&BuildOrderManager::TimePassed,			Condition(245.0f),				&BuildOrderManager::StartChargelotAllIn,			Result()),
+	};
+}
+
+void BuildOrderManager::SetChargeAllInInterruptTerran()
+{
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(100.0f),				&BuildOrderManager::ImmediatelySaturateGasses,		Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(100.0f),				&BuildOrderManager::BuildBuilding,					Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),			&BuildOrderManager::TrainUnit,						Result(ADEPT)),
+					Data(&BuildOrderManager::TimePassed,			Condition(128.0f),				&BuildOrderManager::BuildBuilding,					Result(TWILIGHT)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(TWILIGHT),			&BuildOrderManager::ResearchWarpgate,				Result()),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(TWILIGHT),			&BuildOrderManager::ChronoBuilding,					Result(CYBERCORE)),
+					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),				&BuildOrderManager::BuildBuilding,					Result(ROBO)),
+					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),				&BuildOrderManager::BuildBuilding,					Result(GATEWAY)),
+					Data(&BuildOrderManager::HasGas,				Condition(100),					&BuildOrderManager::PullOutOfGas,					Result(6)),
+					Data(&BuildOrderManager::TimePassed,			Condition(172.0f),				&BuildOrderManager::BuildBuilding,					Result(PYLON)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),			&BuildOrderManager::ResearchCharge,					Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),			&BuildOrderManager::ChronoTillFinished,				Result(TWILIGHT)),
+					Data(&BuildOrderManager::TimePassed,			Condition(189.0f),				&BuildOrderManager::BuildBuildingMulti,				Result({GATEWAY, GATEWAY, GATEWAY, GATEWAY, GATEWAY, GATEWAY})),
+					Data(&BuildOrderManager::NumWorkers,			Condition(32),					&BuildOrderManager::CutWorkers,						Result()),
 					Data(&BuildOrderManager::HasNumBuildingStarted,	Condition(GATEWAY, 8),			&BuildOrderManager::TrainUnit,						Result(PRISM)),
 					Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::OptionalChronoBuilding,			Result(ROBO)),
 					//Data(&BuildOrderManager::TimePassed,			Condition(220.0f),				&BuildOrderManager::IncreaseExtraPylons,			Result(1)),
