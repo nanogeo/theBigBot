@@ -1,4 +1,5 @@
 
+#include "definitions.h"
 #include "oracle_harass_state_machine.h"
 #include "theBigBot.h"
 
@@ -448,7 +449,7 @@ void OracleDefendArmyGroup::TickState()
 		center = state_machine->attached_army_group->attack_path_line.GetPointFrom(median_center, 2, false);
 	}
 
-	Units enemy_units = mediator->GetUnits(IsUnits(Utility::GetBurrowedUnitTypes()));
+	Units enemy_units = mediator->GetUnits(IsUnits(BURROWED_UNIT_TYPES));
 
 	bool revelation_cast = false;
 	for (const auto &oracle : state_machine->oracles)

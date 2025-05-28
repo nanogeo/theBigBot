@@ -2210,7 +2210,7 @@ namespace sc2 {
 			center = attack_path_line.GetPointFrom(median_center, 3, false);
 		}
 
-		Units enemy_burrowed_units = mediator->GetUnits(IsUnits(Utility::GetBurrowedUnitTypes()));
+		Units enemy_burrowed_units = mediator->GetUnits(IsUnits(BURROWED_UNIT_TYPES));
 
 		bool revelation_cast = false;
 		for (const auto& oracle : oracles)

@@ -162,7 +162,6 @@ public:
 	static bool CanAffordAfter(UNIT_TYPEID, UnitCost, const ObservationInterface*);
 	static bool CanAffordUpgrade(UPGRADE_ID, const ObservationInterface*);
 	static int MaxCanAfford(UNIT_TYPEID, const ObservationInterface*);
-	static std::vector<UNIT_TYPEID> GetBurrowedUnitTypes();
 	static std::vector<double> GetRealQuarticRoots(double, double, double, double, double);
 	static bool IsBiological(UNIT_TYPEID);
 	static bool IsMechanical(UNIT_TYPEID);
