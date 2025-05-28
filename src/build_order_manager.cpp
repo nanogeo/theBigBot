@@ -932,6 +932,11 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 		}
 		else
 		{
+			build_order_step = 0;
+			SetChargeAllInInterruptTerran();
+			mediator->SendChat("Tag:scout_no_proxy", ChatChannel::Team);
+			return false;
+
 			switch (mediator->scouting_manager.enemy_unit_counts[REFINERY])
 			{
 			case 0:
