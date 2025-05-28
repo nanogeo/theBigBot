@@ -64,6 +64,7 @@ void Mediator::SetUpManagers(bool debug)
 
 void Mediator::RunManagers()
 {
+	resource_manager.UpdateResources();
 	ability_manager.UpdateStalkerInfo();
 	ability_manager.UpdateOracleInfo();
 	fire_control_manager.UpdateInfo();
@@ -163,6 +164,16 @@ bool Mediator::IsBuildable(Point2D pos)
 	return agent->Observation()->IsPlacable(pos);
 }
 
+bool Mediator::OnSameLevel(Point2D pos1, Point2D pos2)
+{
+	float z1 = ToPoint3D(pos1).z;
+	float z2 = ToPoint3D(pos2).z;
+
+	if (z1 + .1 > z2 && z1 - .1 < z2)
+		return true;
+	return false;
+}
+
 bool Mediator::HasBuildingCompleted(UNIT_TYPEID buildingId)
 {
 	for (const auto& building : agent->Observation()->GetUnits(IsFriendlyUnit(buildingId)))
@@ -214,22 +225,32 @@ int Mediator::GetNumUnits(UNIT_TYPEID unitId)
 
 bool Mediator::CanAfford(UNIT_TYPEID unitId, int amount)
 {
-	return Utility::CanAfford(unitId, amount, agent->Observation());
-}
-
-bool Mediator::CanAffordAfter(UNIT_TYPEID unitId, UnitCost cost)
-{
-	return Utility::CanAffordAfter(unitId, cost, agent->Observation());
+	return resource_manager.CanAfford(unitId, amount);
 }
 
 int Mediator::MaxCanAfford(UNIT_TYPEID unitId)
 {
-	return Utility::MaxCanAfford(unitId, agent->Observation());
+	return resource_manager.MaxCanAfford(unitId);
 }
 
 bool Mediator::CanAffordUpgrade(UPGRADE_ID upgrade_id)
 {
-	return Utility::CanAffordUpgrade(upgrade_id, agent->Observation());
+	return resource_manager.CanAfford(upgrade_id);
+}
+
+bool Mediator::SpendResources(UNIT_TYPEID unit_type, const Unit* unit)
+{
+	return resource_manager.SpendResources(unit_type, unit);
+}
+
+bool Mediator::SpendResources(UNIT_TYPEID unit_type, Point2D position)
+{
+	return resource_manager.SpendResources(unit_type, position);
+}
+
+bool Mediator::SpendResources(UPGRADE_ID upgrade, const Unit* unit)
+{
+	return resource_manager.SpendResources(upgrade, unit);
 }
 
 bool Mediator::CheckUpgrade(UPGRADE_ID upgrade_id)
@@ -275,6 +296,85 @@ bool Mediator::CanBuildBuilding(UNIT_TYPEID unit_type)
 	}
 }
 
+bool Mediator::HasTechForBuilding(UNIT_TYPEID unit_type)
+{
+	switch (unit_type)
+	{
+	case FLEET_BEACON:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(STARGATE)).size() > 0;
+		return false;
+	case ROBO_BAY:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(ROBO)).size() > 0;
+		return false;
+	case TEMPLAR_ARCHIVE:
+	case DARK_SHRINE:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(TWILIGHT)).size() > 0;
+		return false;
+	case STARGATE:
+	case ROBO:
+	case TWILIGHT:
+	case BATTERY:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(CYBERCORE)).size() > 0;
+	case CYBERCORE:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(GATEWAY)).size() > 0;
+	case GATEWAY:
+	case FORGE:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(PYLON)).size() > 0;
+	case PYLON:
+	case ASSIMILATOR:
+	case NEXUS:
+		return true;
+	default:
+		std::cerr << "Error, unknown unit type in HasTechForBuilding " << UnitTypeToName(unit_type) << std::endl;
+		LogMinorError();
+		return false;
+	}
+}
+
+bool Mediator::HasTechForUnit(UNIT_TYPEID unit_type)
+{
+	switch (unit_type)
+	{
+	case MOTHERSHIP:
+		if (GetUnits(Unit::Alliance::Self, IsFinishedUnit(NEXUS)).size() == 0)
+			return false;
+	case TEMPEST:
+	case CARRIER:
+		if (GetUnits(Unit::Alliance::Self, IsFinishedUnit(FLEET_BEACON)).size() == 0)
+			return false;
+	case ORACLE:
+	case VOID_RAY:
+	case PHOENIX:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(STARGATE)).size() > 0;
+	case DISRUPTOR:
+	case COLOSSUS:
+		if (GetUnits(Unit::Alliance::Self, IsFinishedUnit(ROBO_BAY)).size() == 0)
+			return false;
+	case PRISM:
+	case OBSERVER:
+	case IMMORTAL:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(ROBO)).size() > 0;
+	case HIGH_TEMPLAR:
+	case DARK_TEMPLAR:
+		if ((unit_type == HIGH_TEMPLAR && GetUnits(Unit::Alliance::Self, IsFinishedUnit(TEMPLAR_ARCHIVE)).size() == 0) ||
+			(unit_type == DARK_TEMPLAR && GetUnits(Unit::Alliance::Self, IsFinishedUnit(DARK_SHRINE)).size() == 0))
+			return false;
+	case SENTRY:
+	case ADEPT:
+	case STALKER:
+		if (GetUnits(Unit::Alliance::Self, IsFinishedUnit(CYBERCORE)).size() == 0)
+			return false;
+	case ZEALOT:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(GATEWAY)).size() + GetUnits(Unit::Alliance::Self, IsFinishedUnit(WARP_GATE)).size() > 0;
+	case PROBE:
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(NEXUS)).size() > 0;
+	default:
+		std::cerr << "Error, unknown unit type in HasTechForUnit " << UnitTypeToName(unit_type) << std::endl;
+		LogMinorError();
+		return false;
+	}
+}
+
 bool Mediator::CanTrainUnit(UNIT_TYPEID unit_type)
 {
 	if (CanAfford(unit_type, 1) == false)
@@ -312,7 +412,7 @@ bool Mediator::CanTrainUnit(UNIT_TYPEID unit_type)
 		if (GetUnits(Unit::Alliance::Self, IsFinishedUnit(CYBERCORE)).size() == 0)
 			return false;
 	case ZEALOT:
-		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(GATEWAY)).size() > 0;
+		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(GATEWAY)).size() + GetUnits(Unit::Alliance::Self, IsFinishedUnit(WARP_GATE)).size() > 0;
 	case PROBE:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(NEXUS)).size() > 0;
 	default:
@@ -399,7 +499,9 @@ std::vector<std::vector<UNIT_TYPEID>> Mediator::GetPrio()
 
 UnitCost Mediator::GetCurrentResources()
 {
-	return UnitCost(agent->Observation()->GetMinerals(), agent->Observation()->GetVespene(), 0);
+	return UnitCost(agent->Observation()->GetMinerals(), 
+		agent->Observation()->GetVespene(), 
+		agent->Observation()->GetFoodCap() - agent->Observation()->GetFoodUsed());
 }
 
 void Mediator::CancelBuilding(const Unit* building)
@@ -1046,7 +1148,6 @@ Point2D Mediator::FindBuildLocationNear(UNIT_TYPEID unit_type, Point2D location)
 
 Point2D Mediator::FindBuildLocationNearWithinNexusRange(UNIT_TYPEID unit_type, Point2D location)
 {
-
 	std::vector<Point2D> spots;
 	Units nexi = GetUnits(Unit::Alliance::Self, IsUnit(NEXUS));
 	Units pylons = GetUnits(Unit::Alliance::Self, IsFinishedUnit(UNIT_TYPEID::PROTOSS_PYLON));
@@ -1057,6 +1158,7 @@ Point2D Mediator::FindBuildLocationNearWithinNexusRange(UNIT_TYPEID unit_type, P
 	});
 
 	Point2D door_guard_pos = agent->locations->natural_door_closed;
+
 	std::vector<Point2D> possible_locations;
 	for (const auto& pylon : pylons)
 	{
@@ -1674,6 +1776,63 @@ std::vector<Point2D> Mediator::FindWarpInSpots(Point2D pos)
 	return unit_production_manager.FindWarpInSpots(pos);
 }
 
+bool Mediator::TestWarpInSpot(Point2D position)
+{
+	if (IsPathable(position) == false)
+		return false;
+
+	bool in_pylon_power = false;
+	for (const auto& pylon : GetUnits(Unit::Alliance::Self, IsFinishedUnit(PYLON)))
+	{
+		if (Distance2D(pylon->pos, position) < 6.5 && 
+			(ToPoint3D(position).z <= pylon->pos.z || OnSameLevel(position, pylon->pos)))
+		{
+			in_pylon_power = true;
+			break;
+		}
+	}
+	if (!in_pylon_power)
+		return false;
+
+	for (const auto& avoid_spot : GetBadWarpInSpots())
+	{
+		if (Distance2D(position, avoid_spot) < 3)
+		{
+			return false;
+		}
+	}
+
+	for (const auto& building : GetUnits(Unit::Alliance::Self, IsBuilding()))
+	{
+		if (building->unit_type == PYLON || building->unit_type == CANNON || building->unit_type == BATTERY)
+		{
+			if (building->pos.x - 1.5 <= position.x && building->pos.x + 1.5 >= position.x && building->pos.y - 1.5 <= position.y && building->pos.y + 1.5 >= position.y)
+			{
+				return false;
+			}
+		}
+		else if (building->unit_type == NEXUS)
+		{
+			if (building->pos.x - 2.5 <= position.x && building->pos.x + 2.5 >= position.x && building->pos.y - 2.5 <= position.y && building->pos.y + 2.5 >= position.y)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if (building->pos.x - 2 <= position.x && building->pos.x + 2 >= position.x && building->pos.y - 2 <= position.y && building->pos.y + 2 >= position.y)
+			{
+				return false;
+			}
+		}
+	}
+
+	if (Utility::AnyUnitWithin(GetUnits(Unit::Alliance::Self), position, 1.5) || Utility::AnyUnitWithin(GetUnits(Unit::Alliance::Neutral), position, 1.5))
+		return false;
+
+	return true;
+}
+
 ArmyGroup* Mediator::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)
 {
 	return army_manager.CreateArmyGroup(role, unit_types, desired_units, max_units);
@@ -1915,6 +2074,114 @@ void Mediator::CancelAttack(const Unit* unit)
 bool Mediator::GetAttackStatus(const Unit* unit)
 {
 	return fire_control_manager.GetAttackStatus(unit);
+}
+
+TryActionResult Mediator::TryBuildBuilding(const Unit* probe, UNIT_TYPEID building_type, Point2D position)
+{
+	if (Distance2D(probe->pos, position) > Utility::BuildingSize(building_type))
+		return TryActionResult::probe_not_in_range;
+
+	if (HasTechForBuilding(building_type) == false)
+		return TryActionResult::low_tech;
+
+	if (building_type == ASSIMILATOR)
+	{
+		const Unit* closest_geyser = Utility::ClosestTo(GetUnits(IsUnits(VESPENE_GEYSER_TYPES)), position);
+		if (closest_geyser == nullptr || Distance2D(closest_geyser->pos, position) > 1)
+		{
+			return TryActionResult::invalid_position;
+		}
+
+		if (resource_manager.SpendResources(building_type, position) == false)
+			return TryActionResult::cannot_afford;
+
+		SetUnitCommand(probe, Utility::GetBuildAbility(building_type), closest_geyser, 10);
+		return TryActionResult::success;
+	}
+	else
+	{
+		bool in_energy_field = (building_type == PYLON || building_type == NEXUS);
+		for (const auto& pylon : agent->Observation()->GetUnits(IsFinishedUnit(PYLON)))
+		{
+			if (Distance2D(pylon->pos, position) < 6.5)
+			{
+				in_energy_field = true;
+			}
+			if (in_energy_field)
+				break;
+		}
+
+		bool blocked = !agent->Query()->Placement(Utility::GetBuildAbility(building_type), position); // TODO check cost and frequency called
+
+		if (in_energy_field == false || blocked)
+			return TryActionResult::invalid_position;
+
+		if (resource_manager.SpendResources(building_type, position) == false)
+			return TryActionResult::cannot_afford;
+
+		SetUnitCommand(probe, Utility::GetBuildAbility(building_type), position, 10);
+		return TryActionResult::success;
+	}
+}
+
+TryActionResult Mediator::TryTrainUnit(const Unit* producer, UNIT_TYPEID unit_type)
+{
+	if (producer->orders.size() > 0)
+		return TryActionResult::busy;
+
+	if (producer->is_powered == false && producer->unit_type != NEXUS)
+		return TryActionResult::unpowered;
+
+	if (HasTechForUnit(unit_type) == false)
+		return TryActionResult::low_tech;
+
+	if (resource_manager.SpendResources(unit_type, producer) == false)
+		return TryActionResult::cannot_afford;
+
+	SetUnitCommand(producer, Utility::GetTrainAbility(unit_type), 10);
+	return TryActionResult::success;
+}
+
+TryActionResult Mediator::TryTrainProbe(const Unit* nexus)
+{
+	if (nexus->orders.size() > 0 && nexus->orders[0].progress <= .95)
+		return TryActionResult::busy;
+
+	if (resource_manager.SpendResources(PROBE, nexus) == false)
+		return TryActionResult::cannot_afford;
+
+	agent->Actions()->UnitCommand(nexus, ABILITY_ID::TRAIN_PROBE);
+	return TryActionResult::success;
+}
+
+TryActionResult Mediator::TryWarpIn(const Unit* warpgate, UNIT_TYPEID unit_type, Point2D position)
+{
+	if (warpgate->is_powered == false)
+		return TryActionResult::unpowered;
+
+	if (HasTechForUnit(unit_type) == false)
+		return TryActionResult::low_tech;
+
+	if (TestWarpInSpot(position) == false)
+		return TryActionResult::invalid_position;
+
+	if (resource_manager.SpendResources(unit_type, position) == false)
+		return TryActionResult::cannot_afford;
+
+	SetUnitCommand(warpgate, Utility::GetWarpAbility(unit_type), position, 10);
+	return TryActionResult::success;
+}
+
+TryActionResult Mediator::TryResearchUpgrade(const Unit* upgrader, UPGRADE_ID upgrade_id)
+{
+	if (upgrader->orders.size() > 0)
+		return TryActionResult::busy;
+
+	if (resource_manager.SpendResources(upgrade_id, upgrader) == false)
+		return TryActionResult::cannot_afford;
+
+	SetUnitCommand(upgrader, Utility::GetUpgradeAbility(upgrade_id), 10);
+	return TryActionResult::success;
 }
 
 // TODO make these boolean if the command is invalid

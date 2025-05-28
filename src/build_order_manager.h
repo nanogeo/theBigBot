@@ -126,14 +126,6 @@ public:
 	bool CancelImmediatelySemiSaturateGasses(BuildOrderResultArgData);
 	bool BalanceIncome(BuildOrderResultArgData);
 	bool TrainUnit(BuildOrderResultArgData);
-	bool TrainStalker(BuildOrderResultArgData);
-	bool TrainAdept(BuildOrderResultArgData);
-	bool TrainZealot(BuildOrderResultArgData);
-	bool TrainSentry(BuildOrderResultArgData);
-	bool TrainOracle(BuildOrderResultArgData);
-	bool TrainPrism(BuildOrderResultArgData);
-	bool TrainImmortal(BuildOrderResultArgData);
-	bool TrainObserver(BuildOrderResultArgData);
 	bool ChronoBuilding(BuildOrderResultArgData);
 	bool OptionalChronoBuilding(BuildOrderResultArgData);
 	bool ResearchWarpgate(BuildOrderResultArgData);
@@ -159,9 +151,6 @@ public:
 	bool MicroOracles(BuildOrderResultArgData);
 	bool SpawnUnits(BuildOrderResultArgData);
 	bool ResearchAttackOne(BuildOrderResultArgData);
-	bool ResearchAttackTwo(BuildOrderResultArgData);
-	bool ResearchShieldsOne(BuildOrderResultArgData);
-	bool ResearchAirAttackOne(BuildOrderResultArgData);
 	bool WarpInUnits(BuildOrderResultArgData);
 	bool PullOutOfGas(BuildOrderResultArgData);
 	bool IncreaseExtraPylons(BuildOrderResultArgData);
@@ -390,58 +379,6 @@ struct BuildOrderData
 			if (result_arg.amount > 1)
 				str += 's';
 		}
-		else if (result == &BuildOrderManager::TrainStalker)
-		{
-			str += "build ";
-			str += std::to_string(result_arg.amount);
-			str += " stalker";
-			if (result_arg.amount > 1)
-				str += 's';
-		}
-		else if (result == &BuildOrderManager::TrainAdept)
-		{
-			str += "build ";
-			str += std::to_string(result_arg.amount);
-			str += " adept";
-			if (result_arg.amount > 1)
-				str += 's';
-		}
-		else if (result == &BuildOrderManager::TrainZealot)
-		{
-			str += "build ";
-			str += std::to_string(result_arg.amount);
-			str += " zealot";
-			if (result_arg.amount > 1)
-				str += 's';
-		}
-		else if (result == &BuildOrderManager::TrainSentry)
-		{
-			str += "build ";
-			str += std::to_string(result_arg.amount);
-			str += " sentry";
-			if (result_arg.amount > 1)
-				str += 's';
-		}
-		else if (result == &BuildOrderManager::TrainAdept)
-		{
-			str += "build ";
-			str += std::to_string(result_arg.amount);
-			str += " adept";
-			if (result_arg.amount > 1)
-				str += 's';
-		}
-		else if (result == &BuildOrderManager::TrainOracle)
-		{
-			str += "build an oracle";
-		}
-		else if (result == &BuildOrderManager::TrainPrism)
-		{
-			str += "build a warp prism";
-		}
-		else if (result == &BuildOrderManager::TrainImmortal)
-		{
-			str += "build an immortal";
-		}
 		else if (result == &BuildOrderManager::ChronoBuilding)
 		{
 			str += "chrono ";
@@ -548,18 +485,6 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::ResearchAttackOne)
 		{
 			str += "research +1 attack";
-		}
-		else if (result == &BuildOrderManager::ResearchAttackTwo)
-		{
-		str += "research +2 attack";
-		}
-		else if (result == &BuildOrderManager::ResearchShieldsOne)
-		{
-		str += "research +1 shields";
-		}
-		else if (result == &BuildOrderManager::ResearchAirAttackOne)
-		{
-		str += "research +1 air weapons";
 		}
 		else if (result == &BuildOrderManager::WarpInUnits)
 		{

@@ -61,12 +61,8 @@ void UnitProductionManager::RunUnitProduction()
 		{
 			if (stargate->orders.size() == 0)
 			{
-				if (mediator->CanAffordAfter(stargate_production, resources_used_this_frame))
-				{
-					resources_used_this_frame += Utility::GetCost(stargate_production);
-					mediator->SetUnitCommand(stargate, Utility::GetTrainAbility(stargate_production), 0);
-				}
-				else
+				TryActionResult result = mediator->TryTrainUnit(stargate, stargate_production);
+				if (result == TryActionResult::cannot_afford || result == TryActionResult::low_tech)
 				{
 					break;
 				}
@@ -81,12 +77,8 @@ void UnitProductionManager::RunUnitProduction()
 		{
 			if (robo->orders.size() == 0)
 			{
-				if (mediator->CanAffordAfter(robo_production, resources_used_this_frame))
-				{
-					resources_used_this_frame += Utility::GetCost(robo_production);
-					mediator->SetUnitCommand(robo, Utility::GetTrainAbility(robo_production), 0);
-				}
-				else
+				TryActionResult result = mediator->TryTrainUnit(robo, robo_production);
+				if (result == TryActionResult::cannot_afford || result == TryActionResult::low_tech)
 				{
 					break;
 				}
@@ -103,14 +95,19 @@ void UnitProductionManager::RunUnitProduction()
 			{
 				if (warpgate_status[warpgate].frame_ready == 0)
 				{
-					if (mediator->CanAffordAfter(warpgate_production, resources_used_this_frame) && spots.size() > 0)
+					TryActionResult result = mediator->TryWarpIn(warpgate, warpgate_production, spots.back());
+					while (result == TryActionResult::invalid_position && spots.size() > 1)
 					{
-						mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(warpgate_production), spots.back(), 0);
+						spots.pop_back();
+						result = mediator->TryWarpIn(warpgate, warpgate_production, spots.back());
+					}
+					if (result == TryActionResult::success)
+					{
 						warpgate_status[warpgate].used = true;
 						warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(warpgate_production) * FRAME_TIME);
 						spots.pop_back();
 					}
-					else
+					else if (result == TryActionResult::invalid_position || result == TryActionResult::low_tech || result == TryActionResult::cannot_afford)
 					{
 						break;
 					}
@@ -127,12 +124,8 @@ void UnitProductionManager::RunUnitProduction()
 			{
 				if (gateway->orders.size() == 0)
 				{
-					if (mediator->CanAffordAfter(warpgate_production, resources_used_this_frame))
-					{
-						resources_used_this_frame += Utility::GetCost(warpgate_production);
-						mediator->SetUnitCommand(gateway, Utility::GetTrainAbility(warpgate_production), 0);
-					}
-					else
+					TryActionResult result = mediator->TryTrainUnit(gateway, warpgate_production);
+					if (result == TryActionResult::cannot_afford || result == TryActionResult::low_tech)
 					{
 						break;
 					}
@@ -363,9 +356,8 @@ void UnitProductionManager::WarpInUnit(UNIT_TYPEID unit_type, Point2D pos)
 	{
 		for (const auto& warpgate : warpgates)
 		{
-			if (warpgate_status[warpgate].frame_ready == 0)
+			if (warpgate_status[warpgate].frame_ready == 0 && mediator->TryWarpIn(warpgate, unit_type, pos) == TryActionResult::success)
 			{
-				mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(unit_type), pos, 0);
 				warpgate_status[warpgate].used = true;
 				warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(unit_type) * FRAME_TIME);
 				return;
@@ -383,9 +375,8 @@ bool UnitProductionManager::WarpInUnits(UNIT_TYPEID unit_type, int num, Point2D 
 	int spot_num = 0;
 	for (const auto& warpgate : warpgates)
 	{
-		if (warpgate_status[warpgate].frame_ready == 0)
+		if (warpgate_status[warpgate].frame_ready == 0 && mediator->TryWarpIn(warpgate, unit_type, pos) == TryActionResult::success)
 		{
-			mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(unit_type), spots[spot_num], 0);
 			warpgate_status[warpgate].used = true;
 			warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(unit_type) * FRAME_TIME);
 			spot_num++;
@@ -405,9 +396,8 @@ bool UnitProductionManager::WarpInUnitsAt(UNIT_TYPEID unit_type, int num, Point2
 	int spot_num = 0;
 	for (const auto& warpgate : warpgates)
 	{
-		if (warpgate_status[warpgate].frame_ready == 0)
+		if (warpgate_status[warpgate].frame_ready == 0 && mediator->TryWarpIn(warpgate, unit_type, pos) == TryActionResult::success)
 		{
-			mediator->SetUnitCommand(warpgate, Utility::GetWarpAbility(unit_type), spots[spot_num], 0);
 			warpgate_status[warpgate].used = true;
 			warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(unit_type) * FRAME_TIME);
 			spot_num++;

@@ -1035,7 +1035,7 @@ void WorkerManager::BuildWorkers()
 {
 	if (should_build_workers)
 	{
-		for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+		for (const auto &nexus : mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
 		{
 			if (nexus->orders.size() > 0)
 			{
@@ -1043,7 +1043,7 @@ void WorkerManager::BuildWorkers()
 				{
 					if (nexus->orders.size() == 1)
 					{
-						mediator->agent->Actions()->UnitCommand(nexus, ABILITY_ID::TRAIN_PROBE);
+						mediator->TryTrainProbe(nexus);
 					}
 					else if (nexus->orders.size() > 2)
 					{
@@ -1060,7 +1060,7 @@ void WorkerManager::BuildWorkers()
 			}
 			else if (nexus->orders.size() == 0)
 			{
-				mediator->agent->Actions()->UnitCommand(nexus, ABILITY_ID::TRAIN_PROBE);
+				mediator->TryTrainProbe(nexus);
 			}
 		}
 	}

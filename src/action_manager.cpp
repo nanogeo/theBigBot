@@ -50,17 +50,12 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 			return true;
 		}
 	}
-	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && mediator->CanBuildBuilding(buildingId))
+	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId))
 	{
-		if (buildingId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
+		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
-			std::vector<UNIT_TYPEID> gas_types = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
-			const Unit *gas = Utility::ClosestTo(mediator->GetUnits(IsUnits(gas_types)), pos);
-			mediator->SetUnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas, 0);
-		}
-		else
-		{
-			mediator->SetUnitCommand(builder, Utility::GetBuildAbility(buildingId), pos, 0);
+			std::cerr << "Failed to build building " << std::endl;
+			//mediator->LogMinorError();
 		}
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
@@ -123,17 +118,12 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 			return true;
 		}
 	}
-	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && mediator->CanBuildBuilding(buildingId))
+	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId))
 	{
-		if (buildingId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
+		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
-			std::vector<UNIT_TYPEID> gas_types = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
-			const Unit *gas = Utility::ClosestTo(mediator->GetUnits(IsUnits(gas_types)), pos);
-			mediator->SetUnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas, 0);
-		}
-		else
-		{
-			mediator->SetUnitCommand(builder, Utility::GetBuildAbility(buildingId), pos, 0);
+			std::cerr << "Failed to build building " << std::endl;
+			//mediator->LogMinorError();
 		}
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
@@ -177,17 +167,12 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data) // TODO add avoid
 			return true;
 		}
 	}
-	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId) + 1 && mediator->CanBuildBuilding(buildingId))
+	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId))
 	{
-		if (buildingId == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
+		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
-			std::vector<UNIT_TYPEID> gas_types = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
-			const Unit *gas = Utility::ClosestTo(mediator->GetUnits(IsUnits(gas_types)), pos);
-			mediator->SetUnitCommand(builder, ABILITY_ID::BUILD_ASSIMILATOR, gas, 0);
-		}
-		else
-		{
-			mediator->SetUnitCommand(builder, Utility::GetBuildAbility(buildingId), pos, 0);
+			std::cerr << "Failed to build building " << std::endl;
+			//mediator->LogMinorError();
 		}
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
@@ -621,12 +606,12 @@ bool ActionManager::ActionTrainFromProxyRobo(ActionArgData* data)
 
 	if (robo->build_progress == 1 && robo->orders.size() == 0)
 	{
-		if (num_prisms == 0 && mediator->CanAfford(UNIT_TYPEID::PROTOSS_WARPPRISM, 1))
-			mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_WARPPRISM, 0);
-		else if (num_obs == 0 && mediator->CanAfford(UNIT_TYPEID::PROTOSS_OBSERVER, 1))
-			mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_OBSERVER, 0);
-		else if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1))
-			mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL, 0);
+		if (num_prisms == 0 && mediator->TryTrainUnit(robo, PRISM) == TryActionResult::success)
+			return false;
+		else if (num_obs == 0 && mediator->TryTrainUnit(robo, OBSERVER) == TryActionResult::success)
+			return false;
+		else if (mediator->TryTrainUnit(robo, IMMORTAL) == TryActionResult::success)
+			return false;
 	}
 	return false;
 }
@@ -827,13 +812,12 @@ bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 		{
 			if (data->unitIds.size() == 0)
 			{
-				if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_IMMORTAL, 1))
-					mediator->SetUnitCommand(robo, ABILITY_ID::TRAIN_IMMORTAL, 0);
+				mediator->TryTrainUnit(robo, IMMORTAL);
 			}
 			else if (mediator->CanAfford(data->unitIds[0], 1))
 			{
-				mediator->SetUnitCommand(robo, Utility::GetTrainAbility(data->unitIds[0]), 0);
-				data->unitIds.erase(data->unitIds.begin());
+				if (mediator->TryTrainUnit(robo, data->unitIds[0]) == TryActionResult::success)
+					data->unitIds.erase(data->unitIds.begin());
 			}
 		}
 		else if (robo->orders[0].ability_id == ABILITY_ID::TRAIN_IMMORTAL)

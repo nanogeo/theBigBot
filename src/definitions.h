@@ -251,6 +251,8 @@ const std::vector<UNIT_TYPEID> ALL_ARMY_UNITS = { ZEALOT, ADEPT, STALKER, SENTRY
 												IMMORTAL, PRISM, PRISM_SIEGED, OBSERVER, OBSERVER_SIEGED, COLOSSUS, DISRUPTOR, 
 												PHOENIX, VOID_RAY, ORACLE, CARRIER, TEMPEST, MOTHERSHIP };
 
+const std::vector<UNIT_TYPEID> VESPENE_GEYSER_TYPES = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
+
 
 const std::vector<UNIT_TYPEID> MINERAL_PATCH = {	UNIT_TYPEID::NEUTRAL_BATTLESTATIONMINERALFIELD, 
 													UNIT_TYPEID::NEUTRAL_BATTLESTATIONMINERALFIELD750, 
@@ -400,6 +402,12 @@ struct UnitCost
 		vespene_cost += other.vespene_cost;
 		supply += other.supply;
 	}
+	void operator-=(const UnitCost& other)
+	{
+		mineral_cost -= other.mineral_cost;
+		vespene_cost -= other.vespene_cost;
+		supply -= other.supply;
+	}
 	UnitCost operator*(const int num) const
 	{
 		return UnitCost(mineral_cost * num, vespene_cost * num, supply * num);
@@ -420,6 +428,17 @@ struct EnemyUnitPosition
 		this->pos = pos;
 		frames = 0;
 	}
+};
+
+enum class TryActionResult
+{
+	success,
+	probe_not_in_range,
+	invalid_position,
+	low_tech,
+	cannot_afford,
+	unpowered,
+	busy
 };
 
 }

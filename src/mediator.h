@@ -14,6 +14,7 @@
 #include "ability_manager.h"
 #include "fire_control_manager.h"
 #include "transition_manager.h"
+#include "resource_manager.h"
 
 #include "definitions.h"
 
@@ -37,7 +38,8 @@ public:
 		defense_manager(this),
 		ability_manager(this),
 		fire_control_manager(this),
-		transition_manager(this)
+		transition_manager(this),
+		resource_manager(this)
 	{
 		this->agent = agent;
 	}
@@ -57,6 +59,7 @@ public:
 	AbilityManager ability_manager;
 	FireControlManager fire_control_manager;
 	TransitionManager transition_manager;
+	ResourceManager resource_manager;
 
 	bool minor_error_logged = false;
 
@@ -74,6 +77,7 @@ public:
 	ImageData GetPathingGrid();
 	bool IsPathable(Point2D);
 	bool IsBuildable(Point2D);
+	bool OnSameLevel(Point2D, Point2D);
 	bool HasBuildingCompleted(UNIT_TYPEID);
 	bool HasBuildingUnderConstruction(UNIT_TYPEID);
 	bool HasBuildingStarted(UNIT_TYPEID);
@@ -81,11 +85,15 @@ public:
 	bool HasResources(int, int, int);
 	int GetNumUnits(UNIT_TYPEID);
 	bool CanAfford(UNIT_TYPEID, int);
-	bool CanAffordAfter(UNIT_TYPEID, UnitCost);
 	int MaxCanAfford(UNIT_TYPEID);
 	bool CanAffordUpgrade(UPGRADE_ID);
+	bool SpendResources(UNIT_TYPEID, const Unit*);
+	bool SpendResources(UNIT_TYPEID, Point2D);
+	bool SpendResources(UPGRADE_ID, const Unit*);
 	bool CheckUpgrade(UPGRADE_ID);
 	bool CanBuildBuilding(UNIT_TYPEID);
+	bool HasTechForBuilding(UNIT_TYPEID);
+	bool HasTechForUnit(UNIT_TYPEID);
 	bool CanTrainUnit(UNIT_TYPEID);
 	bool IsUnitOccupied(const Unit*);
 	int GetUpgradeLevel(UpgradeType);
@@ -207,6 +215,7 @@ public:
 	bool WarpInUnits(UNIT_TYPEID, int, Point2D);
 	bool WarpInUnitsAt(UNIT_TYPEID, int, Point2D);
 	std::vector<Point2D> FindWarpInSpots(Point2D);
+	bool TestWarpInSpot(Point2D);
 
 	ArmyGroup* CreateArmyGroup(ArmyRole, std::vector<UNIT_TYPEID>, int, int);
 	ArmyGroup* GetArmyGroupDefendingBase(Point2D);
@@ -259,6 +268,11 @@ public:
 	void CancelAttack(const Unit*);
 	bool GetAttackStatus(const Unit*);
 
+	TryActionResult TryBuildBuilding(const Unit*, UNIT_TYPEID, Point2D);
+	TryActionResult TryTrainUnit(const Unit*, UNIT_TYPEID);
+	TryActionResult TryTrainProbe(const Unit*);
+	TryActionResult TryWarpIn(const Unit*, UNIT_TYPEID, Point2D);
+	TryActionResult TryResearchUpgrade(const Unit*, UPGRADE_ID);
 	void SetUnitCommand(const Unit* unit, AbilityID ability, int prio, bool queued_command = false);
 	void SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, int prio, bool queued_command = false);
 	void SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, int prio, bool queued_command = false);

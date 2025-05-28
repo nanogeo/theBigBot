@@ -85,33 +85,7 @@ std::string BlinkStalkerAttackTerranMoveAcross::toString()
 
 void BlinkStalkerAttackTerranWarpIn::TickState()
 {
-	/*for (const auto& stalker : state_machine->stalkers)
-	{
-		mediator->SetUnitCommand(stalker, ABILITY_ID::ATTACK, state_machine->consolidation_pos, 0);
-	}
-	if (state_machine->warping_in == false && state_machine->prism->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)
-	{
-		// try to warp in
-		Units gates = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
-		if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_STALKER, gates.size(), agent->Observation()))
-		{
-			std::vector<Point2D> spots = mediator->FindWarpInSpots(agent->Observation()->GetGameInfo().enemy_start_locations[0], gates.size());
-			//std::cout << "spots " << spots.size() << "\n";
-			if (spots.size() >= gates.size())
-			{
-				for (int i = 0; i < gates.size(); i++)
-				{
-					//std::cout << "warp in at " << spots[i].x << ", " << spots[i].y << "\n";
-					mediator->SetUnitCommand(gates[i], ABILITY_ID::TRAINWARP_STALKER, spots[i], 0);
-					agent->warpgate_status[gates[i]].used = true;
-					agent->warpgate_status[gates[i]].frame_ready = agent->Observation()->GetGameLoop() + round(23 * FRAME_TIME);
-				}
-
-				state_machine->warping_in = true;
-				state_machine->warp_in_time = mediator->GetGameLoop();
-			}
-		}
-	}*/
+	// removed
 }
 
 void BlinkStalkerAttackTerranWarpIn::EnterState()

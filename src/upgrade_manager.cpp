@@ -162,7 +162,7 @@ bool UpgradeManager::CheckUpgrade(UPGRADE_ID upgrade_id)
 		return air_armor > 2;
 		break;
 	default:
-		std::cerr << "Unknown upgrade found in OnUpgradeCompleted" << std::endl;
+		std::cerr << "Unknown upgrade found in CheckUpgrade" << std::endl;
 		mediator->LogMinorError();
 		return false;
 		break;

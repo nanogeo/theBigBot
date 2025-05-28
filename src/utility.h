@@ -153,9 +153,11 @@ public:
 	static ABILITY_ID GetBuildAbility(UNIT_TYPEID);
 	static ABILITY_ID GetTrainAbility(UNIT_TYPEID);
 	static ABILITY_ID GetWarpAbility(UNIT_TYPEID);
+	static ABILITY_ID GetUpgradeAbility(UPGRADE_ID);
 	static int GetWarpCooldown(UNIT_TYPEID);
 	static int BuildingsReady(UNIT_TYPEID, const ObservationInterface*);
 	static UnitCost GetCost(UNIT_TYPEID);
+	static UnitCost GetCost(UPGRADE_ID);
 	static bool CanAfford(UNIT_TYPEID, int, const ObservationInterface*);
 	static bool CanAffordAfter(UNIT_TYPEID, UnitCost, const ObservationInterface*);
 	static bool CanAffordUpgrade(UPGRADE_ID, const ObservationInterface*);

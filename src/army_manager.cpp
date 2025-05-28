@@ -50,6 +50,12 @@ void ArmyManager::CreateTerranArmyTemplates()
 	bool(sc2::ArmyManager:: * condition)() = &ArmyManager::EnemyHasExposedBase;
 	ArmyTemplate base_denial = ArmyTemplate(base_denial_req, 10, ArmyRole::deny_outer_base, 2, 4, condition);
 	army_templates.push_back(base_denial);
+
+
+	std::map<UNIT_TYPEID, int> observer_req;
+	observer_req[OBSERVER] = 1;
+	ArmyTemplate observer_scout = ArmyTemplate(observer_req, 1, ArmyRole::observer_scout, 1, 2);
+	army_templates.push_back(observer_scout);
 }
 
 void ArmyManager::CreateZergArmyTemplates()
