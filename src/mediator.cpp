@@ -1791,6 +1791,14 @@ bool Mediator::TestWarpInSpot(Point2D position)
 			break;
 		}
 	}
+	for (const auto& prism : GetUnits(Unit::Alliance::Self, IsUnit(PRISM_SIEGED)))
+	{
+		if (Distance2D(prism->pos, position) < 3.75)
+		{
+			in_pylon_power = true;
+			break;
+		}
+	}
 	if (!in_pylon_power)
 		return false;
 
@@ -1827,7 +1835,9 @@ bool Mediator::TestWarpInSpot(Point2D position)
 		}
 	}
 
-	if (Utility::AnyUnitWithin(GetUnits(Unit::Alliance::Self), position, 1.5) || Utility::AnyUnitWithin(GetUnits(Unit::Alliance::Neutral), position, 1.5))
+	if (Utility::AnyUnitWithin(GetUnits(Unit::Alliance::Self, IsNotFlyingUnit()), position, 1.5) || 
+		Utility::AnyUnitWithin(GetUnits(Unit::Alliance::Neutral), position, 1.5) ||
+		Utility::AnyUnitWithin(GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), position, 1.5))
 		return false;
 
 	return true;

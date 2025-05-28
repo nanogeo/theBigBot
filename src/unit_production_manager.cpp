@@ -374,19 +374,34 @@ bool UnitProductionManager::WarpInUnits(UNIT_TYPEID unit_type, int num, Point2D 
 	if (spots.size() < num || mediator->CanAfford(unit_type, num) == false || NumWarpgatesReady() < num)
 		return false;
 
-	int spot_num = 0;
+	int successful_warpins = 0;
 	for (const auto& warpgate : warpgates)
 	{
-		if (warpgate_status[warpgate].frame_ready == 0 && mediator->TryWarpIn(warpgate, unit_type, pos) == TryActionResult::success)
+		if (warpgate_status[warpgate].frame_ready != 0)
+			continue;
+		if (spots.size() == 0)
+			break;
+		TryActionResult result = mediator->TryWarpIn(warpgate, unit_type, spots.back());
+		while (result == TryActionResult::invalid_position && spots.size() > 1)
+		{
+			spots.pop_back();
+			result = mediator->TryWarpIn(warpgate, unit_type, spots.back());
+		}
+		if (result == TryActionResult::success)
 		{
 			warpgate_status[warpgate].used = true;
 			warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(unit_type) * FRAME_TIME);
-			spot_num++;
+			spots.pop_back();
+			successful_warpins++;
 		}
-		if (spot_num >= num)
+		else if (result == TryActionResult::invalid_position || result == TryActionResult::low_tech || result == TryActionResult::cannot_afford)
+		{
+			break;
+		}
+		if (successful_warpins >= num)
 			return true;
 	}
-	return true;
+	return false;
 }
 
 bool UnitProductionManager::WarpInUnitsAt(UNIT_TYPEID unit_type, int num, Point2D pos)
@@ -395,19 +410,34 @@ bool UnitProductionManager::WarpInUnitsAt(UNIT_TYPEID unit_type, int num, Point2
 	if (spots.size() < num || mediator->CanAfford(unit_type, num) == false || NumWarpgatesReady() < num)
 		return false;
 
-	int spot_num = 0;
+	int successful_warpins = 0;
 	for (const auto& warpgate : warpgates)
 	{
-		if (warpgate_status[warpgate].frame_ready == 0 && mediator->TryWarpIn(warpgate, unit_type, pos) == TryActionResult::success)
+		if (warpgate_status[warpgate].frame_ready != 0)
+			continue;
+		if (spots.size() == 0)
+			break;
+		TryActionResult result = mediator->TryWarpIn(warpgate, unit_type, spots.back());
+		while (result == TryActionResult::invalid_position && spots.size() > 1)
+		{
+			spots.pop_back();
+			result = mediator->TryWarpIn(warpgate, unit_type, spots.back());
+		}
+		if (result == TryActionResult::success)
 		{
 			warpgate_status[warpgate].used = true;
 			warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(unit_type) * FRAME_TIME);
-			spot_num++;
+			spots.pop_back();
+			successful_warpins++;
 		}
-		if (spot_num >= num)
+		else if (result == TryActionResult::invalid_position || result == TryActionResult::low_tech || result == TryActionResult::cannot_afford)
+		{
+			break;
+		}
+		if (successful_warpins >= num)
 			return true;
 	}
-	return true;
+	return false;
 }
 
 }
