@@ -912,7 +912,7 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 				// proxy rax + factory
 				build_order_step = 0;
 				SetMinorProxyRaxResponse();
-				mediator->SendChat("Tag:scout_minro_proxy_rax/factory", ChatChannel::Team);
+				mediator->SendChat("Tag:scout_minor_proxy_rax/factory", ChatChannel::Team);
 				return false;
 			}
 			else
