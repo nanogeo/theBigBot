@@ -110,6 +110,12 @@ bool BuildOrderManager::IsResearching(Condition data)
 
 #pragma warning(push)
 #pragma warning(disable : 4100)
+
+bool BuildOrderManager::HasMinerals(Condition data)
+{
+	return mediator->HasResources(data.amount, 0, 0);
+}
+
 bool BuildOrderManager::HasGas(Condition data)
 {
 	return mediator->HasResources(0, data.amount, 0);
@@ -1002,7 +1008,8 @@ bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 		mediator->SetBalanceIncome(true);
 		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckBaseForCannons, new ActionArgData(0)));
 		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckNaturalForCannons, new ActionArgData(0)));
-		Set2GateProxyRobo();
+		build_order_step = 0;
+		SetCannonRushResponse();
 		return false;
 	}
 	switch (mediator->scouting_manager.enemy_unit_counts[GATEWAY])
@@ -1464,6 +1471,26 @@ void BuildOrderManager::SetProxyGateResponse()
 	};
 }
 
+void BuildOrderManager::SetCannonRushResponse()
+{
+	build_order = { Data(&BuildOrderManager::HasMinerals,			Condition(120),				&BuildOrderManager::BuildBuilding,						Result(CYBERCORE)),
+					Data(&BuildOrderManager::TimePassed,			Condition(75.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::RemoveScoutToProxy,					Result(ROBO, 0)),
+					Data(&BuildOrderManager::HasMinerals,			Condition(110),				&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(STALKER)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(ROBO),			&BuildOrderManager::ResearchWarpgate,					Result()),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(ROBO),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(ROBO),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
+					Data(&BuildOrderManager::HasUnits,				Condition(STALKER, 2),		&BuildOrderManager::SendAllInAttack,					Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::SetUnitProduction,					Result(IMMORTAL)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::OptionalChronoBuilding,				Result(ROBO)),
+					Data(&BuildOrderManager::HasUnits,				Condition(IMMORTAL, 1),		&BuildOrderManager::SetUnitProduction,					Result(PRISM)),
+					Data(&BuildOrderManager::HasUnits,				Condition(IMMORTAL, 1),		&BuildOrderManager::ContinueChronos,					Result()),
+					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::SetUnitProduction,					Result(IMMORTAL)),
+					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::SetWarpInAtProxy,					Result(STALKER)),
+	};
+}
+
 
 // finished
 void BuildOrderManager::SetOracleGatewaymanPvZ()
@@ -1576,7 +1603,7 @@ void BuildOrderManager::SetPvPOpenner()
 					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result(0)),
 					Data(&BuildOrderManager::TimePassed,			Condition(55.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(63.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
-					Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::CheckProtossOpening,				Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::CheckProtossOpening,				Result()),
 	};
 }
 

@@ -108,6 +108,7 @@ public:
 	bool HasBuildingStarted(BuildOrderConditionArgData);
 	bool HasNumBuildingStarted(BuildOrderConditionArgData);
 	bool IsResearching(BuildOrderConditionArgData);
+	bool HasMinerals(BuildOrderConditionArgData);
 	bool HasGas(BuildOrderConditionArgData);
 	bool HasUnits(BuildOrderConditionArgData);
 
@@ -228,6 +229,7 @@ public:
 	void SetMajorProxyRaxResponse();
 	void SetWorkerRushDefense();
 	void SetProxyGateResponse();
+	void SetCannonRushResponse();
 
 };
 
@@ -289,6 +291,12 @@ struct BuildOrderData
 		{
 			str += UnitTypeToName(condition_arg.unitId);
 			str += " is researching, ";
+		}
+		else if (condition == &BuildOrderManager::HasMinerals)
+		{
+			str += "minerals >= ";
+			str += std::to_string(condition_arg.amount);
+			str += ", ";
 		}
 		else if (condition == &BuildOrderManager::HasGas)
 		{
