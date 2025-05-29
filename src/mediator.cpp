@@ -1861,6 +1861,18 @@ ArmyGroup* Mediator::GetArmyGroupDefendingBase(Point2D pos)
 void Mediator::ScourMap()
 {
 	army_manager.ScourMap();
+	SetBalanceIncome(true);
+	if (GetUnits(Unit::Alliance::Self, IsUnit(STARGATE)).size() == 0)
+	{
+		BuildBuilding(STARGATE);
+	}
+	SetUnitProduction(VOID_RAY);
+
+	if (!HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
+		action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
+
+	if (!HasActionOfType(&ActionManager::ActionContinueExpanding))
+		action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueExpanding, new ActionArgData()));
 }
 
 Point2D Mediator::GetStartLocation()
