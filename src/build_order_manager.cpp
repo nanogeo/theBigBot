@@ -929,7 +929,7 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 			break;
 		}
 	}
-	else
+	else if (mediator->GetFirstBarrackTiming() > 50)
 	{
 		if (mediator->scouting_manager.enemy_unit_counts[BARRACKS] > 1)
 		{
@@ -939,8 +939,8 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 		else
 		{
 			build_order_step = 0;
-			SetChargeAllInInterruptTerran();
-			mediator->SendChat("Tag:scout_no_proxy", ChatChannel::Team);
+			SetMinorProxyRaxResponse();
+			mediator->SendChat("Tag:scout_late_rax", ChatChannel::Team);
 			return false;
 
 			switch (mediator->scouting_manager.enemy_unit_counts[REFINERY])
