@@ -1346,6 +1346,7 @@ void BuildOrderManager::SetChargeAllInInterruptTerran()
 					Data(&BuildOrderManager::HasBuildingStarted,	Condition(TWILIGHT),			&BuildOrderManager::ChronoBuilding,					Result(CYBERCORE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),				&BuildOrderManager::BuildBuilding,					Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),				&BuildOrderManager::BuildBuilding,					Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(ROBO),				&BuildOrderManager::NOP,							Result()),
 					Data(&BuildOrderManager::HasGas,				Condition(100),					&BuildOrderManager::PullOutOfGas,					Result(6)),
 					Data(&BuildOrderManager::TimePassed,			Condition(172.0f),				&BuildOrderManager::BuildBuilding,					Result(PYLON)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),			&BuildOrderManager::ResearchCharge,					Result()),
