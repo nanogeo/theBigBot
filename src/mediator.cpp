@@ -1983,6 +1983,12 @@ Race Mediator::GetEnemyRace()
 	return scouting_manager.enemy_race;
 }
 
+std::string Mediator::GetEnemyName()
+{
+	int id = agent->Observation()->GetPlayerID();
+	return agent->Observation()->GetGameInfo().player_info[2 - id].player_name;
+}
+
 Point3D Mediator::ToPoint3D(Point2D point)
 {
 	return agent->ToPoint3D(point);

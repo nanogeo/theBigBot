@@ -242,6 +242,7 @@ public:
 
 	std::string GetMapName();
 	Race GetEnemyRace();
+	std::string GetEnemyName();
 	Point3D ToPoint3D(Point2D);
 
 	Units GetUnits(Unit::Alliance, Filter);
