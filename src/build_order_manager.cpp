@@ -931,65 +931,120 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 	}
 	else if (mediator->GetFirstBarrackTiming() > 50)
 	{
-		if (mediator->scouting_manager.enemy_unit_counts[BARRACKS] > 1)
+		switch (mediator->scouting_manager.enemy_unit_counts[REFINERY])
 		{
-			// multi rax
-			mediator->SendChat("Tag:scout_multi_rax", ChatChannel::Team);
-		}
-		else
-		{
-			build_order_step = 0;
-			SetMinorProxyRaxResponse();
-			mediator->SendChat("Tag:scout_late_rax", ChatChannel::Team);
-			return false;
-
-			switch (mediator->scouting_manager.enemy_unit_counts[REFINERY])
+		case 0:
+			// gasless
+			if (missing_scvs >= 2)
 			{
-			case 0:
-				// gasless
-				if (missing_scvs > 2)
-				{
-					// hidden major proxy rax
-					build_order_step = 0;
-					SetMajorProxyRaxResponse();
-					mediator->SendChat("Tag:scout_hidden_major_proxy_rax_marine", ChatChannel::Team);
-					return false;
-				}
-				else if (missing_scvs > 1)
-				{
-					// hidden proxy rax
-					build_order_step = 0;
-					SetMinorProxyRaxResponse();
-					mediator->SendChat("Tag:scout_hidden_minor_proxy_rax_marine", ChatChannel::Team);
-					return false;
-				}
-				else
-				{
-					// gasless expand with scout
-					mediator->SendChat("Tag:scout_gasless_1_rax_expand", ChatChannel::Team);
-				}
-				break;
-			case 1:
-				// 1 rax expand
-				if (missing_scvs > 1)
-				{
-					// hidden proxy reaper expand
-					build_order_step = 0;
-					SetMinorProxyRaxResponse();
-					mediator->SendChat("Tag:scout_hidden_proxy_reaper", ChatChannel::Team);
-					return false;
-				}
-				else
-				{
-					// 1 rax expand with/out scout
-					mediator->SendChat("Tag:scout_1_rax_expand", ChatChannel::Team);
-				}
-				break;
-			case 2:
-				// double gas
-				mediator->SendChat("Tag:scout_double_gas", ChatChannel::Team);
-				break;
+				// hidden major proxy rax
+				build_order_step = 0;
+				SetMajorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_hidden_major_proxy_rax_marine", ChatChannel::Team);
+				return false;
 			}
+			else if (missing_scvs >= 1)
+			{
+				// hidden proxy rax
+				build_order_step = 0;
+				SetMinorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_hidden_minor_proxy_rax_marine", ChatChannel::Team);
+				return false;
+			}
+			else
+			{
+				// gasless expand with scout
+				mediator->SendChat("Tag:scout_gasless_1_rax_expand", ChatChannel::Team);
+			}
+			break;
+		case 1:
+			// 1 rax expand
+			if (missing_scvs > 1)
+			{
+				// hidden proxy reaper expand
+				build_order_step = 0;
+				SetMajorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_hidden_proxy_reaper", ChatChannel::Team);
+				return false;
+			}
+			else if (mediator->GetEnemyName() == "ANIbot")
+			{
+				build_order_step = 0;
+				SetMajorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_assumed_proxy_marauder", ChatChannel::Team);
+				return false;
+			}
+			else
+			{
+				// 1 rax expand with/out scout
+				mediator->SendChat("Tag:scout_1_rax_expand", ChatChannel::Team);
+			}
+			break;
+		case 2:
+			// double gas
+			mediator->SendChat("Tag:scout_double_gas", ChatChannel::Team);
+			break;
+		}
+	}
+	else if (mediator->GetEnemyName() == "Mulebot")
+	{
+		switch (mediator->scouting_manager.enemy_unit_counts[REFINERY])
+		{
+		case 0:
+			// gasless
+			if (missing_scvs >= 2)
+			{
+				// hidden major proxy rax
+				build_order_step = 0;
+				SetMajorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_hidden_major_proxy_rax_marine", ChatChannel::Team);
+				return false;
+			}
+			else if (missing_scvs == 1)
+			{
+				// hidden proxy rax
+				build_order_step = 0;
+				SetMinorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_hidden_minor_proxy_rax_marine", ChatChannel::Team);
+				return false;
+			}
+			else
+			{
+				// gasless expand with scout
+				mediator->SendChat("Tag:scout_gasless_1_rax_expand", ChatChannel::Team);
+			}
+			break;
+		case 1:
+			// 1 rax expand
+			if (missing_scvs > 1)
+			{
+				// hidden proxy reaper expand
+				build_order_step = 0;
+				SetMajorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_hidden_proxy_reaper", ChatChannel::Team);
+				return false;
+			}
+			else
+			{
+				// 1 rax expand with/out scout
+				mediator->SendChat("Tag:scout_1_rax_expand", ChatChannel::Team);
+			}
+			break;
+		case 2:
+			// double gas
+			if (missing_scvs > 1)
+			{
+				// hidden proxy reaper expand
+				build_order_step = 0;
+				SetMajorProxyRaxResponse();
+				mediator->SendChat("Tag:scout_hidden_proxy_reaper", ChatChannel::Team);
+				return false;
+			}
+			else
+			{
+				mediator->SendChat("Tag:scout_double_gas", ChatChannel::Team);
+			}
+			break;
 		}
 	}
 	build_order_step = 0; 
