@@ -1475,8 +1475,9 @@ void BuildOrderManager::SetProxyGateResponse()
 void BuildOrderManager::SetCannonRushResponse()
 {
 	build_order = { Data(&BuildOrderManager::HasMinerals,			Condition(120),				&BuildOrderManager::BuildBuilding,						Result(CYBERCORE)),
+					Data(&BuildOrderManager::TimePassed,			Condition(72.0f),			&BuildOrderManager::BuildProxyMulti,					Result({PYLON, ROBO})),
 					Data(&BuildOrderManager::TimePassed,			Condition(75.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
-					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::RemoveScoutToProxy,					Result(ROBO, 0)),
+					//Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::RemoveScoutToProxy,					Result(ROBO, 0)),
 					Data(&BuildOrderManager::HasMinerals,			Condition(110),				&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(STALKER)),
 					Data(&BuildOrderManager::HasBuildingStarted,	Condition(ROBO),			&BuildOrderManager::ResearchWarpgate,					Result()),
