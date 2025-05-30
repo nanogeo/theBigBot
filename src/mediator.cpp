@@ -31,6 +31,8 @@ void Mediator::SetUpManagers(bool debug)
 	if (infos.size() > 0)
 	{
 		scouting_manager.SetEnemyRace(infos[2 - id].race_requested);
+		std::cerr << "Enemy id: " << infos[2 - id].player_id << std::endl;
+		std::cerr << "Enemy name: " << infos[2 - id].player_name << std::endl;
 	}
 	if (debug)
 	{
