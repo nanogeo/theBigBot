@@ -335,8 +335,8 @@ struct OrderedPoint2D : Point2D
 	bool operator<(const OrderedPoint2D& rhs) const
 	{
 		if (x == rhs.x)
-			return x < rhs.x;
-		return y < rhs.y;
+			return y < rhs.y;
+		return x < rhs.x;
 	}
 };
 
