@@ -177,12 +177,12 @@ public:
 	// TODO take a Point2D not Point3D
     Locations(Point3D start_location, std::string map_name)
     {
-        if (map_name == "Lightshade LE")
+        if (map_name == "Lightshade LE") // initial testing map
         {
             SetLightshadeLocations(start_location);
 			SetLightshadeLocations2(start_location);
         }
-		else if (map_name == "Abyssal Reef AIE")
+		else if (map_name == "Abyssal Reef AIE") // 2025 season 1 maps
 		{
 			SetAbyssalReefLocations(start_location);
 		}
@@ -206,7 +206,39 @@ public:
 		{
 			SetThunderbirdLocations(start_location);
 		}
-		else if (map_name == "Eternal Empire LE")
+		else if (map_name == "Incorporeal AIE") // 2025 seaon 2 maps
+		{
+			SetIncorporealLocations(start_location);
+		}
+		else if (map_name == "Last Fantasy AIE")
+		{
+			SetLastFantasyLocations(start_location);
+		}
+		else if (map_name == "Ley Lines AIE")
+		{
+			SetLeyLinesLocations(start_location);
+		}
+		else if (map_name == "Magannatha AIE")
+		{
+			SetMagannathaLocations(start_location);
+		}
+		else if (map_name == "Persephone AIE")
+		{
+			SetPersephoneLocations(start_location);
+		}
+		else if (map_name == "Pylon AIE")
+		{
+			SetPylonLocations(start_location);
+		}
+		else if (map_name == "Torches AIE")
+		{
+			SetTorchesLocations(start_location);
+		}
+		else if (map_name == "Ultralove AIE")
+		{
+			SetUltraloveLocations(start_location);
+		}
+		else if (map_name == "Eternal Empire LE") // testing map
 		{
 			SetTestingLocations(start_location);
 		}
@@ -226,6 +258,15 @@ public:
 	void SetEphemeronLocations(Point3D);
 	void SetInterloperLocations(Point3D);
 	void SetThunderbirdLocations(Point3D);
+
+	void SetIncorporealLocations(Point3D);
+	void SetLastFantasyLocations(Point3D);
+	void SetLeyLinesLocations(Point3D);
+	void SetMagannathaLocations(Point3D);
+	void SetPersephoneLocations(Point3D);
+	void SetPylonLocations(Point3D);
+	void SetTorchesLocations(Point3D);
+	void SetUltraloveLocations(Point3D);
 	
 
 };

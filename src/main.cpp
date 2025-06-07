@@ -195,10 +195,11 @@ int main(int argc, char* argv[])
 		coordinator.LaunchStarcraft();
 		coordinator.StartGame("AbyssalReefAIE.SC2Map");
 	}
-	// LightShadeLE, AncientCisternAIE, DragonScalesAIE, GoldenAuraAIE, GresvanAIE, InfestationStationAIE, RoyalBloodAIE
-    // Equilibrium512V2AIE, Goldenaura512V2AIE, HardLead512V2AIE, Oceanborn512V2AIE, SiteDelta512V2AIE, Gresvan512V2AIE
+
     // AbyssalReefAIE, AcropolisAIE, AutomatonAIE, EphemeronAIE, InterloperAIE, ThunderbirdAIE
-	
+    // LeyLinesAIE, MagannathaAIE, PersephoneAIE, PylonAIE, TorchesAIE, UltraloveAIE
+    // later : IncorporealAIE, LastFantasyAIE,
+	// incorporeal, persephone, torches, 
 	// EternalEmpireLE
 
     while (coordinator.Update()) {
