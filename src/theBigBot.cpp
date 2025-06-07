@@ -259,7 +259,7 @@ namespace sc2 {
     {
 		try
 		{
-			if (Observation()->GetGameLoop() == 0)
+			if (!started)
 				return;
 			CallOnUnitCreatedEvent(unit);
 
