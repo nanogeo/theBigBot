@@ -616,37 +616,6 @@ bool ActionManager::ActionTrainFromProxyRobo(ActionArgData* data)
 	return false;
 }
 
-bool ActionManager::ActionZealotDoubleprong(ActionArgData* data)
-{
-	ArmyGroup* army = data->army_group;
-
-	for (const auto& unit : army->new_units)
-	{
-		if (unit->orders.size() == 0)
-		{
-			mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0], 0);
-		}
-		if (Distance2D(unit->pos, army->attack_path[0]) < 2)
-		{
-			army->AddUnit(unit);
-		}
-	}
-	if (army->zealots.size() > 10)
-	{
-		for (const auto& unit : army->zealots)
-		{
-			if (unit->orders.size() == 0)
-			{
-				for (const auto& point : army->attack_path)
-				{
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, point, 0, true);
-				}
-			}
-		}
-	}
-	return false;
-}
-
 #pragma warning(push)
 #pragma warning(disable : 4100)
 bool ActionManager::ActionPullOutOfGas(ActionArgData* data)
@@ -894,138 +863,6 @@ bool ActionManager::ActionAllIn(ActionArgData* data)
 }
 #pragma warning(pop)
 
-bool ActionManager::ActionAllInAttack(ActionArgData* data)
-{
-	ArmyGroup* army = data->army_group;
-	Units stalkers = army->stalkers;
-
-	for (int i = 0; i < army->new_units.size(); i++)
-	{
-		const Unit* unit = army->new_units[i];
-		if (unit->orders.size() == 0 || unit->orders[0].ability_id == ABILITY_ID::BUILD_INTERCEPTORS)
-		{
-			if (army->stalkers.size() > 0)
-			{
-				if (unit->unit_type == PRISM)
-					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(army->stalkers), 0, true);
-				else
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, Utility::MedianCenter(army->stalkers), 0, true);
-			}
-			else
-			{
-				if (unit->unit_type == PRISM)
-					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, army->attack_path[0], 0, true);
-				else
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[0], 0, true);
-			}
-		}
-		if ((army->stalkers.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(army->stalkers)) < 5) || (army->stalkers.size() == 0 && Distance2D(unit->pos, army->attack_path[0]) < 2))
-		{
-			army->AddUnit(unit);
-			i--;
-		}
-	}
-
-	/*for (int i = 0; i < army->new_units.size(); i++)
-	{
-		const Unit* unit = army->new_units[i];
-		if (unit->unit_type == UNIT_TYPEID::PROTOSS_WARPPRISM)
-		{
-			army->AddUnit(unit);
-			i--;
-			continue;
-		}
-		if (unit->orders.size() == 0)
-		{
-			Point2D closest = Utility::ClosestTo(army->attack_path, unit->pos);
-
-			for (int i = find(army->attack_path.begin(), army->attack_path.end(), closest) - army->attack_path.begin(); i < army->attack_path.size(); i++)
-			{
-				mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, army->attack_path[i], 0, true);
-			}
-		}
-		if ((army->stalkers.size() > 0 && Distance2D(unit->pos, Utility::MedianCenter(army->stalkers)) < 5) || (army->stalkers.size() == 0)
-		{
-			army->AddUnit(unit);
-			i--;
-		}
-	}*/
-
-	/*for (const auto& pos : mediator->locations->attack_path_line.GetPoints())
-	{
-		mediator->Debug()->DebugSphereOut(mediator->ToPoint3D(pos), .5, Color(255, 255, 255));
-	}*/
-
-	army->AttackLine(0, 6, PROTOSS_PRIO);
-
-	/*if (army->stalkers.size() == 0)
-		return false;
-
-	Units enemies = mediator->Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
-	Point2D stalkers_center = Utility::MedianCenter(army->stalkers);
-	Point2D stalker_line_pos = mediator->locations->attack_path_line.FindClosestPoint(stalkers_center);
-
-	Units close_enemies = Utility::NClosestUnits(enemies, stalkers_center, 5);
-	// remove far enemies
-	for (int i = 0; i < close_enemies.size(); i++)
-	{
-		if (Distance2D(stalkers_center, close_enemies[i]->pos) > 12)
-		{
-			close_enemies.erase(close_enemies.begin() + i);
-			i--;
-		}
-	}
-
-	Point2D concave_target = mediator->locations->attack_path_line.GetPointFrom(stalker_line_pos, 8, true);
-	float max_range = 7;
-	if (close_enemies.size() > 0)
-	{
-		concave_target = Utility::MedianCenter(close_enemies);
-		max_range = std::max(Utility::GetMaxRange(close_enemies) + 2, 6.0f);
-	}
-
-	mediator->Debug()->DebugSphereOut(mediator->ToPoint3D(concave_target), 1, Color(255, 255, 0));
-
-
-	Point2D retreat_concave_origin = mediator->locations->attack_path_line.GetPointFrom(concave_target, max_range, false);
-	if (retreat_concave_origin == Point2D(0, 0))
-		retreat_concave_origin = mediator->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * .625, false);
-
-	Point2D attack_concave_origin = mediator->locations->attack_path_line.GetPointFrom(stalker_line_pos, 2 * .625, true);
-
-
-	std::vector<Point2D> attack_concave_positions = army->FindConcaveFromBack(attack_concave_origin, (2 * attack_concave_origin) - concave_target, army->stalkers.size(), .625, 0);
-	std::vector<Point2D> retreat_concave_positions = army->FindConcave(retreat_concave_origin, (2 * retreat_concave_origin) - concave_target, army->stalkers.size(), .625, 0, 30);
-
-	std::map<const Unit*, Point2D> attack_unit_positions = army->AssignUnitsToPositions(army->stalkers, attack_concave_positions);
-	std::map<const Unit*, Point2D> retreat_unit_positions = army->AssignUnitsToPositions(army->stalkers, retreat_concave_positions);
-
-	for (const auto& pos : attack_concave_positions)
-	{
-		mediator->Debug()->DebugSphereOut(mediator->ToPoint3D(pos), .625, Color(255, 0, 0));
-	}
-	for (const auto& pos : retreat_concave_positions)
-	{
-		mediator->Debug()->DebugSphereOut(mediator->ToPoint3D(pos), .625, Color(0, 255, 0));
-	}
-
-	army->ApplyPressureGrouped(concave_target, (2 * retreat_concave_origin) - concave_target, retreat_unit_positions, attack_unit_positions);
-
-
-
-	if (army->current_attack_index > 2 && Distance2D(Utility::Center(stalkers), retreat_point) < 3)
-		army->current_attack_index--;
-	if (army->current_attack_index < army->attack_path.size() - 1 && Distance2D(Utility::MedianCenter(stalkers), attack_point) < 3)
-	{
-		//if (obs_in_position)
-			army->current_attack_index++;
-		//else
-		//	army->current_attack_index = std::min(army->current_attack_index + 1, army->high_ground_index - 1);
-	}*/
-
-	return false;
-}
-
 #pragma warning(push)
 #pragma warning(disable : 4100)
 bool ActionManager::ActionScourMap(ActionArgData* data)
@@ -1103,13 +940,6 @@ bool ActionManager::ActionCheckNaturalForCannons(ActionArgData* data)
 	else
 		mediator->SetUnitCommand(data->unit, ABILITY_ID::GENERAL_MOVE, pos, 0);
 
-	return false;
-}
-
-bool ActionManager::ActionAttackLine(ActionArgData* data)
-{
-	ArmyGroup* army = data->army_group;
-	army->AttackLine(0, 6, ZERG_PRIO);
 	return false;
 }
 

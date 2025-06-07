@@ -1,6 +1,7 @@
 #pragma once
 
 #include "finite_state_machine.h"
+#include "blink_fsm_army_group.h"
 
 namespace sc2
 {
@@ -147,6 +148,7 @@ public:
 class BlinkStalkerAttackTerran : public StateMachine
 {
 public:
+	BlinkFSMArmyGroup* attached_army_group;
 	const Unit* prism = nullptr;
 	Units attacking_stalkers;
 	Units standby_stalkers;

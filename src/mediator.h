@@ -173,10 +173,11 @@ public:
 	int GetEnemyUnitCount(UNIT_TYPEID);
 
 	StateMachine* GetStateMachineByName(std::string);
+	void AddStateMachine(StateMachine*);
 	void RemoveStateMachine(StateMachine*);
 	void CreateFourGateBlinkFSM();
 	void CreateAdeptHarassProtossFSM();
-	void StartOracleHarassStateMachine(ArmyGroup*);
+	void StartOracleHarassStateMachine(OutsideControlArmyGroup*);
 	void StartChargelotAllInStateMachine();
 	bool RemoveScoutToProxy(UNIT_TYPEID, int);
 	void CreateAdeptBaseDefenseTerranFSM();
@@ -186,11 +187,17 @@ public:
 	void MarkArmyGroupForDeletion(ArmyGroup* army_group);
 
 	void DefendThirdBaseZerg();
+	void SetDoorGuard();
+	void CreateAttack(std::vector<UNIT_TYPEID>, uint16_t, uint16_t, uint16_t, uint16_t);
+	void CreateSimpleAttack(std::vector<UNIT_TYPEID>, uint16_t, uint16_t);
+	void StartCannonRushDefense();
+	void ScoutBases();
+	void DefendMainRamp(Point2D);
 	void AddToDefense(int, int);
 	void AddToDefense(Point2D, int);
 	void BuildDefensiveBuilding(UNIT_TYPEID, Point2D);
+
 	float JudgeFight(Units, Units, float, float, bool);
-	
 	std::vector<OngoingAttack> GetOngoingAttacks();
 	float GetWorstOngoingAttackValue();
 	void SetAllowProductionInterrupt(bool);
@@ -217,8 +224,8 @@ public:
 	std::vector<Point2D> FindWarpInSpots(Point2D);
 	bool TestWarpInSpot(Point2D);
 
-	ArmyGroup* CreateArmyGroup(ArmyRole, std::vector<UNIT_TYPEID>, int, int);
 	ArmyGroup* GetArmyGroupDefendingBase(Point2D);
+	ArmyGroup* GetDoorGuardArmyGroup();
 	void ScourMap();
 
 	Point2D GetStartLocation();

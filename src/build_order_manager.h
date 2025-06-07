@@ -196,7 +196,6 @@ public:
 	bool StopTempUnitProduction(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
-	bool AttackLine(BuildOrderResultArgData); // testing only // to string
 
 	bool RemoveProbe(BuildOrderResultArgData);
 

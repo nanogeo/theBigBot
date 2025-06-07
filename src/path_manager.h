@@ -173,8 +173,6 @@ public:
 	std::vector<Point2D> GetPoints();
 	Point2D GetStartPoint();
 	Point2D GetEndPoint();
-	Point2D GetStart();
-	Point2D GetEnd();
 	Point2D GetFurthestForward(std::vector<Point2D>);
 	Point2D GetFurthestBack(std::vector<Point2D>);
 

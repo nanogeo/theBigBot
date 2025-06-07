@@ -16,6 +16,19 @@
 #include "worker_rush_defense_state_machine.h"
 #include "chargelot_allin_state_machine.h"
 
+#include "army_group.h"
+#include "attack_army_group.h"
+#include "cannon_rush_defense_army_group.h"
+#include "defend_base_army_group.h"
+#include "defend_line_army_group.h"
+#include "defend_main_ramp_army_group.h"
+#include "defend_third_zerg_army_group.h"
+#include "deny_outer_base_army_group.h"
+#include "door_guard_army_group.h"
+#include "observer_scout_army_group.h"
+#include "outside_control_army_group.h"
+#include "scout_bases_army_group.h"
+#include "simple_attack_army_group.h"
 
 
 
@@ -70,7 +83,6 @@ void Mediator::RunManagers()
 	ability_manager.UpdateStalkerInfo();
 	ability_manager.UpdateOracleInfo();
 	fire_control_manager.UpdateInfo();
-
 	scouting_manager.UpdateInfo();
 
 	defense_manager.CheckForAttacks();
@@ -1413,6 +1425,11 @@ StateMachine* Mediator::GetStateMachineByName(std::string name)
 	return nullptr;
 }
 
+void Mediator::AddStateMachine(StateMachine* state_machine)
+{
+	finite_state_machine_manager.AddStateMachine(state_machine);
+}
+
 void Mediator::RemoveStateMachine(StateMachine* state_machine)
 {
 	finite_state_machine_manager.RemoveStateMachine(state_machine);
@@ -1420,16 +1437,13 @@ void Mediator::RemoveStateMachine(StateMachine* state_machine)
 
 void Mediator::CreateFourGateBlinkFSM()
 {
-	ArmyGroup* army = CreateArmyGroup(ArmyRole::outside_control, { STALKER, PRISM }, 15, 25);
-	army->standby_pos = agent->locations->blink_presure_consolidation;
-	army->attack_path = GetStalkerAttackPath();
-	army->attack_path_line = GetStalkerAttackLine();
-
 	BlinkStalkerAttackTerran* blink_fsm = new BlinkStalkerAttackTerran(this, "4 gate blink pressure", agent->locations->blink_presure_consolidation,
 		agent->locations->blink_pressure_prism_consolidation, agent->locations->blink_pressure_blink_up, agent->locations->blink_pressure_blink_down);
 	finite_state_machine_manager.active_state_machines.push_back(blink_fsm);
-	army->state_machine = blink_fsm;
-	blink_fsm->attached_army_group = army;
+	BlinkFSMArmyGroup* blink_army = new BlinkFSMArmyGroup(this, blink_fsm, 15, 25, 7, 1);
+
+	army_manager.AddArmyGroup(blink_army);
+	blink_fsm->attached_army_group = blink_army;
 }
 
 void Mediator::CreateAdeptHarassProtossFSM()
@@ -1437,12 +1451,12 @@ void Mediator::CreateAdeptHarassProtossFSM()
 	AdeptHarassProtoss* adept_fsm = new AdeptHarassProtoss(this, "adept harass protoss", GetUnits(IsFriendlyUnit(ADEPT)), agent->locations->adept_harrass_protoss_consolidation);
 	finite_state_machine_manager.active_state_machines.push_back(adept_fsm);
 
-	ArmyGroup* adept_army = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ADEPT }, 2, 2);
-	adept_army->state_machine = adept_fsm;
+	OutsideControlArmyGroup* adept_army = new OutsideControlArmyGroup(this, adept_fsm, { ADEPT }, 2, 2);
+	army_manager.AddArmyGroup(adept_army);
 	adept_fsm->attached_army_group = adept_army;
 }
 
-void Mediator::StartOracleHarassStateMachine(ArmyGroup* army)
+void Mediator::StartOracleHarassStateMachine(OutsideControlArmyGroup* army)
 {
 	OracleHarassStateMachine* oracle_fsm = new OracleHarassStateMachine(this, {}, "Oracle harass");
 	finite_state_machine_manager.active_state_machines.push_back(oracle_fsm);
@@ -1456,8 +1470,8 @@ void Mediator::StartChargelotAllInStateMachine()
 	ChargelotAllInStateMachine* chargelot_fsm = new ChargelotAllInStateMachine(this, "chargelot all in", agent->locations->warp_prism_locations, GetCurrentTime());
 	finite_state_machine_manager.active_state_machines.push_back(chargelot_fsm);
 
-	ArmyGroup* chargelot_army = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ZEALOT, PRISM }, 30, 50);
-	chargelot_army->state_machine = chargelot_fsm;
+	OutsideControlArmyGroup* chargelot_army = new OutsideControlArmyGroup(this, chargelot_fsm, { ZEALOT, PRISM }, 30, 50);
+	army_manager.AddArmyGroup(chargelot_army);
 	chargelot_fsm->attached_army_group = chargelot_army;
 }
 
@@ -1532,9 +1546,8 @@ void Mediator::CreateAdeptBaseDefenseTerranFSM()
 		agent->locations->main_early_dead_space, agent->locations->natural_front);
 	finite_state_machine_manager.active_state_machines.push_back(adept_defense_fsm);
 
-	ArmyGroup* adept_harass = army_manager.CreateArmyGroup(ArmyRole::outside_control, { ADEPT }, 1, 1);
-	adept_harass->state_machine = adept_defense_fsm;
-	adept_defense_fsm->attached_army_group = adept_harass;
+	OutsideControlArmyGroup* adept_harass_army = new OutsideControlArmyGroup(this, adept_defense_fsm, { ADEPT }, 1, 1);
+	adept_defense_fsm->attached_army_group = adept_harass_army;
 }
 
 void Mediator::CreateWorkerRushDefenseFSM()
@@ -1558,13 +1571,47 @@ void Mediator::MarkStateMachineForDeletion(StateMachine* state_machine)
 void Mediator::MarkArmyGroupForDeletion(ArmyGroup* army_group)
 {
 	army_manager.MarkArmyGroupForDeletion(army_group);
-	if (army_group->state_machine != nullptr)
-		finite_state_machine_manager.MarkStateMachineForDeletion(army_group->state_machine);
+	if (dynamic_cast<OutsideControlArmyGroup*>(army_group))
+		finite_state_machine_manager.MarkStateMachineForDeletion(dynamic_cast<OutsideControlArmyGroup*>(army_group)->state_machine);
 }
 
 void Mediator::DefendThirdBaseZerg()
 {
-	army_manager.CreateArmyGroup(ArmyRole::defend_third, { ADEPT }, 1, 1);
+	army_manager.AddArmyGroup(new DefendThirdZergArmyGroup(this, agent->locations->third_base_pylon_gap, {ADEPT}));
+	army_manager.AddArmyGroup(new DefendLineArmyGroup(this, GetLocation(NEXUS, 2), GetNaturalLocation(), { ORACLE, VOID_RAY, CARRIER, TEMPEST }, 0, 5));
+}
+
+void Mediator::SetDoorGuard()
+{
+	army_manager.AddArmyGroup(new DoorGuardArmyGroup(this, agent->locations->natural_door_closed, agent->locations->natural_door_open));
+}
+
+void Mediator::CreateAttack(std::vector<UNIT_TYPEID> unit_types, uint16_t desired_units, uint16_t max_units, uint16_t required_units, uint16_t min_reinforce_group_size)
+{
+	army_manager.AddArmyGroup(new AttackArmyGroup(this, GetDirectAttackLine(), unit_types, desired_units, max_units, required_units, min_reinforce_group_size));
+}
+
+void Mediator::CreateSimpleAttack(std::vector<UNIT_TYPEID> unit_types, uint16_t desired_units, uint16_t max_units)
+{
+	army_manager.AddArmyGroup(new SimpleAttackArmyGroup(this, GetAltAttackPath(), unit_types, desired_units, max_units));
+}
+
+void Mediator::StartCannonRushDefense()
+{
+	army_manager.AddArmyGroup(new CannonRushDefenseArmyGroup(this));
+	SetBalanceIncome(true);
+	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckBaseForCannons, new ActionArgData(0)));
+	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckNaturalForCannons, new ActionArgData(0)));
+}
+
+void Mediator::ScoutBases()
+{
+	army_manager.AddArmyGroup(new ScoutBasesArmyGroup(this));
+}
+
+void Mediator::DefendMainRamp(Point2D forcefield_pos)
+{
+	army_manager.AddArmyGroup(new DefendMainRampArmyGroup(this, agent->locations->main_ramp_forcefield_top, forcefield_pos));
 }
 
 void Mediator::AddToDefense(int base, int amount)
@@ -1572,7 +1619,7 @@ void Mediator::AddToDefense(int base, int amount)
 	Point2D base_location = agent->locations->nexi_locations[base];
 	for (auto& army_group : army_manager.army_groups)
 	{
-		if (army_group->target_pos == base_location)
+		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->base_pos == base_location)
 		{
 			army_group->desired_units += amount;
 			army_group->max_units += amount;
@@ -1585,7 +1632,7 @@ void Mediator::AddToDefense(Point2D base_location, int amount)
 {
 	for (auto& army_group : army_manager.army_groups)
 	{
-		if (army_group->target_pos == base_location)
+		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->base_pos == base_location)
 		{
 			army_group->desired_units += amount;
 			army_group->max_units += amount;
@@ -1845,16 +1892,11 @@ bool Mediator::TestWarpInSpot(Point2D position)
 	return true;
 }
 
-ArmyGroup* Mediator::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)
-{
-	return army_manager.CreateArmyGroup(role, unit_types, desired_units, max_units);
-}
-
 ArmyGroup* Mediator::GetArmyGroupDefendingBase(Point2D pos)
 {
 	for (const auto& army_group : army_manager.army_groups)
 	{
-		if (army_group->role == ArmyRole::defend_base && army_group->target_pos == pos)
+		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->base_pos == pos)
 			return army_group;
 	}
 	return nullptr;
@@ -2114,6 +2156,8 @@ TryActionResult Mediator::TryBuildBuilding(const Unit* probe, UNIT_TYPEID buildi
 	if (HasTechForBuilding(building_type) == false)
 		return TryActionResult::low_tech;
 
+	// TODO check if any units are blocking
+
 	if (building_type == ASSIMILATOR)
 	{
 		const Unit* closest_geyser = Utility::ClosestTo(GetUnits(IsUnits(VESPENE_GEYSER_TYPES)), position);
@@ -2278,7 +2322,7 @@ void Mediator::OnUnitCreated(const Unit* unit)
 	}
 	else if (unit->unit_type == NEXUS)
 	{
-		army_manager.NexusStarted();
+		army_manager.NexusStarted(unit->pos);
 	}
 	else
 	{

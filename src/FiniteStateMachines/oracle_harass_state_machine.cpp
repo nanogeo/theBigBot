@@ -426,332 +426,6 @@ void OracleDefendLine::OnUnitCreatedListener(const Unit* unit)
 #pragma endregion
 
 
-#pragma region OracleDefendArmyGroup
-
-OracleDefendArmyGroup::OracleDefendArmyGroup(Mediator* mediator, OracleHarassStateMachine* state_machine)
-{
-	this->mediator = mediator;
-	this->state_machine = state_machine;
-	event_id = mediator->GetUniqueId();
-}
-
-std::string OracleDefendArmyGroup::toString()
-{
-	return "Oracle Defend ArmyGroup";
-}
-
-void OracleDefendArmyGroup::TickState()
-{
-	Point2D center = state_machine->attached_army_group->attack_path[state_machine->attached_army_group->current_attack_index - 2];
-	if (state_machine->attached_army_group->all_units.size() > 0)
-	{
-		Point2D median_center = Utility::MedianCenter(state_machine->attached_army_group->all_units);
-		center = state_machine->attached_army_group->attack_path_line.GetPointFrom(median_center, 2, false);
-	}
-
-	Units enemy_units = mediator->GetUnits(IsUnits(BURROWED_UNIT_TYPES));
-
-	bool revelation_cast = false;
-	for (const auto &oracle : state_machine->oracles)
-	{
-		if (mediator->IsOracleCasting(oracle))
-		{
-			revelation_cast = true;
-			break;
-		}
-	}
-	// revelate when units are burrowing
-	if (!revelation_cast)
-	{
-		const Unit* unit_to_revelate = nullptr;
-		for (const auto &unit : enemy_units)
-		{
-			if (Utility::DistanceToClosest(state_machine->oracles, unit->pos) <= 9)
-			{
-				if (std::find(unit->buffs.begin(), unit->buffs.end(), BUFF_ID::ORACLEREVELATION) == unit->buffs.end())
-				{
-					unit_to_revelate = unit;
-					break;
-				}
-			}
-		}
-		if (unit_to_revelate != nullptr)
-		{
-			const Unit* highest_over_75 = nullptr;
-			const Unit* lowest_over_25 = nullptr;
-			for (const auto &oracle : state_machine->oracles)
-			{
-				if (oracle->energy > 75)
-				{
-					if (highest_over_75 == nullptr || highest_over_75->energy < oracle->energy)
-						highest_over_75 = oracle;
-				}
-				else if (oracle->energy > 25)
-				{
-					if (lowest_over_25 == nullptr || lowest_over_25->energy > oracle->energy)
-						lowest_over_25 = oracle;
-				}
-			}
-			if (highest_over_75 != nullptr)
-			{
-				mediator->SetUnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos, 0);
-				//agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
-
-			}
-			else if (lowest_over_25 != nullptr)
-			{
-				mediator->SetUnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos, 0);
-				//agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
-			}
-		}
-	}
-
-
-	Units enemy_lings = mediator->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ZERGLING));
-	int num_close_lings = 0;
-	for (const auto &ling : enemy_lings)
-	{
-		if (Utility::DistanceToClosest(state_machine->attached_army_group->all_units, ling->pos) < 4)
-			num_close_lings++;
-	}
-	if (num_close_lings > 4)
-	{
-		int num_stalkers_with_blink = 0;
-		for (const auto &stalker : state_machine->attached_army_group->stalkers)
-		{
-			if (mediator->IsStalkerBlinkOffCooldown(stalker))
-				num_stalkers_with_blink++;
-		}
-		float percent_stalkers_with_blink = 1;
-		if (state_machine->attached_army_group->stalkers.size() > 0)
-			percent_stalkers_with_blink = static_cast<float>(num_stalkers_with_blink) / static_cast<float>(state_machine->attached_army_group->stalkers.size());
-
-		int num_oracles_needed = 0;
-
-		if (percent_stalkers_with_blink < .25)
-			num_oracles_needed = 3;
-		else if (percent_stalkers_with_blink < .5)
-			num_oracles_needed = 2;
-		else if (percent_stalkers_with_blink < .75)
-			num_oracles_needed = 1;
-
-		if (num_close_lings > 30)
-			num_oracles_needed += 3;
-		else if (num_close_lings > 20)
-			num_oracles_needed += 2;
-		else if (num_close_lings > 10)
-			num_oracles_needed += 1;
-			
-
-		num_oracles_needed = std::min(num_oracles_needed, 3);
-
-		int num_oracles_active = 0;
-		for (const auto &oracle : state_machine->oracles)
-		{
-			if (mediator->IsOracleBeamActive(oracle))
-				num_oracles_active++;
-		}
-		/*
-		agent->Debug()->DebugTextOut(std::to_string(num_close_lings), Point2D(.2, .18), Color(0, 255, 0), 20);
-		agent->Debug()->DebugTextOut(std::to_string(num_oracles_active), Point2D(.2, .2), Color(0, 255, 255), 20);
-		agent->Debug()->DebugTextOut(std::to_string(num_oracles_needed), Point2D(.2, .22), Color(0, 255, 255), 20);
-		agent->Debug()->DebugTextOut(std::to_string(percent_stalkers_with_blink), Point2D(.2, .24), Color(0, 255, 255), 20);
-		agent->Debug()->DebugTextOut(std::to_string(num_stalkers_with_blink), Point2D(.2, .26), Color(0, 255, 255), 20);
-		agent->Debug()->DebugTextOut(std::to_string(state_machine->attached_army_group->blink_ready.size()), Point2D(.2, .28), Color(0, 255, 255), 20);
-			
-		for (int i = 0; i < state_machine->oracles.size(); i++)
-		{
-			if (state_machine->is_beam_active[i])
-				agent->Debug()->DebugTextOut(std::to_string(state_machine->oracles[i]->energy), Point2D(.2, .3 + .02 * i), Color(0, 255, 0), 20);
-			else
-				agent->Debug()->DebugTextOut(std::to_string(state_machine->oracles[i]->energy), Point2D(.2, .3 + .02 * i), Color(255, 0, 255), 20);
-
-		}*/
-
-		if (num_oracles_active > num_oracles_needed) // deactivate oracles
-		{
-			Units oracles = Units(state_machine->oracles);
-			std::sort(oracles.begin(), oracles.end(), [](const Unit* &a, const Unit* &b) -> bool
-			{
-				return a->energy > b->energy;
-			});
-			for (const auto &oracle : oracles)
-			{
-				if (num_oracles_active == num_oracles_needed)
-					break;
-				if (oracle->energy > 10 && Utility::DistanceToClosest(enemy_lings, oracle->pos) > 5)
-				{
-					if (mediator->IsOracleBeamActive(oracle))
-					{
-						mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
-						num_oracles_active--;
-					}
-				}
-			}
-		}
-		else if (num_oracles_active < num_oracles_needed) // activate more oracles
-		{
-			Units oracles = Units(state_machine->oracles);
-			std::sort(oracles.begin(), oracles.end(), [](const Unit* &a, const Unit* &b) -> bool
-			{
-				return a->energy < b->energy;
-			});
-			for (const auto &oracle : oracles)
-			{
-				if (num_oracles_active == num_oracles_needed)
-					break;
-				if (oracle->energy > 40)
-				{
-					if (mediator->IsOracleBeamActive(oracle) == false)
-					{
-						mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, 0);
-						num_oracles_active++;
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-		Units oracles = Units(state_machine->oracles);
-		std::sort(oracles.begin(), oracles.end(), [](const Unit* &a, const Unit* &b) -> bool
-		{
-			return a->energy > b->energy;
-		});
-		for (const auto &oracle : oracles)
-		{
-			if (oracle->energy > 10 && (enemy_lings.size() == 0 || Utility::DistanceToClosest(enemy_lings, oracle->pos)))
-			{
-				if (mediator->IsOracleBeamActive(oracle))
-				{
-					mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
-				}
-			}
-		}
-	}
-	// add oracle to volley or agnore units targetted in volley?
-	// add event listeners for oracle
-	for (const auto &oracle : state_machine->oracles)
-	{
-		if (mediator->IsOracleCasting(oracle))
-		{
-			continue;
-		}
-		if (mediator->IsOracleBeamActive(oracle) == false)
-		{
-			mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center, 0);
-			continue;
-		}
-		float now = mediator->GetCurrentTime();
-		bool weapon_ready = now - state_machine->time_last_attacked[oracle] > .8; //.61
-
-		/*agent->Debug()->DebugTextOut("weapon ready " + std::to_string(weapon_ready), Point2D(.2, .35), Color(0, 255, 0), 20);
-		agent->Debug()->DebugTextOut("has attacked " + std::to_string(state_machine->has_attacked[oracle]), Point2D(.2, .37), Color(0, 255, 0), 20);
-		agent->Debug()->DebugTextOut("target " + std::to_string(state_machine->target[oracle]), Point2D(.2, .39), Color(0, 255, 0), 20);*/
-
-
-		if (weapon_ready)
-		{
-			const Unit* closest_unit = Utility::ClosestTo(enemy_lings, oracle->pos);
-			if (closest_unit == nullptr || Distance2D(closest_unit->pos, oracle->pos) > 6)
-			{
-				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center, 0);
-				continue;
-			}
-
-
-			mediator->SetUnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit, 0);
-			//agent->Debug()->DebugSphereOut(closest_unit->pos, .75, Color(0, 255, 255));
-
-			state_machine->target[oracle] = closest_unit->tag;
-			state_machine->time_last_attacked[oracle] = mediator->GetCurrentTime();
-			state_machine->has_attacked[oracle] = false;
-			//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 0, 0));
-		}
-		else if (state_machine->has_attacked[oracle])
-		{
-			mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center, 0);
-
-			//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
-		}
-		else
-		{
-			//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
-		}
-	}
-
-}
-
-void OracleDefendArmyGroup::EnterState()
-{
-	std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
-		this->OnUnitDamagedListener(unit, health, shields);
-	};
-	mediator->AddListenerToOnUnitDamagedEvent(event_id, onUnitDamaged);
-
-	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
-		this->OnUnitDestroyedListener(unit);
-	};
-	mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
-}
-
-void OracleDefendArmyGroup::ExitState()
-{
-	for (const auto &oracle : state_machine->oracles)
-	{
-		mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
-	}
-	mediator->RemoveListenerToOnUnitDamagedEvent(event_id);
-	mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
-	return;
-}
-
-State* OracleDefendArmyGroup::TestTransitions()
-{
-	return nullptr;
-}
-#pragma warning(push)
-#pragma warning(disable : 4100)
-void OracleDefendArmyGroup::OnUnitDamagedListener(const Unit* unit, float health, float shields)
-{
-	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage\n";
-	int i = 0;
-	//agent->Debug()->DebugTextOut(std::to_string(unit->tag), Point2D(.1, .35), Color(0, 255, 0), 20);
-
-	for (const auto &oracle : state_machine->oracles)
-	{
-		if (state_machine->target[oracle] == unit->tag)
-		{
-			//agent->Debug()->DebugTextOut(UnitTypeToName(unit->unit_type.ToType()) + " took " + std::to_string(health) + " damage from orale", Point2D(.2, .4 + .02 * i), Color(0, 255, 0), 20);
-			//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " took " << std::to_string(health) << " damage from orale\n";
-			state_machine->has_attacked[oracle] = true;
-		}
-		i++;
-	}
-}
-#pragma warning(pop)
-
-void OracleDefendArmyGroup::OnUnitDestroyedListener(const Unit* unit)
-{
-	//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed\n";
-	int i = 0;
-	//agent->Debug()->DebugTextOut(std::to_string(unit->tag), Point2D(.1, .39), Color(0, 255, 255), 20);
-	for (const auto &oracle : state_machine->oracles)
-	{
-		if (state_machine->target[oracle] == unit->tag)
-		{
-			//agent->Debug()->DebugTextOut(UnitTypeToName(unit->unit_type.ToType()) + " desroyed by oracle", Point2D(.2, .45 + .02 * i), Color(0, 255, 0), 20);
-			//std::cout << UnitTypeToName(unit->unit_type.ToType()) << " destroyed by orale\n";
-			state_machine->has_attacked[oracle] = true;
-		}
-		i++;
-	}
-}
-
-#pragma endregion
-
-
-
 #pragma region OracleHarassGroupUp
 
 std::string OracleHarassGroupUp::toString()
@@ -1177,6 +851,36 @@ OracleHarassStateMachine::OracleHarassStateMachine(Mediator* mediator, Units ora
 	current_state->EnterState();
 }
 
+OracleHarassStateMachine::OracleHarassStateMachine(Mediator* mediator, ArmyTemplateStateMachine<OutsideControlArmyGroup, OracleHarassStateMachine>* army_template) : StateMachine(mediator, "Oracle harass")
+{
+
+	event_id = mediator->GetUniqueId();
+	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
+		this->OnUnitDestroyedListener(unit);
+	};
+	mediator->AddListenerToOnUnitDestroyedEvent(event_id, onUnitDestroyed);
+
+	if (mediator->GetGameLoop() % 2 == 0)
+	{
+		harass_direction = true;
+		harass_index = 0;
+		current_state = new OracleHarassGroupUp(mediator, this, mediator->GetLocations().oracle_path.entrance_point);
+	}
+	else
+	{
+		harass_direction = false;
+		harass_index = mediator->GetLocations().oracle_path.entrance_points.size() - 1;
+		current_state = new OracleHarassGroupUp(mediator, this, mediator->GetLocations().oracle_path.exit_point);
+	}
+
+	for (size_t i = 0; i < oracles.size(); i++)
+	{
+		time_last_attacked[oracles[i]] = 0;
+		has_attacked[oracles[i]] = true;
+	}
+	current_state->EnterState();
+}
+
 OracleHarassStateMachine::~OracleHarassStateMachine()
 {
 	mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
@@ -1194,7 +898,7 @@ bool OracleHarassStateMachine::AddUnit(const Unit* unit)
 	if (unit->unit_type != ORACLE)
 		return false;
 	if (dynamic_cast<OracleDefendLocation*>(current_state) || dynamic_cast<OracleDefendLine*>(current_state) ||
-		dynamic_cast<OracleDefendArmyGroup*>(current_state) || dynamic_cast<OracleHarassGroupUp*>(current_state))
+		dynamic_cast<OracleHarassGroupUp*>(current_state))
 	{
 		AddOracle(unit);
 		return true;

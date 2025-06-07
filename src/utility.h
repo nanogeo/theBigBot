@@ -98,6 +98,7 @@ class Utility
 public:
 	static const Unit* ClosestTo(Units, Point2D);
 	static const Unit* ClosestToLine(Units, LineSegmentLinearX);
+	static const Unit* ClosestToLine(Units, Point2D, Point2D);
 	static const Unit* NthClosestTo(Units, Point2D, int);
 	static Units NClosestUnits(Units, Point2D, int);
 	static Point2D ClosestTo(std::vector<Point2D>, Point2D);
@@ -149,6 +150,7 @@ public:
 	static float GetFacingAngle(const Unit*, const Unit*);
 	static const Unit* AimingAt(const Unit*, Units);
 	static float BuildingSize(UNIT_TYPEID);
+	static float GetLargestUnitSize(Units);
 	static const Unit* GetLeastFullPrism(Units);
 	static ABILITY_ID GetBuildAbility(UNIT_TYPEID);
 	static ABILITY_ID GetTrainAbility(UNIT_TYPEID);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "finite_state_machine.h"
+#include "outside_control_army_group.h"
 
 namespace sc2
 {
@@ -8,6 +9,10 @@ namespace sc2
 class Mediator;
 class OracleHarassStateMachine;
 class ArmyGroup;
+
+template<typename T, typename U>
+struct ArmyTemplateStateMachine;
+
 
 class OracleScout : public State {
 public:
@@ -29,7 +34,7 @@ public:
 	virtual void ExitState() override;
 	virtual State* TestTransitions() override;
 };
-
+// TODO look into which of these are actually used
 class OracleDefendLocation : public State {
 public:
 	OracleHarassStateMachine* state_machine;
@@ -61,21 +66,6 @@ public:
 	void OnUnitDamagedListener(const Unit*, float, float);
 	void OnUnitDestroyedListener(const Unit*);
 	void OnUnitCreatedListener(const Unit*);
-};
-
-class OracleDefendArmyGroup : public State {
-public:
-	OracleHarassStateMachine* state_machine;
-	int event_id;
-	OracleDefendArmyGroup(Mediator* mediator, OracleHarassStateMachine* state_machine);
-	virtual std::string toString() override;
-	void TickState() override;
-	virtual void EnterState() override;
-	virtual void ExitState() override;
-	virtual State* TestTransitions() override;
-
-	void OnUnitDamagedListener(const Unit*, float, float);
-	void OnUnitDestroyedListener(const Unit*);
 };
 
 class OracleHarassGroupUp : public State {
@@ -162,6 +152,7 @@ public:
 	int event_id;
 	OracleHarassStateMachine(Mediator* mediator, Units oracles, Point2D third_base_pos, Point2D door_guard_pos, std::string name);
 	OracleHarassStateMachine(Mediator* mediator, Units oracles, std::string name);
+	OracleHarassStateMachine(Mediator* mediator, ArmyTemplateStateMachine<OutsideControlArmyGroup, OracleHarassStateMachine>* army_template);
 
 	~OracleHarassStateMachine();
 

@@ -55,9 +55,9 @@ State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 			}
 		}
 	}
-	if (state_machine->attached_army_group->AttackLine(state_machine->attacking_stalkers, .2f, 7, TERRAN_PRIO) > 0 ||
-		state_machine->attached_army_group->attack_path_line.GetFurthestForward({ state_machine->attached_army_group->concave_origin,
-			state_machine->attached_army_group->attack_path_line.FindClosestPoint(state_machine->consolidation_pos) }) == state_machine->attached_army_group->concave_origin)
+	if (state_machine->attached_army_group->AttackLine() != AttackLineResult::normal ||
+		state_machine->attached_army_group->attack_path.GetFurthestForward({ state_machine->attached_army_group->concave_origin,
+			state_machine->attached_army_group->attack_path.FindClosestPoint(state_machine->consolidation_pos) }) == state_machine->attached_army_group->concave_origin)
 	{
 		if (state_machine->attached_army_group)
 			state_machine->attached_army_group->using_standby = true;
@@ -356,9 +356,9 @@ void BlinkStalkerAttackTerranAttack::TickState()
 		if (state_machine->attack_location == BlinkAtackLocation::natural_defensive)
 		{
 			Point2D stalkers_center = Utility::MedianCenter(state_machine->attacking_stalkers);
-			Point2D stalker_line_pos = state_machine->attached_army_group->attack_path_line.FindClosestPoint(stalkers_center);
+			Point2D stalker_line_pos = state_machine->attached_army_group->attack_path.FindClosestPoint(stalkers_center);
 
-			Point2D new_consolidation_pos = state_machine->attached_army_group->attack_path_line.GetPointFrom(stalker_line_pos, 6, false); // TODO adjust distance
+			Point2D new_consolidation_pos = state_machine->attached_army_group->attack_path.GetPointFrom(stalker_line_pos, 6, false); // TODO adjust distance
 			state_machine->SetConsolidationPos(new_consolidation_pos);
 		}
 
@@ -392,25 +392,25 @@ void BlinkStalkerAttackTerranAttack::EnterState()
 		float danger_main_2 = mediator->GetLineDangerLevel(mediator->GetLocations().blink_main_attack_path_lines[1]);
 
 		if (danger_main_1 > danger_main_2)
-			state_machine->attached_army_group->attack_path_line = mediator->GetLocations().blink_main_attack_path_lines[0];
+			state_machine->attached_army_group->attack_path = mediator->GetLocations().blink_main_attack_path_lines[0];
 		else
-			state_machine->attached_army_group->attack_path_line = mediator->GetLocations().blink_main_attack_path_lines[1];
+			state_machine->attached_army_group->attack_path = mediator->GetLocations().blink_main_attack_path_lines[1];
 	}
 	else if (state_machine->attack_location == BlinkAtackLocation::natural)
 	{
-		state_machine->attached_army_group->attack_path_line = mediator->GetLocations().blink_nat_attack_path_line;
+		state_machine->attached_army_group->attack_path = mediator->GetLocations().blink_nat_attack_path_line;
 	}
 	else if (state_machine->attack_location == BlinkAtackLocation::natural_defensive)
 	{
-		state_machine->attached_army_group->attack_path_line = mediator->GetLocations().blink_nat_attack_path_line;
+		state_machine->attached_army_group->attack_path = mediator->GetLocations().blink_nat_attack_path_line;
 	}
 	else if (state_machine->attack_location == BlinkAtackLocation::third_1)
 	{
-		state_machine->attached_army_group->attack_path_line = mediator->GetLocations().blink_third_attack_path_lines[0];
+		state_machine->attached_army_group->attack_path = mediator->GetLocations().blink_third_attack_path_lines[0];
 	}
 	else if (state_machine->attack_location == BlinkAtackLocation::third_2)
 	{
-		state_machine->attached_army_group->attack_path_line = mediator->GetLocations().blink_third_attack_path_lines[1];
+		state_machine->attached_army_group->attack_path = mediator->GetLocations().blink_third_attack_path_lines[1];
 	}
 }
 
@@ -442,8 +442,8 @@ State* BlinkStalkerAttackTerranAttack::TestTransitions()
 			return new BlinkStalkerAttackTerranSnipeUnit(mediator, state_machine, unit);
 		}
 	}
-	int attack_line_status = state_machine->attached_army_group->AttackLine(state_machine->attacking_stalkers, .2f, 7, TERRAN_PRIO, true);
-	if (attack_line_status == 1 || attack_line_status == 2 || state_machine->standby_stalkers.size() > state_machine->attacking_stalkers.size())
+	if (state_machine->attached_army_group->AttackLine() != AttackLineResult::normal || 
+		state_machine->standby_stalkers.size() > state_machine->attacking_stalkers.size())
 	{
 		state_machine->attached_army_group->concave_origin = Point2D(0, 0);
 		if (state_machine->attack_location == BlinkAtackLocation::main)

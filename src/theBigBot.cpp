@@ -1578,11 +1578,10 @@ namespace sc2 {
 		groups.insert(groups.begin() + 1, mediator.army_manager.army_groups.begin(), mediator.army_manager.army_groups.end());
         for (int i = 0; i < groups.size(); i++)
         {
-            army_info += "Army " + std::to_string(i+1) + " - " + std::to_string(groups[i]->desired_units) + "/" + std::to_string(groups[i]->max_units) + "\n";
-			army_info += "  Role - " + ARMY_ROLE_TO_STRING.at(groups[i]->role) + "\n";
+			army_info += groups[i]->ToString() + "\n";
 			if (groups[i]->all_units.size() + groups[i]->new_units.size() > 0)
 			{
-				army_info += "  Units: \n    ";
+				army_info += "  Units: " + std::to_string(groups[i]->desired_units) + "/" + std::to_string(groups[i]->max_units) + "\n    ";
 				std::map<UNIT_TYPEID, int> unit_totals;
 				for (const auto& unit : groups[i]->all_units)
 				{

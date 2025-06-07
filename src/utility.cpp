@@ -165,6 +165,27 @@ const Unit* Utility::ClosestToLine(Units units, LineSegmentLinearX line)
 	return current_closest;
 }
 
+const Unit* Utility::ClosestToLine(Units units, Point2D start, Point2D end)
+{
+	const Unit* current_closest = nullptr;
+	float current_distance = INFINITY;
+	for (const auto& unit : units)
+	{
+		float distance = Distance2D(unit->pos, ClosestPointOnLine(unit->pos, start, end));
+		if (distance < current_distance)
+		{
+			current_closest = unit;
+			current_distance = distance;
+		}
+	}
+	if (units.size() == 0 || current_closest == nullptr)
+	{
+		//std::cout << "Error current closest is nullptr\n";
+		return nullptr;
+	}
+	return current_closest;
+}
+
 const Unit* Utility::NthClosestTo(Units units, Point2D position, int n)
 {
 	if (units.size() == 0)
@@ -2374,6 +2395,17 @@ float Utility::BuildingSize(UNIT_TYPEID buildingId)
 	if (buildingId == UNIT_TYPEID::PROTOSS_PYLON || buildingId == UNIT_TYPEID::PROTOSS_SHIELDBATTERY || buildingId == UNIT_TYPEID::PROTOSS_PHOTONCANNON)
 		return 1;
 	return 1.5;
+}
+
+float Utility::GetLargestUnitSize(Units units)
+{
+	float largest = 0;
+	for (const auto& unit : units)
+	{
+		if (unit->radius > largest)
+			largest = unit->radius;
+	}
+	return largest;
 }
 
 int Utility::BuildingsReady(UNIT_TYPEID buildingId, const ObservationInterface* observation)

@@ -55,78 +55,50 @@ class ArmyGroup
 {
 public:
 	Mediator* mediator = nullptr;
-	ArmyRole role;
-	StateMachine* state_machine = nullptr;
 
 	Units all_units;
-	Units zealots;
-	Units stalkers;
-	Units adepts;
-	Units sentries;
-	Units high_templar;
-	Units dark_templar;
-	Units archons;
-	Units immortals;
-	Units collossi;
-	Units disrupter;
-	Units observers;
-	Units warp_prisms;
-	Units phoenixes;
-	Units void_rays;
-	Units oracles;
-	Units carriers;
-	Units tempests;
-
 	Units new_units;
 
-	Units possibly_confused_units;
-
-	std::vector<Point2D> attack_path;
-	int current_attack_index = 0;
-	int high_ground_index = 0;
-	PathManager attack_path_line;
-	LineSegment* defense_line = nullptr;
-	Point2D target_pos;
-
-	bool advancing = true;
-	Point2D concave_origin = Point2D(0, 0);
-	std::map<const Unit*, Point2D> unit_position_asignments;
-
-	std::map<const Unit*, int> prism_cargo;
-	std::map<const Unit*, PrismCargo> units_in_cargo;
-
-	bool using_standby = false;
-	Point2D standby_pos;
-	Units standby_units;
-
 	bool accept_new_units = true;
-	int event_id;
 	std::vector<UNIT_TYPEID> unit_types;
-	int desired_units = 0;
-	int max_units = 100;
+	uint16_t desired_units = 0;
+	uint16_t max_units = 100;
 	bool ready = false;
 
-	// oracles
+	// oracles TODO move to interface of other subclass
 	std::map<const Unit*, float> time_last_attacked;
 	std::map<const Unit*, bool> has_attacked;
 	std::map<const Unit*, uint64_t> target;
 
-
-	ArmyGroup(Mediator*, PathManager, std::vector<Point2D> attack_path, ArmyRole, std::vector<UNIT_TYPEID>);
-	ArmyGroup(Mediator*, std::vector<Point2D>, ArmyRole, std::vector<UNIT_TYPEID>);
-	ArmyGroup(Mediator*, ArmyRole, std::vector<UNIT_TYPEID>);
-	ArmyGroup(Mediator*, Point2D, ArmyRole, std::vector<UNIT_TYPEID>);
-	ArmyGroup(Mediator*, Point2D, Point2D, ArmyRole, std::vector<UNIT_TYPEID>);
-
+	ArmyGroup(Mediator* mediator)
+	{
+		this->mediator = mediator;
+	}
+	ArmyGroup(Mediator* mediator, std::vector<UNIT_TYPEID> unit_types)
+	{
+		this->mediator = mediator;
+		this->unit_types = unit_types;
+	}
 	~ArmyGroup();
 
-	void AddUnit(const Unit* unit);
-	void AddNewUnit(const Unit* unit);
-	void RemoveUnit(const Unit* unit);
+	virtual void SetUp() 
+	{
+		ready = true;
+	};
+	virtual void Run() {};
+	virtual std::string ToString()
+	{
+		return "Army group";
+	}
+
+	virtual void AddUnit(const Unit* unit);
+	virtual void AddNewUnit(const Unit* unit);
+	virtual void RemoveUnit(const Unit* unit);
 	Units GetExtraUnits();
+	void ScourMap();
 
 	
-
+	/*
 	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float, float);
 	std::vector<Point2D> FindConcaveWithPrism(Point2D, Point2D, int, int, float, float, float, std::vector<Point2D>&);
 	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);
@@ -136,20 +108,6 @@ public:
 	void DodgeShots();
 
 	void FindStalkerPositions(std::map<const Unit*, Point2D>&, std::map<const Unit*, Point2D>&, float, float);
-	
-	void DefendFrontDoor(Point2D, Point2D);
-	void DefendThirdBase(Point2D);
-	void DefendLine();
-	void CannonRushPressure();
-	void ScourMap();
-	void SimpleAttack();
-	void DefendLocation();
-	void ObserverScout();
-	void OutsideControl();
-	void ScoutBases();
-	void DenyBase();
-	void DefendMainRamp();
-	void DefendCannonRush();
 
 	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>, bool = false);
 	int AttackLine(Units, float, float, std::vector<std::vector<UNIT_TYPEID>>, bool = false);
@@ -157,16 +115,11 @@ public:
 
 	bool FindUnitPositions(Units, Units, float, float, Point2D);
 	void FindReadyUnits(Units, Units&, Units&);
-	void MicroReadyUnits(Units, std::vector<std::vector<UNIT_TYPEID>>, float, int);
 	std::vector<std::pair<const Unit*, UnitDanger>> MicroNonReadyUnits(Units);
 	void MicroWarpPrisms(std::vector<std::pair<const Unit*, UnitDanger>>);
 	Point2D FindLimitToAdvance();
+	*/
 
-	void AutoAddNewUnits(std::vector<UNIT_TYPEID>);
-	void OnNewUnitCreatedListener(const Unit*);
-	void AutoAddUnits(std::vector<UNIT_TYPEID>);
-
-	void OnUnitCreatedListener(const Unit*);
 	void OnUnitDamagedListener(const Unit*, float, float);
 	void OnUnitDestroyedListener(const Unit*);
 

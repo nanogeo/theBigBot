@@ -187,7 +187,6 @@ namespace sc2
 #define U_AIR_ARMOR_2 UPGRADE_ID::PROTOSSAIRARMORSLEVEL2
 #define U_AIR_ARMOR_3 UPGRADE_ID::PROTOSSAIRARMORSLEVEL3
 
-
 #define RANGE_BATTERY_OVERCHARGE 12.55 // BATTERTY_OVERCHARGE
 #define FRAME_TIME 22.4f
 
@@ -258,6 +257,8 @@ const std::vector<UNIT_TYPEID> BURROWED_UNIT_TYPES = { RAVAGER_BURROWED, WIDOW_M
 														HYDRA_BURROWED, INFESTOR_BURROWED, LURKER_BURROWED, QUEEN_BURROWED,
 														ROACH_BURROWED, SWARMHOST_BURROWED, ULTRALISK_BURROWED, ZERGLING_BURROWED };
 
+const std::vector<UNIT_TYPEID> TOWNHALL_TYPES = { COMMAND_CENTER, COMMAND_CENTER_FLYING, ORBITAL, ORBITAL_FLYING, PLANETARY, NEXUS, HATCHERY, LAIR, HIVE };
+
 
 const std::vector<UNIT_TYPEID> VESPENE_GEYSER_TYPES = { UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER, UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER, UNIT_TYPEID::NEUTRAL_VESPENEGEYSER };
 
@@ -291,47 +292,6 @@ enum AttackPath
 	indirect,
 	alt
 };
-
-enum ArmyRole
-{
-	none,
-	outside_control,
-	pressure,
-	attack,
-	scour,
-	simple_attack,
-	defend_door,
-	defend_third,
-	defend_main,
-	defend_natural,
-	defend_outer,
-	defend_base,
-	observer_scout,
-	oracle_harass,
-	scout_bases,
-	deny_outer_base,
-	defend_main_ramp,
-	cannon_rush_defense
-};
-
-const std::map<ArmyRole, std::string> ARMY_ROLE_TO_STRING = {	{ArmyRole::none, "None"},
-																{ArmyRole::outside_control, "Outside control"},
-																{ArmyRole::pressure, "Pressure"},
-																{ArmyRole::attack, "Attack"},
-																{ArmyRole::scour, "Scour"},
-																{ArmyRole::simple_attack, "Simple attack"},
-																{ArmyRole::defend_door, "Defend door"},
-																{ArmyRole::defend_third, "Defend Third"},
-																{ArmyRole::defend_main, "Defend main"},
-																{ArmyRole::defend_natural, "Defend natural"},
-																{ArmyRole::defend_outer, "Defend outer"},
-																{ArmyRole::defend_base, "Defend base"},
-																{ArmyRole::observer_scout, "Observer scout"},
-																{ArmyRole::oracle_harass, "Oracle harass"},
-																{ArmyRole::scout_bases, "Scout bases"},
-																{ArmyRole::deny_outer_base, "Deny outer base"},
-																{ArmyRole::defend_main_ramp, "Defend main ramp"},
-																{ArmyRole::cannon_rush_defense, "Defend cannon rush"} };
 
 struct ScoutInfoZerg
 {

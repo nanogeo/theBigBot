@@ -97,18 +97,14 @@ public:
 	bool ActionChronoTillFinished(ActionArgData*);
 	bool ActionConstantChrono(ActionArgData*);
 	bool ActionTrainFromProxyRobo(ActionArgData*);
-	bool ActionZealotDoubleprong(ActionArgData*);
 	bool ActionPullOutOfGas(ActionArgData*);
 	bool ActionRemoveScoutToProxy(ActionArgData*); // tostring
 	bool ActionDTHarassTerran(ActionArgData*); // tostring
 	bool ActionUseProxyDoubleRobo(ActionArgData*);
 	bool ActionAllIn(ActionArgData*); // tostring
-	bool ActionAllInAttack(ActionArgData*);
 	bool ActionScourMap(ActionArgData*);
 	bool ActionCheckBaseForCannons(ActionArgData*);
 	bool ActionCheckNaturalForCannons(ActionArgData*);
-
-	bool ActionAttackLine(ActionArgData*); // tostring // for testing
 };
 
 struct ActionData
@@ -195,10 +191,6 @@ struct ActionData
 		{
 			str += "Train units from proxy robo";
 		}
-		else if (action == &ActionManager::ActionZealotDoubleprong)
-		{
-			str += "Zealot double prong";
-		}
 		else if (action == &ActionManager::ActionPullOutOfGas)
 		{
 			str += "pull out of gas";
@@ -219,10 +211,6 @@ struct ActionData
 				str += "immortals ";
 			}
 			str += "from proxy robos";
-		}
-		else if (action == &ActionManager::ActionAllInAttack)
-		{
-			str += "All in attack";
 		}
 		else if (action == &ActionManager::ActionScourMap)
 		{

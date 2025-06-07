@@ -454,25 +454,25 @@ bool BuildOrderManager::Contain(BuildOrderResultArgData data)
 
 bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 {
-	mediator->CreateArmyGroup(ArmyRole::pressure, { STALKER, IMMORTAL, PRISM, COLOSSUS, ORACLE, CARRIER }, 15, 25);
+	mediator->CreateAttack({ STALKER, IMMORTAL, PRISM, COLOSSUS, ORACLE, CARRIER }, 15, 25, 6, 5);
 	return true;
 }
 
 bool BuildOrderManager::ZealotSimpleAttack(BuildOrderResultArgData data)
 {
-	mediator->CreateArmyGroup(ArmyRole::simple_attack, { ZEALOT }, 2, 20);
+	mediator->CreateSimpleAttack({ ZEALOT }, 2, 20);
 	return true;
 }
 
 bool BuildOrderManager::ZealotDoubleprong(BuildOrderResultArgData data)
 {
-	mediator->CreateArmyGroup(ArmyRole::simple_attack, { ZEALOT }, 12, 20);
+	mediator->CreateSimpleAttack({ ZEALOT }, 10, 20);
 	return true;
 }
 
 bool BuildOrderManager::ZealotDoubleprongLarge(BuildOrderResultArgData data)
 {
-	mediator->CreateArmyGroup(ArmyRole::simple_attack, { ZEALOT }, 15, 30);
+	mediator->CreateSimpleAttack({ ZEALOT }, 15, 30);
 	return true;
 }
 
@@ -611,13 +611,12 @@ bool BuildOrderManager::ProxyDoubleRoboAllIn(BuildOrderResultArgData data)
 bool BuildOrderManager::DefendThirdBase(BuildOrderResultArgData data)
 {
 	mediator->DefendThirdBaseZerg();
-	mediator->CreateArmyGroup(ArmyRole::defend_outer, { ORACLE, VOID_RAY, CARRIER, TEMPEST }, 0, 10);
 	return true;
 }
 
 bool BuildOrderManager::SetDoorGuard(BuildOrderResultArgData data)
 {
-	mediator->CreateArmyGroup(ArmyRole::defend_door, { ADEPT, STALKER, ZEALOT }, 1, 1);
+	mediator->SetDoorGuard();
 	return true;
 }
 
@@ -690,7 +689,7 @@ bool BuildOrderManager::CannonRushAttack(BuildOrderResultArgData data)
 
 bool BuildOrderManager::SendAllInAttack(BuildOrderResultArgData data)
 {
-	mediator->CreateArmyGroup(ArmyRole::attack, { ZEALOT, ADEPT, SENTRY, STALKER, HIGH_TEMPLAR, ARCHON, IMMORTAL, PRISM, COLOSSUS, DISRUPTOR, VOID_RAY, TEMPEST, CARRIER }, 15, 30);
+	mediator->CreateAttack({ ZEALOT, ADEPT, SENTRY, STALKER, HIGH_TEMPLAR, ARCHON, IMMORTAL, PRISM, COLOSSUS, DISRUPTOR, VOID_RAY, TEMPEST, CARRIER }, 15, 30, 1, 1);
 	return true;
 }
 
@@ -1059,10 +1058,7 @@ bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 	{
 		// cannon rush
 		mediator->SendChat("Tag:scout_cannon_rush", ChatChannel::Team);
-		mediator->CreateArmyGroup(ArmyRole::cannon_rush_defense, {}, 20, 20);
-		mediator->SetBalanceIncome(true);
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckBaseForCannons, new ActionArgData(0)));
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckNaturalForCannons, new ActionArgData(0)));
+		mediator->StartCannonRushDefense();
 		build_order_step = 0;
 		SetCannonRushResponse();
 		return false;
@@ -1128,7 +1124,7 @@ bool BuildOrderManager::DoubleCheckProxyGate(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ScoutBases(BuildOrderResultArgData data)
 {
-	mediator->CreateArmyGroup(ArmyRole::scout_bases, { ADEPT, STALKER }, 1, 1);
+	mediator->ScoutBases();
 	return true;
 }
 
@@ -1147,9 +1143,10 @@ bool BuildOrderManager::WallOffRamp(BuildOrderResultArgData data)
 
 bool BuildOrderManager::DefendMainRamp(BuildOrderResultArgData data)
 {
-	ArmyGroup* army = mediator->CreateArmyGroup(ArmyRole::defend_main_ramp, {ADEPT, STALKER, SENTRY}, 10, 20);
 	if(mediator->GetEnemyRace() == Race::Terran)
-		army->target_pos = mediator->GetLocations().main_ramp_forcefield_mid;
+		mediator->DefendMainRamp(mediator->GetLocations().main_ramp_forcefield_mid);
+	else
+		mediator->DefendMainRamp(mediator->GetLocations().main_ramp_forcefield_top);
 
 	mediator->MarkArmyGroupForDeletion(mediator->GetArmyGroupDefendingBase(mediator->GetStartLocation()));
 	ArmyGroup* natural_army_group = mediator->GetArmyGroupDefendingBase(mediator->GetNaturalLocation());
@@ -1239,19 +1236,6 @@ bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 	mediator->agent->Debug()->DebugCreateUnit(ASSIMILATOR, Point2D(54.5, 58.5), 1, 1);
 	return true;
 }
-
-bool BuildOrderManager::AttackLine(BuildOrderResultArgData data)
-{
-	Units eUnits = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
-	Units fUnits = mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self));
-	
-	mediator->defense_manager.JudgeFight(fUnits, eUnits, 0.0f, 300.0f, true);
-	//ArmyGroup* army = mediator->CreateArmyGroup(ArmyRole::simple_attack, { ADEPT, STALKER, PRISM }, 3, 20);
-	//army->standby_pos = mediator->agent->locations->attack_path[0];
-	//army->using_standby = false;
-	return true;
-}
-
 
 
 bool BuildOrderManager::RemoveProbe(BuildOrderResultArgData data)

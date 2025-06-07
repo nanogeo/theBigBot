@@ -1,6 +1,21 @@
 
 #include <iostream>
 
+#include "attack_army_group.h"
+#include "cannon_rush_defense_army_group.h"
+#include "defend_base_army_group.h"
+#include "defend_line_army_group.h"
+#include "defend_main_ramp_army_group.h"
+#include "defend_third_zerg_army_group.h"
+#include "deny_outer_base_army_group.h"
+#include "door_guard_army_group.h"
+#include "observer_scout_army_group.h"
+#include "outside_control_army_group.h"
+#include "scout_bases_army_group.h"
+#include "simple_attack_army_group.h"
+
+#include "oracle_harass_state_machine.h"
+
 #include "army_manager.h"
 #include "mediator.h"
 #include "theBigBot.h"
@@ -8,32 +23,30 @@
 
 namespace sc2 {
 
-	ArmyManager::ArmyManager(Mediator* mediator)
+ArmyManager::ArmyManager(Mediator* mediator)
 {
 	this->mediator = mediator;
 }
 
 void ArmyManager::SetUpInitialArmies()
 {
-	unassigned_group = new ArmyGroup(mediator, ArmyRole::none, ALL_ARMY_UNITS);
+	unassigned_group = new ArmyGroup(mediator, { ALL_ARMY_UNITS });
+
+	AddArmyGroup(new DefendBaseArmyGroup(mediator, mediator->GetStartLocation(), { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 3));
 
 	switch (mediator->GetEnemyRace())
 	{
 	case Race::Protoss:
-		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 3);
 		CreateProtossArmyTemplates();
 		break;
 	case Race::Zerg:
-		CreateArmyGroup(ArmyRole::defend_door, { ZEALOT, ADEPT, STALKER, SENTRY }, 1, 1);
-		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 3);
+		mediator->SetDoorGuard();
 		CreateZergArmyTemplates();
 		break;
 	case Race::Terran:
-		CreateArmyGroup(ArmyRole::defend_base, { ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 3);
 		CreateTerranArmyTemplates();
 		break;
 	case Race::Random:
-		CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 3);
 		break;
 	}
 }
@@ -45,36 +58,40 @@ void ArmyManager::CreateProtossArmyTemplates()
 
 void ArmyManager::CreateTerranArmyTemplates()
 {
-	std::map<UNIT_TYPEID, int> base_denial_req;
+	std::vector<UNIT_TYPEID> base_denial_types = { STALKER };
+	std::map<UNIT_TYPEID, uint16_t> base_denial_req;
 	base_denial_req[STALKER] = 2;
 	bool(sc2::ArmyManager:: * condition)() = &ArmyManager::EnemyHasExposedBase;
-	ArmyTemplate base_denial = ArmyTemplate(base_denial_req, 10, ArmyRole::deny_outer_base, 2, 4, condition);
+	ArmyTemplate<DenyOuterBaseArmyGroup>* base_denial = new ArmyTemplate<DenyOuterBaseArmyGroup>(base_denial_req, condition, 10, base_denial_types, 2, 2);
 	army_templates.push_back(base_denial);
 
 
-	std::map<UNIT_TYPEID, int> observer_req;
-	observer_req[OBSERVER] = 1;
-	ArmyTemplate observer_scout = ArmyTemplate(observer_req, 1, ArmyRole::observer_scout, 1, 2);
+	std::vector<UNIT_TYPEID> observer_scout_types = { STALKER };
+	std::map<UNIT_TYPEID, uint16_t> observer_scout_req;
+	observer_scout_req[OBSERVER] = 1;
+	ArmyTemplate<ObserverScoutArmyGroup>* observer_scout = new ArmyTemplate<ObserverScoutArmyGroup>(observer_scout_req, 10, observer_scout_types, 1, 1);
 	army_templates.push_back(observer_scout);
 }
 
 void ArmyManager::CreateZergArmyTemplates()
 {
-	std::map<UNIT_TYPEID, int> stalker_oracle_req;
+	std::vector<UNIT_TYPEID> stalker_oracle_types = { STALKER, ORACLE };
+	std::map<UNIT_TYPEID, uint16_t> stalker_oracle_req;
 	stalker_oracle_req[STALKER] = 7;
 	stalker_oracle_req[ORACLE] = 2;
-	stalker_oracle_req[CARRIER] = 0;
-	ArmyTemplate stalker_oracle = ArmyTemplate(stalker_oracle_req, 10, ArmyRole::pressure, 15, 25);
+	ArmyTemplate<AttackArmyGroup>* stalker_oracle = new ArmyTemplate<AttackArmyGroup>(stalker_oracle_req, 10, stalker_oracle_types, 25, 35);
 	army_templates.push_back(stalker_oracle);
 
-	std::map<UNIT_TYPEID, int> zealot_double_prong_req;
-	zealot_double_prong_req[ZEALOT] = 10;
-	ArmyTemplate zealot_double_prong = ArmyTemplate(zealot_double_prong_req, 10, ArmyRole::simple_attack, 12, 20);
-	army_templates.push_back(zealot_double_prong);
+	std::vector<UNIT_TYPEID> zealot_run_by_types = { ZEALOT };
+	std::map<UNIT_TYPEID, uint16_t> zealot_run_by_req;
+	zealot_run_by_req[ZEALOT] = 10;
+	ArmyTemplate<SimpleAttackArmyGroup>* zealot_run_by = new ArmyTemplate<SimpleAttackArmyGroup>(zealot_run_by_req, 10, zealot_run_by_types, 10, 20);
+	army_templates.push_back(zealot_run_by);
 
-	std::map<UNIT_TYPEID, int> oracle_harass_req;
+	std::vector<UNIT_TYPEID> oracle_harass_types = { ORACLE };
+	std::map<UNIT_TYPEID, uint16_t> oracle_harass_req;
 	oracle_harass_req[ORACLE] = 2;
-	ArmyTemplate oracle_harass = ArmyTemplate(oracle_harass_req, 20, ArmyRole::oracle_harass, 2, 2);
+	ArmyTemplateStateMachine<OutsideControlArmyGroup, OracleHarassStateMachine>* oracle_harass = new ArmyTemplateStateMachine<OutsideControlArmyGroup, OracleHarassStateMachine>(oracle_harass_req, 20, oracle_harass_types, 2, 2);
 	army_templates.push_back(oracle_harass);
 }
 
@@ -114,18 +131,18 @@ void ArmyManager::CreateNewArmyGroups()
 			}
 		}
 	}
-	const ArmyTemplate* template_to_create = nullptr;
+	IArmyTemplate* template_to_create = nullptr;
 	for (const auto& army_template : army_templates)
 	{
-		if (army_template.condition != nullptr)
+		if (army_template->condition != nullptr)
 		{
-			bool(sc2::ArmyManager:: * condition)() = army_template.condition;
+			bool(sc2::ArmyManager:: * condition)() = army_template->condition;
 			if ((*this.*condition)() == false)
 				continue;
 		}
 
 		bool all_req_units = true;
-		for (const auto& type : army_template.required_units)
+		for (const auto& type : army_template->required_units)
 		{
 			if (type.second > 0 && (extra_units.find(type.first) == extra_units.end() || extra_units[type.first] < type.second))
 			{
@@ -136,90 +153,41 @@ void ArmyManager::CreateNewArmyGroups()
 		}
 		if (all_req_units)
 		{
-			if (template_to_create == nullptr || army_template.priority < template_to_create->priority)
+			if (template_to_create == nullptr || army_template->priority < template_to_create->priority)
 			{
-				template_to_create = &army_template;
+				template_to_create = army_template;
 			}
 		}
 	}
 
 	if (template_to_create != nullptr)
 	{
-		// create new army with template
-		std::vector<UNIT_TYPEID> unit_types;
-		for (const auto& type : template_to_create->required_units)
+		ArmyGroup* new_army = template_to_create->CreateArmyGroup(mediator);
+
+		if (dynamic_cast<IArmyTemplateStateMachine*>(template_to_create))
 		{
-			unit_types.push_back(type.first);
+			StateMachine* new_state_machine = dynamic_cast<IArmyTemplateStateMachine*>(template_to_create)->CreateStateMachine(mediator);
+			mediator->AddStateMachine(new_state_machine);
+			new_state_machine->attached_army_group = new_army;
+			if (dynamic_cast<OutsideControlArmyGroup*>(new_army))
+			{
+				dynamic_cast<OutsideControlArmyGroup*>(new_army)->state_machine = new_state_machine;
+			}
+			else
+			{
+				std::cerr << "Incorrect ArmyGroup type created with StateMachine in ArmyManager::CreateNewArmyGroups" << std::endl;
+				mediator->LogMinorError();
+			}
 		}
-		CreateArmyGroup(template_to_create->role, unit_types, template_to_create->desired_units, template_to_create->max_units);
+
+		AddArmyGroup(new_army);
 	}
 }
 
-ArmyGroup* ArmyManager::CreateArmyGroup(ArmyRole role, std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)
+void ArmyManager::AddArmyGroup(ArmyGroup* army)
 {
-	ArmyGroup* army;
-	switch (role)
-	{
-	case ArmyRole::outside_control:
-		army = new ArmyGroup(mediator, role, unit_types);
-		break;
-	case ArmyRole::attack:
-		army = new ArmyGroup(mediator, mediator->GetDirectAttackLine(), mediator->GetDirectAttackPath(), role, unit_types);
-		break;
-	case ArmyRole::pressure:
-		army = new ArmyGroup(mediator, mediator->GetIndirectAttackLine(), mediator->GetIndirectAttackPath(), role, unit_types);
-		break;
-	case ArmyRole::defend_door:
-		army = new ArmyGroup(mediator, role, unit_types);
-		break;
-	case ArmyRole::defend_third:
-		army = new ArmyGroup(mediator, role, unit_types);
-		break;
-	case ArmyRole::defend_main:
-		army = new ArmyGroup(mediator, role, unit_types);
-		break;
-	case ArmyRole::simple_attack:
-		army = new ArmyGroup(mediator, mediator->GetAltAttackPath(), role, unit_types);
-		break;
-	case ArmyRole::scour:
-		army = new ArmyGroup(mediator, role, unit_types);
-		break;
-	case ArmyRole::defend_base:
-		army = new ArmyGroup(mediator, mediator->GetMostRecentBuilding(NEXUS)->pos, role, unit_types);
-		break;
-	case ArmyRole::defend_outer:
-		army = new ArmyGroup(mediator, mediator->GetLocation(NEXUS, 2), mediator->GetNaturalLocation(), role, unit_types);
-		break;
-	case ArmyRole::observer_scout:
-		army = new ArmyGroup(mediator, role, unit_types);
-		break;
-	case ArmyRole::oracle_harass:
-		army = new ArmyGroup(mediator, ArmyRole::outside_control, unit_types);
-		mediator->StartOracleHarassStateMachine(army);
-		break;
-	case ArmyRole::scout_bases:
-		army = new ArmyGroup(mediator, mediator->GetAllBases(), role, unit_types);
-		break;
-	case ArmyRole::deny_outer_base:
-		army = new ArmyGroup(mediator, FindExposedBase(), role, unit_types);
-		break;
-	case ArmyRole::defend_main_ramp:
-		army = new ArmyGroup(mediator, mediator->GetLocations().main_ramp_forcefield_top, role, unit_types);
-		break;
-	case ArmyRole::cannon_rush_defense:
-		army = new ArmyGroup(mediator, role, unit_types);
-		break;
-	default:
-		std::cerr << "Unknown ArmyRole in CreateArmyGroup" << std::endl;
-		mediator->LogMinorError();
-		return nullptr;
-	}
-
-	army->desired_units = desired_units;
-	army->max_units = max_units;
 	army_groups.push_back(army);
 	BalanceUnits();
-	return army;
 }
 
 void ArmyManager::RunArmyGroups()
@@ -234,69 +202,17 @@ void ArmyManager::RunArmyGroups()
 			BalanceUnits();
 			continue;
 		}
-		switch (army_groups[i]->role)
+		if (scouring_map)
 		{
-		case ArmyRole::outside_control:
-			army_groups[i]->OutsideControl();
-			break;
-		case ArmyRole::attack:
-		case ArmyRole::pressure:
-			switch (mediator->GetEnemyRace())
-			{
-			case Race::Zerg:
-				army_groups[i]->AttackLine(0, 6, ZERG_PRIO);
-				break;
-			case Race::Protoss:
-				army_groups[i]->AttackLine(0, 8, PROTOSS_PRIO);
-				break;
-			case Race::Terran:
-				army_groups[i]->AttackLine(.2f, 7, TERRAN_PRIO);
-				break;
-			default:
-				std::cerr << "Unknown enemy race in RunArmyGroup" << std::endl;
-				mediator->LogMinorError();
-			}
-			break;
-		case ArmyRole::scour:
 			army_groups[i]->ScourMap();
-			break;
-		case ArmyRole::simple_attack:
-			army_groups[i]->SimpleAttack();
-			break;
-		case ArmyRole::defend_door:
-			army_groups[i]->DefendFrontDoor(mediator->agent->locations->natural_door_open, mediator->agent->locations->natural_door_closed);
-			break;
-		case ArmyRole::defend_third:
-			army_groups[i]->DefendThirdBase(mediator->agent->locations->third_base_pylon_gap);
-			break;
-		case ArmyRole::defend_main:
-			
-			break;
-		case ArmyRole::defend_base:
-			army_groups[i]->DefendLocation();
-			break;
-		case ArmyRole::defend_outer:
-			army_groups[i]->DefendLine();
-			break;
-		case ArmyRole::observer_scout:
-			army_groups[i]->ObserverScout();
-			break;
-		case ArmyRole::scout_bases:
-			army_groups[i]->ScoutBases();
-			break;
-		case ArmyRole::deny_outer_base:
-			army_groups[i]->DenyBase();
-			break;
-		case ArmyRole::defend_main_ramp:
-			army_groups[i]->DefendMainRamp();
-			break;
-		case ArmyRole::cannon_rush_defense:
-			army_groups[i]->DefendCannonRush();
-			break;
-		default:
-			std::cerr << "Unknown ArmyRole in RunArmyGroup" << std::endl;
-			mediator->LogMinorError();
-			break;
+		}
+		else if (army_groups[i]->ready)
+		{
+			army_groups[i]->Run();
+		}
+		else
+		{
+			army_groups[i]->SetUp();
 		}
 	}
 }
@@ -363,7 +279,6 @@ void ArmyManager::BalanceUnits()
 		FindArmyGroupForUnit(unit);
 	}
 
-
 	// shuffle other groups units if necessary
 	for (const auto& group : army_groups)
 	{
@@ -378,27 +293,20 @@ void ArmyManager::BalanceUnits()
 
 void ArmyManager::ScourMap()
 {
-	for (const auto& army_group : army_groups)
-	{
-		army_group->role = ArmyRole::scour;
-		if (army_group->state_machine)
-		{
-			mediator->RemoveStateMachine(army_group->state_machine);
-			army_group->state_machine = nullptr;
-		}
-	}
+	scouring_map = true;
 }
 
-void ArmyManager::NexusStarted()
+void ArmyManager::NexusStarted(Point2D pos) // TODO move to mediator
 {
-	CreateArmyGroup(ArmyRole::defend_base, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS, VOID_RAY, CARRIER, TEMPEST }, 0, 3);
+	AddArmyGroup(new DefendBaseArmyGroup(mediator, pos, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 3));
 }
 
-void ArmyManager::RemoveArmyGroupWithRole(ArmyRole role)
+template<typename T>
+void ArmyManager::RemoveArmyGroupOfType()
 {
 	for (int i = 0; i < army_groups.size(); i++)
 	{
-		if (army_groups[i]->role == role)
+		if (dynamic_cast<T*>(army_groups[i]))
 		{
 			DeleteArmyGroup(army_groups[i]);
 			i--;
@@ -411,7 +319,7 @@ void ArmyManager::RemoveDefenseGroupAt(Point2D pos)
 {
 	for (int i = 0; i < army_groups.size(); i++)
 	{
-		if (army_groups[i]->role == ArmyRole::defend_base && army_groups[i]->target_pos == pos)
+		if (dynamic_cast<DefendBaseArmyGroup*>(army_groups[i]) && dynamic_cast<DefendBaseArmyGroup*>(army_groups[i])->base_pos == pos)
 		{
 			DeleteArmyGroup(army_groups[i]);
 			i--;
@@ -479,5 +387,6 @@ Point2D ArmyManager::FindExposedBase()
 	}
 	return Point2D(0, 0);
 }
+
 
 }

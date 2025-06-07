@@ -1282,13 +1282,13 @@ CannonRushTerranUnitMicro::CannonRushTerranUnitMicro(Mediator* mediator, CannonR
 
 void CannonRushTerranUnitMicro::TickState()
 {
-	army->CannonRushPressure();
+	//army->CannonRushPressure();
 }
 
 void CannonRushTerranUnitMicro::EnterState()
 {
-	army->AutoAddUnits({ UNIT_TYPEID::PROTOSS_ZEALOT, UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_VOIDRAY,
-		UNIT_TYPEID::PROTOSS_ORACLE, UNIT_TYPEID::PROTOSS_TEMPEST, UNIT_TYPEID::PROTOSS_CARRIER });
+	//army->AutoAddUnits({ UNIT_TYPEID::PROTOSS_ZEALOT, UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_VOIDRAY,
+	//	UNIT_TYPEID::PROTOSS_ORACLE, UNIT_TYPEID::PROTOSS_TEMPEST, UNIT_TYPEID::PROTOSS_CARRIER });
 	return;
 }
 
