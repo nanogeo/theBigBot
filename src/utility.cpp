@@ -432,6 +432,39 @@ Point2D Utility::ClosestPointOnLine(Point2D point, Point2D start, Point2D end)
 	float x_pos = (coef1 - coef2) / (line_slope - perpendicular_slope);
 	float y_pos = line_slope * x_pos - coef1;
 
+	if (start.x < end.x)
+	{
+		if (x_pos < start.x)
+			return start;
+		if (x_pos > end.x)
+			return end;
+		return Point2D(x_pos, y_pos);
+	}
+	if (start.x > end.x)
+	{
+		if (x_pos > start.x)
+			return start;
+		if (x_pos < end.x)
+			return end;
+		return Point2D(x_pos, y_pos);
+	}
+	if (start.y < end.y)
+	{
+		if (y_pos < start.y)
+			return start;
+		if (y_pos > end.y)
+			return end;
+		return Point2D(x_pos, y_pos);
+	}
+	if (start.y > end.y)
+	{
+		if (y_pos > start.y)
+			return start;
+		if (y_pos < end.y)
+			return end;
+		return Point2D(x_pos, y_pos);
+	}
+
 	return Point2D(x_pos, y_pos);
 }
 
