@@ -779,7 +779,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 			}
 			if (!in_energy_field && building->unit_type == PYLON)
 			{
-				if (Distance2D(Point2D(building->pos), point) < 6.5)
+				if (Distance2D(Point2D(building->pos), point) < 6.5 && OnSameLevel(building->pos, point))
 				{
 					in_energy_field = true;
 				}
