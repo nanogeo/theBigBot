@@ -784,7 +784,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 					in_energy_field = true;
 				}
 			}
-			if (building->unit_type == NEXUS && Distance2D(building->pos, point) < 25 && Utility::OnSameLevel(building->pos, ToPoint3D(point)))
+			if (building->unit_type == NEXUS && Distance2D(building->pos, point) < 25 && Utility::OnSameLevel(ToPoint3D(building->pos), ToPoint3D(point)))
 				in_base = true;
 		}
 		if (in_base && !blocked && in_energy_field)

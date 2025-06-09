@@ -257,7 +257,7 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 			i--;
 			continue;
 		}
-		if (Utility::OnSameLevel(stalkers_to_blink[i]->pos, mediator->ToPoint3D(state_machine->blink_down_pos)))
+		if (Utility::OnSameLevel(mediator->ToPoint3D(stalkers_to_blink[i]->pos), mediator->ToPoint3D(state_machine->blink_down_pos)))
 		{
 			stalkers_to_blink.erase(stalkers_to_blink.begin() + i);
 			i--;
@@ -322,7 +322,7 @@ void BlinkStalkerAttackTerranAttack::TickState()
 		{
 			const Unit* stalker = state_machine->moving_to_standby_stalkers[i];
 			
-			if (Utility::OnSameLevel(stalker->pos, mediator->ToPoint3D(state_machine->blink_down_pos)))
+			if (Utility::OnSameLevel(mediator->ToPoint3D(stalker->pos), mediator->ToPoint3D(state_machine->blink_down_pos)))
 			{
 				if (Distance2D(stalker->pos, state_machine->blink_down_pos) < 1)
 				{
@@ -556,7 +556,7 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 			continue;
 		}
 
-		if (Utility::OnSameLevel(stalker->pos, mediator->ToPoint3D(state_machine->blink_down_pos)))
+		if (Utility::OnSameLevel(mediator->ToPoint3D(stalker->pos), mediator->ToPoint3D(state_machine->blink_down_pos)))
 		{
 			if (Distance2D(stalker->pos, state_machine->blink_down_pos) < 1)
 			{

@@ -3426,7 +3426,7 @@ bool Utility::IsMelee(UNIT_TYPEID type)
 
 bool Utility::OnSameLevel(Point3D pos1, Point3D pos2)
 {
-	return pos1.z + .1 > pos2.z && pos1.z - .1 < pos2.z;
+	return pos1.z + .15 > pos2.z && pos1.z - .15 < pos2.z;
 }
 
 std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
