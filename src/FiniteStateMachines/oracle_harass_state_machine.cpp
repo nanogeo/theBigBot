@@ -444,6 +444,17 @@ void OracleHarassGroupUp::EnterState()
 
 State* OracleHarassGroupUp::TestTransitions()
 {
+	for (auto itr = state_machine->oracles.begin(); itr != state_machine->oracles.end();)
+	{
+		if ((*itr)->is_alive == false)
+		{
+			itr = state_machine->oracles.erase(itr);
+		}
+		else
+		{
+			itr++;
+		}
+	}
 	if (state_machine->oracles.size() < 2)
 	{
 		// delete sm and ag
