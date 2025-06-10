@@ -3534,8 +3534,8 @@ std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
 		return "build assimilator";
 	case ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST:
 		return "chrono";
-	case ABILITY_ID::BATTERYOVERCHARGE:
-		return "battery overcharge";
+	case ABILITY_ID::BATTERYOVERCHARGE: // 4126
+		return "energy recharge";
 	case ABILITY_ID::BEHAVIOR_PULSARBEAMON:
 		return "pulsar beam on";
 	case ABILITY_ID::BEHAVIOR_PULSARBEAMOFF:

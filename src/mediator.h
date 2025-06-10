@@ -265,8 +265,8 @@ public:
 	bool IsOracleBeamActive(const Unit*);
 	void SetOracleOrder(const Unit*, ABILITY_ID);
 	bool IsOracleCasting(const Unit*);
-	bool IsBatteryOverchargeOffCooldown();
-	void SetBatteryOverchargeCooldown();
+	bool IsEnergyRechargeOffCooldown();
+	void SetEnergyRechargeCooldown();
 	bool IsNexusRecallOffCooldown();
 	void SetNexusRecallCooldown();
 

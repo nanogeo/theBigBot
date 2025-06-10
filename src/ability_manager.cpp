@@ -115,9 +115,9 @@ bool AbilityManager::NexusRecallOffCooldown()
 	return mediator->GetCurrentTime() > last_time_nexus_recalled + 130;
 }
 
-bool AbilityManager::NexusBatteryOverchargeOffCooldown()
+bool AbilityManager::NexusEnergyRechargeOffCooldown()
 {
-	return mediator->GetCurrentTime() > last_time_nexus_battery_overcharged + 60;
+	return mediator->GetCurrentTime() > last_time_nexus_energy_recharged + 60;
 }
 
 void AbilityManager::SetNexusRecallCooldown(float time)
@@ -125,9 +125,9 @@ void AbilityManager::SetNexusRecallCooldown(float time)
 	last_time_nexus_recalled = time;
 }
 
-void AbilityManager::SetBatteryOverchargeCooldown(float time)
+void AbilityManager::SetEnergyRechargeCooldown(float time)
 {
-	last_time_nexus_battery_overcharged = time;
+	last_time_nexus_energy_recharged = time;
 }
 
 void AbilityManager::OnUnitCreated(const Unit* unit)

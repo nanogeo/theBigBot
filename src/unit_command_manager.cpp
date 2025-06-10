@@ -209,10 +209,10 @@ void UnitCommandManager::ParseUnitCommands()
 			}
 			else
 			{
-				if (itr->second.ability.ToType() == ABILITY_ID::BATTERYOVERCHARGE)
+				if (itr->second.ability.ToType() == ABILITY_ID::INVALID) // TODO find energy recharge id
 				{
-					if (itr->first->energy >= 50 && Distance2D(itr->first->pos, itr->second.target->pos) < RANGE_BATTERY_OVERCHARGE)
-						mediator->SetBatteryOverchargeCooldown();
+					if (itr->first->energy >= 50 && Distance2D(itr->first->pos, itr->second.target->pos) < RANGE_ENERGY_RECHARGE)
+						mediator->SetEnergyRechargeCooldown();
 				}
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability, itr->second.target);
 				actions_this_frame++;

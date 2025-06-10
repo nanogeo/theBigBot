@@ -1185,7 +1185,7 @@ Point2D Mediator::FindBuildLocationNearWithinNexusRange(UNIT_TYPEID unit_type, P
 				if ((curr_pos.x + 1 > door_guard_pos.x && curr_pos.x - 1 < door_guard_pos.x) ||
 					(curr_pos.y + 1 > door_guard_pos.y && curr_pos.y - 1 < door_guard_pos.y))
 					continue;
-				if (Utility::DistanceToClosest(nexi, curr_pos) < RANGE_BATTERY_OVERCHARGE && agent->Query()->Placement(Utility::GetBuildAbility(unit_type), curr_pos))
+				if (Utility::DistanceToClosest(nexi, curr_pos) < RANGE_ENERGY_RECHARGE && agent->Query()->Placement(Utility::GetBuildAbility(unit_type), curr_pos))
 					possible_locations.push_back(curr_pos);
 			}
 		}
@@ -2100,14 +2100,14 @@ bool Mediator::IsOracleCasting(const Unit* unit)
 	return ability_manager.IsOracleCasting(unit);
 }
 
-bool Mediator::IsBatteryOverchargeOffCooldown()
+bool Mediator::IsEnergyRechargeOffCooldown()
 {
-	return ability_manager.NexusBatteryOverchargeOffCooldown();
+	return ability_manager.NexusEnergyRechargeOffCooldown();
 }
 
-void Mediator::SetBatteryOverchargeCooldown()
+void Mediator::SetEnergyRechargeCooldown()
 {
-	ability_manager.SetBatteryOverchargeCooldown(GetCurrentTime());
+	ability_manager.SetEnergyRechargeCooldown(GetCurrentTime());
 }
 
 bool Mediator::IsNexusRecallOffCooldown()

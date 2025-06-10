@@ -69,22 +69,8 @@ void DefendMainRampArmyGroup::Run()
 
 	}
 
-	bool overcharge_active = false;
-	for (const auto& battery : mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(BATTERY)))
-	{
-		for (const auto& buff : battery->buffs)
-		{
-			if (buff == BUFF_ID::BATTERYOVERCHARGE)
-			{
-				overcharge_active = true;
-				break;
-			}
-		}
-	}
-
 	// forcefield if necessary
-	if (overcharge_active == false && 
-		Utility::DistanceToClosest(mediator->GetUnits(IsUnit(UNIT_TYPEID::NEUTRAL_FORCEFIELD)), forcefield_pos) > .1 &&
+	if (Utility::DistanceToClosest(mediator->GetUnits(IsUnit(UNIT_TYPEID::NEUTRAL_FORCEFIELD)), forcefield_pos) > .1 &&
 		enemy_units.size() > 2 &&
 		Distance2D(Utility::NthClosestTo(enemy_units, forcefield_pos, 2)->pos, forcefield_pos) < 3)
 	{

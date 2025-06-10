@@ -411,45 +411,17 @@ float DefenseManager::JudgeFight(Units friendly_units, Units enemy_units, float 
 void DefenseManager::UseBatteries()
 {
 	// battery overcharge to heal buildings/units
-	// BATTERY_OVERCHARGE
 	Units batteries = mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(BATTERY));
 	Units nexi = mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS));
-	if (mediator->IsBatteryOverchargeOffCooldown() && batteries.size() > 0 && nexi.size() > 0)
-	{
-		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Self))
-		{
-			const Unit* closest = Utility::ClosestTo(batteries, unit->pos);
-			if (unit->build_progress < 1 || Distance2D(closest->pos, unit->pos) > Utility::RealRange(closest, unit))
-				continue;
-			if ((unit->is_building && unit->health / unit->health_max < .25 && unit->shield < 1) || 
-				(unit->health / unit->health_max < .5 && unit->shield < 1))
-			{
-				mediator->SetUnitCommand(Utility::ClosestTo(nexi, unit->pos), ABILITY_ID::BATTERYOVERCHARGE, Utility::ClosestTo(batteries, unit->pos), 1);
-				break;
-			}
-		}
-	}
-	bool overcharge_active = false;
+	
 	for (const auto& battery : batteries)
 	{
-		for (const auto& buff : battery->buffs)
-		{
-			if (buff == BUFF_ID::BATTERYOVERCHARGE)
-			{
-				overcharge_active = true;
-				break;
-			}
-		}
-		//if (overcharge_active == false)
-		//	continue;
-
 		Units close_units = mediator->GetUnits(Unit::Alliance::Self);
 		for (auto itr = close_units.begin(); itr != close_units.end();)
 		{
 			if ((*itr)->build_progress < 1 ||
 				Distance2D((*itr)->pos, battery->pos) > Utility::RealRange(battery, (*itr)) ||
-				((*itr)->shield == (*itr)->shield_max && overcharge_active) ||
-				(((*itr)->shield > 10 || (*itr)->health > 50) && overcharge_active == false))
+				(((*itr)->shield > 10 || (*itr)->health > 50)))
 			{
 				itr = close_units.erase(itr);
 			}

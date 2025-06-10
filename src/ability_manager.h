@@ -31,8 +31,7 @@ public:
 	std::map<const Unit*, float> last_time_stalker_blinked;
 	// add sentry, high templar, dark temlplar, phoenix, mothership, nexus
 	float last_time_nexus_recalled = 0;
-	// BATTERY_OVERCHARGE
-	float last_time_nexus_battery_overcharged = 0;
+	float last_time_nexus_energy_recharged = 0;
 
 	AbilityManager(Mediator* mediator)
 	{
@@ -50,9 +49,9 @@ public:
 	void SetStalkerOrder(const Unit*);
 
 	bool NexusRecallOffCooldown();
-	bool NexusBatteryOverchargeOffCooldown();
+	bool NexusEnergyRechargeOffCooldown();
 	void SetNexusRecallCooldown(float);
-	void SetBatteryOverchargeCooldown(float);
+	void SetEnergyRechargeCooldown(float);
 
 	void OnUnitCreated(const Unit*);
 	void OnUnitDestroyed(const Unit*);
