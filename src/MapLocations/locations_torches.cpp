@@ -59,27 +59,28 @@ namespace sc2 {
 							P(124.5, 76.5),
 							P(125.5, 97.5) };
 
-		pylon_locations = { P(138, 45),
-							P(136, 45),
-							P(126, 36),
-							P(111, 36),
-							P(111, 38),
-							P(121, 50),
-							P(121, 52),
+		pylon_locations = { P(121, 50),
 							P(91, 80),
-							P(87, 77),
 							P(59, 51),
-							P(67, 42),
 							P(29, 51),
-							P(29, 39),
-							P(27, 80),
-							P(54, 97),
 							P(38, 73),
-							P(61, 99),
-							P(133, 77),
+							P(54, 97),
 							P(122, 80),
 							P(122, 98),
-							P(129, 98) };
+							P(87, 77),
+							P(111, 36),
+							P(138, 45),
+							P(126, 36),
+							P(67, 42),
+							P(29, 39),
+							P(27, 80),
+							P(61, 99),
+							P(133, 77),
+							P(129, 98),
+							P(136, 45),
+							P(126, 38),
+							P(111, 38),
+							P(121, 52) };
 		
 		first_pylon_location_zerg = P(90, 54);
 		first_pylon_location_protoss = P(113, 51);
@@ -91,6 +92,10 @@ namespace sc2 {
 							P(113.5, 53.5),
 							P(135.5, 54.5), // t
 							P(135.5, 57.5),
+							P(96.5, 82.5),
+							P(93.5, 82.5),
+							P(90.5, 82.5),
+							P(88.5, 79.5),
 							P(135.5, 48.5),
 							P(135.5, 41.5),
 							P(128.5, 36.5),
@@ -98,11 +103,7 @@ namespace sc2 {
 							P(129.5, 39.5),
 							P(113.5, 36.5),
 							P(113.5, 39.5),
-							P(107.5, 40.5),
-							P(96.5, 82.5),
-							P(93.5, 82.5),
-							P(90.5, 82.5),
-							P(88.5, 79.5) };
+							P(107.5, 40.5) };
 
 		assimilator_locations = { P(121.5, 41.5),
 									P(131.5, 51.5),
@@ -127,7 +128,7 @@ namespace sc2 {
 
 		tech_locations = { P(123.5, 52.5),
 							P(123.5, 55.5),
-							P(120.5, 54.5),
+							P(118.5, 54.5),
 							P(118.5, 51.5),
 							P(120.5, 47.5) };
 		
@@ -291,7 +292,7 @@ namespace sc2 {
 		std::vector<std::vector<Point2D>> blink_main_attack_path = { {},
 																	{} };
 
-		blink_main_attack_path_lines = { PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
+		blink_main_attack_path_lines = {}; // PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
 
 		std::vector<std::vector<Point2D>> blink_third_attack_path = { { P(85, 125),
 																	P(93, 135) },
