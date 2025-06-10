@@ -21,132 +21,136 @@ namespace sc2 {
 		auto convert_location = [](Point2D point, bool swap)
 		{
 			if (swap)
-				return Point2D(0, 0) - point;
+				return Point2D(184, 184) - point;
 			else
 				return point;
 		};
 
-		bool swap = start.x == .5 && start.y == .5;
+		bool swap = start.x == 141.5 && start.y == 137.5;
 
 		this->start_location = start;
 
-		/*base_locations = { P(153.5, 22.5),
-							P(151.5, 52.5),
-							P(124.5, 29.5),
-							P(134.5, 68.5),
-							P(154.5, 93.5),
-							P(93.5, 25.5),
-							P(60.5, 19.5),
-							P(80.5, 55.5),
-							convert_location(Point2D(153.5, 22.5), !swap),
-							convert_location(Point2D(151.5, 52.5), !swap),
-							convert_location(Point2D(124.5, 29.5), !swap),
-							convert_location(Point2D(134.5, 68.5), !swap),
-							convert_location(Point2D(154.5, 93.5), !swap),
-							convert_location(Point2D(93.5, 25.5), !swap),
-							convert_location(Point2D(60.5, 19.5), !swap),
-							convert_location(Point2D(80.5, 55.5), !swap) };
+		base_locations = { P(42.5, 46.5),
+							P(68.5, 42.5),
+							P(99.5, 38.5),
+							P(64.5, 70.5),
+							P(39.5, 82.5),
+							P(38.5, 106.5),
+							P(144.5, 36.5),
+							convert_location(Point2D(42.5, 46.5), !swap),
+							convert_location(Point2D(68.5, 42.5), !swap),
+							convert_location(Point2D(99.5, 38.5), !swap),
+							convert_location(Point2D(64.5, 70.5), !swap),
+							convert_location(Point2D(39.5, 82.5), !swap),
+							convert_location(Point2D(38.5, 106.5), !swap),
+							convert_location(Point2D(144.5, 36.5), !swap) };
 
-		nexi_locations = { P(153.5, 22.5),
-							P(151.5, 52.5),
-							P(124.5, 29.5),
-							P(134.5, 68.5),
-							P(154.5, 93.5),
-							P(93.5, 25.5),
-							P(60.5, 19.5),
-							P(80.5, 55.5) };
+		nexi_locations = { P(42.5, 46.5),
+							P(68.5, 42.5),
+							P(99.5, 38.5),
+							P(64.5, 70.5),
+							P(39.5, 82.5),
+							P(38.5, 106.5),
+							P(144.5, 36.5) };
 
-		pylon_locations = { P(152, 26),
-							P(120, 28),
-							P(134, 20),
-							P(158, 59),
-							P(144, 12),
-							P(129, 70),
-							P(159, 12),
-							P(127, 22),
-							P(147, 56),
-							P(156, 46),
-							P(165, 25),
-							P(150, 26),
-							P(136, 20),
-							P(163, 25),
-							P(124, 33),
-							P(144, 14),
-							P(159, 14) };
+		pylon_locations = { P(44, 50),
+							P(46, 50),
+							P(104, 39),
+							P(99, 42),
+							P(42, 67),
+							P(42, 65),
+							P(31, 56),
+							P(33, 56),
+							P(40, 35),
+							P(31, 44),
+							P(64, 75),
+							P(67, 35),
+							P(55, 72),
+							P(43, 84),
+							P(31, 83),
+							P(40, 110),
+							P(30, 103),
+							P(104, 39),
+							P(99, 42),
+							P(146, 40),
+							P(147, 29) };
 		
-		first_pylon_location_zerg = P(143, 50);
-		first_pylon_location_protoss = P(157, 35);
-		first_pylon_location_terran = P(138, 33);
+		first_pylon_location_zerg = P(74, 46);
+		first_pylon_location_protoss = P(55, 55);
+		first_pylon_location_terran = P(55, 62);
 
-		gateway_locations = { P(155.5, 37.5),
-							P(159.5, 38.5),
-							P(136.25, 30.25),
-							P(136.5, 27.5),
-							P(139.5, 27.5),
-							P(139.5, 30.5),
-							P(140.5, 46.5),
-							P(140.5, 49.5),
-							P(117.5, 22.5),
-							P(119.5, 25.5),
-							P(120.5, 30.5),
-							P(121.5, 33.5),
-							P(134.5, 17.5),
-							P(137.5, 17.5),
-							P(134.5, 22.5),
-							P(137.5, 22.5),
-							P(141.5, 12.5),
-							P(141.5, 15.5),
-							P(147.5, 10.5),
-							P(156.5, 12.5),
-							P(161.5, 15.5),
-							P(163.5, 21.5),
-							P(163.5, 29.5) };
+		gateway_locations = { P(77.5, 46.5), // z
+							P(72.5, 51.5),
+							P(57.5, 53.5), // p
+							P(54.5, 52.5),
+							P(56.5, 59.5), // t
+							P(52.5, 60.5),
+							P(107.5, 39.5),
+							P(104.5, 41.5),
+							P(101.5, 42.5),
+							P(98.5, 44.5),
+							P(39.5, 65.5),
+							P(44.5, 65.5),
+							P(44.5, 62.5),
+							P(39.5, 62.5),
+							P(32.5, 58.5),
+							P(35.5, 58.5),
+							P(32.5, 53.5),
+							P(35.5, 53.5),
+							P(37.5, 36.5),
+							P(42.5, 36.5),
+							P(32.5, 41.5),
+							P(32.5, 46.5),
+							P(59.5, 76.5),
+							P(62.5, 77.5),
+							P(66.5, 74.5),
+							P(65.5, 77.5),
+							P(56.5, 76.5),
+							P(107.5, 39.5),
+							P(104.5, 41.5),
+							P(101.5, 42.5),
+							P(98.5, 44.5) };
 
-		assimilator_locations = { P(149.5, 15.5),
-									P(160.5, 25.5),
-									P(158.5, 56.5),
-									P(154.5, 59.5),
-									P(131.5, 32.5),
-									P(120.5, 22.5),
-									P(132.5, 61.5),
-									P(141.5, 72.5),
-									P(161.5, 97.5),
-									P(157.5, 100.5),
-									P(97.5, 18.5),
-									P(100.5, 22.5),
-									P(56.5, 12.5),
-									P(53.5, 16.5),
-									P(76.5, 48.5),
-									P(73.5, 52.5 ) };
+		assimilator_locations = { P(46.5, 39.5),
+									P(35.5, 49.5),
+									P(61.5, 39.5),
+									P(64.5, 35.5),
+									P(92.5, 37.5),
+									P(106.5, 36.5),
+									P(68.5, 63.5),
+									P(57.5, 73.5),
+									P(32.5, 85.5),
+									P(35.5, 89.5),
+									P(31.5, 109.5),
+									P(34.5, 113.5),
+									P(139.5, 30.5),
+									P(151.5, 38.5) };
 
-		cyber_core_locations = { P(154.5, 34.5),
-									P(140.75, 34.25),
-									P(140.5, 53.5) };
+		cyber_core_locations = { P(73.5, 48.5),
+									P(57.5, 56.5),
+									P(52.5, 63.5) };
 
-		tech_locations = { P(154.5, 26.5),
-							P(151.5, 28.5),
-							P(148.5, 28.5),
-							P(149.5, 23.5),
-							P(146.5, 23.5),
-							P(154.5, 29.5),
-							P(145.5, 28.5) };
+		tech_locations = { P(46.5, 47.5),
+							P(48.5, 50.5),
+							P(45.5, 52.5),
+							P(41.5, 50.5),
+							P(41.5, 53.5) };
 
-		proxy_pylon_locations = { P(89, 120),
-								P(70, 80) };
+		proxy_pylon_locations = { P(116, 89),
+								P(70, 126) };
 
-		proxy_gateway_locations = { P(87.5, 122.5),
-									P(67.5, 78.5) };
+		proxy_gateway_locations = { P(118.5, 87.5),
+									P(71.5, 128.5) };
 
-		proxy_tech_locations = { P(87.5, 125.5),
-								P(70.5, 82.5) };
+		proxy_tech_locations = { P(115.5, 86.5),
+								P(68.5, 129.5) };
+		
+		defensive_natural_battery_locations = { P(72, 46),
+												P(78, 44),
+												P(71, 48) };
 
-		defensive_natural_battery_locations = { P(143, 53),
-												P(143, 55),
-												P(145, 55),
-												P(147, 50) };
-
-		gateway_walloff = P(151.5, 33.5);
-
+		gateway_walloff = P(53.5, 49.5);
+		/*
 		attack_path_short = { P(142, 49),
 								P(137.5, 51),
 								P(133, 54),
@@ -204,23 +208,23 @@ namespace sc2 {
 							P(41, 132) };
 
 		high_ground_index_alt = 2;
+		*/
+		initial_scout_pos = P(127, 133);
 
-		initial_scout_pos = P(39.5, 118.5);
+		main_scout_path = { P(132, 125),
+							P(152, 125),
+							P(151, 146),
+							P(133, 147) };
 
-		main_scout_path = { P(47, 123),
-							P(51, 136),
-							P(37, 144),
-							P(28, 132) };
+		natural_scout_path = { P(106, 141),
+								P(115, 151),
+								P(125, 145) };
 
-		natural_scout_path = { P(31, 109),
-								P(33, 97),
-								P(47, 98), };
-
-		possible_3rds = { P(67.5, 126.5),
-						P(57.5, 87.5) };
+		possible_3rds = { P(119.5, 113.5),
+						P(84.5, 145.5) };
 
 
-		enemy_natural = P(40.5, 103.5);
+		enemy_natural = P(115.5, 141.5);
 
 		for (const auto& pos : main_scout_path)
 		{
@@ -231,7 +235,7 @@ namespace sc2 {
 		{
 			self_natural_scout_path.push_back(convert_location(pos, true));
 		}
-		
+		/*
 		Point2D entrance_point = P(92, 142);
 		Point2D exit_point = P(33, 79);
 		std::vector<Point2D> entrance_points = { P(71, 136),
@@ -322,9 +326,9 @@ namespace sc2 {
 								P(30, 142),
 								P(31, 109),
 								P(55, 78) };
-
-		main_ramp_forcefield_top = P(153, 37);
-		main_ramp_forcefield_mid = P(151, 39);*/
+*/
+		main_ramp_forcefield_top = P(57, 51);
+		main_ramp_forcefield_mid = P(59, 49);
 	}
 	
 }
