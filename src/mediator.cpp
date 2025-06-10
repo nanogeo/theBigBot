@@ -15,6 +15,7 @@
 #include "stalker_base_defense_terran_state_machine.h"
 #include "worker_rush_defense_state_machine.h"
 #include "chargelot_allin_state_machine.h"
+#include "pvp_ramp_wall_off_state_machine.h"
 
 #include "army_group.h"
 #include "attack_army_group.h"
@@ -1551,6 +1552,17 @@ void Mediator::CreateAdeptBaseDefenseTerranFSM()
 }
 
 void Mediator::CreateWorkerRushDefenseFSM()
+{
+	Units attackers = Utility::GetUnitsWithin(GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })),
+		GetStartLocation(), 20.0f);
+
+	WorkerRushDefenseStateMachine* worker_rush_defense_fsm =
+		new WorkerRushDefenseStateMachine(this, "Worker rush defense");
+
+	finite_state_machine_manager.active_state_machines.push_back(worker_rush_defense_fsm);
+}
+
+void Mediator::CreatePvPRampWallOffFSM()
 {
 	Units attackers = Utility::GetUnitsWithin(GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })),
 		GetStartLocation(), 20.0f);

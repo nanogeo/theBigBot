@@ -182,6 +182,7 @@ public:
 	bool RemoveScoutToProxy(UNIT_TYPEID, int);
 	void CreateAdeptBaseDefenseTerranFSM();
 	void CreateWorkerRushDefenseFSM();
+	void CreatePvPRampWallOffFSM();
 
 	void MarkStateMachineForDeletion(StateMachine*);
 	void MarkArmyGroupForDeletion(ArmyGroup* army_group);

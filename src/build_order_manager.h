@@ -192,6 +192,7 @@ public:
 	bool WallOffRamp(BuildOrderResultArgData);
 	bool DefendMainRamp(BuildOrderResultArgData);
 	bool SackUnit(BuildOrderResultArgData);
+	bool PrepRampWallOff(BuildOrderResultArgData);
 	bool CancelBuilding(BuildOrderResultArgData);
 	bool StopTempUnitProduction(BuildOrderResultArgData);
 
@@ -656,6 +657,10 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::SackUnit)
 		{
 			str += "sack unit";
+		}
+		else if (result == &BuildOrderManager::PrepRampWallOff)
+		{
+			str += "prep ramp wall off";
 		}
 		else if (result == &BuildOrderManager::CancelBuilding)
 		{

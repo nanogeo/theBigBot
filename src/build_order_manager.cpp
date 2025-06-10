@@ -1168,6 +1168,12 @@ bool BuildOrderManager::SackUnit(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::PrepRampWallOff(BuildOrderResultArgData data)
+{
+	mediator->CreatePvPRampWallOffFSM();
+	return true;
+}
+
 bool BuildOrderManager::CancelBuilding(BuildOrderResultArgData data)
 {
 	for (const auto& building : mediator->GetUnits(Unit::Alliance::Self, IsUnit(data.unitId)))
