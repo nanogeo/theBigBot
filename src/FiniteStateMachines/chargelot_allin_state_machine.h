@@ -53,7 +53,7 @@ public:
     const Unit* prism = nullptr;
     float last_warp_in_time;
     std::vector<Point2D> prism_spots;
-    int prism_spots_index;
+    uint16_t prism_spots_index;
     Point2D next_warp_in_location = Point2D(0, 0);
     ChargelotAllInStateMachine(Mediator* mediator, std::string name, std::vector<Point2D> prism_locations,
         float last_warp_in_time) : StateMachine(mediator, name)

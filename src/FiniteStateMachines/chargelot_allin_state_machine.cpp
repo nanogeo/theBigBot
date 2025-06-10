@@ -28,14 +28,16 @@ void ChargeAllInMovingToWarpinSpot::TickState()
 void ChargeAllInMovingToWarpinSpot::EnterState()
 {
 	// find warp in spot
-	state_machine->prism_spots_index++;
-	if (state_machine->prism_spots_index >= state_machine->prism_spots.size())
-		state_machine->prism_spots_index = 0;
 	state_machine->next_warp_in_location = state_machine->prism_spots[state_machine->prism_spots_index];
 }
 
 void ChargeAllInMovingToWarpinSpot::ExitState()
 {
+	// increment warp in spot
+	state_machine->prism_spots_index++;
+	if (state_machine->prism_spots_index >= state_machine->prism_spots.size())
+		state_machine->prism_spots_index = 0;
+
 	mediator->SetUnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMPHASINGMODE, 1);
 }
 
