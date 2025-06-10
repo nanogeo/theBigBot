@@ -410,7 +410,6 @@ float DefenseManager::JudgeFight(Units friendly_units, Units enemy_units, float 
 
 void DefenseManager::UseBatteries()
 {
-	// battery overcharge to heal buildings/units
 	Units batteries = mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(BATTERY));
 	Units nexi = mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS));
 	
