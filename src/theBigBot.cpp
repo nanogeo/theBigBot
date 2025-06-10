@@ -40,6 +40,7 @@ namespace sc2 {
 			Debug()->DebugGiveAllResources();
 			Debug()->DebugGiveAllResources();
 			Debug()->DebugFastBuild();
+			Debug()->DebugCreateUnit(REAPER, Observation()->GetStartLocation(), 1, 1);
 			Debug()->SendDebug();
 		}
     }
@@ -74,8 +75,9 @@ namespace sc2 {
 
 				RemoveCompletedAtacks();
 
-				mediator.RunManagers();
+				//mediator.RunManagers();
 
+				Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_protoss), .5, Color(255, 0, 255));
 
 				/*if (!started && Observation()->GetGameLoop() < 1800)
 				{
@@ -86,22 +88,55 @@ namespace sc2 {
 					started = false;
 				}*/
 
+				for (auto& point : locations->pylon_locations)
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), 1, Color(255, 255, 255));
+				}
+				Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_protoss), 1, Color(255, 0, 0));
+				Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_terran), 1, Color(255, 0, 0));
+				Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_zerg), 1, Color(255, 0, 0));
+
+				for (auto& point : locations->gateway_locations)
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), 1.5, Color(255, 0, 0));
+				}
+
+				for (auto& point : locations->tech_locations)
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), 1.5, Color(0, 255, 255));
+				}
+
+				for (auto& point : locations->cyber_core_locations)
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), 1.5, Color(255, 0, 255));
+				}
+
 				/*for (auto& point : locations->attack_path_line.GetPoints())
 				{
 					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(0, 255, 255));
 				}*/
 
-				for (const auto& point : locations->attack_path_special)
+				/*for (const auto& point : locations->attack_path)
 				{
 					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));
 					Debug()->DebugTextOut(std::to_string(point.x) + ", " + std::to_string(point.y), ToPoint3D(point), Color(255, 0, 0), 20);
 				}
 
-				for (const auto& point : locations->attack_path_special_line.GetPoints())
+				for (const auto& point : locations->blink_nat_attack_path_line.GetPoints())
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
+				}*/
+				/*for (const auto& point : locations->blink_third_attack_path_lines[0].GetPoints())
+				{
+					Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
+				}
+				for (const auto& point : locations->blink_third_attack_path_lines[1].GetPoints())
 				{
 					Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
 				}
 
+				Debug()->DebugSphereOut(ToPoint3D(locations->blink_presure_consolidation), .25, Color(255, 255, 255));*/
+				
 				/*for (const auto &point : locations->attack_path_short)
 				{
 					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));

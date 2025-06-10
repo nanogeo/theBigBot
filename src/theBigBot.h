@@ -124,14 +124,16 @@ public:
 	{
 		if (Observation()->GetGameLoop() == 100)
 		{
-			Debug()->DebugCreateUnit(SPAWNING_POOL, Observation()->GetStartLocation() + Point2D(8, 0), 1, 1);
-			Debug()->DebugCreateUnit(EXTRACTOR, Observation()->GetStartLocation() + Point2D(-8, 0), 1, 1);
+			Debug()->DebugCreateUnit(SPAWNING_POOL, Point2D(76, 75), 1, 1);
+			Debug()->DebugCreateUnit(MISSILE_TURRET, Point2D(57, 130), 1, 1);
+			Debug()->DebugCreateUnit(BARRACKS, Observation()->GetStartLocation() + Point2D(8, 0), 1, 1);
+			
 			Debug()->SendDebug();
 		}
 
 		if (Observation()->GetGameLoop() >= 4700 && Observation()->GetGameLoop() % 700 == 500)
 		{
-			Debug()->DebugCreateUnit(ZERGLING, Observation()->GetStartLocation(), 1, 15);
+			//Debug()->DebugCreateUnit(ZERGLING, Observation()->GetStartLocation(), 1, 1);
 			Debug()->DebugGiveAllUpgrades();
 			Debug()->SendDebug();
 		}
@@ -275,16 +277,96 @@ public:
 			Observation()->GetUnits(IsUnit(PROBE)).size() < 13)
 			Actions()->UnitCommand(Observation()->GetUnits(IsUnit(NEXUS))[0], ABILITY_ID::TRAIN_PROBE);
 
+		Point2D rally, pylon, pylon2, swap, start;
+		std::vector<Point2D> gates;
 
+		std::string map_name = Observation()->GetGameInfo().map_name;
+
+		if (map_name == "Incorporeal AIE") // 2025 seaon 2 maps
+		{
+			
+		}
+		else if (map_name == "Last Fantasy AIE")
+		{
+			
+		}
+		else if (map_name == "Ley Lines AIE")
+		{
+			
+		}
+		else if (map_name == "Magannatha AIE")
+		{
+			
+		}
+		else if (map_name == "Persephone AIE")
+		{
+			rally = Point2D(56, 142);
+			pylon = Point2D(63, 121);
+			start = Point2D(37.5, 1454.5);
+			swap = Point2D(0, 0);
+			if (Observation()->GetStartLocation().x == start.x && Observation()->GetStartLocation().y == start.y)
+			{
+				rally = Point2D(rally.x, 180 - rally.y);
+				pylon = Point2D(pylon.x, 180 - pylon.y);
+				pylon2 = Point2D(pylon2.x, 180 - pylon2.y);
+				for (int i = 0; i < 4; i++)
+				{
+					gates[i] = Point2D(gates[i].x, 180 - gates[i].y);
+				}
+			}
+		}
+		else if (map_name == "Pylon AIE")
+		{
+			rally = Point2D(88, 166);
+			pylon = Point2D(95, 142);
+			start = Point2D(72.5, 171.5);
+			swap = Point2D(248, 248);
+			if (Observation()->GetStartLocation().x == start.x && Observation()->GetStartLocation().y == start.y)
+			{
+				rally = swap - rally;
+				pylon = swap - pylon;
+				pylon2 = swap - pylon2;
+				for (int i = 0; i < 4; i++)
+				{
+					gates[i] = swap - gates[i];
+				}
+			}
+		}
+		else if (map_name == "Torches AIE")
+		{
+			rally = Point2D(110, 152);
+			pylon = Point2D(88, 132);
+			start = Point2D(124.5, 159.5);
+			swap = Point2D(0, 0);
+			if (Observation()->GetStartLocation().x == start.x && Observation()->GetStartLocation().y == start.y)
+			{
+				rally = Point2D(rally.x, 208 - rally.y);
+				pylon = Point2D(pylon.x, 208 - pylon.y);
+				pylon2 = Point2D(pylon2.x, 208 - pylon2.y);
+				for (int i = 0; i < 4; i++)
+				{
+					gates[i] = Point2D(gates[i].x, 208 - gates[i].y);
+				}
+			}
+		}
+		else if (map_name == "Ultralove AIE")
+		{
+			
+		}
+
+		pylon2 = pylon + Point2D(2, 3);
+		gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
+
+		
 
 		// abyssal reef
-		Point2D rally = Point2D(56, 118);
-		Point2D pylon = Point2D(77, 99);
-		Point2D pylon2 = pylon + Point2D(2, 3);
-		std::vector<Point2D> gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
-		Point2D swap = Point2D(200, 144);
+		/*rally = Point2D(56, 118);
+		pylon = Point2D(77, 99);
+		pylon2 = pylon + Point2D(2, 3);
+		gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
+		swap = Point2D(200, 144);
 		if (Observation()->GetStartLocation().x == 38.5 && Observation()->GetStartLocation().y == 122.5)
-		{
+		{*/
 		// acropolis
 		/*Point2D rally = Point2D(136, 50);
 		Point2D pylon = Point2D(113, 65);
@@ -325,7 +407,7 @@ public:
 		Point2D swap = Point2D(192, 156);
 		if (Observation()->GetStartLocation().x == 38.5 && Observation()->GetStartLocation().y == 133.5)
 		{*/
-			rally = swap - rally;
+		/*	rally = swap - rally;
 			pylon = swap - pylon;
 			pylon2 = swap - pylon2;
 			for (int i = 0; i < 4; i++)
@@ -333,7 +415,7 @@ public:
 				gates[i] = swap - gates[i];
 			}
 
-		}
+		}*/
 
 
 		if (probe == nullptr && Observation()->GetUnits(IsUnit(PROBE)).size() > 0)

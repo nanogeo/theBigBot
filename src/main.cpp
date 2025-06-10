@@ -172,34 +172,37 @@ int main(int argc, char* argv[])
     //sc2::BlankBot bot2;
     //sc2::Proxy4RaxBot bot2;
 	
-	if (!true)
+	if (true)
 	{
-		coordinator.SetParticipants({
+		coordinator.SetParticipants({ 
 			CreateParticipant(sc2::Race::Protoss, &bot1),
-            CreateComputer(sc2::Race::Protoss, sc2::Difficulty::VeryEasy, sc2::AIBuild::Macro)
+            CreateComputer(sc2::Race::Terran, sc2::Difficulty::VeryHard, sc2::AIBuild::Macro)
 			});
-		coordinator.SetRealtime(false);
+		coordinator.SetRealtime(!true);
 
 		coordinator.LaunchStarcraft();
-		coordinator.StartGame("ThunderbirdAIE.SC2Map");
+		coordinator.StartGame("TorchesAIE.SC2Map");
 	}
 	else
 	{
 
 		coordinator.SetParticipants({
-            CreateParticipant(sc2::Race::Protoss, &bot2),
-            CreateParticipant(sc2::Race::Protoss, &bot1)
+            CreateParticipant(sc2::Race::Protoss, &bot1),
+            CreateParticipant(sc2::Race::Protoss, &bot2)
 			});
-		coordinator.SetRealtime(true);
+		coordinator.SetRealtime(!true);
 
 		coordinator.LaunchStarcraft();
-		coordinator.StartGame("AbyssalReefAIE.SC2Map");
+		coordinator.StartGame("PersephoneAIE.SC2Map");
 	}
 
+    // 2025 season 1
     // AbyssalReefAIE, AcropolisAIE, AutomatonAIE, EphemeronAIE, InterloperAIE, ThunderbirdAIE
-    // LeyLinesAIE, MagannathaAIE, PersephoneAIE, PylonAIE, TorchesAIE, UltraloveAIE
-    // later : IncorporealAIE, LastFantasyAIE,
-	// incorporeal, persephone, torches, 
+    // 2025 season 2
+    // PersephoneAIE, PylonAIE, TorchesAIE
+    // 
+    // later : IncorporealAIE, LastFantasyAIE, LeyLinesAIE, MagannathaAIE, UltraloveAIE
+	// incorporeal, persephone, torches, weird
 	// EternalEmpireLE
 
     while (coordinator.Update()) {
