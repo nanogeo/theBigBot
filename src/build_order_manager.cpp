@@ -1537,8 +1537,8 @@ void BuildOrderManager::SetCannonRushResponse()
 void BuildOrderManager::SetOracleGatewaymanPvZ()
 {
 	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(6.5f),			&BuildOrderManager::BuildFirstPylon,					Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(34.0f),			&BuildOrderManager::Scout,								Result()),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(PYLON),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(GATEWAY),			&BuildOrderManager::Scout,								Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(33.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(48.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(48.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),

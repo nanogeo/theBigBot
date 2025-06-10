@@ -112,10 +112,10 @@ void Mediator::RunManagers()
 		unit_production_manager.RunUnitProduction();
 	}
 
+	action_manager.ProcessActions();
 
 	build_order_manager.CheckBuildOrder();
 
-	action_manager.ProcessActions();
 
 	finite_state_machine_manager.RunStateMachines();
 
