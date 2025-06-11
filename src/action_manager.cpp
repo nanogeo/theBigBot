@@ -1106,6 +1106,55 @@ bool ActionManager::ActionCheckNaturalForCannons(ActionArgData* data)
 	return false;
 }
 
+bool ActionManager::ActionCheckForBunkerRush(ActionArgData* data)
+{
+	if (mediator->GetCurrentTime() > 120 && Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy), mediator->GetNaturalLocation()) > 15)
+	{
+		if (data->unit != nullptr && data->unit->is_alive)
+			mediator->PlaceWorker(data->unit);
+		return true;
+	}
+	if (data->unit == nullptr || data->unit->is_alive == false)
+	{
+		data->unit = mediator->GetBuilder(mediator->GetNaturalLocation());
+		if (data->unit == nullptr)
+			return false;
+		mediator->RemoveWorker(data->unit);
+	}
+
+	const Unit* target = nullptr;
+	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) < 15)
+	{
+		const Unit* scv = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(SCV)), data->unit->pos);
+		if (scv == nullptr || Distance2D(scv->pos, data->unit->pos) > 10)
+			target = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), data->unit->pos);
+		else
+			target = scv;
+	}
+
+	if (target)
+	{
+		if (data->unit->weapon_cooldown == 0)
+			mediator->SetUnitCommand(data->unit, ABILITY_ID::ATTACK, target, 0);
+		else
+			mediator->SetUnitCommand(data->unit, ABILITY_ID::GENERAL_MOVE, target, 0);
+	}
+	else
+	{
+		if (data->unit->weapon_cooldown == 0 && Utility::GetUnitsInRange(mediator->GetUnits(Unit::Alliance::Enemy), data->unit, 0).size() > 0)
+		{
+			mediator->SetUnitCommand(data->unit, ABILITY_ID::ATTACK, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), data->unit->pos), 0);
+		}
+		else if (data->unit->orders.size() == 0 || data->unit->orders[0].ability_id == ABILITY_ID::ATTACK || Distance2D(data->unit->pos, mediator->GetNaturalLocation()) > 15)
+		{
+			Point2D pos = Utility::FurthestFrom(mediator->GetLocations().natural_front, data->unit->pos);
+			mediator->SetUnitCommand(data->unit, ABILITY_ID::GENERAL_MOVE, pos, 0);
+		}
+	}
+
+	return false;
+}
+
 bool ActionManager::ActionAttackLine(ActionArgData* data)
 {
 	ArmyGroup* army = data->army_group;

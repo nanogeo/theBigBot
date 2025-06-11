@@ -194,6 +194,7 @@ public:
 	bool SackUnit(BuildOrderResultArgData);
 	bool CancelBuilding(BuildOrderResultArgData);
 	bool StopTempUnitProduction(BuildOrderResultArgData);
+	bool CheckForBunkerRush(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 	bool AttackLine(BuildOrderResultArgData); // testing only // to string
@@ -665,6 +666,10 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::StopTempUnitProduction)
 		{
 			str += "stop temp unit production";
+		}
+		else if (result == &BuildOrderManager::CheckForBunkerRush)
+		{
+			str += "check for bunker rush";
 		}
 
 		return str;
