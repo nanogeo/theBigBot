@@ -103,6 +103,7 @@ public:
 	std::vector<std::vector<UNIT_TYPEID>> GetPrio();
 	UnitCost GetCurrentResources();
 	void CancelBuilding(const Unit*);
+	void CancelUnit(UNIT_TYPEID);
 	void RebuildBuilding(Point2D, UNIT_TYPEID);
 
 	void SendChat(std::string, ChatChannel);

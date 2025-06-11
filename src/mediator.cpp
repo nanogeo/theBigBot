@@ -524,6 +524,18 @@ void Mediator::CancelBuilding(const Unit* building)
 	SetUnitCommand(building, ABILITY_ID::CANCEL, 100);
 }
 
+void Mediator::CancelUnit(UNIT_TYPEID unit_type)
+{
+	for (const auto& building : GetUnits(Unit::Alliance::Self, IsUnit(Utility::GetBuildStructure(unit_type))))
+	{
+		if (building->orders.size() > 0 && building->orders[0].ability_id == Utility::GetTrainAbility(unit_type))
+		{
+			SetUnitCommand(building, ABILITY_ID::CANCEL_LAST, 0);
+			return;
+		}
+	}
+}
+
 void Mediator::RebuildBuilding(Point2D pos, UNIT_TYPEID type)
 {
 	action_manager.AddAction(new ActionData(&ActionManager::ActionBuildBuildingWhenSafe, new ActionArgData(type, pos)));
