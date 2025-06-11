@@ -164,6 +164,10 @@ void ChargelotAllInStateMachine::RemoveUnit(const Unit* unit)
 		mediator->SetUnitProduction(ZEALOT);
 		prism = nullptr;
 	}
+	else
+	{
+		zealots.erase(std::remove(zealots.begin(), zealots.end(), unit), zealots.end());
+	}
 }
 
 }

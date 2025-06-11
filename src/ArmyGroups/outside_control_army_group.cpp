@@ -51,6 +51,7 @@ namespace sc2 {
 
 	void OutsideControlArmyGroup::RemoveUnit(const Unit* unit)
 	{
+		ArmyGroup::RemoveUnit(unit);
 		if (state_machine)
 			state_machine->RemoveUnit(unit);
 	}
