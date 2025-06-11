@@ -953,7 +953,8 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 			else
 			{
 				// gasless expand with scout
-				mediator->CancelUnit(ZEALOT);
+				if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
+					mediator->CancelUnit(ZEALOT);
 				mediator->SendChat("Tag:scout_gasless_1_rax_expand", ChatChannel::Team);
 			}
 			break;
@@ -977,13 +978,15 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 			else
 			{
 				// 1 rax expand with/out scout
-				mediator->CancelUnit(ZEALOT);
+				if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
+					mediator->CancelUnit(ZEALOT);
 				mediator->SendChat("Tag:scout_1_rax_expand", ChatChannel::Team);
 			}
 			break;
 		case 2:
 			// double gas
-			mediator->CancelUnit(ZEALOT);
+			if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
+				mediator->CancelUnit(ZEALOT);
 			mediator->SendChat("Tag:scout_double_gas", ChatChannel::Team);
 			break;
 		}
@@ -1013,7 +1016,8 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 			else
 			{
 				// gasless expand with scout
-				mediator->CancelUnit(ZEALOT);
+				if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
+					mediator->CancelUnit(ZEALOT);
 				mediator->SendChat("Tag:scout_gasless_1_rax_expand", ChatChannel::Team);
 			}
 			break;
@@ -1030,7 +1034,8 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 			else
 			{
 				// 1 rax expand with/out scout
-				mediator->CancelUnit(ZEALOT);
+				if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
+					mediator->CancelUnit(ZEALOT);
 				mediator->SendChat("Tag:scout_1_rax_expand", ChatChannel::Team);
 			}
 			break;
@@ -1046,14 +1051,16 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 			}
 			else
 			{
-				mediator->CancelUnit(ZEALOT);
+				if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
+					mediator->CancelUnit(ZEALOT);
 				mediator->SendChat("Tag:scout_double_gas", ChatChannel::Team);
 			}
 			break;
 		}
 	}
 	build_order_step = 0;
-	mediator->CancelUnit(ZEALOT);
+	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
+		mediator->CancelUnit(ZEALOT);
 	SetChargeAllInInterruptTerran();
 	return false;
 }
@@ -1784,7 +1791,7 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(73.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({CYBERCORE, NEXUS, PYLON})),
 					Data(&BuildOrderManager::HasBuilding,			Condition(GATEWAY),			&BuildOrderManager::TrainUnit,							Result(ZEALOT)),
-					Data(&BuildOrderManager::TimePassed,			Condition(85.0f),			&BuildOrderManager::CheckForBunkerRush,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(80.0f),			&BuildOrderManager::CheckForBunkerRush,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(100.0f),			&BuildOrderManager::CheckForProxyRax,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(101.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(ADEPT)),
