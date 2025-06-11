@@ -120,7 +120,9 @@ void DefendBaseArmyGroup::Run()
 		}
 		else
 		{
-			const Unit* closest = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), unit->pos);
+			const Unit* closest = Utility::ClosestTo(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), unit->pos);
+			if (closest == NULL)
+				closest = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), unit->pos);
 			if (closest == NULL || Distance2D(closest->pos, unit->pos) < Utility::GetGroundRange(unit) - 1)
 				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, base_pos, 0);
 			else
