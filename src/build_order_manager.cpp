@@ -1062,8 +1062,28 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 {
 	build_order_step = 0;
-	if (mediator->GetEnemyRace() != Race::Protoss)
+	if (mediator->GetEnemyRace() == Race::Zerg)
 	{
+		if (mediator->GetSpawningPoolTiming() < 45)
+		{
+			// pool first
+			SetProxyGateResponse();
+			mediator->SendChat("Tag:scout_pool_first", ChatChannel::Team);
+			return false;
+		}
+		Set2GateProxyRobo();
+		return false;
+	}
+	else if (mediator->GetEnemyRace() == Race::Terran)
+	{
+		if ((mediator->GetFirstBarrackTiming() == 0 ||
+			Utility::DistanceToClosest(mediator->GetUnits(IsUnit(BARRACKS)), mediator->GetEnemyStartLocation()) > 25) &&
+			mediator->GetNaturalTiming() == 0)
+		{
+			SetProxyGateResponse();
+			mediator->SendChat("Tag:scout_proxy_rax", ChatChannel::Team);
+			return false;
+		}
 		Set2GateProxyRobo();
 		return false;
 	}
