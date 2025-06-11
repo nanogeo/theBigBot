@@ -105,6 +105,7 @@ public:
 	bool ActionScourMap(ActionArgData*);
 	bool ActionCheckBaseForCannons(ActionArgData*);
 	bool ActionCheckNaturalForCannons(ActionArgData*);
+	bool ActionCheckForBunkerRush(ActionArgData*);
 };
 
 struct ActionData
@@ -223,6 +224,10 @@ struct ActionData
 		else if (action == &ActionManager::ActionCheckNaturalForCannons)
 		{
 			str += "Check natural for cannons";
+		}
+		else if (action == &ActionManager::ActionCheckForBunkerRush)
+		{
+			str += "Check for bunker rush";
 		}
 		return str;
 	}

@@ -1190,6 +1190,19 @@ bool BuildOrderManager::StopTempUnitProduction(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::CheckForBunkerRush(BuildOrderResultArgData data)
+{
+	const Unit* worker = mediator->GetBuilder(mediator->GetNaturalLocation());
+	if (worker == nullptr)
+	{
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		return false;
+	}
+	mediator->RemoveWorker(worker);
+	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckForBunkerRush, new ActionArgData(worker)));
+	return true;
+}
+
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
 	//mediator->agent->Debug()->DebugCreateUnit(ORACLE, mediator->agent->locations->attack_path[0], 2, 1);
@@ -1758,6 +1771,7 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(35.0f),			&BuildOrderManager::SafeRallyPoint,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(73.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({CYBERCORE, NEXUS, PYLON})),
+					Data(&BuildOrderManager::TimePassed,			Condition(85.0f),			&BuildOrderManager::CheckForBunkerRush,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(100.0f),			&BuildOrderManager::CheckForProxyRax,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(101.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(ADEPT)),
