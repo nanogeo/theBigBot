@@ -89,6 +89,8 @@ void ChargeAllInWarpingIn::EnterState()
 void ChargeAllInWarpingIn::ExitState()
 {
 	mediator->SetUnitCommand(state_machine->prism, ABILITY_ID::MORPH_WARPPRISMTRANSPORTMODE, 1);
+	if (!state_machine->first_warp_in_done)
+		state_machine->first_warp_in_done = true;
 }
 
 State* ChargeAllInWarpingIn::TestTransitions()
@@ -111,28 +113,42 @@ void ChargelotAllInStateMachine::RunStateMachine()
 {
 	StateMachine::RunStateMachine();
 
-	for (const auto& zealot : zealots)
+	if (first_warp_in_done)
 	{
-		if (zealot->orders.size() == 0)
+		for (const auto& zealot : zealots)
 		{
-			const Unit* closest_base = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy,
-				IsUnits({ HATCHERY, LAIR, HIVE, COMMAND_CENTER, PLANETARY, ORBITAL, NEXUS })), zealot->pos);
-			if (closest_base != nullptr)
+			if (zealot->orders.size() == 0)
 			{
-				mediator->SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, closest_base->pos, 1);
-			}
-			else
-			{
-				const Unit* closest_building = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsBuilding()), zealot->pos);
-				if (closest_building != nullptr)
+				const Unit* closest_base = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy,
+					IsUnits({ HATCHERY, LAIR, HIVE, COMMAND_CENTER, PLANETARY, ORBITAL, NEXUS })), zealot->pos);
+				if (closest_base != nullptr)
 				{
-					mediator->SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, closest_building->pos, 1);
+					mediator->SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, closest_base->pos, 1);
 				}
 				else
 				{
-					Point2D pos = mediator->GetEnemyStartLocation(); // TODO scour map instead
-					mediator->SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, pos, 1);
+					const Unit* closest_building = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsBuilding()), zealot->pos);
+					if (closest_building != nullptr)
+					{
+						mediator->SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, closest_building->pos, 1);
+					}
+					else
+					{
+						Point2D pos = mediator->GetEnemyStartLocation(); // TODO scour map instead
+						mediator->SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, pos, 1);
+					}
 				}
+			}
+		}
+	}
+	else
+	{
+		if (prism != nullptr && prism->is_alive)
+		{
+			for (const auto& zealot : zealots)
+			{
+				if (zealot->orders.size() == 0)
+					mediator->SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, next_warp_in_location, 1);
 			}
 		}
 	}
