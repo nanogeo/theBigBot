@@ -432,7 +432,7 @@ void FireControlManager::DoAttacks()
 		Units units_in_range;
 		float extra_range = 0;
 		bool found_non_building = false;
-		while (!found_non_building && units_in_range.size() == 0 && extra_range <= 2) // vary max extra range
+		while (!found_non_building && units_in_range.size() == 0 && extra_range <= 1) // vary max extra range
 		{
 			for (const auto& Eunit : Eunits)
 			{

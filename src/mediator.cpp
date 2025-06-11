@@ -56,7 +56,7 @@ void Mediator::SetUpManagers(bool debug)
 			break;
 		default:
 			SendChat("Tag:race_random", ChatChannel::Team);
-			SetBuildOrder(BuildOrder::three_gate_robo);
+			SetBuildOrder(BuildOrder::pvp_openner);
 			break;
 		}
 	}
