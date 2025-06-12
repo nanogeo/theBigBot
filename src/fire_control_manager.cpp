@@ -324,6 +324,10 @@ void FireControlManager::UpdateInfo()
 	{
 		if (status.second && status.first->weapon_cooldown > 0)
 		{
+			// special case because zealot attack go on cooldown after the first blade does damage 
+			// but it takes a few more frames for the second blade to do damage
+			if (status.first->unit_type == ZEALOT && status.first->weapon_cooldown > 15) 
+				continue;
 			ConfirmAttack(status.first, mediator->GetUnit(status.first->engaged_target_tag));
 		}
 		else if (status.second && status.first->orders.size() == 0)
