@@ -5,6 +5,7 @@
 #pragma warning(disable : 4702)
 
 #include "theBigBot.h"
+#include "test_bots.h"
 
 
 #include <sc2api/sc2_coordinator.h>
@@ -169,7 +170,7 @@ int main(int argc, char* argv[])
     sc2::TheBigBot bot1;
 	sc2::ZealotRushBot bot2;
     //sc2::CannonRushBot bot2;
-    //sc2::BlankBot bot2;
+    //sc2::ZerglingFloodBot bot2;
     //sc2::Proxy4RaxBot bot2;
 	
 	if (true)
