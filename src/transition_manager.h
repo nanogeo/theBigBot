@@ -32,6 +32,10 @@ public:
 	bool ScourTransitionCondition();
 	bool ScourTransitionRemoveCondition();
 	void ScourTransitionEnterAction();
+
+	bool FixEarlySupplyBlockCondition();
+	bool FixEarlySupplyBlockRemoveCondition();
+	void FixEarlySupplyBlockEnterAction();
 };
 
 struct TransitionTemplate

@@ -16,6 +16,9 @@ TransitionManager::TransitionManager(Mediator* mediator)
 
 	possible_transitions.push_back(TransitionTemplate(&TransitionManager::ScourTransitionCondition,
 		&TransitionManager::ScourTransitionRemoveCondition, &TransitionManager::ScourTransitionEnterAction));
+
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::FixEarlySupplyBlockCondition,
+		&TransitionManager::FixEarlySupplyBlockRemoveCondition, &TransitionManager::FixEarlySupplyBlockEnterAction));
 }
 
 void TransitionManager::CheckTransitions()
@@ -131,5 +134,27 @@ void TransitionManager::ScourTransitionEnterAction()
 {
 	mediator->ScourMap();
 }
-	
+
+bool TransitionManager::FixEarlySupplyBlockCondition()
+{
+	if (mediator->GetSupplyCap() - mediator->GetSupplyUsed() <= 1 &&
+		mediator->GetCurrentTime() > 60 &&
+		mediator->GetNumBuildActions(PYLON) == 0)
+		return true;
+	return false;
+}
+
+bool TransitionManager::FixEarlySupplyBlockRemoveCondition()
+{
+	if (!mediator->HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
+		return true;
+	return false;
+}
+
+void TransitionManager::FixEarlySupplyBlockEnterAction()
+{
+	if (!mediator->HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
+}
+
 }
