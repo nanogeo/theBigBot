@@ -204,6 +204,7 @@ public:
 			pylon = Point2D(63, 121);
 			start = Point2D(37.5, 1454.5);
 			swap = Point2D(0, 0);
+			gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
 			if (Observation()->GetStartLocation().x == start.x && Observation()->GetStartLocation().y == start.y)
 			{
 				rally = Point2D(rally.x, 180 - rally.y);
@@ -221,6 +222,7 @@ public:
 			pylon = Point2D(95, 142);
 			start = Point2D(72.5, 171.5);
 			swap = Point2D(248, 248);
+			gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
 			if (Observation()->GetStartLocation().x == start.x && Observation()->GetStartLocation().y == start.y)
 			{
 				rally = swap - rally;
@@ -238,6 +240,7 @@ public:
 			pylon = Point2D(88, 132);
 			start = Point2D(124.5, 159.5);
 			swap = Point2D(0, 0);
+			gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
 			if (Observation()->GetStartLocation().x == start.x && Observation()->GetStartLocation().y == start.y)
 			{
 				rally = Point2D(rally.x, 208 - rally.y);
@@ -255,7 +258,6 @@ public:
 		}
 
 		pylon2 = pylon + Point2D(2, 3);
-		gates = { pylon + Point2D(2.5, 0.5), pylon + Point2D(-0.5, 2.5), pylon + Point2D(-2.5, -0.5), pylon + Point2D(0.5, -2.5) };
 
 
 

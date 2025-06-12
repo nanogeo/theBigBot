@@ -29,7 +29,8 @@ State* ScoutPInitialMove::TestTransitions()
 {
 	if (Distance2D(state_machine->scout->pos, state_machine->current_target) < 1)
 	{
-		if (mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() > 0)
+		if (mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() > 0 &&
+			Utility::DistanceToClosest(mediator->GetUnits(IsUnit(PYLON)), mediator->GetEnemyStartLocation()) < 25)
 			return new ScoutPScoutPylon(mediator, state_machine);
 		else
 			return new ScoutPScoutMain(mediator, state_machine, false);
@@ -111,7 +112,8 @@ void ScoutPScoutMain::ExitState()
 
 State* ScoutPScoutMain::TestTransitions()
 {
-	if (scouted_pylon == false && mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() > 0)
+	if (scouted_pylon == false && mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON)).size() > 0 &&
+		Utility::DistanceToClosest(mediator->GetUnits(IsUnit(PYLON)), mediator->GetEnemyStartLocation()) < 25)
 		return new ScoutPScoutPylon(mediator, state_machine);
 	if (state_machine->index >= state_machine->main_scout_path.size())
 		return new ScoutPScoutNatural(mediator, state_machine);

@@ -12,7 +12,7 @@ DefendMainRampArmyGroup::DefendMainRampArmyGroup(Mediator* mediator, Point2D ram
 
 	this->ramp_top = ramp_top;
 	this->forcefield_pos = forcefield_pos;
-	Point2D walloff_pos = mediator->GetWallOffLocation(GATEWAY);
+	walloff_pos = mediator->GetWallOffLocation(GATEWAY);
 }
 
 void DefendMainRampArmyGroup::Run()
