@@ -245,8 +245,8 @@ namespace sc2 {
 
 		
 		third_base_pylon_gap = P(91, 78.5);
-		natural_door_closed = P(88.5, 56);
-		natural_door_open = P(88.5, 60);
+		natural_door_closed = P(88.5, 55.5);
+		natural_door_open = P(88.5, 59.5);
 		
 
 		adept_harrass_protoss_consolidation = { P(85, 133), P(70, 148) };

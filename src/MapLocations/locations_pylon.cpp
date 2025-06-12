@@ -75,12 +75,12 @@ namespace sc2 {
 							P(65, 61),
 							P(182, 117) };
 		
-		first_pylon_location_zerg = P(144, 81);
+		first_pylon_location_zerg = P(144, 82);
 		first_pylon_location_protoss = P(163, 87);
 		first_pylon_location_terran = P(164, 95);
 
-		gateway_locations = { P(143.5, 84.5), // z
-							P(141.5, 80.5),
+		gateway_locations = { P(142.5, 85.5), // z
+							P(141.5, 81.5),
 							P(160.5, 85.5), // p
 							P(163.5, 84.5),
 							P(161.5, 93.5), // t
@@ -118,7 +118,7 @@ namespace sc2 {
 									P(173.5, 116.5),
 									P(184.5, 126.5) };
 
-		cyber_core_locations = { P(138.5, 78.5),
+		cyber_core_locations = { P(138.5, 79.5),
 									P(160.5, 88.5),
 									P(166.75, 96.25) };
 
@@ -236,8 +236,8 @@ namespace sc2 {
 
 		
 		third_base_pylon_gap = P(155, 107.5);
-		natural_door_closed = P(142.5, 82.5);
-		natural_door_open = P(138.5, 82.5);
+		natural_door_closed = P(142.5, 83.5);
+		natural_door_open = P(138.5, 83.5);
 		
 
 		adept_harrass_protoss_consolidation = { P(104, 148), P(124, 167) };
