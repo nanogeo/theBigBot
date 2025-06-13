@@ -147,7 +147,7 @@ namespace sc2 {
 
 		gateway_walloff = P(114.5, 56.5);
 		
-		attack_path_short = { P(87, 57),
+		attack_path_short = { P(85, 61),
 								P(82, 64),
 								P(79, 72),
 								P(82, 75),
@@ -166,7 +166,7 @@ namespace sc2 {
 
 		attack_path_short_line = PathManager(attack_path_short);
 
-		attack_path = { P(87, 57),
+		attack_path = { P(85, 61),
 						P(82, 64),
 						P(79, 72),
 						P(82, 75),
