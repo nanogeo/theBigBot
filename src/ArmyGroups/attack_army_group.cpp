@@ -194,6 +194,7 @@ namespace sc2 {
 
 		// move concave origin if necessary
 		FindNewConcaveOrigin();
+		standby_pos = attack_path.GetPointFrom(concave_origin, 8, false);
 	
 		// Find positions
 		std::vector<Point2D> prism_positions;
