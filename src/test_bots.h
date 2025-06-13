@@ -393,29 +393,40 @@ public:
 	Units scvs;
 
 
-	virtual void OnGameStart()
-	{
-		//Debug()->DebugGiveAllUpgrades();
-		//Debug()->DebugFastBuild();
-		//Debug()->DebugGiveAllResources();
-		Debug()->SendDebug();
-	}
-
 	virtual void OnStep()
 	{
 		// abyssal reef
 
+		Point2D rally, rally2, raxmid, depot1, depot2, swap, start;
+		std::vector<Point2D> rax;
 
-		Point2D rally = Point2D(70, 118);
-		Point2D rally2 = Point2D(38.5, 122);
-		Point2D raxmid = Point2D(77, 99);
-		Point2D depot1 = Point2D(155, 20);
-		Point2D depot2 = Point2D(74, 96);
-		std::vector<Point2D> rax = { raxmid + Point2D(3.5, 0.5), raxmid + Point2D(-1.5, 2.5), raxmid + Point2D(-3.5, -0.5), raxmid + Point2D(1.5, -2.5) };
-		Point2D swap = Point2D(200, 144);
-		if (Observation()->GetStartLocation().x == 38.5 && Observation()->GetStartLocation().y == 122.5)
+		std::string map_name = Observation()->GetGameInfo().map_name;
+
+		if (map_name == "Abyssal Reef AIE")
 		{
-			// acropolis
+			rally = Point2D(70, 118);
+			rally2 = Point2D(38.5, 122);
+			raxmid = Point2D(77, 99);
+			depot1 = Point2D(155, 20);
+			depot2 = Point2D(74, 96);
+			rax = { raxmid + Point2D(3.5, 0.5), raxmid + Point2D(-1.5, 2.5), raxmid + Point2D(-3.5, -0.5), raxmid + Point2D(1.5, -2.5) };
+			swap = Point2D(200, 144);
+			start = Point2D(38.5, 122.5);
+		}
+		else if (map_name == "Pylon AIE") // 2025 seaon 2 maps
+		{
+			rally = Point2D(97, 175);
+			rally2 = Point2D(69, 174);
+			raxmid = Point2D(96, 138);
+			depot1 = Point2D(174, 84);
+			depot2 = Point2D(96, 134);
+			rax = { raxmid + Point2D(3.5, 0.5), raxmid + Point2D(-1.5, 2.5), raxmid + Point2D(-3.5, -0.5), raxmid + Point2D(1.5, -2.5) };
+			swap = Point2D(248, 248);
+			start = Point2D(72.5, 171.5);
+		}
+
+		if (Observation()->GetStartLocation().x == start.x && Observation()->GetStartLocation().y == start.y)
+		{
 			rally = swap - rally;
 			rally2 = swap - rally2;
 			depot1 = swap - depot1;
