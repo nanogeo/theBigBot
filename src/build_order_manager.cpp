@@ -1082,13 +1082,15 @@ bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 		SetCannonRushResponse();
 		return false;
 	}
-	switch (mediator->scouting_manager.enemy_unit_counts[GATEWAY])
+	if (mediator->GetFirstGateTiming() == 0 || Utility::DistanceToClosest(mediator->GetUnits(IsUnit(GATEWAY)), mediator->GetEnemyStartLocation()) > 25)
 	{
-	case 0:
 		// proxy
 		mediator->SendChat("Tag:scout_proxy_gate", ChatChannel::Team);
 		SetProxyGateResponse();
-		break;
+		return false;
+	}
+	switch (mediator->scouting_manager.enemy_unit_counts[GATEWAY])
+	{
 	case 1:
 		// 1 gate expand
 		mediator->SendChat("Tag:scout_1_gate_expand", ChatChannel::Team);
@@ -1097,6 +1099,11 @@ bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 	case 2:
 		// 2 gate
 		mediator->SendChat("Tag:scout_2_gate", ChatChannel::Team);
+		Set2GateProxyRobo();
+		break;
+	default:
+		// anything else
+		mediator->SendChat("Tag:unknown_opener", ChatChannel::Team);
 		Set2GateProxyRobo();
 		break;
 	}
@@ -1116,11 +1123,30 @@ bool BuildOrderManager::DoubleCheckProxyGate(BuildOrderResultArgData data)
 		SetRallyPointToRamp(BuildOrderResultArgData(GATEWAY));
 		return true;
 	}
+	if (mediator->GetFirstGateTiming() != 0 && 
+		Utility::DistanceToClosest(mediator->GetUnits(IsUnit(GATEWAY)), mediator->GetEnemyStartLocation()) > 25)
+	{
+		// proxy
+		return true;
+	}
 	switch (mediator->scouting_manager.enemy_unit_counts[GATEWAY])
 	{
 	case 0:
-		// proxy
-		return true;
+		if (mediator->GetNaturalTiming() != 0)
+		{
+			// nexus first
+			mediator->SendChat("Tag:scout_nexus_first", ChatChannel::Team);
+			build_order_step = 3;
+			SetReturnTo2GateProxyRobo();
+			RemoveScoutToProxy(BuildOrderResultArgData(ROBO, 0));
+			SetRallyPointToRamp(BuildOrderResultArgData(GATEWAY));
+		}
+		else
+		{
+			// proxy
+			return true;
+		}
+		break;
 	case 1:
 		// 1 gate expand
 		mediator->SendChat("Tag:scout_1_gate_expand", ChatChannel::Team);
@@ -1557,6 +1583,7 @@ void BuildOrderManager::SetWorkerRushDefense()
 void BuildOrderManager::SetProxyGateResponse()
 {
 	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::WallOffRamp,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::StopTempUnitProduction,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(73.0f),			&BuildOrderManager::BuildBuilding,						Result(CYBERCORE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(80.0f),			&BuildOrderManager::DoubleCheckProxyGate,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(94.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
