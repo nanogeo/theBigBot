@@ -265,7 +265,10 @@ void ArmyManager::OnUnitDestroyed(const Unit* unit)
 	{
 		if (std::find(group->all_units.begin(), group->all_units.end(), unit) != group->all_units.end() ||
 			std::find(group->new_units.begin(), group->new_units.end(), unit) != group->new_units.end())
+		{
 			group->RemoveUnit(unit);
+			BalanceUnits();
+		}
 	}
 }
 
