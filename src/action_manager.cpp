@@ -52,6 +52,12 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	}
 	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId))
 	{
+		for (const auto& unit : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self), pos, .5 + Utility::BuildingSize(buildingId)))
+		{
+			if (unit == builder)
+				continue;
+			mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(pos, unit->pos, 10), 20);
+		}
 		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
 			//mediator->LogMinorError();
@@ -119,6 +125,12 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	}
 	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId))
 	{
+		for (const auto& unit : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self), pos, .5 + Utility::BuildingSize(buildingId)))
+		{
+			if (unit == builder)
+				continue;
+			mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(pos, unit->pos, 10), 20);
+		}
 		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
 			//mediator->LogMinorError();
