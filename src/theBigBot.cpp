@@ -910,6 +910,10 @@ namespace sc2 {
 				break;
 			}
 		}
+		for (const auto& enemy : Utility::GetUnitsThatCanAttack(Observation()->GetUnits(Unit::Alliance::Enemy, IsUnits(HIT_SCAN_UNIT_TYPES)), unit, 0))
+		{
+			damage += Utility::GetDamage(enemy, unit) / 2;
+		}
 		return damage;
 	}
 
@@ -947,7 +951,7 @@ namespace sc2 {
 			).count();
 #endif
 
-		Units enemy_attacking_units = Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)); // TODO only ranged units
+		Units enemy_attacking_units = Observation()->GetUnits(Unit::Alliance::Enemy, IsUnits(PROJECTILE_UNIT_TYPES));
 
 #ifdef DEBUG_TIMING
 		get_enemy = std::chrono::duration_cast<std::chrono::microseconds>(
