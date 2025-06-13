@@ -32,7 +32,7 @@ void ArmyManager::SetUpInitialArmies()
 {
 	unassigned_group = new ArmyGroup(mediator, { ALL_ARMY_UNITS });
 
-	AddArmyGroup(new DefendBaseArmyGroup(mediator, mediator->GetStartLocation(), { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 3));
+	AddArmyGroup(new DefendBaseArmyGroup(mediator, mediator->GetStartLocation(), { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 2));
 
 	switch (mediator->GetEnemyRace())
 	{
@@ -244,16 +244,16 @@ void ArmyManager::FindArmyGroupForUnit(const Unit* unit)
 		{
 			if (b->desired_units > b->all_units.size() + b->new_units.size())
 				return false;
-			return ((double)(a->all_units.size() + a->new_units.size()) / (double)(a->max_units)) < ((double)(b->all_units.size() + b->new_units.size()) / (double)(b->max_units));
+			return ((double)(a->all_units.size() + a->new_units.size() + 1) / (double)(a->max_units)) < ((double)(b->all_units.size() + b->new_units.size() + 1) / (double)(b->max_units));
 		}
 		if (b->desired_units == 0)
 		{
 			if (a->desired_units > a->all_units.size() + a->new_units.size())
 				return true;
-			return ((double)(a->all_units.size() + a->new_units.size()) / (double)(a->max_units)) < ((double)(b->all_units.size() + b->new_units.size()) / (double)(b->max_units));
+			return ((double)(a->all_units.size() + a->new_units.size() + 1) / (double)(a->max_units)) < ((double)(b->all_units.size() + b->new_units.size() + 1) / (double)(b->max_units));
 		}
 
-		return ((double)(a->all_units.size() + a->new_units.size()) / (double)(a->desired_units)) < ((double)(b->all_units.size() + b->new_units.size()) / (double)(b->desired_units));
+		return ((double)(a->all_units.size() + a->new_units.size() + 1) / (double)(a->desired_units)) < ((double)(b->all_units.size() + b->new_units.size() + 1) / (double)(b->desired_units));
 	});
 
 	possibles_groups[0]->AddNewUnit(unit);
