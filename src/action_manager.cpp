@@ -54,7 +54,6 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	{
 		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
-			std::cerr << "Failed to build building " << std::endl;
 			//mediator->LogMinorError();
 		}
 	}
@@ -122,7 +121,6 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	{
 		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
-			std::cerr << "Failed to build building " << std::endl;
 			//mediator->LogMinorError();
 		}
 	}
@@ -171,7 +169,6 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data) // TODO add avoid
 	{
 		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
-			std::cerr << "Failed to build building " << std::endl;
 			//mediator->LogMinorError();
 		}
 	}
