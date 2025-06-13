@@ -143,8 +143,25 @@ void ScoutTScoutRax::TickState()
 
 void ScoutTScoutRax::EnterState()
 {
-	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0]->pos, 0);
-	rax = mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0];
+	if (mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING })).size() > 0)
+	{
+		rax = mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0];
+		mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, rax->pos, 0);
+	}
+	else
+	{
+		for (const auto& pos : mediator->GetEnemySavedPositions())
+		{
+			if (pos.first->unit_type == BARRACKS || pos.first->unit_type == BARRACKS_FLYING)
+			{
+				rax = pos.first;
+				mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, rax->pos, 0);
+				return;
+			}
+		}
+	}
+	std::cerr << "No barracks found in ScoutTScoutRax::EnterState" << std::endl;
+	mediator->LogMinorError();
 }
 
 void ScoutTScoutRax::ExitState()
@@ -154,6 +171,9 @@ void ScoutTScoutRax::ExitState()
 
 State* ScoutTScoutRax::TestTransitions()
 {
+	if (rax = nullptr)
+		return new ScoutTReturnToBase(mediator, state_machine);
+
 	if (mediator->GetCurrentTime() >= mediator->scouting_manager.first_barrack_timing + 46 + 20 || mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_MARINE)).size() > 0)
 	{
 		mediator->scouting_manager.first_rax_production = FirstRaxProduction::reaper;
