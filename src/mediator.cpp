@@ -800,16 +800,6 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 			if (building->unit_type == NEXUS && Distance2D(building->pos, point) < 25 && Utility::OnSameLevel(ToPoint3D(building->pos), ToPoint3D(point)))
 				in_base = true;
 		}
-		for (const auto& unit : agent->Observation()->GetUnits(Unit::Alliance::Self))
-		{
-			if (unit->unit_type == PROBE)
-				continue;
-			if (Distance2D(unit->pos, point) < (Utility::BuildingSize(unit_type) + .5))
-			{
-				blocked = true;
-				break;
-			}
-		}
 		if (in_base && !blocked && in_energy_field)
 			if (pending_buildings == 0)
 				return point;
