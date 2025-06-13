@@ -223,6 +223,7 @@ public:
 
 
 	void SetEarlyPoolInterrupt();
+	void Set12PoolInterrupt();
 	void SetChargeAllInInterrupt();
 	void SetChargeAllInInterruptTerran();
 	void SetChargeTransition();

@@ -172,6 +172,7 @@ int main(int argc, char* argv[])
     //sc2::CannonRushBot bot2;
     //sc2::ZerglingFloodBot bot2;
     //sc2::Proxy4RaxBot bot2;
+    sc2::TwelvePoolBot bot2;
 	
 	if (true)
 	{

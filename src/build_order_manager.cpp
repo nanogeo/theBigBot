@@ -724,9 +724,9 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 	else if (mediator->GetSpawningPoolTiming() < 25)
 	{
 		// 12 pool
-		SetEarlyPoolInterrupt(); // TODO new interrupt for 12 pool
+		Set12PoolInterrupt();
 		build_order_step = 0;
-		std::cerr << "Early pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
+		std::cerr << "12 pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag:scout_12_pool", ChatChannel::Team);
 	}
 	else if (mediator->GetSpawningPoolTiming() < 45)
@@ -1382,6 +1382,35 @@ void BuildOrderManager::SetEarlyPoolInterrupt()
 					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::ReturnToOracleGatewaymanPvZ,		Result()),
+	};
+}
+
+void BuildOrderManager::Set12PoolInterrupt()
+{
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::CancelBuilding,						Result(NEXUS)),
+					Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::TrainUnit,							Result(ZEALOT)),
+					Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result()),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::SafeRallyPoint,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::BuildBuilding,						Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(100.0f),			&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(105.0f),			&BuildOrderManager::TrainUnit,							Result(ZEALOT)),
+					Data(&BuildOrderManager::TimePassed,			Condition(115.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(ADEPT)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(125.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(138.0f),			&BuildOrderManager::TrainUnit,							Result(ADEPT)),
+					Data(&BuildOrderManager::TimePassed,			Condition(145.0f),			&BuildOrderManager::BuildBuilding,						Result(NEXUS)),
+					Data(&BuildOrderManager::TimePassed,			Condition(146.0f),			&BuildOrderManager::TrainUnit,							Result(ADEPT)),
+					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::BalanceIncome,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::ContinueChronos,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(STARGATE),		&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::SetUnitProduction,					Result(ORACLE)),
+					Data(&BuildOrderManager::HasUnits,				Condition(ORACLE, 1),		&BuildOrderManager::ReturnToOracleGatewaymanPvZ,		Result()),
+
 	};
 }
 
