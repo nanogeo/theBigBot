@@ -67,18 +67,26 @@ namespace sc2 {
 
 		if (Distance2D(closest_to_guard->pos, guard->pos) < Utility::RealRange(guard, closest_to_guard))
 		{
-			if (guard->weapon_cooldown > 0 || (Distance2D(guard->pos, guard_move_to) > .5 &&
-				Distance2D(guard->pos, Utility::ClosestTo(mediator->GetUnits(IsUnit(NEXUS)), guard->pos)->pos) >
-				Distance2D(door_closed_pos, Utility::ClosestTo(mediator->GetUnits(IsUnit(NEXUS)), guard->pos)->pos)))
+			if (mediator->GetAttackStatus(guard))
 			{
-				mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to, 0);
+				if (Distance2D(guard->pos, guard_move_to) > .5 &&
+					Distance2D(guard->pos, Utility::ClosestTo(mediator->GetUnits(IsUnit(NEXUS)), guard->pos)->pos) >
+					Distance2D(door_closed_pos, Utility::ClosestTo(mediator->GetUnits(IsUnit(NEXUS)), guard->pos)->pos))
+				{
+					mediator->CancelAttack(guard);
+					mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to, 0);
+				}
 			}
-			else
+			else if (guard->weapon_cooldown == 0)
 			{
 				mediator->AddUnitToAttackers(guard);
 			}
+			else
+			{
+				mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to, 0);
+			}
 		}
-		else
+		else if (mediator->GetAttackStatus(guard) == false || Distance2D(guard->pos, guard_move_to) > .5)
 		{
 			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to, 0);
 		}
