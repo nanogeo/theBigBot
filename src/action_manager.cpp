@@ -954,7 +954,7 @@ bool ActionManager::ActionCheckNaturalForCannons(ActionArgData* data)
 
 bool ActionManager::ActionCheckForBunkerRush(ActionArgData* data)
 {
-	if (mediator->GetCurrentTime() > 120 && Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy), mediator->GetNaturalLocation()) > 15)
+	if (mediator->GetCurrentTime() > 120 && Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ BUNKER, SCV })), mediator->GetNaturalLocation()) > 15)
 	{
 		if (data->unit != nullptr && data->unit->is_alive)
 			mediator->PlaceWorker(data->unit);
