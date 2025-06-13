@@ -123,6 +123,11 @@ bool IsNotCarryingResources::operator()(const Unit& unit_) const {
 }
 
 
+Point2D Utility::ToPoint2D(Point3D pos)
+{
+	return Point2D(pos.x, pos.y);
+}
+
 const Unit* Utility::ClosestTo(Units units, Point2D position)
 {
 	const Unit* current_closest = nullptr;

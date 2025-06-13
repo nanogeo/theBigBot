@@ -96,6 +96,7 @@ private:
 class Utility
 {
 public:
+	static Point2D ToPoint2D(Point3D);
 	static const Unit* ClosestTo(Units, Point2D);
 	static const Unit* ClosestToLine(Units, LineSegmentLinearX);
 	static const Unit* ClosestToLine(Units, Point2D, Point2D);

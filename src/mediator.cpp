@@ -2397,7 +2397,7 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 	}
 	scouting_manager.OnUnitDestroyed(unit);
 
-	if (unit->unit_type == NEXUS)
+	if (unit->unit_type == NEXUS && Utility::ToPoint2D(unit->pos) != GetNaturalLocation())
 	{
 		if (!HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
 			action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));

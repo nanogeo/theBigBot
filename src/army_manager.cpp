@@ -301,7 +301,8 @@ void ArmyManager::ScourMap()
 
 void ArmyManager::NexusStarted(Point2D pos) // TODO move to mediator
 {
-	AddArmyGroup(new DefendBaseArmyGroup(mediator, pos, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 3));
+	if (mediator->GetArmyGroupDefendingBase(pos) == nullptr)
+		AddArmyGroup(new DefendBaseArmyGroup(mediator, pos, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 3));
 }
 
 template<typename T>
