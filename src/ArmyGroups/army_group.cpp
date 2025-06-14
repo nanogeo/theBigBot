@@ -83,12 +83,33 @@ namespace sc2 {
 	void ArmyGroup::ScourMap()
 	{
 		Units enemy_buildings = mediator->GetUnits(Unit::Alliance::Enemy, IsBuilding());
+		Units enemy_ground_buildings;
+		Units enemy_flying_buildings;
+		for (const auto& building : enemy_buildings)
+		{
+			if (building->is_flying)
+				enemy_flying_buildings.push_back(building);
+			else
+				enemy_ground_buildings.push_back(building);
+		}
 		ImageData raw_map = mediator->GetPathingGrid();
 		for (const auto& unit : mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)))
 		{
 			if (unit->orders.size() == 0)
 			{
-				if (enemy_buildings.size() > 0)
+				if (Utility::GetGroundRange(unit->unit_type) == 0 && enemy_flying_buildings.size() > 0)
+				{
+					const Unit* closest = Utility::ClosestTo(enemy_flying_buildings, unit->pos);
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
+				}
+				else if (Utility::GetAirRange(unit->unit_type) == 0 && enemy_ground_buildings.size() > 0)
+				{
+					const Unit* closest = Utility::ClosestTo(enemy_ground_buildings, unit->pos);
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
+				}
+				else if (Utility::GetGroundRange(unit->unit_type) > 0 && 
+						Utility::GetAirRange(unit->unit_type) > 0 && 
+						enemy_buildings.size() > 0)
 				{
 					const Unit* closest = Utility::ClosestTo(enemy_buildings, unit->pos);
 					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
