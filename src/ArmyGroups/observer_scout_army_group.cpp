@@ -8,6 +8,8 @@ namespace sc2 {
 ObserverScoutArmyGroup::ObserverScoutArmyGroup(Mediator* mediator) : ArmyGroup(mediator)
 {
 	this->unit_types.push_back(OBSERVER);
+	desired_units = 1;
+	max_units = 1;
 
 	this->main_pos = mediator->GetEnemyStartLocation();
 	current_target = main_pos;
@@ -17,6 +19,8 @@ ObserverScoutArmyGroup::ObserverScoutArmyGroup(Mediator* mediator) : ArmyGroup(m
 ObserverScoutArmyGroup::ObserverScoutArmyGroup(Mediator* mediator, ArmyTemplate<ObserverScoutArmyGroup>* army_template) : ArmyGroup(mediator)
 {
 	this->unit_types.push_back(OBSERVER);
+	desired_units = 1;
+	max_units = 1;
 
 	this->main_pos = mediator->GetEnemyStartLocation();
 	current_target = main_pos;
