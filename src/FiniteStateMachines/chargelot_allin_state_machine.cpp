@@ -72,9 +72,12 @@ void ChargeAllInWarpingIn::TickState()
 		return;
 	}
 	Units gates = mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE));
-	bool all_gates_ready = mediator->GetNumWarpgatesReady() == gates.size();
+	size_t num_gates_ready = mediator->GetNumWarpgatesReady();
+	size_t num_zealots_afforded = mediator->MaxCanAfford(ZEALOT);
 
-	if (all_gates_ready && mediator->WarpInUnitsAt(ZEALOT, gates.size(), state_machine->prism->pos))
+	if (num_zealots_afforded > 0 &&
+		num_gates_ready >= std::min(num_zealots_afforded, gates.size()) &&
+		mediator->WarpInUnitsAt(ZEALOT, std::min(num_zealots_afforded, num_gates_ready), state_machine->prism->pos))
 	{
 		state_machine->last_warp_in_time = mediator->GetCurrentTime();
 	}
