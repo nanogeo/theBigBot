@@ -185,8 +185,27 @@ namespace sc2 {
 		}
 		if (basic_units.size() == 0)
 		{
-			// TODO figure out what to do here
-			return AttackLineResult::all_units_dead;
+			if (units_on_their_way.size() > 0)
+			{
+				for (const auto& unit : units_on_their_way[0])
+				{
+					AddUnit(unit);
+				}
+				units_on_their_way.erase(units_on_their_way.begin());
+				concave_origin = Point2D(0, 0);
+			}
+			else if (new_units.size() > 0)
+			{
+				for (const auto& unit : new_units)
+				{
+					AddUnit(unit);
+				}
+			}
+			else
+			{
+				return AttackLineResult::all_units_dead;
+			}
+			// TODO add a case for standby units
 		}
 
 		// update unit size TODO maybe move to addunit/removeunit
