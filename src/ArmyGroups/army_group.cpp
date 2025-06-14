@@ -97,18 +97,18 @@ namespace sc2 {
 		{
 			if (unit->orders.size() == 0)
 			{
-				if (Utility::GetGroundRange(unit->unit_type) == 0 && enemy_flying_buildings.size() > 0)
+				if (Utility::GetGroundRange(unit) == 0 && enemy_flying_buildings.size() > 0)
 				{
 					const Unit* closest = Utility::ClosestTo(enemy_flying_buildings, unit->pos);
 					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
 				}
-				else if (Utility::GetAirRange(unit->unit_type) == 0 && enemy_ground_buildings.size() > 0)
+				else if (Utility::GetAirRange(unit) == 0 && enemy_ground_buildings.size() > 0)
 				{
 					const Unit* closest = Utility::ClosestTo(enemy_ground_buildings, unit->pos);
 					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
 				}
-				else if (Utility::GetGroundRange(unit->unit_type) > 0 && 
-						Utility::GetAirRange(unit->unit_type) > 0 && 
+				else if (Utility::GetGroundRange(unit) > 0 && 
+						Utility::GetAirRange(unit) > 0 && 
 						enemy_buildings.size() > 0)
 				{
 					const Unit* closest = Utility::ClosestTo(enemy_buildings, unit->pos);
