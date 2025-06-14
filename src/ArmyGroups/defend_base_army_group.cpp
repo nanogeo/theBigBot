@@ -106,7 +106,8 @@ void DefendBaseArmyGroup::Run()
 			Units enemy_units = Utility::CloserThan(mediator->GetUnits(Unit::Alliance::Enemy), leash_range + Utility::GetGroundRange(unit), base_pos);
 			if (enemy_units.size() == 0)
 			{
-				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, base_pos, 0);
+				if (unit->orders.size() == 0)
+					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, base_pos, 0);
 				continue;
 			}
 			Point2D base_pos_L = base_pos;
