@@ -25,8 +25,6 @@ namespace sc2 {
 
 	void DefendLineArmyGroup::Run()
 	{
-		
-
 		Units enemy_ground_units = mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit());
 		Units enemy_units = mediator->GetUnits(Unit::Alliance::Enemy);
 
@@ -160,7 +158,7 @@ namespace sc2 {
 				}
 				else if (beam_activatable)
 				{
-					if (Distance2D(oracle->pos, closest_unit->pos) < 2)
+					if (Distance2D(oracle->pos, closest_unit->pos) < 2 && enemy_ground_units.size() > 5) // TODO use battle sim to determine this better
 					{
 						mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, 0, false);
 					}
