@@ -7,6 +7,12 @@
 
 namespace sc2
 {
+
+class BlankBot : public sc2::Agent {
+public:
+	BlankBot() : Agent() {};
+};
+
 class ZerglingFloodBot : public sc2::Agent {
 public:
 	ZerglingFloodBot() : Agent() {};
