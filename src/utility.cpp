@@ -2203,6 +2203,126 @@ float Utility::GetWeaponCooldown(const Unit* unit)
 	}
 }
 
+float Utility::GetSpeed(const Unit* unit)
+{
+	switch (unit->unit_type.ToType())
+	{
+	case UNIT_TYPEID::PROTOSS_PROBE:
+		return 3.94f;
+	case UNIT_TYPEID::PROTOSS_ZEALOT: // TODO charge
+		return 3.15f; // 4.72
+	case UNIT_TYPEID::PROTOSS_SENTRY:
+		return 3.15f;
+	case UNIT_TYPEID::PROTOSS_STALKER:
+		return 4.13f;
+	case UNIT_TYPEID::PROTOSS_ADEPT:
+		return 3.5f;
+	case UNIT_TYPEID::PROTOSS_HIGHTEMPLAR:
+		return 2.62f;
+	case UNIT_TYPEID::PROTOSS_DARKTEMPLAR:
+		return 3.94f;
+	case UNIT_TYPEID::PROTOSS_ARCHON:
+		return 3.94f;
+	case UNIT_TYPEID::PROTOSS_IMMORTAL:
+		return 3.15f;
+	case UNIT_TYPEID::PROTOSS_COLOSSUS:
+		return 3.15f;
+	case UNIT_TYPEID::PROTOSS_PHOENIX:
+		return 5.95f;
+	case UNIT_TYPEID::PROTOSS_VOIDRAY: // TODO flux vanes
+		return 3.85f; // 4.65
+	case UNIT_TYPEID::PROTOSS_ORACLE:
+		return 5.6f;
+	case UNIT_TYPEID::PROTOSS_CARRIER: // TODO each interceptor?
+		return 2.62f;
+	case UNIT_TYPEID::PROTOSS_TEMPEST:
+		return 3.15f;
+	case UNIT_TYPEID::PROTOSS_MOTHERSHIP:
+		return 2.62f;
+	case UNIT_TYPEID::TERRAN_SCV:
+		return 3.94f;
+	case UNIT_TYPEID::TERRAN_MULE:
+		return 3.94f;
+	case UNIT_TYPEID::TERRAN_MARINE: // TODO stim
+		return 3.15f; // 4.72
+	case UNIT_TYPEID::TERRAN_MARAUDER: // TODO stim
+		return 3.15f; // 4.72
+	case UNIT_TYPEID::TERRAN_REAPER:
+		return 5.25f;
+	case UNIT_TYPEID::TERRAN_GHOST:
+		return 3.94f;
+	case UNIT_TYPEID::TERRAN_HELLION:
+		return 5.95f;
+	case UNIT_TYPEID::TERRAN_HELLIONTANK:
+		return 3.15f;
+	case UNIT_TYPEID::TERRAN_WIDOWMINE:
+		return 3.94f;
+	case UNIT_TYPEID::TERRAN_SIEGETANK:
+		return 3.15f;
+	case UNIT_TYPEID::TERRAN_CYCLONE:
+		return 4.72f;
+	case UNIT_TYPEID::TERRAN_THOR:
+	case UNIT_TYPEID::TERRAN_THORAP:
+		return 2.62f;
+	case UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+		return 3.15f;
+	case UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+		return 3.85f;
+	case UNIT_TYPEID::TERRAN_MEDIVAC: // TODO boost
+		return 3.5f; // 5.94
+	case UNIT_TYPEID::TERRAN_LIBERATOR:
+		return 4.72f;
+	case UNIT_TYPEID::TERRAN_BANSHEE: // TODO hyperflight rotors
+		return 3.85f; // 5.25
+	case UNIT_TYPEID::TERRAN_RAVEN:
+		return 4.13f;
+	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
+		return 2.62f;
+	case UNIT_TYPEID::ZERG_DRONE: // TODO all zerg units off creep
+		return 3.94f;
+	case UNIT_TYPEID::ZERG_OVERLORD: // TODO speed
+	case UNIT_TYPEID::ZERG_OVERLORDTRANSPORT:
+		return .902f;
+	case UNIT_TYPEID::ZERG_OVERSEER:
+		return 2.62f;
+	case UNIT_TYPEID::ZERG_QUEEN:
+		return 3.5f;
+	case UNIT_TYPEID::ZERG_ZERGLING: // TODO ling speed
+		return 5.37f;
+	case UNIT_TYPEID::ZERG_BANELING: // TODO bane speed
+		return 4.55f;
+	case UNIT_TYPEID::ZERG_ROACH: // TODO speed
+		return 4.09f; // 4.09
+	case UNIT_TYPEID::ZERG_ROACHBURROWED: // TODO speed
+		return 2.56f; // 4.09
+	case UNIT_TYPEID::ZERG_RAVAGER:
+		return 5.0f;
+	case UNIT_TYPEID::ZERG_HYDRALISK: // TODO speed
+		return 4.09f;
+	case UNIT_TYPEID::ZERG_LURKERMP:
+		return 5.37f;
+	case UNIT_TYPEID::ZERG_INFESTOR:
+		return 4.09f;
+	case UNIT_TYPEID::ZERG_INFESTORBURROWED:
+		return 3.64f;
+	case UNIT_TYPEID::ZERG_ULTRALISK: // TODO speed
+		return 5.37f;
+	case UNIT_TYPEID::ZERG_MUTALISK:
+		return 5.6f;
+	case UNIT_TYPEID::ZERG_CORRUPTOR:
+		return 4.73f;
+	case UNIT_TYPEID::ZERG_BROODLORD:
+		return 1.97f;
+	case UNIT_TYPEID::ZERG_LOCUSTMP:
+		return 3.68f;
+	case UNIT_TYPEID::ZERG_BROODLING:
+		return 5.37f;
+	default:
+		return 0.0f;
+	}
+}
+
+
 bool Utility::IsOnHighGround(Point3D unit, Point3D enemy_unit)
 {
 	return unit.z + .5 < enemy_unit.z;

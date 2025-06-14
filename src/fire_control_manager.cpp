@@ -366,6 +366,12 @@ void FireControlManager::UpdateEnemyUnitHealth()
 			outgoing_attacks.erase(outgoing_attacks.begin() + i);
 			i--;
 		}
+		else if (outgoing_attacks[i].confirmend == false && outgoing_attacks[i].frame_attack_should_finish < mediator->GetGameLoop())
+		{
+			CancelAttack(outgoing_attacks[i].attacker);
+			outgoing_attacks.erase(outgoing_attacks.begin() + i);
+			i--;
+		}
 	}
 
 	for (const auto damage : outgoing_attacks)
@@ -388,7 +394,7 @@ void FireControlManager::ApplyAttack(const Unit* attacker, const Unit* target)
 {
 	int damage = Utility::GetDamage(attacker, target);
 	enemy_unit_hp[target] = enemy_unit_hp[target] - damage;
-	outgoing_attacks.push_back(OutgoingDamage(attacker, target, damage, mediator->GetGameLoop() + 20)); // TODO calculate frame of hit
+	outgoing_attacks.push_back(OutgoingDamage(attacker, target, damage, mediator->GetGameLoop())); // TODO calculate frame of hit
 }
 
 void FireControlManager::ConfirmAttack(const Unit* attacker, const Unit* target)

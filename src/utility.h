@@ -142,6 +142,7 @@ public:
 	static float GetDamagePoint(const Unit*);
 	static float GetProjectileTime(const Unit*, float dist);
 	static float GetWeaponCooldown(const Unit*);
+	static float GetSpeed(const Unit*);
 	static bool IsOnHighGround(Point3D, Point3D);
 	static float GetTimeBuilt(const Unit*, float);
 	static AbilityID UnitToWarpInAbility(UNIT_TYPEID);

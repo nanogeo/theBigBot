@@ -1,6 +1,9 @@
 #pragma once
 #include "sc2api/sc2_unit_filters.h"
 
+#include "definitions.h"
+#include "utility.h"
+
 #include <string>
 #include <vector>
 #include <map>
@@ -116,13 +119,23 @@ struct OutgoingDamage
 	const Unit* target;
 	int damage;
 	int frame_of_hit;
+	int frame_attack_should_finish;
 	bool confirmend = false;
-	OutgoingDamage(const Unit* attacker, const Unit* target, int damage, int frame_of_hit)
+	OutgoingDamage(const Unit* attacker, const Unit* target, int damage, int curr_frame)
 	{
 		this->attacker = attacker;
 		this->target = target;
 		this->damage = damage;
-		this->frame_of_hit = frame_of_hit;
+		frame_of_hit = curr_frame + 20;
+		frame_attack_should_finish = curr_frame + std::ceil(Utility::GetDamagePoint(attacker) * FRAME_TIME) + 1;
+		if (Distance2D(attacker->pos, target->pos) > Utility::RealRange(attacker, target))
+		{
+			float extra_distance = Distance2D(attacker->pos, target->pos) - Utility::RealRange(attacker, target);
+			float speed = Utility::GetSpeed(attacker);
+			float extra_time = extra_distance / speed;
+			int extra_frames = std::ceil(extra_time * FRAME_TIME);
+			frame_attack_should_finish += extra_frames;
+		}
 	}
 };
 
