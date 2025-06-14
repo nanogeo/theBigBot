@@ -53,7 +53,7 @@ State* ChargeAllInMovingToWarpinSpot::TestTransitions()
 		mediator->IsPathable(state_machine->prism->pos + Point2D(0, -2)) &&
 		mediator->IsPathable(state_machine->prism->pos + Point2D(2, 0)) &&
 		mediator->IsPathable(state_machine->prism->pos + Point2D(-2, 0)))
-		return new ChargeAllInWarpingIn(mediator, state_machine);
+		return new ChargeAllInWarpingIn(mediator, state_machine, mediator->GetCurrentTime());
 	return nullptr;
 }
 
@@ -68,7 +68,7 @@ std::string ChargeAllInWarpingIn::toString()
 
 void ChargeAllInWarpingIn::TickState()
 {
-	if (state_machine->prism == nullptr)
+	if (state_machine->prism == nullptr || done_warp_in)
 		return;
 
 	if (state_machine->prism->unit_type != PRISM_SIEGED)
@@ -85,6 +85,7 @@ void ChargeAllInWarpingIn::TickState()
 		mediator->WarpInUnitsAt(ZEALOT, std::min(num_zealots_afforded, num_gates_ready), state_machine->prism->pos))
 	{
 		state_machine->last_warp_in_time = mediator->GetCurrentTime();
+		done_warp_in = true;
 	}
 }
 
@@ -109,8 +110,11 @@ State* ChargeAllInWarpingIn::TestTransitions()
 	float time_left = state_machine->last_warp_in_time + 20 - mediator->GetCurrentTime();
 	if (time_left < 16 && time_left > 10)
 		return new ChargeAllInMovingToWarpinSpot(mediator, state_machine);
-	// if last warp in time >3 and < 8
-	// return new ChargeAllInLookingForWarpinSpot)(
+	if (time_left < 0 && mediator->GetCurrentTime() - time_arrived > 5)
+	{
+		return new ChargeAllInMovingToWarpinSpot(mediator, state_machine);
+		state_machine->last_warp_in_time = mediator->GetCurrentTime() + 10;
+	}
 	return nullptr;
 }
 

@@ -32,10 +32,13 @@ public:
 class ChargeAllInWarpingIn : public State {
 public:
     ChargelotAllInStateMachine* state_machine;
-    ChargeAllInWarpingIn(Mediator* mediator, ChargelotAllInStateMachine* state_machine)
+    float time_arrived;
+    bool done_warp_in = false;
+    ChargeAllInWarpingIn(Mediator* mediator, ChargelotAllInStateMachine* state_machine, float time_arrived)
     {
         this->mediator = mediator;
         this->state_machine = state_machine;
+        this->time_arrived = time_arrived;
     }
     virtual std::string toString() override;
     void TickState() override;
