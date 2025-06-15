@@ -47,12 +47,12 @@ State* ChargeAllInMovingToWarpinSpot::TestTransitions()
 		return nullptr;
 
 	float time_left = state_machine->last_warp_in_time + 20 - mediator->GetCurrentTime();
-	if (time_left < 2 && 
+	if (time_left < 2 && (Distance2D(state_machine->prism->pos, state_machine->next_warp_in_location) < 1 ||
 		mediator->IsPathable(state_machine->prism->pos) &&
 		mediator->IsPathable(state_machine->prism->pos + Point2D(0, 2)) &&
 		mediator->IsPathable(state_machine->prism->pos + Point2D(0, -2)) &&
 		mediator->IsPathable(state_machine->prism->pos + Point2D(2, 0)) &&
-		mediator->IsPathable(state_machine->prism->pos + Point2D(-2, 0)))
+		mediator->IsPathable(state_machine->prism->pos + Point2D(-2, 0))))
 		return new ChargeAllInWarpingIn(mediator, state_machine, mediator->GetCurrentTime());
 	return nullptr;
 }
