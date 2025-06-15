@@ -721,21 +721,24 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 	{
 		return false;
 	}
-	else if (mediator->GetSpawningPoolTiming() < 25)
-	{
-		// 12 pool
-		Set12PoolInterrupt();
-		build_order_step = 0;
-		std::cerr << "12 pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
-		mediator->SendChat("Tag:scout_12_pool", ChatChannel::Team);
-	}
 	else if (mediator->GetSpawningPoolTiming() < 45)
 	{
-		// pool first
-		SetEarlyPoolInterrupt();
-		build_order_step = 0;
-		std::cerr << "Early pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
-		mediator->SendChat("Tag:scout_pool_first", ChatChannel::Team);
+		if (mediator->GetNaturalTiming() == 0 || mediator->GetNaturalTiming() > 70 || mediator->GetEnemyUnitCount(ZERGLING) > 0)
+		{
+			// 12 pool
+			Set12PoolInterrupt();
+			build_order_step = 0;
+			std::cerr << "12 pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
+			mediator->SendChat("Tag:scout_12_pool", ChatChannel::Team);
+		}
+		else
+		{
+			// pool first
+			SetEarlyPoolInterrupt();
+			build_order_step = 0;
+			std::cerr << "Early pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
+			mediator->SendChat("Tag:scout_pool_first", ChatChannel::Team);
+		}
 	}
 	else if (mediator->GetRoachWarrenTiming() != 0)
 	{
