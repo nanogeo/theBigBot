@@ -171,7 +171,7 @@ void ScoutTScoutRax::ExitState()
 
 State* ScoutTScoutRax::TestTransitions()
 {
-	if (rax = nullptr)
+	if (rax == nullptr)
 		return new ScoutTReturnToBase(mediator, state_machine);
 
 	if (mediator->GetCurrentTime() >= mediator->scouting_manager.first_barrack_timing + 46 + 20 || mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_MARINE)).size() > 0)
