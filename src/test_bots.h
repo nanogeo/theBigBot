@@ -28,67 +28,14 @@ public:
 
 	virtual void OnStep()
 	{
-		if (Observation()->GetGameLoop() == 100)
-		{
-			Debug()->DebugCreateUnit(SPAWNING_POOL, Point2D(76, 75), 1, 1);
-			Debug()->DebugCreateUnit(MISSILE_TURRET, Point2D(57, 130), 1, 1);
-			Debug()->DebugCreateUnit(BARRACKS, Observation()->GetStartLocation() + Point2D(8, 0), 1, 1);
-
-			Debug()->SendDebug();
-		}
-
 		if (Observation()->GetGameLoop() >= 4700 && Observation()->GetGameLoop() % 700 == 500)
 		{
-			//Debug()->DebugCreateUnit(ZERGLING, Observation()->GetStartLocation(), 1, 1);
+			Debug()->DebugCreateUnit(ZERGLING, Observation()->GetStartLocation(), 1, 10);
 			Debug()->DebugGiveAllUpgrades();
 			Debug()->SendDebug();
 		}
 		Actions()->UnitCommand(Observation()->GetUnits(IsUnit(ZERGLING)), ABILITY_ID::ATTACK, Observation()->GetGameInfo().enemy_start_locations[0]);
 
-		/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Self))
-		{
-			if (unit->orders.size() == 0)
-			{
-				Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, Point2D(70.5, 117.5));
-				Actions()->UnitCommand(unit, ABILITY_ID::ATTACK_ATTACK, Observation()->GetGameInfo().enemy_start_locations[0], true);
-			}
-		}*/
-		for (const auto& unit : Observation()->GetUnits(IsUnit(MARAUDER)))
-		{
-			if (attacks.find(unit) == attacks.end())
-			{
-				attacks[unit] = false;
-			}
-			if (attacks[unit])
-			{
-				if (unit->weapon_cooldown == 0)
-					attacks[unit] = false;
-			}
-			else
-			{
-				if (unit->weapon_cooldown > 0)
-				{
-					attacks[unit] = true;
-					//std::cout << "attack launched" << std::endl;
-				}
-			}
-		}
-		/*for (const auto &unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ROACH)))
-		{
-			if (Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER)).size() == 0)
-				return;
-			const Unit* stalker = Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_STALKER))[0];
-			Point2D vec = Point2D(stalker->pos.x - unit->pos.x, stalker->pos.y - unit->pos.y);
-			float angle = atan2(vec.y, vec.x);
-			if (angle < 0)
-				angle += 2 * 3.1415926535;
-			float facing = unit->facing;
-			std::string text = "roach facing: " + std::to_string(facing);
-			text += " angle to stalker: " + std::to_string(angle);
-			text += " weapon cooldown: " + std::to_string(unit->weapon_cooldown) + "\n";
-			Debug()->DebugTextOut(text, unit->pos, Color(0, 255, 255), 20);
-			Debug()->SendDebug();
-		}*/
 	}
 };
 
