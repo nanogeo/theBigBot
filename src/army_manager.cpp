@@ -192,6 +192,9 @@ void ArmyManager::AddArmyGroup(ArmyGroup* army)
 
 void ArmyManager::RunArmyGroups()
 {
+	if (scouring_map)
+		unassigned_group->ScourMap();
+
 	for (int i = 0; i < army_groups.size(); i++)
 	{
 		if (std::find(army_groups_to_delete.begin(), army_groups_to_delete.end(), army_groups[i]) != army_groups_to_delete.end())
