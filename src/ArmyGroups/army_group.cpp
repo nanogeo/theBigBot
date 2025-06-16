@@ -93,7 +93,7 @@ namespace sc2 {
 				enemy_ground_buildings.push_back(building);
 		}
 		ImageData raw_map = mediator->GetPathingGrid();
-		for (const auto& unit : mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)))
+		for (const auto& unit : all_units)
 		{
 			if (unit->orders.size() == 0)
 			{
