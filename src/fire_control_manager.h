@@ -127,7 +127,7 @@ struct OutgoingDamage
 		this->target = target;
 		this->damage = damage;
 		frame_of_hit = curr_frame + 20;
-		frame_attack_should_finish = curr_frame + std::ceil(Utility::GetDamagePoint(attacker) * FRAME_TIME) + 1;
+		frame_attack_should_finish = curr_frame + std::ceil(Utility::GetDamagePoint(attacker) * FRAME_TIME) + 3;
 		if (Distance2D(attacker->pos, target->pos) > Utility::RealRange(attacker, target))
 		{
 			float extra_distance = Distance2D(attacker->pos, target->pos) - Utility::RealRange(attacker, target);
