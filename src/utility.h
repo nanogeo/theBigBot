@@ -44,6 +44,15 @@ private:
 	Unit::Alliance m_type;
 };
 
+struct IsGroundBuilding{
+	explicit IsGroundBuilding();
+
+	bool operator()(const Unit& unit_) const;
+
+private:
+	UNIT_TYPEID m_type;
+};
+
 struct IsNonPlaceholderUnit {
 	explicit IsNonPlaceholderUnit(UNIT_TYPEID type_);
 

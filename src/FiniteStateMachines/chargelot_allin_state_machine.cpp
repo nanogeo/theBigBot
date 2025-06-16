@@ -139,15 +139,15 @@ void ChargelotAllInStateMachine::RunStateMachine()
 				}
 				else
 				{
-					const Unit* closest_building = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsBuilding()), zealot->pos);
+					const Unit* closest_building = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsGroundBuilding()), zealot->pos);
 					if (closest_building != nullptr)
 					{
 						mediator->SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, closest_building->pos, 1);
 					}
-					else
+					else if (attached_army_group != nullptr)
 					{
-						Point2D pos = mediator->GetEnemyStartLocation(); // TODO scour map instead
-						mediator->SetUnitCommand(zealot, ABILITY_ID::ATTACK_ATTACK, pos, 1);
+						attached_army_group->ScourMap();
+						return;
 					}
 				}
 			}
