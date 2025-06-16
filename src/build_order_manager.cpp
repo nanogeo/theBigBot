@@ -86,8 +86,16 @@ bool BuildOrderManager::HasBuilding(Condition data)
 
 bool BuildOrderManager::HasBuildingStarted(Condition data)
 {
-	if (mediator->GetUnits(Unit::Alliance::Self, IsNonPlaceholderUnit(data.unitId)).size() > 0)
-		return true;
+	if (data.amount == 0)
+	{
+		if (mediator->GetUnits(Unit::Alliance::Self, IsNonPlaceholderUnit(data.unitId)).size() > 0)
+			return true;
+	}
+	else
+	{
+		if (mediator->GetUnits(Unit::Alliance::Self, IsNonPlaceholderUnit(data.unitId)).size() >= data.amount)
+			return true;
+	}
 	return false;
 }
 
