@@ -1567,10 +1567,10 @@ void BuildOrderManager::SetMajorProxyRaxResponse()
 					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(156.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(157.0f),			&BuildOrderManager::CancelBuilding,						Result(NEXUS)),
-					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),			&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(165.0f),			&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::ResearchWarpgate,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(260.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 	};
 }
 
