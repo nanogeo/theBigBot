@@ -26,6 +26,10 @@ namespace sc2 {
 
 	void ArmyGroup::ScourMap()
 	{
+		for (int i = new_units.size() - 1; i >= 0; i--)
+		{
+			AddUnit(new_units[i]);
+		}
 		Units enemy_buildings = mediator->GetUnits(Unit::Alliance::Enemy, IsBuilding());
 		Units enemy_ground_buildings;
 		Units enemy_flying_buildings;

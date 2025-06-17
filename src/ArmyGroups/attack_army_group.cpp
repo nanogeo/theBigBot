@@ -108,6 +108,19 @@ namespace sc2 {
 			mediator->MarkArmyGroupForDeletion(this);
 	}
 
+	void AttackArmyGroup::ScourMap()
+	{
+		for (auto itr = units_on_their_way.begin(); itr != units_on_their_way.end();)
+		{
+			for (const auto& unit : *itr)
+			{
+				AddUnit(unit);
+			}
+			itr = units_on_their_way.erase(itr);
+		}
+		ArmyGroup::ScourMap();
+	}
+
 	void AttackArmyGroup::AddUnit(const Unit* unit)
 	{
 		if (unit->unit_type == STALKER || unit->unit_type == SENTRY || unit->unit_type == ADEPT ||

@@ -54,6 +54,7 @@ public:
 
 	void SetUp() override;
 	void Run() override;
+	void ScourMap() override;
 	std::string ToString() override
 	{
 		return "Attack army group";
