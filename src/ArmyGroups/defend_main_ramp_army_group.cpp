@@ -38,7 +38,7 @@ void DefendMainRampArmyGroup::Run()
 		}
 		else
 		{
-			mediator->CreateAttack({ ADEPT, STALKER, SENTRY }, 12, 20, 4, 3);
+			mediator->CreateAttack({ ADEPT, STALKER, SENTRY }, 12, 20, 4, 4);
 			mediator->MarkArmyGroupForDeletion(this);
 			mediator->SetUnitsCommand(all_units, ABILITY_ID::ATTACK, mediator->GetEnemyStartLocation(), 1);
 		}
