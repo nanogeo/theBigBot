@@ -24,6 +24,58 @@ namespace sc2 {
 
 	}
 
+	void ArmyGroup::ScourMap()
+	{
+		Units enemy_buildings = mediator->GetUnits(Unit::Alliance::Enemy, IsBuilding());
+		Units enemy_ground_buildings;
+		Units enemy_flying_buildings;
+		for (const auto& building : enemy_buildings)
+		{
+			if (building->is_flying)
+				enemy_flying_buildings.push_back(building);
+			else
+				enemy_ground_buildings.push_back(building);
+		}
+		ImageData raw_map = mediator->GetPathingGrid();
+		for (const auto& unit : all_units)
+		{
+			if (unit->orders.size() == 0)
+			{
+				if (Utility::GetGroundRange(unit) == 0 && enemy_flying_buildings.size() > 0)
+				{
+					const Unit* closest = Utility::ClosestTo(enemy_flying_buildings, unit->pos);
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
+				}
+				else if (Utility::GetAirRange(unit) == 0 && enemy_ground_buildings.size() > 0)
+				{
+					const Unit* closest = Utility::ClosestTo(enemy_ground_buildings, unit->pos);
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
+				}
+				else if (Utility::GetGroundRange(unit) > 0 &&
+					Utility::GetAirRange(unit) > 0 &&
+					enemy_buildings.size() > 0)
+				{
+					const Unit* closest = Utility::ClosestTo(enemy_buildings, unit->pos);
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
+				}
+				else
+				{
+					std::srand((unsigned int)(unit->tag + mediator->GetGameLoop()));
+					int x = std::rand() % raw_map.width;
+					int y = std::rand() % raw_map.height;
+					Point2D pos = Point2D((float)x, (float)y);
+					while (!unit->is_flying && !mediator->IsPathable(pos))
+					{
+						x = std::rand() % raw_map.width;
+						y = std::rand() % raw_map.height;
+						pos = Point2D((float)x, (float)y);
+					}
+					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, pos, 0);
+				}
+			}
+		}
+	}
+
 	void ArmyGroup::AddUnit(const Unit* unit)
 	{
 		if (std::find(all_units.begin(), all_units.end(), unit) != all_units.end())
@@ -78,58 +130,6 @@ namespace sc2 {
 				break;
 		}
 		return extra_units;
-	}
-
-	void ArmyGroup::ScourMap()
-	{
-		Units enemy_buildings = mediator->GetUnits(Unit::Alliance::Enemy, IsBuilding());
-		Units enemy_ground_buildings;
-		Units enemy_flying_buildings;
-		for (const auto& building : enemy_buildings)
-		{
-			if (building->is_flying)
-				enemy_flying_buildings.push_back(building);
-			else
-				enemy_ground_buildings.push_back(building);
-		}
-		ImageData raw_map = mediator->GetPathingGrid();
-		for (const auto& unit : all_units)
-		{
-			if (unit->orders.size() == 0)
-			{
-				if (Utility::GetGroundRange(unit) == 0 && enemy_flying_buildings.size() > 0)
-				{
-					const Unit* closest = Utility::ClosestTo(enemy_flying_buildings, unit->pos);
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
-				}
-				else if (Utility::GetAirRange(unit) == 0 && enemy_ground_buildings.size() > 0)
-				{
-					const Unit* closest = Utility::ClosestTo(enemy_ground_buildings, unit->pos);
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
-				}
-				else if (Utility::GetGroundRange(unit) > 0 && 
-						Utility::GetAirRange(unit) > 0 && 
-						enemy_buildings.size() > 0)
-				{
-					const Unit* closest = Utility::ClosestTo(enemy_buildings, unit->pos);
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
-				}
-				else
-				{
-					std::srand((unsigned int)(unit->tag + mediator->GetGameLoop()));
-					int x = std::rand() % raw_map.width;
-					int y = std::rand() % raw_map.height;
-					Point2D pos = Point2D((float)x, (float)y);
-					while (!unit->is_flying && !mediator->IsPathable(pos))
-					{
-						x = std::rand() % raw_map.width;
-						y = std::rand() % raw_map.height;
-						pos = Point2D((float)x, (float)y);
-					}
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, pos, 0);
-				}
-			}
-		}
 	}
 
 	/*

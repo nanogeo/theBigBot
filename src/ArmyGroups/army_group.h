@@ -86,6 +86,7 @@ public:
 		ready = true;
 	};
 	virtual void Run() {};
+	virtual void ScourMap();
 	virtual std::string ToString()
 	{
 		return "Army group";
@@ -95,7 +96,6 @@ public:
 	virtual void AddNewUnit(const Unit* unit);
 	virtual void RemoveUnit(const Unit* unit);
 	Units GetExtraUnits();
-	void ScourMap();
 
 	
 	/*
