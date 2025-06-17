@@ -805,7 +805,6 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 				return point;
 			else
 				pending_buildings--;
-
 	}
 	// no point found but if building is a gateway/tech building then we can try in more spots
 	if (std::find(tech_buildings.begin(), tech_buildings.end(), unit_type) != tech_buildings.end())
@@ -1747,10 +1746,9 @@ void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
 	case ADEPT:
 	case HIGH_TEMPLAR:
 	case DARK_TEMPLAR:
-		if (defense_manager.temp_unit_production)
+		if (defense_manager.temp_warpgate_production)
 		{
-			defense_manager.reset_warpgate_production = false;
-			defense_manager.prev_warpgate_production = unit_type;
+			defense_manager.temp_warpgate_production = false;
 		}
 		unit_production_manager.SetWarpgateProduction(unit_type);
 		break;
@@ -1759,10 +1757,9 @@ void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
 	case DISRUPTOR:
 	case OBSERVER:
 	case PRISM:
-		if (defense_manager.temp_unit_production)
+		if (defense_manager.temp_robo_production)
 		{
-			defense_manager.reset_robo_production = false;
-			defense_manager.prev_robo_production = unit_type;
+			defense_manager.temp_robo_production = false;
 		}
 		unit_production_manager.SetRoboProduction(unit_type);
 		break;
@@ -1771,10 +1768,9 @@ void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
 	case ORACLE:
 	case CARRIER:
 	case TEMPEST:
-		if (defense_manager.temp_unit_production)
+		if (defense_manager.temp_stargate_production)
 		{
-			defense_manager.reset_stargate_production = false;
-			defense_manager.prev_stargate_production = unit_type;
+			defense_manager.temp_stargate_production = false;
 		}
 		unit_production_manager.SetStargateProduction(unit_type);
 		break;

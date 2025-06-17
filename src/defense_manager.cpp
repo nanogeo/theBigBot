@@ -68,43 +68,21 @@ void DefenseManager::UpdateOngoingAttacks()
 			// pause build
 			//mediator->PauseBuildOrder();
 
-			if (!temp_unit_production)
+			if (!temp_warpgate_production && mediator->GetWarpgateProduction() == UNIT_TYPEID::INVALID)
 			{
-				temp_unit_production = true;
-				// warp in or make units from gates
-				if (mediator->GetWarpgateProduction() == UNIT_TYPEID::INVALID)
-				{
-					mediator->SetUnitProduction(STALKER);
-					reset_warpgate_production = true;
-				}
-				else
-				{
-					prev_warpgate_production = mediator->GetWarpgateProduction();
-					mediator->SetUnitProduction(STALKER);
-				}
-
-				// make units from other tech structures
-				if (mediator->GetRoboProduction() == UNIT_TYPEID::INVALID)
-				{
-					mediator->SetUnitProduction(IMMORTAL);
-					reset_robo_production = true;
-				}
-				else
-				{
-					prev_robo_production = mediator->GetRoboProduction();
-					mediator->SetUnitProduction(IMMORTAL);
-				}
-
-				if (mediator->GetStargateProduction() == UNIT_TYPEID::INVALID)
-				{
-					mediator->SetUnitProduction(VOID_RAY);
-					reset_stargate_production = true;
-				}
-				else
-				{
-					prev_stargate_production = mediator->GetStargateProduction();
-					mediator->SetUnitProduction(VOID_RAY);
-				}
+				temp_warpgate_production = true;
+				mediator->SetUnitProduction(STALKER);
+			}
+			if (!temp_robo_production && mediator->GetRoboProduction() == UNIT_TYPEID::INVALID)
+			{
+				temp_robo_production = true;
+				mediator->SetUnitProduction(IMMORTAL);
+				
+			}
+			if (!temp_stargate_production && mediator->GetStargateProduction() == UNIT_TYPEID::INVALID)
+			{
+				temp_stargate_production = true;
+				mediator->SetUnitProduction(VOID_RAY);
 			}
 
 			// make a new battery
@@ -156,34 +134,22 @@ void DefenseManager::UpdateOngoingAttacks()
 	}
 	if (!scary_attack)
 	{
-		if (temp_unit_production)
+		if (temp_warpgate_production)
 		{
-			// make sure build is continuing
-			mediator->UnPauseBuildOrder();
-
-			// stop unnecessary production
-			if (reset_warpgate_production)
-				mediator->CancelWarpgateUnitProduction();
-			else
-				mediator->SetUnitProduction(prev_warpgate_production);
-
-			if (reset_robo_production)
-				mediator->CancelRoboUnitProduction();
-			else
-				mediator->SetUnitProduction(prev_robo_production);
-
-			if (reset_stargate_production)
-				mediator->CancelStargateUnitProduction();
-			else
-				mediator->SetUnitProduction(prev_stargate_production);
-
-
-			reset_warpgate_production = false;
-			reset_robo_production = false;
-			reset_stargate_production = false;
-			temp_unit_production = false;
+			temp_warpgate_production = false;
+			mediator->CancelWarpgateUnitProduction();
 		}
+		if (temp_robo_production)
+		{
+			temp_robo_production = false;
+			mediator->CancelRoboUnitProduction();
 
+		}
+		if (temp_stargate_production)
+		{
+			temp_stargate_production = false;
+			mediator->CancelStargateUnitProduction();
+		}
 	}
 }
 
