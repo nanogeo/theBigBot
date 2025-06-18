@@ -731,7 +731,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 	}
 	else if (mediator->GetSpawningPoolTiming() < 45)
 	{
-		if (mediator->GetNaturalTiming() == 0 || mediator->GetNaturalTiming() > 70 || mediator->GetEnemyUnitCount(ZERGLING) > 0)
+		if ((mediator->GetNaturalTiming() == 0 || mediator->GetNaturalTiming() > 70) && mediator->GetEnemyUnitCount(ZERGLING) > 0)
 		{
 			// 12 pool
 			Set12PoolInterrupt();
