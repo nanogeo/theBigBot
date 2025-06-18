@@ -54,7 +54,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	{
 		for (const auto& unit : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self), pos, .5 + Utility::BuildingSize(buildingId)))
 		{
-			if (unit == builder)
+			if (unit->unit_type == PROBE)
 				continue;
 			mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(pos, unit->pos, 10), 20);
 		}
