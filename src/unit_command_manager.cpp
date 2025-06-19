@@ -209,7 +209,7 @@ void UnitCommandManager::ParseUnitCommands()
 			}
 			else
 			{
-				if (itr->second.ability.ToType() == A_ENERGY_RECHARGE)
+				if (itr->second.ability.to_string() == "4126")
 				{
 					if (itr->first->energy >= 50 && Distance2D(itr->first->pos, itr->second.target->pos) < RANGE_ENERGY_RECHARGE)
 						mediator->SetEnergyRechargeCooldown();

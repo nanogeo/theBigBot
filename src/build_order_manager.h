@@ -196,6 +196,7 @@ public:
 	bool CancelBuilding(BuildOrderResultArgData);
 	bool StopTempUnitProduction(BuildOrderResultArgData);
 	bool CheckForBunkerRush(BuildOrderResultArgData);
+	bool EnergyRechargeOracle(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 
@@ -675,6 +676,10 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::CheckForBunkerRush)
 		{
 			str += "check for bunker rush";
+		}
+		else if (result == &BuildOrderManager::EnergyRechargeOracle)
+		{
+			str += "energy recharge oracle";
 		}
 
 		return str;

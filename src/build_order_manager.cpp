@@ -1259,6 +1259,28 @@ bool BuildOrderManager::CheckForBunkerRush(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::EnergyRechargeOracle(BuildOrderResultArgData data)
+{
+	if (mediator->GetUnits(Unit::Alliance::Self, IsUnit(ORACLE)).size() == 0 || mediator->IsEnergyRechargeOffCooldown() == false)
+		return false;
+
+	for (const auto& oracle : mediator->GetUnits(Unit::Alliance::Self, IsUnit(ORACLE)))
+	{
+		if (oracle->energy < 100)
+		{
+			for (const auto& nexus : mediator->GetUnits(IsFriendlyUnit(NEXUS)))
+			{
+				if (nexus->energy >= 50 && nexus->build_progress == 1 && Distance2D(nexus->pos, oracle->pos) < RANGE_ENERGY_RECHARGE)
+				{
+					mediator->SetUnitCommand(nexus, A_ENERGY_RECHARGE, oracle, 0);
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
 	//mediator->agent->Debug()->DebugCreateUnit(ORACLE, mediator->agent->locations->attack_path[0], 2, 1);
@@ -1667,6 +1689,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 
 					Data(&BuildOrderManager::TimePassed,			Condition(203.0f),			&BuildOrderManager::DefendThirdBase,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(205.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, PYLON})),
+					Data(&BuildOrderManager::TimePassed,			Condition(205.0f),			&BuildOrderManager::EnergyRechargeOracle,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(230.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(240.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({PYLON, GATEWAY, GATEWAY, GATEWAY})),
 					Data(&BuildOrderManager::TimePassed,			Condition(240.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({TWILIGHT, FORGE})),
