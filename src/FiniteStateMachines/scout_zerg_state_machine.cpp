@@ -10,7 +10,7 @@ namespace sc2 {
 
 void ScoutZInitialMove::TickState()
 {
-	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutZInitialMove::EnterState()
@@ -47,7 +47,7 @@ void ScoutZScoutMain::TickState()
 		if (state_machine->index < state_machine->main_scout_path.size())
 			state_machine->current_target = state_machine->main_scout_path[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutZScoutMain::EnterState()
@@ -103,7 +103,7 @@ std::string ScoutZScoutMain::toString()
 
 void ScoutZScoutNatural::TickState()
 {
-	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutZScoutNatural::EnterState()
@@ -141,7 +141,7 @@ void ScoutZLookFor3rd::TickState()
 		if (state_machine->index < state_machine->possible_3rds.size())
 			state_machine->current_target = state_machine->possible_3rds[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutZLookFor3rd::EnterState()

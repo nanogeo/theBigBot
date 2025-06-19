@@ -147,7 +147,7 @@ std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to)
 	// order by worst to best
 
 	std::vector<Point2D> spots;
-	for (const auto& pylon : mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+	for (const auto& pylon : mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(PYLON)))
 	{
 		// ignore slow warpins
 		if (!Utility::AnyUnitWithin(mediator->GetUnits(Unit::Alliance::Self, IsUnits({ NEXUS, WARP_GATE })), pylon->pos, 6.5))
@@ -178,7 +178,7 @@ std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to)
 					}
 					for (const auto& building : mediator->GetUnits(Unit::Alliance::Self, IsBuilding()))
 					{
-						if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON || building->unit_type == UNIT_TYPEID::PROTOSS_PHOTONCANNON || building->unit_type == UNIT_TYPEID::PROTOSS_SHIELDBATTERY)
+						if (building->unit_type == PYLON || building->unit_type == CANNON || building->unit_type == BATTERY)
 						{
 							if (building->pos.x - .5 <= pos.x && building->pos.x + .5 >= pos.x && building->pos.y - .5 <= pos.y && building->pos.y + .5 >= pos.y)
 							{
@@ -186,7 +186,7 @@ std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to)
 								break;
 							}
 						}
-						else if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
+						else if (building->unit_type == NEXUS)
 						{
 							if (building->pos.x - 2 <= pos.x && building->pos.x + 2 >= pos.x && building->pos.y - 2 <= pos.y && building->pos.y + 2 >= pos.y)
 							{
@@ -232,7 +232,7 @@ std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to)
 
 	std::vector<Point2D> prism_spots;
 
-	for (const auto& prism : mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)))
+	for (const auto& prism : mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(PRISM_SIEGED)))
 	{
 		for (int i = -4; i <= 4; i += 1)
 		{

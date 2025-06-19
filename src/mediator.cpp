@@ -521,7 +521,7 @@ UnitCost Mediator::GetCurrentResources()
 
 void Mediator::CancelBuilding(const Unit* building)
 {
-	SetUnitCommand(building, ABILITY_ID::CANCEL, 100);
+	SetUnitCommand(building, A_CANCEL_BUILDING, 100);
 }
 
 void Mediator::CancelUnit(UNIT_TYPEID unit_type)
@@ -530,7 +530,7 @@ void Mediator::CancelUnit(UNIT_TYPEID unit_type)
 	{
 		if (building->orders.size() > 0 && building->orders[0].ability_id == Utility::GetTrainAbility(unit_type))
 		{
-			SetUnitCommand(building, ABILITY_ID::CANCEL_LAST, 0);
+			SetUnitCommand(building, A_CANCEL_PRODUCTION, 0);
 			return;
 		}
 	}
@@ -1059,7 +1059,7 @@ Point2D Mediator::FindLocation(UNIT_TYPEID unit_type, Point2D location)
 	std::vector<Point2D> spots;
 	Point2D enemy_main = GetEnemyStartLocation();
 	Units buildings = GetUnits(Unit::Alliance::Self, IsBuilding());
-	Units pylons = GetUnits(Unit::Alliance::Self, IsFinishedUnit(UNIT_TYPEID::PROTOSS_PYLON));
+	Units pylons = GetUnits(Unit::Alliance::Self, IsFinishedUnit(PYLON));
 
 	std::sort(pylons.begin(), pylons.end(), [location](const Unit*& a, const Unit*& b) -> bool
 	{
@@ -1136,7 +1136,7 @@ Point2D Mediator::FindBuildLocationNear(UNIT_TYPEID unit_type, Point2D location)
 {
 
 	std::vector<Point2D> spots;
-	Units pylons = GetUnits(Unit::Alliance::Self, IsFinishedUnit(UNIT_TYPEID::PROTOSS_PYLON));
+	Units pylons = GetUnits(Unit::Alliance::Self, IsFinishedUnit(PYLON));
 
 	std::sort(pylons.begin(), pylons.end(), [location](const Unit*& a, const Unit*& b) -> bool
 	{
@@ -1176,7 +1176,7 @@ Point2D Mediator::FindBuildLocationNearWithinNexusRange(UNIT_TYPEID unit_type, P
 {
 	std::vector<Point2D> spots;
 	Units nexi = GetUnits(Unit::Alliance::Self, IsUnit(NEXUS));
-	Units pylons = GetUnits(Unit::Alliance::Self, IsFinishedUnit(UNIT_TYPEID::PROTOSS_PYLON));
+	Units pylons = GetUnits(Unit::Alliance::Self, IsFinishedUnit(PYLON));
 
 	std::sort(pylons.begin(), pylons.end(), [location](const Unit*& a, const Unit*& b) -> bool
 	{
@@ -1545,7 +1545,7 @@ bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)
 		RemoveStateMachine(state_machine);
 
 		Point2D pos = GetProxyLocations(PYLON)[0];
-		SetUnitCommand(scout, ABILITY_ID::GENERAL_MOVE, pos, 0);
+		SetUnitCommand(scout, A_MOVE, pos, 0);
 		action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionRemoveScoutToProxy, new ActionArgData(scout, unitId, pos, amount)));
 		return true;
 	}
@@ -2311,11 +2311,11 @@ void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, const Unit
 
 void Mediator::OnBuildingConstructionComplete(const Unit* building)
 {
-	if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
+	if (building->unit_type == NEXUS)
 	{
 		worker_manager.SetNewBase(building);
 	}
-	else if (building->unit_type == UNIT_TYPEID::PROTOSS_ASSIMILATOR)
+	else if (building->unit_type == ASSIMILATOR)
 	{
 		worker_manager.AddAssimilator(building);
 		if (worker_manager.immediatelySaturateGasses)

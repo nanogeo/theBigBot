@@ -1,5 +1,6 @@
 
 #include "nav_mesh_pathfinding.h"
+#include "definitions.h"
 
 #include <iostream>
 #include <string>
@@ -660,13 +661,13 @@ Polygon NavMesh::CreateObstaclePolygon(const Unit* unit)
 	Polygon polygon;
 	switch (unit->unit_type.ToType())
 	{
-	case UNIT_TYPEID::PROTOSS_PYLON:
+	case PYLON:
 		polygon.points.push_back(unit->pos + Point2D(3, 3));
 		polygon.points.push_back(unit->pos + Point2D(3, -3));
 		polygon.points.push_back(unit->pos + Point2D(-3, -3));
 		polygon.points.push_back(unit->pos + Point2D(-3, 3));
 		break;
-	case UNIT_TYPEID::TERRAN_MISSILETURRET:
+	case MISSILE_TURRET:
 		polygon.points.push_back(unit->pos + Point2D(12, 3));
 		polygon.points.push_back(unit->pos + Point2D(10, 7));
 		polygon.points.push_back(unit->pos + Point2D(7, 10));

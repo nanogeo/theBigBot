@@ -11,7 +11,7 @@ namespace sc2 {
 
 void CannonRushTerranMoveAcross::TickState()
 {
-	mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, mediator->GetLocations().enemy_natural, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, mediator->GetLocations().enemy_natural, 0);
 }
 
 void CannonRushTerranMoveAcross::EnterState()
@@ -43,7 +43,7 @@ std::string CannonRushTerranMoveAcross::toString()
 void CannonRushTerranFindAvaibleCorner::TickState()
 {
 	Point2D pos = mediator->GetLocations().cannon_rush_terran_positions[curr_index].initial_pylon;
-	mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, pos, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, pos, 0);
 
 	if (Distance2D(probe->pos, pos) < 6)
 	{
@@ -53,7 +53,7 @@ void CannonRushTerranFindAvaibleCorner::TickState()
 			if (curr_index >= mediator->GetLocations().cannon_rush_terran_positions.size())
 				curr_index = 0;
 		}
-		else if (Distance2D(probe->pos, pos) < 1 && mediator->CanAfford(UNIT_TYPEID::PROTOSS_PYLON, 1))
+		else if (Distance2D(probe->pos, pos) < 1 && mediator->CanAfford(PYLON, 1))
 		{
 			mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pos, 0);
 		}
@@ -73,7 +73,7 @@ void CannonRushTerranFindAvaibleCorner::ExitState()
 State* CannonRushTerranFindAvaibleCorner::TestTransitions()
 {
 	Point2D pos = mediator->GetLocations().cannon_rush_terran_positions[curr_index].initial_pylon;
-	if (Utility::DistanceToClosest(mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)), pos) < 1)
+	if (Utility::DistanceToClosest(mediator->GetUnits(IsFriendlyUnit(PYLON)), pos) < 1)
 		return new CannonRushTerranScout(mediator, state_machine, probe, 0, mediator->GetLocations().main_scout_path, false);
 	return nullptr;
 }
@@ -97,7 +97,7 @@ void CannonRushTerranScout::TickState()
 		else
 			index = 0;
 	}
-	mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, current_target, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, current_target, 0);
 }
 
 void CannonRushTerranScout::EnterState()
@@ -114,7 +114,7 @@ State* CannonRushTerranScout::TestTransitions()
 {
 	if (mediator->GetUnits(IsFriendlyUnit(CANNON)).size() == 0)
 	{
-		Units pylons = mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON));
+		Units pylons = mediator->GetUnits(IsFriendlyUnit(PYLON));
 		Units enemies = mediator->GetUnits(Unit::Alliance::Enemy);
 		bool free_pylon = false;
 		for (const auto& position : mediator->GetLocations().cannon_rush_terran_positions)
@@ -136,7 +136,7 @@ State* CannonRushTerranScout::TestTransitions()
 	const Unit* closest_gas = Utility::ClosestTo(mediator->GetUnits(IsGeyser()), probe->pos);
 	if (Distance2D(closest_gas->pos, probe->pos) < 3)
 	{
-		if (gas_stolen == false && mediator->CanAfford(ASSIMILATOR, 1) && Utility::DistanceToClosest(mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)), closest_gas->pos) > 1 &&
+		if (gas_stolen == false && mediator->CanAfford(ASSIMILATOR, 1) && Utility::DistanceToClosest(mediator->GetUnits(IsFriendlyUnit(ASSIMILATOR)), closest_gas->pos) > 1 &&
 			Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy), closest_gas->pos) > 1.5)
 			return new CannonRushTerranGasSteal(mediator, state_machine, probe, index, closest_gas);
 	}
@@ -161,7 +161,7 @@ void CannonRushTerranGasSteal::TickState()
 
 void CannonRushTerranGasSteal::EnterState()
 {
-	mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, gas, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, gas, 0);
 }
 
 void CannonRushTerranGasSteal::ExitState()
@@ -174,10 +174,10 @@ State* CannonRushTerranGasSteal::TestTransitions()
 	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy), gas->pos) < 1.5)
 		return new CannonRushTerranScout(mediator, state_machine, probe, scouting_index, mediator->GetLocations().main_scout_path, false);
 
-	if (mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size() == 0)
+	if (mediator->GetUnits(IsFriendlyUnit(ASSIMILATOR)).size() == 0)
 		return nullptr;
 
-	const Unit* closest_gas = Utility::ClosestUnitTo(mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)), gas->pos);
+	const Unit* closest_gas = Utility::ClosestUnitTo(mediator->GetUnits(IsFriendlyUnit(ASSIMILATOR)), gas->pos);
 	if (closest_gas->display_type != Unit::DisplayType::Placeholder && Distance2D(gas->pos, closest_gas->pos) < 1)
 		return new CannonRushTerranScout(mediator, state_machine, probe, scouting_index, mediator->GetLocations().main_scout_path, true);
 
@@ -195,12 +195,12 @@ std::string CannonRushTerranGasSteal::toString()
 
 void CannonRushTerranMoveAcross2::TickState()
 {
-	mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, mediator->GetLocations().enemy_natural, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, mediator->GetLocations().enemy_natural, 0);
 }
 
 void CannonRushTerranMoveAcross2::EnterState()
 {
-	for (const auto& unit : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+	for (const auto& unit : mediator->GetUnits(IsFriendlyUnit(PYLON)))
 	{
 		if (Distance2D(unit->pos, mediator->GetLocations().start_location) > 30)
 			state_machine->pylons.push_back(unit);
@@ -232,8 +232,8 @@ std::string CannonRushTerranMoveAcross2::toString()
 void CannonRushTerranFindWallOffSpot::TickState()
 {
 	CannonRushPosition pos = mediator->GetLocations().cannon_rush_terran_positions[index];
-	mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, pos.initial_pylon, 0);
-	if (Utility::DistanceToClosest(mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)), pos.initial_pylon) > 1)
+	mediator->SetUnitCommand(probe, A_MOVE, pos.initial_pylon, 0);
+	if (Utility::DistanceToClosest(mediator->GetUnits(IsFriendlyUnit(PYLON)), pos.initial_pylon) > 1)
 	{
 		index++;
 		if (index >= mediator->GetLocations().cannon_rush_terran_positions.size())
@@ -332,8 +332,8 @@ void CannonRushTerranWallOff::TickState()
 	{
 		building_pos = cannon_pos;
 		move_to_pos = cannon_move_to;
-		mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, move_to_pos, 0);
-		if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_PHOTONCANNON, 1) && Distance2D(probe->pos, move_to_pos) < .25)
+		mediator->SetUnitCommand(probe, A_MOVE, move_to_pos, 0);
+		if (mediator->CanAfford(CANNON, 1) && Distance2D(probe->pos, move_to_pos) < .25)
 			mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, building_pos, 0);
 	}
 	else
@@ -342,21 +342,21 @@ void CannonRushTerranWallOff::TickState()
 		building_pos = pos.building_pos;
 		move_to_pos = pos.move_to_pos;
 		float dist = Distance2D(probe->pos, move_to_pos);
-		mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(probe->pos, move_to_pos, dist + .5f), 0);
+		mediator->SetUnitCommand(probe, A_MOVE, Utility::PointBetween(probe->pos, move_to_pos, dist + .5f), 0);
 
-		if (pos.type == UNIT_TYPEID::PROTOSS_PYLON)
+		if (pos.type == PYLON)
 		{
-			if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_PYLON, 1) && Distance2D(probe->pos, move_to_pos) < .1)
+			if (mediator->CanAfford(PYLON, 1) && Distance2D(probe->pos, move_to_pos) < .1)
 				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, building_pos, 0);
 		}
 		else
 		{
 
-			if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_GATEWAY, 1) && Distance2D(probe->pos, move_to_pos) < .1)
+			if (mediator->CanAfford(GATEWAY, 1) && Distance2D(probe->pos, move_to_pos) < .1)
 				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, building_pos, 0);
 		}
 	}
-	const Unit* closest_building = Utility::ClosestUnitTo(mediator->GetUnits(IsUnits({ UNIT_TYPEID::PROTOSS_PHOTONCANNON, UNIT_TYPEID::PROTOSS_PYLON, UNIT_TYPEID::PROTOSS_GATEWAY })), building_pos);
+	const Unit* closest_building = Utility::ClosestUnitTo(mediator->GetUnits(IsUnits({ CANNON, PYLON, GATEWAY })), building_pos);
 	if (closest_building->display_type != Unit::DisplayType::Placeholder && Distance2D(building_pos, closest_building->pos) < 1)
 		index++;
 }
@@ -393,7 +393,7 @@ void CannonRushTerranCannonFirstWallOff::TickState()
 		return;
 	if (cannon_placed == false)
 	{
-		const Unit* closest_building = Utility::ClosestUnitTo(mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)), cannon_pos);
+		const Unit* closest_building = Utility::ClosestUnitTo(mediator->GetUnits(IsFriendlyUnit(CANNON)), cannon_pos);
 		if (closest_building != nullptr && closest_building->display_type != Unit::DisplayType::Placeholder && (Distance2D(cannon_pos, closest_building->pos) < 1))
 			cannon_placed = true;
 		else
@@ -403,34 +403,34 @@ void CannonRushTerranCannonFirstWallOff::TickState()
 	{
 		if (wall.size() > 0)
 		{
-			if (wall[0].type == UNIT_TYPEID::PROTOSS_PYLON)
+			if (wall[0].type == PYLON)
 			{
-				if (Utility::DistanceToClosest(mediator->GetUnits(IsNonPlaceholderUnit(UNIT_TYPEID::PROTOSS_PYLON)), wall[0].building_pos) < 1)
+				if (Utility::DistanceToClosest(mediator->GetUnits(IsNonPlaceholderUnit(PYLON)), wall[0].building_pos) < 1)
 				{
 					wall.erase(wall.begin());
 				}
 				else
 				{
-					if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_PYLON, 1) == false)
+					if (mediator->CanAfford(PYLON, 1) == false)
 					{
 						mediator->worker_manager.should_build_workers = false;
-						mediator->SetUnitsCommand(mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)), ABILITY_ID::CANCEL_LAST, 0);
+						mediator->SetUnitsCommand(mediator->GetUnits(IsFriendlyUnit(NEXUS)), A_CANCEL_PRODUCTION, 0);
 					}
 					mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, wall[0].building_pos, 0);
 				}
 			}
 			else
 			{
-				if (Utility::DistanceToClosest(mediator->GetUnits(IsNonPlaceholderUnit(UNIT_TYPEID::PROTOSS_GATEWAY)), wall[0].building_pos) < 1)
+				if (Utility::DistanceToClosest(mediator->GetUnits(IsNonPlaceholderUnit(GATEWAY)), wall[0].building_pos) < 1)
 				{
 					wall.erase(wall.begin());
 				}
 				else
 				{
-					if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_GATEWAY, 1) == false)
+					if (mediator->CanAfford(GATEWAY, 1) == false)
 					{
 						mediator->SetBuildWorkers(false);
-						mediator->SetUnitsCommand(mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)), ABILITY_ID::CANCEL_LAST, 0);
+						mediator->SetUnitsCommand(mediator->GetUnits(IsFriendlyUnit(NEXUS)), A_CANCEL_PRODUCTION, 0);
 					}
 					mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, wall[0].building_pos, 0);
 				}
@@ -438,21 +438,21 @@ void CannonRushTerranCannonFirstWallOff::TickState()
 		}
 		else
 		{
-			float dist_to_closest = Utility::DistanceToClosest(mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_SCV)), probe->pos);
+			float dist_to_closest = Utility::DistanceToClosest(mediator->GetUnits(IsUnit(SCV)), probe->pos);
 			int minerals = mediator->GetCurrentResources().mineral_cost;
 			Point2D gate_pos;
 			Point2D pylon_pos;
 			for (const auto &pos : gateway_wall_pos)
 			{
-				if (pos.type == UNIT_TYPEID::PROTOSS_GATEWAY)
+				if (pos.type == GATEWAY)
 					gate_pos = pos.building_pos;
-				else if (pos.type == UNIT_TYPEID::PROTOSS_PYLON)
+				else if (pos.type == PYLON)
 					pylon_pos = pos.building_pos;
 			}
 
 			Point2D move_to = Utility::PointBetween(gate_pos, pylon_pos, 1);
 
-			mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, move_to, 0);
+			mediator->SetUnitCommand(probe, A_MOVE, move_to, 0);
 
 			if (dist_to_closest < 8 && minerals < 200)
 			{
@@ -485,7 +485,7 @@ void CannonRushTerranCannonFirstWallOff::ExitState()
 
 State* CannonRushTerranCannonFirstWallOff::TestTransitions()
 {
-	const Unit* cannon = Utility::ClosestUnitTo(mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)), cannon_pos);
+	const Unit* cannon = Utility::ClosestUnitTo(mediator->GetUnits(IsFriendlyUnit(CANNON)), cannon_pos);
 	if ((wall_set && wall.size() == 0) || (cannon != nullptr && cannon->build_progress > .75))
 	{
 		mediator->SetBuildWorkers(true);
@@ -505,7 +505,7 @@ std::string CannonRushTerranCannonFirstWallOff::toString()
 
 void CannonRushTerranStandBy::TickState()
 {
-	mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, stand_by_spot, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, stand_by_spot, 0);
 }
 
 void CannonRushTerranStandBy::EnterState()
@@ -524,7 +524,7 @@ State* CannonRushTerranStandBy::TestTransitions()
 	int scv_attacking_pylon = 0;
 	int scv_attacking_cannons = 0;
 	int pulled_scvs = 0;
-	for (const auto& scv : mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_SCV)))
+	for (const auto& scv : mediator->GetUnits(IsUnit(SCV)))
 	{
 		if (Distance2D(probe->pos, scv->pos) < 3 && Utility::IsFacing(scv, probe))
 		{
@@ -571,18 +571,18 @@ State* CannonRushTerranStandBy::TestTransitions()
 	if (mediator->GetCurrentResources().mineral_cost >= 150 && state_machine->cannons[0]->build_progress > .5 && (pulled_scvs > state_machine->cannons.size() * 4))
 		return new CannonRushTerranExtraCannon(mediator, state_machine, probe);
 
-	if (mediator->GetCurrentResources().mineral_cost >= 150 && mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() == 0)
+	if (mediator->GetCurrentResources().mineral_cost >= 150 && mediator->GetUnits(IsFriendlyUnit(GATEWAY)).size() == 0)
 		return new CannonRushTerranBuildGateway(mediator, state_machine, probe);
 
-	int num_gasses = (int)mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size() + mediator->GetNumBuildActions(ASSIMILATOR);
+	int num_gasses = (int)mediator->GetUnits(IsFriendlyUnit(ASSIMILATOR)).size() + mediator->GetNumBuildActions(ASSIMILATOR);
 	
-	//if (mediator->GetCurrentResources().mineral_cost >= 200 && mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size() > 0 && num_gasses < 2 && mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)).size() > 0)
-		//agent->mediator.build_order_manager.BuildBuilding(BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR));
+	//if (mediator->GetCurrentResources().mineral_cost >= 200 && mediator->GetUnits(IsFriendlyUnit(GATEWAY)).size() > 0 && num_gasses < 2 && mediator->GetUnits(IsFinishedUnit(CANNON)).size() > 0)
+		//agent->mediator.build_order_manager.BuildBuilding(BuildOrderResultArgData(ASSIMILATOR));
 
-	if (mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0 && mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0 && mediator->CanAfford(UNIT_TYPEID::PROTOSS_STARGATE, 1))
+	if (mediator->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0 && mediator->GetUnits(IsFriendlyUnit(STARGATE)).size() == 0 && mediator->CanAfford(STARGATE, 1))
 		return new CannonRushTerranBuildStargate(mediator, state_machine, probe);
 
-	if (pulled_scvs == 0 && mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_PHOTONCANNON)).size() > 0)
+	if (pulled_scvs == 0 && mediator->GetUnits(IsFinishedUnit(CANNON)).size() > 0)
 		return new CannonRushTerranStandByPhase2(mediator, state_machine, probe, stand_by_spot);
 
 	return nullptr;
@@ -599,7 +599,7 @@ std::string CannonRushTerranStandBy::toString()
 
 void CannonRushTerranStandByLoop::TickState()
 {
-	mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, loop_path[index], 0);
+	mediator->SetUnitCommand(probe, A_MOVE, loop_path[index], 0);
 	if (Distance2D(probe->pos, loop_path[index]) < 2)
 		index++;
 }
@@ -617,7 +617,7 @@ void CannonRushTerranStandByLoop::ExitState()
 State* CannonRushTerranStandByLoop::TestTransitions()
 {
 	int threatening_scvs = 0;
-	for (const auto& scv : mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_SCV)))
+	for (const auto& scv : mediator->GetUnits(IsUnit(SCV)))
 	{
 		if (Distance2D(probe->pos, scv->pos) < 3 && Utility::IsFacing(scv, probe))
 			threatening_scvs++;
@@ -812,7 +812,7 @@ State* CannonRushTerranBuildGateway::TestTransitions()
 {
 	if (gate_pos == Point2D(0, 0) || (probe->orders.size() == 0 && mediator->GetCurrentResources().mineral_cost < 150))
 		return new CannonRushTerranStandBy(mediator, state_machine, probe, mediator->GetLocations().cannon_rush_terran_stand_by);
-	for (const auto& gate : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY)))
+	for (const auto& gate : mediator->GetUnits(IsFriendlyUnit(GATEWAY)))
 	{
 		if (Distance2D(gate->pos, gate_pos) < 1 && gate->display_type != Unit::DisplayType::Placeholder)
 			return new CannonRushTerranStandBy(mediator, state_machine, probe, mediator->GetLocations().cannon_rush_terran_stand_by);
@@ -878,9 +878,9 @@ void CannonRushTerranBuildStargate::ExitState()
 
 State* CannonRushTerranBuildStargate::TestTransitions()
 {
-	if (stargate_pos == Point2D(0, 0) || (probe->orders.size() == 0 && mediator->CanAfford(UNIT_TYPEID::PROTOSS_STARGATE, 1) == false))
+	if (stargate_pos == Point2D(0, 0) || (probe->orders.size() == 0 && mediator->CanAfford(STARGATE, 1) == false))
 		return new CannonRushTerranStandBy(mediator, state_machine, probe, mediator->GetLocations().cannon_rush_terran_stand_by);
-	for (const auto& stargate : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
+	for (const auto& stargate : mediator->GetUnits(IsFriendlyUnit(STARGATE)))
 	{
 		if (Distance2D(stargate->pos, stargate_pos) < 1 && stargate->display_type != Unit::DisplayType::Placeholder)
 			return new CannonRushTerranStandBy(mediator, state_machine, probe, mediator->GetLocations().cannon_rush_terran_stand_by); //change
@@ -926,23 +926,23 @@ void CannonRushTerranStandByPhase2::TickState()
 	{
 		if (state_machine->stargates.size() > 0 && state_machine->stargates[0]->build_progress == 1)
 		{
-			if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_VOIDRAY, 1))
+			if (mediator->CanAfford(VOID_RAY, 1))
 			{
 				mediator->SetUnitCommand(state_machine->stargates[0], ABILITY_ID::TRAIN_VOIDRAY, 0);
-				next_unit = UNIT_TYPEID::PROTOSS_FLEETBEACON;
+				next_unit = FLEET_BEACON;
 				return;
 			}
 		}
 	}
-	else if (next_unit == UNIT_TYPEID::PROTOSS_TEMPEST)
+	else if (next_unit == TEMPEST)
 	{
-		if (state_machine->stargates.size() > 0 && mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON)).size() > 0)
+		if (state_machine->stargates.size() > 0 && mediator->GetUnits(IsFinishedUnit(FLEET_BEACON)).size() > 0)
 		{
 			for (const auto& stargate : state_machine->stargates)
 			{
 				if (stargate->build_progress == 1 && stargate->orders.size() == 0)
 				{
-					if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_TEMPEST, 1))
+					if (mediator->CanAfford(TEMPEST, 1))
 					{
 						mediator->SetUnitCommand(state_machine->stargates[0], ABILITY_ID::TRAIN_TEMPEST, 0);
 						return;
@@ -952,12 +952,12 @@ void CannonRushTerranStandByPhase2::TickState()
 		}
 	}
 
-	if (next_unit == UNIT_TYPEID::PROTOSS_STARGATE && mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() > 0 &&
-		mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE))[0]->display_type != Unit::DisplayType::Placeholder)
+	if (next_unit == STARGATE && mediator->GetUnits(IsFriendlyUnit(STARGATE)).size() > 0 &&
+		mediator->GetUnits(IsFriendlyUnit(STARGATE))[0]->display_type != Unit::DisplayType::Placeholder)
 		next_unit = UNIT_TYPEID::BEACON_PROTOSS;
-	else if (next_unit == UNIT_TYPEID::PROTOSS_FLEETBEACON && mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON)).size() > 0 &&
-		mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON))[0]->display_type != Unit::DisplayType::Placeholder)
-		next_unit = UNIT_TYPEID::PROTOSS_TEMPEST;
+	else if (next_unit == FLEET_BEACON && mediator->GetUnits(IsFriendlyUnit(FLEET_BEACON)).size() > 0 &&
+		mediator->GetUnits(IsFriendlyUnit(FLEET_BEACON))[0]->display_type != Unit::DisplayType::Placeholder)
+		next_unit = TEMPEST;
 
 	if (probe->orders.size() > 0)
 		probe_busy = false;
@@ -965,15 +965,15 @@ void CannonRushTerranStandByPhase2::TickState()
 	if (probe->orders.size() > 0)
 	{
 		/*if (probe->orders[0].ability_id == ABILITY_ID::BUILD_FLEETBEACON)
-			next_unit = UNIT_TYPEID::PROTOSS_TEMPEST;
+			next_unit = TEMPEST;
 		else if(probe->orders[0].ability_id == ABILITY_ID::BUILD_STARGATE)
 			next_unit = UNIT_TYPEID::BEACON_PROTOSS;*/
 		return;
 	}
 
-	/*if ((next_unit == UNIT_TYPEID::BEACON_PROTOSS || next_unit == UNIT_TYPEID::PROTOSS_FLEETBEACON) && mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() > 0)
+	/*if ((next_unit == UNIT_TYPEID::BEACON_PROTOSS || next_unit == FLEET_BEACON) && mediator->GetUnits(IsFinishedUnit(STARGATE)).size() > 0)
 	{
-		if (Utility::CanAfford(UNIT_TYPEID::PROTOSS_FLEETBEACON, 1, agent->Observation()))
+		if (Utility::CanAfford(FLEET_BEACON, 1, agent->Observation()))
 		{
 			// build fleet beacon
 			Point2D pos = FindBuildingPlacement();
@@ -995,9 +995,9 @@ void CannonRushTerranStandByPhase2::TickState()
 			}
 		}
 	}
-	else */if (next_unit == UNIT_TYPEID::PROTOSS_STARGATE && mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0)
+	else */if (next_unit == STARGATE && mediator->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0)
 	{
-		if (mediator->CanAfford(UNIT_TYPEID::PROTOSS_STARGATE, 1))
+		if (mediator->CanAfford(STARGATE, 1))
 		{
 			// build stargate
 			Point2D pos = FindBuildingPlacement();
@@ -1025,7 +1025,7 @@ void CannonRushTerranStandByPhase2::TickState()
 	if (extra_minerals < 100)
 	{
 		if (probe->orders.size() == 0)
-			mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, stand_by_spot, 0);
+			mediator->SetUnitCommand(probe, A_MOVE, stand_by_spot, 0);
 		return;
 	}
 
@@ -1056,7 +1056,7 @@ void CannonRushTerranStandByPhase2::TickState()
 			else
 				total_battery_energy += (int)battery->energy;
 		}
-		if (mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)).size() > 0 && total_battery_energy < num_cannons * 100)
+		if (mediator->GetUnits(IsFinishedUnit(CYBERCORE)).size() > 0 && total_battery_energy < num_cannons * 100)
 		{
 			//build battery
 			Point2D pos = FindBatteryPlacement();
@@ -1099,26 +1099,26 @@ void CannonRushTerranStandByPhase2::TickState()
 			}
 		}
 	}
-	mediator->SetUnitCommand(probe, ABILITY_ID::GENERAL_MOVE, stand_by_spot, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, stand_by_spot, 0);
 }
 
 void CannonRushTerranStandByPhase2::EnterState()
 {
-	int num_gasses = (int)mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size() + mediator->GetNumBuildActions(ASSIMILATOR);
+	int num_gasses = (int)mediator->GetUnits(IsFriendlyUnit(ASSIMILATOR)).size() + mediator->GetNumBuildActions(ASSIMILATOR);
 	
 	for (int i = 0; i < 2 - num_gasses; i++)
 	{
-		//agent->mediator.build_order_manager.BuildBuilding(BuildOrderResultArgData(UNIT_TYPEID::PROTOSS_ASSIMILATOR));
+		//agent->mediator.build_order_manager.BuildBuilding(BuildOrderResultArgData(ASSIMILATOR));
 	}
 
-	if (mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0)
-		next_unit = UNIT_TYPEID::PROTOSS_STARGATE;
-	else if (mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size() == 0)
+	if (mediator->GetUnits(IsFriendlyUnit(STARGATE)).size() == 0)
+		next_unit = STARGATE;
+	else if (mediator->GetUnits(IsFinishedUnit(STARGATE)).size() == 0)
 		next_unit = UNIT_TYPEID::BEACON_PROTOSS; // represents a void ray + fleet beacon
-	else if (mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_FLEETBEACON)).size() == 0)
-		next_unit = UNIT_TYPEID::PROTOSS_FLEETBEACON;
+	else if (mediator->GetUnits(IsFriendlyUnit(FLEET_BEACON)).size() == 0)
+		next_unit = FLEET_BEACON;
 	else
-		next_unit = UNIT_TYPEID::PROTOSS_TEMPEST;
+		next_unit = TEMPEST;
 
 	return;
 }
@@ -1287,8 +1287,8 @@ void CannonRushTerranUnitMicro::TickState()
 
 void CannonRushTerranUnitMicro::EnterState()
 {
-	//army->AutoAddUnits({ UNIT_TYPEID::PROTOSS_ZEALOT, UNIT_TYPEID::PROTOSS_STALKER, UNIT_TYPEID::PROTOSS_ADEPT, UNIT_TYPEID::PROTOSS_VOIDRAY,
-	//	UNIT_TYPEID::PROTOSS_ORACLE, UNIT_TYPEID::PROTOSS_TEMPEST, UNIT_TYPEID::PROTOSS_CARRIER });
+	//army->AutoAddUnits({ ZEALOT, STALKER, ADEPT, VOID_RAY,
+	//	ORACLE, TEMPEST, CARRIER });
 	return;
 }
 
@@ -1361,7 +1361,7 @@ void CannonRushTerran::OnUnitCreatedListener(const Unit* unit)
 {
 	if (unit->display_type == Unit::DisplayType::Placeholder)
 		return;
-	if (unit->unit_type == UNIT_TYPEID::PROTOSS_PYLON && Distance2D(unit->pos, mediator->GetLocations().start_location) > 30)
+	if (unit->unit_type == PYLON && Distance2D(unit->pos, mediator->GetLocations().start_location) > 30)
 	{
 		pylons.push_back(unit);
 		for (float i = -7.0f; i <= 7.0f; i++)
@@ -1388,27 +1388,27 @@ void CannonRushTerran::OnUnitCreatedListener(const Unit* unit)
 		}
 		SmallBuildingBlock(unit->pos);
 	}
-	else if (unit->unit_type == UNIT_TYPEID::PROTOSS_PHOTONCANNON && Distance2D(unit->pos, mediator->GetLocations().start_location) > 30)
+	else if (unit->unit_type == CANNON && Distance2D(unit->pos, mediator->GetLocations().start_location) > 30)
 	{
 		cannons.push_back(unit);
 		SmallBuildingBlock(unit->pos);
 	}
-	else if (unit->unit_type == UNIT_TYPEID::PROTOSS_SHIELDBATTERY && Distance2D(unit->pos, mediator->GetLocations().start_location) > 30)
+	else if (unit->unit_type == BATTERY && Distance2D(unit->pos, mediator->GetLocations().start_location) > 30)
 	{
 		batteries.push_back(unit);
 		SmallBuildingBlock(unit->pos);
 	}
-	else if (unit->unit_type == UNIT_TYPEID::PROTOSS_GATEWAY)
+	else if (unit->unit_type == GATEWAY)
 	{
 		gateways.push_back(unit);
 		BigBuildingBlock(unit->pos);
 	}
-	else if (unit->unit_type == UNIT_TYPEID::PROTOSS_STARGATE)
+	else if (unit->unit_type == STARGATE)
 	{
 		stargates.push_back(unit);
 		BigBuildingBlock(unit->pos);
 	}
-	else if (unit->unit_type == UNIT_TYPEID::PROTOSS_FLEETBEACON)
+	else if (unit->unit_type == FLEET_BEACON)
 	{
 		BigBuildingBlock(unit->pos);
 	}

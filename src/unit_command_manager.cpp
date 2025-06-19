@@ -35,16 +35,16 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, int
 	if (unit->orders.size() > 0) // command already being followed
 	{
 		if (ability == unit->orders[0].ability_id ||
-			(ability == ABILITY_ID::SMART &&
-			(unit->orders[0].ability_id == ABILITY_ID::SMART ||
-				unit->orders[0].ability_id == ABILITY_ID::HARVEST_GATHER ||
-				unit->orders[0].ability_id == ABILITY_ID::HARVEST_RETURN ||
-				unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE)))
+			(ability == A_SMART &&
+			(unit->orders[0].ability_id == A_SMART ||
+				unit->orders[0].ability_id == A_GATHER_RESOURCE ||
+				unit->orders[0].ability_id == A_RETURN_RESOURCE ||
+				unit->orders[0].ability_id == A_MOVE)))
 			return;
-		if (unit->orders[0].ability_id == ABILITY_ID::SMART &&
-			(ability == ABILITY_ID::HARVEST_GATHER ||
-				ability == ABILITY_ID::HARVEST_RETURN ||
-				ability == ABILITY_ID::GENERAL_MOVE))
+		if (unit->orders[0].ability_id == A_SMART &&
+			(ability == A_GATHER_RESOURCE ||
+				ability == A_RETURN_RESOURCE ||
+				ability == A_MOVE))
 			return;
 	}
 	if (current_commands.count(unit) == 0) // new command
@@ -71,19 +71,19 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Poi
 	if (unit->orders.size() > 0 && Distance2D(unit->orders[0].target_pos, point) < .01) // command already being followed
 	{
 		if (ability == unit->orders[0].ability_id ||
-			(ability == ABILITY_ID::SMART &&
-			(unit->orders[0].ability_id == ABILITY_ID::SMART ||
-				unit->orders[0].ability_id == ABILITY_ID::HARVEST_GATHER ||
-				unit->orders[0].ability_id == ABILITY_ID::HARVEST_RETURN ||
-				unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE)))
+			(ability == A_SMART &&
+			(unit->orders[0].ability_id == A_SMART ||
+				unit->orders[0].ability_id == A_GATHER_RESOURCE ||
+				unit->orders[0].ability_id == A_RETURN_RESOURCE ||
+				unit->orders[0].ability_id == A_MOVE)))
 			return;
-		if (unit->orders[0].ability_id == ABILITY_ID::SMART &&
-			(ability == ABILITY_ID::HARVEST_GATHER ||
-				ability == ABILITY_ID::HARVEST_RETURN ||
-				ability == ABILITY_ID::GENERAL_MOVE))
+		if (unit->orders[0].ability_id == A_SMART &&
+			(ability == A_GATHER_RESOURCE ||
+				ability == A_RETURN_RESOURCE ||
+				ability == A_MOVE))
 			return;
 	}
-	if (unit->orders.size() == 0 && ability == ABILITY_ID::GENERAL_MOVE && Distance2D(unit->pos, point) < .01) // ignore move commands to the units current position
+	if (unit->orders.size() == 0 && ability == A_MOVE && Distance2D(unit->pos, point) < .01) // ignore move commands to the units current position
 		return;
 	if (current_commands.count(unit) == 0) // new command
 		current_commands[unit] = new_command;
@@ -109,16 +109,16 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, con
 	if (unit->orders.size() > 0 && unit->orders[0].target_unit_tag == target->tag) // command already being followed
 	{
 		if (ability == unit->orders[0].ability_id || 
-			(ability == ABILITY_ID::SMART &&
-			(unit->orders[0].ability_id == ABILITY_ID::HARVEST_GATHER ||
-				unit->orders[0].ability_id == ABILITY_ID::HARVEST_RETURN ||
-				unit->orders[0].ability_id == ABILITY_ID::GENERAL_MOVE)))
+			(ability == A_SMART &&
+			(unit->orders[0].ability_id == A_GATHER_RESOURCE ||
+				unit->orders[0].ability_id == A_RETURN_RESOURCE ||
+				unit->orders[0].ability_id == A_MOVE)))
 			return;
 		if (ability == unit->orders[0].ability_id ||
-			(unit->orders[0].ability_id == ABILITY_ID::SMART &&
-			(ability == ABILITY_ID::HARVEST_GATHER ||
-				ability == ABILITY_ID::HARVEST_RETURN ||
-				ability == ABILITY_ID::GENERAL_MOVE)))
+			(unit->orders[0].ability_id == A_SMART &&
+			(ability == A_GATHER_RESOURCE ||
+				ability == A_RETURN_RESOURCE ||
+				ability == A_MOVE)))
 			return;
 	}
 	if (current_commands.count(unit) == 0) // new command
@@ -194,12 +194,12 @@ void UnitCommandManager::ParseUnitCommands()
 		{
 			if (itr->second.target == nullptr)
 			{
-				if (itr->second.ability.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMON)
-					mediator->SetOracleOrder(itr->first, ABILITY_ID::BEHAVIOR_PULSARBEAMON);
-				else if (itr->second.ability.ToType() == ABILITY_ID::BEHAVIOR_PULSARBEAMOFF)
-					mediator->SetOracleOrder(itr->first, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF);
-				else if (itr->second.ability.ToType() == ABILITY_ID::EFFECT_ORACLEREVELATION)
-					mediator->SetOracleOrder(itr->first, ABILITY_ID::EFFECT_ORACLEREVELATION);
+				if (itr->second.ability.ToType() == A_ORACLE_BEAM_ON)
+					mediator->SetOracleOrder(itr->first, A_ORACLE_BEAM_ON);
+				else if (itr->second.ability.ToType() == A_ORACLE_BEAM_OFF)
+					mediator->SetOracleOrder(itr->first, A_ORACLE_BEAM_OFF);
+				else if (itr->second.ability.ToType() == A_REVELATION)
+					mediator->SetOracleOrder(itr->first, A_REVELATION);
 
 				agent->Actions()->UnitCommand(itr->first, itr->second.ability);
 				actions_this_frame++;
@@ -209,7 +209,7 @@ void UnitCommandManager::ParseUnitCommands()
 			}
 			else
 			{
-				if (itr->second.ability.ToType() == ABILITY_ID::INVALID) // TODO find energy recharge id
+				if (itr->second.ability.ToType() == A_ENERGY_RECHARGE)
 				{
 					if (itr->first->energy >= 50 && Distance2D(itr->first->pos, itr->second.target->pos) < RANGE_ENERGY_RECHARGE)
 						mediator->SetEnergyRechargeCooldown();
@@ -224,7 +224,7 @@ void UnitCommandManager::ParseUnitCommands()
 		}
 		else
 		{
-			if (itr->second.ability.ToType() == ABILITY_ID::EFFECT_BLINK)
+			if (itr->second.ability.ToType() == A_BLINK)
 				mediator->SetStalkerOrder(itr->first);
 			else if (itr->second.ability.ToType() == ABILITY_ID::EFFECT_MASSRECALL_NEXUS)
 			{

@@ -173,8 +173,8 @@ public:
 	Point2D entry_pos;
 	std::vector<Point2D> prism_path;
 	int path_index;
-	std::vector<UNIT_TYPEID> target_priority = { UNIT_TYPEID::TERRAN_CYCLONE, UNIT_TYPEID::TERRAN_THOR, UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, UNIT_TYPEID::TERRAN_SIEGETANK,
-		UNIT_TYPEID::TERRAN_MULE, UNIT_TYPEID::TERRAN_MARAUDER, UNIT_TYPEID::TERRAN_MARINE, UNIT_TYPEID::TERRAN_SCV, UNIT_TYPEID::TERRAN_WIDOWMINE, UNIT_TYPEID::TERRAN_TECHLAB, UNIT_TYPEID::TERRAN_REACTOR };
+	std::vector<UNIT_TYPEID> target_priority = { CYCLONE, THOR_AOE, SIEGE_TANK_SIEGED, SIEGE_TANK,
+		MULE, MARAUDER, MARINE, SCV, WIDOW_MINE, TECH_LAB, REACTOR };
 	ImmortalDropStateMachine(Mediator* mediator, std::string name, const Unit* immortal1, const Unit* immortal2, 
 		const Unit* prism, Point2D entry_pos, std::vector<Point2D> prism_path) : StateMachine(mediator, name)
 	{

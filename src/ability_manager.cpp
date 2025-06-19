@@ -31,18 +31,18 @@ void AbilityManager::UpdateOracleInfo()
 		{
 			switch (oracle_order[oracle.first])
 			{
-			case ABILITY_ID::BEHAVIOR_PULSARBEAMON:
+			case A_ORACLE_BEAM_ON:
 				if (oracle.first->energy <= oracle.second - 24) // not 25 because energy is a float for some reason
 				{
 					oracle_beam_status[oracle.first] = true;
 					oracle_order.erase(oracle.first);
 				}
 				break;
-			case ABILITY_ID::BEHAVIOR_PULSARBEAMOFF:
+			case A_ORACLE_BEAM_OFF:
 				oracle_beam_status[oracle.first] = false;
 				oracle_order.erase(oracle.first);
 				break;
-			case ABILITY_ID::EFFECT_ORACLEREVELATION:
+			case A_REVELATION:
 				if (oracle.first->energy <= oracle.second - 25)
 				{
 					oracle_casting[oracle.first] = false;
@@ -68,7 +68,7 @@ void AbilityManager::TurnOffOracle(const Unit* unit)
 void AbilityManager::SetOracleOrder(const Unit* unit, ABILITY_ID ability)
 {
 	oracle_order[unit] = ability;
-	if (ability == ABILITY_ID::EFFECT_ORACLEREVELATION)
+	if (ability == A_REVELATION)
 		oracle_casting[unit] = true;
 }
 

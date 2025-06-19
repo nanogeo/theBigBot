@@ -280,7 +280,7 @@ bool BuildOrderManager::ChronoBuilding(BuildOrderResultArgData data)
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
 				{
-					mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building, 0);
+					mediator->SetUnitCommand(nexus, A_CHRONO, building, 0);
 					return true;
 				}
 			}
@@ -299,7 +299,7 @@ bool BuildOrderManager::OptionalChronoBuilding(BuildOrderResultArgData data)
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
 				{
-					mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building, 0);
+					mediator->SetUnitCommand(nexus, A_CHRONO, building, 0);
 					return true;
 				}
 			}
@@ -486,14 +486,14 @@ bool BuildOrderManager::ZealotDoubleprongLarge(BuildOrderResultArgData data)
 
 bool BuildOrderManager::MicroOracles(BuildOrderResultArgData data)
 {
-	//StateMachine* oracle_fsm = new StateMachine(mediator, new OracleDefend(mediator, mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ORACLE)), mediator->GetLocations(NEXUS)[2]), "Oracles");
+	//StateMachine* oracle_fsm = new StateMachine(mediator, new OracleDefend(mediator, mediator->GetUnits(IsFriendlyUnit(ORACLE)), mediator->GetLocations(NEXUS)[2]), "Oracles");
 	//mediator->active_FSMs.push_back(oracle_fsm);
 	return true;
 }
 
 bool BuildOrderManager::SpawnUnits(BuildOrderResultArgData data)
 {
-	//mediator->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, mediator->GetLocations(NEXUS)[2], 2, 15);
+	//mediator->Debug()->DebugCreateUnit(ZERGLING, mediator->GetLocations(NEXUS)[2], 2, 15);
 	return true;
 }
 
@@ -537,7 +537,7 @@ bool BuildOrderManager::SafeRallyPoint(BuildOrderResultArgData data)
 	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		Point2D pos = Utility::PointBetween(building->pos, mediator->GetStartLocation(), 2);
-		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos, 0);
+		mediator->SetUnitCommand(building, A_SMART, pos, 0);
 	}
 	return true;
 }
@@ -548,7 +548,7 @@ bool BuildOrderManager::SafeRallyPointFromRamp(BuildOrderResultArgData data)
 	{
 		float dist = Distance2D(mediator->GetLocations().main_ramp_forcefield_top, building->pos);
 		Point2D pos = Utility::PointBetween(mediator->GetLocations().main_ramp_forcefield_top, building->pos, dist + 2);
-		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos, 0);
+		mediator->SetUnitCommand(building, A_SMART, pos, 0);
 	}
 	return true;
 }
@@ -558,7 +558,7 @@ bool BuildOrderManager::SetRallyPointToRamp(BuildOrderResultArgData data)
 	for (const auto& building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		Point2D pos = Utility::PointBetween(building->pos, mediator->GetLocations().main_ramp_forcefield_top, 2);
-		mediator->SetUnitCommand(building, ABILITY_ID::SMART, pos, 0);
+		mediator->SetUnitCommand(building, A_SMART, pos, 0);
 	}
 	return true;
 }
@@ -572,7 +572,7 @@ bool BuildOrderManager::DTHarass(BuildOrderResultArgData data)
 
 bool BuildOrderManager::UseProxyDoubleRobo(BuildOrderResultArgData data)
 {
-	//mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionUseProxyDoubleRobo, new ActionArgData({ IMMORTAL, PRISM, IMMORTAL, UNIT_TYPEID::PROTOSS_OBSERVER })));
+	//mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionUseProxyDoubleRobo, new ActionArgData({ IMMORTAL, PRISM, IMMORTAL, OBSERVER })));
 	return true;
 }
 
@@ -605,7 +605,7 @@ bool BuildOrderManager::ProxyDoubleRoboAllIn(BuildOrderResultArgData data)
 		}
 	}
 	Units available_units;
-	for (const auto &unit : mediator->GetUnits(IsUnits({ STALKER, UNIT_TYPEID::PROTOSS_OBSERVER, IMMORTAL })))
+	for (const auto &unit : mediator->GetUnits(IsUnits({ STALKER, OBSERVER, IMMORTAL })))
 	{
 		if (std::find(already_occupied.begin(), already_occupied.end(), unit) == already_occupied.end())
 			available_units.push_back(unit);
@@ -1219,7 +1219,7 @@ bool BuildOrderManager::SackUnit(BuildOrderResultArgData data)
 	{
 		if (data.unitId == PROBE)
 			mediator->RemoveWorker(furthest_from_base);
-		mediator->SetUnitCommand(furthest_from_base, ABILITY_ID::MOVE_MOVE, mediator->GetEnemyStartLocation(), 10);
+		mediator->SetUnitCommand(furthest_from_base, A_MOVE, mediator->GetEnemyStartLocation(), 10);
 	}
 	return true;
 }
@@ -1235,7 +1235,7 @@ bool BuildOrderManager::CancelBuilding(BuildOrderResultArgData data)
 	for (const auto& building : mediator->GetUnits(Unit::Alliance::Self, IsUnit(data.unitId)))
 	{
 		if (building->build_progress < 1)
-			mediator->SetUnitCommand(building, ABILITY_ID::CANCEL, 0);
+			mediator->SetUnitCommand(building, A_CANCEL_BUILDING, 0);
 	}
 	return true;
 }
@@ -1268,7 +1268,7 @@ bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 	//mediator->agent->Debug()->DebugCreateUnit(ZERGLING, mediator->agent->locations->attack_path[2], 1, 3);
 	//mediator->agent->Debug()->DebugCreateUnit(ROACH, mediator->agent->locations->attack_path[2], 1, 2);
 	//mediator->agent->Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, mediator->agent->locations->attack_path[2], 1, 1);
-	//mediator->agent->Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, mediator->agent->locations->attack_path[2], 1, 6);
+	//mediator->agent->Debug()->DebugCreateUnit(RAVAGER, mediator->agent->locations->attack_path[2], 1, 6);
 	// 
 	//mediator->agent->Debug()->DebugCreateUnit(ORACLE, mediator->GetStartLocation(), 1, 1);
 	//mediator->agent->Debug()->DebugCreateUnit(ADEPT, mediator->GetStartLocation(), 1, 1);

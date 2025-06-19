@@ -25,7 +25,7 @@ void WorkerRushDefenseGroupUp::TickState()
 		}
 		new_workers.push_back(worker);
 
-		mediator->SetUnitCommand(worker, ABILITY_ID::GENERAL_MOVE, group_pos, 0);
+		mediator->SetUnitCommand(worker, A_MOVE, group_pos, 0);
 
 	}
 
@@ -38,14 +38,14 @@ void WorkerRushDefenseGroupUp::TickState()
 		}
 		else
 		{
-			mediator->SetUnitCommand(*itr, ABILITY_ID::GENERAL_MOVE, group_pos, 0);
+			mediator->SetUnitCommand(*itr, A_MOVE, group_pos, 0);
 			itr++;
 		}
 	}
 
 	for (const auto &worker : state_machine->workers)
 	{
-		mediator->SetUnitCommand(worker, ABILITY_ID::SMART, state_machine->grouping_mineral_patch, 0);
+		mediator->SetUnitCommand(worker, A_SMART, state_machine->grouping_mineral_patch, 0);
 	}
 }
 
@@ -54,7 +54,7 @@ void WorkerRushDefenseGroupUp::EnterState()
 	group_pos = Utility::PointBetween(state_machine->grouping_mineral_patch->pos,
 		Utility::ClosestTo(mediator->GetUnits(IsUnit(NEXUS)), state_machine->grouping_mineral_patch->pos)->pos, 2.5);
 
-	mediator->SetUnitsCommand(state_machine->workers, ABILITY_ID::GENERAL_MOVE, group_pos, 0);
+	mediator->SetUnitsCommand(state_machine->workers, A_MOVE, group_pos, 0);
 
 	enter_time = mediator->GetCurrentTime();
 }
@@ -97,7 +97,7 @@ void WorkerRushDefenseInitialMove::TickState()
 {
 	for (const auto& worker : state_machine->workers)
 	{
-		mediator->SetUnitCommand(worker, ABILITY_ID::SMART, state_machine->attacking_mineral_patch, 0);
+		mediator->SetUnitCommand(worker, A_SMART, state_machine->attacking_mineral_patch, 0);
 	}
 }
 
@@ -105,7 +105,7 @@ void WorkerRushDefenseInitialMove::EnterState()
 {
 	for (const auto& worker : state_machine->workers)
 	{
-		mediator->SetUnitCommand(worker, ABILITY_ID::SMART, state_machine->attacking_mineral_patch, 0);
+		mediator->SetUnitCommand(worker, A_SMART, state_machine->attacking_mineral_patch, 0);
 	}
 }
 
@@ -190,11 +190,11 @@ void WorkerRushDefenseDefend::TickState()
 		{
 			const Unit* closest_enemy = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), state_machine->workers[i]->pos);
 			if (closest_enemy != nullptr)
-				mediator->SetUnitCommand(state_machine->workers[i], ABILITY_ID::ATTACK, mediator->GetEnemyNaturalLocation(), 0);
+				mediator->SetUnitCommand(state_machine->workers[i], A_ATTACK, mediator->GetEnemyNaturalLocation(), 0);
 		}
 		else
 		{
-			mediator->SetUnitCommand(state_machine->workers[i], ABILITY_ID::SMART, state_machine->grouping_mineral_patch, 0);
+			mediator->SetUnitCommand(state_machine->workers[i], A_SMART, state_machine->grouping_mineral_patch, 0);
 		}
 	}
 }

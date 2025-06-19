@@ -23,7 +23,7 @@ DefendThirdZergArmyGroup::DefendThirdZergArmyGroup(Mediator* mediator, Point2D p
 	
 void DefendThirdZergArmyGroup::SetUp()
 {
-	mediator->SetUnitsCommand(all_units, ABILITY_ID::GENERAL_MOVE, pylon_gap_pos, 0);
+	mediator->SetUnitsCommand(all_units, A_MOVE, pylon_gap_pos, 0);
 	if (Utility::GetUnitsWithin(all_units, Utility::MedianCenter(all_units), 10).size() >= desired_units)
 	{
 		ready = true;
@@ -37,14 +37,14 @@ void DefendThirdZergArmyGroup::Run()
 	{
 		if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PROBE)), unit->pos) < 2)
 		{
-			mediator->SetUnitCommand(unit, ABILITY_ID::STOP, 0);
+			mediator->SetUnitCommand(unit, A_STOP, 0);
 		}
 		else
 		{
 			if (Distance2D(unit->pos, pylon_gap_pos) > 1 && unit->orders.size() == 0)
 			{
-				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, pylon_gap_pos, 0);
-				mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_HOLDPOSITION, 0, true);
+				mediator->SetUnitCommand(unit, A_MOVE, pylon_gap_pos, 0);
+				mediator->SetUnitCommand(unit, A_HOLD_POSITION, 0, true);
 			}
 		}
 	}

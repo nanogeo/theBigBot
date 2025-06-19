@@ -167,7 +167,7 @@ namespace sc2 {
 
 
 
-			Units bla = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ADEPT));
+			Units bla = Observation()->GetUnits(IsFriendlyUnit(ADEPT));
 			Units funits = Observation()->GetUnits(Unit::Alliance::Self);
 			Units nunits = Observation()->GetUnits(Unit::Alliance::Neutral);
 			Units eunits = Observation()->GetUnits(Unit::Alliance::Enemy);
@@ -246,7 +246,7 @@ namespace sc2 {
 				return;
 			}
         
-			if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
+			if (building->unit_type == PYLON)
 			{
 				for (const auto &location : locations->proxy_pylon_locations)
 				{
@@ -459,41 +459,41 @@ namespace sc2 {
 		for (const auto &unit : retreating_unit_positions)
 		{
 			Debug()->DebugLineOut(unit.first->pos + Point3D(0, 0, .2), Point3D(unit.second.x, unit.second.y, Observation()->TerrainHeight(unit.second) + .2), Color(0, 0, 0));
-			//Actions()->UnitCommand(unit.first, ABILITY_ID::GENERAL_MOVE, unit.second);
+			//Actions()->UnitCommand(unit.first, A_MOVE, unit.second);
 		}
-		Actions()->UnitCommand(test_army.prisms[0], ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(Utility::MedianCenter(test_army.stalkers), fallback_point, 3));
-		Actions()->UnitCommand(test_army.prisms[0], ABILITY_ID::UNLOADALLAT_WARPPRISM, test_army.prisms[0]);
+		Actions()->UnitCommand(test_army.prisms[0], A_MOVE, Utility::PointBetween(Utility::MedianCenter(test_army.stalkers), fallback_point, 3));
+		Actions()->UnitCommand(test_army.prisms[0], A_UNLOAD_AT, test_army.prisms[0]);
 		ApplyPressureGrouped(&test_army, enemy_army_spawn, fallback_point, retreating_unit_positions, attacking_unit_positions);
 
 		
 		
 		Units enemy_attacking_units = Observation()->GetUnits(IsFightingUnit(Unit::Alliance::Enemy));
-		//Actions()->UnitCommand(enemy_attacking_units, ABILITY_ID::ATTACK, fallback_point);*/
+		//Actions()->UnitCommand(enemy_attacking_units, A_ATTACK, fallback_point);*/
 	}
 
 	void TheBigBot::SpawnArmies()
 	{
 		//Debug()->DebugEnemyControl();
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ROACH, locations->attack_path[locations->attack_path.size() - 1], 2, 10);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_RAVAGER, enemy_army_spawn, 2, 5);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, locations->attack_path[locations->attack_path.size() - 1], 2, 32);
+		//Debug()->DebugCreateUnit(ROACH, locations->attack_path[locations->attack_path.size() - 1], 2, 10);
+		//Debug()->DebugCreateUnit(RAVAGER, enemy_army_spawn, 2, 5);
+		//Debug()->DebugCreateUnit(ZERGLING, locations->attack_path[locations->attack_path.size() - 1], 2, 32);
 
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_army_spawn, 1, 8);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARAUDER, enemy_army_spawn, 1, 1);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, enemy_army_spawn, 1, 1);
+		//Debug()->DebugCreateUnit(MARINE, enemy_army_spawn, 1, 8);
+		//Debug()->DebugCreateUnit(MARAUDER, enemy_army_spawn, 1, 1);
+		//Debug()->DebugCreateUnit(SIEGE_TANK_SIEGED, enemy_army_spawn, 1, 1);
 
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, enemy_army_spawn, 2, 8);
+		//Debug()->DebugCreateUnit(STALKER, enemy_army_spawn, 2, 8);
 
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, locations->attack_path[0], 1, 1);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, locations->attack_path[0], 2, 12);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_WARPPRISM, locations->attack_path[0], 2, 1);
-		//Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ORACLE, locations->attack_path[0], 1, 3);
+		//Debug()->DebugCreateUnit(ADEPT, locations->attack_path[0], 1, 1);
+		//Debug()->DebugCreateUnit(STALKER, locations->attack_path[0], 2, 12);
+		//Debug()->DebugCreateUnit(PRISM, locations->attack_path[0], 2, 1);
+		//Debug()->DebugCreateUnit(ORACLE, locations->attack_path[0], 1, 3);
 		//Debug()->SendDebug();
 	}
 
 	void TheBigBot::SetUpArmies()
 	{
-		/*OracleHarassStateMachine* state_machine = new OracleHarassStateMachine(this, Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_ORACLE)), "Oracles");
+		/*OracleHarassStateMachine* state_machine = new OracleHarassStateMachine(this, Observation()->GetUnits(IsUnit(ORACLE)), "Oracles");
 		active_FSMs.push_back(state_machine);
 		BuildOrderResultArgData data = BuildOrderResultArgData();
 		build_order_manager.StalkerOraclePressure(data);*/
@@ -525,7 +525,7 @@ namespace sc2 {
 		for (const auto& point : possible_locations)
 		{
 			bool blocked = false;
-			bool in_energy_field = (type == UNIT_TYPEID::PROTOSS_PYLON || type == UNIT_TYPEID::PROTOSS_ASSIMILATOR || type == UNIT_TYPEID::PROTOSS_NEXUS);
+			bool in_energy_field = (type == PYLON || type == ASSIMILATOR || type == NEXUS);
 			for (const auto& building : Observation()->GetUnits(IsBuilding()))
 			{
 				if (Point2D(building->pos) == point)
@@ -533,7 +533,7 @@ namespace sc2 {
 					blocked = true;
 					break;
 				}
-				if (!in_energy_field && building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
+				if (!in_energy_field && building->unit_type == PYLON)
 				{
 					if (Distance2D(Point2D(building->pos), point) < 6.5)
 					{
@@ -597,7 +597,7 @@ namespace sc2 {
 
 
         std::vector<Point2D> spots;
-        for (const auto &pylon : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+        for (const auto &pylon : Observation()->GetUnits(IsFinishedUnit(PYLON)))
         {
 			// ignore slow warpins
 			if (!Utility::AnyUnitWithin(Observation()->GetUnits(IsUnits({ NEXUS, WARP_GATE })), pylon->pos, 6.5))
@@ -633,7 +633,7 @@ namespace sc2 {
 						}
                         for (const auto &building : Observation()->GetUnits(IsBuilding()))
                         {
-                            if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON || building->unit_type == UNIT_TYPEID::PROTOSS_PHOTONCANNON || building->unit_type == UNIT_TYPEID::PROTOSS_SHIELDBATTERY)
+                            if (building->unit_type == PYLON || building->unit_type == CANNON || building->unit_type == BATTERY)
                             {
                                 if (building->pos.x - .5 <= pos.x && building->pos.x + .5 >= pos.x && building->pos.y - .5 <= pos.y && building->pos.y + .5 >= pos.y)
                                 {
@@ -641,7 +641,7 @@ namespace sc2 {
                                     break;
                                 }
                             }
-                            else if (building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
+                            else if (building->unit_type == NEXUS)
                             {
                                 if (building->pos.x - 2 <= pos.x && building->pos.x + 2 >= pos.x && building->pos.y - 2 <= pos.y && building->pos.y + 2 >= pos.y)
                                 {
@@ -709,7 +709,7 @@ namespace sc2 {
 #endif
 		std::vector<Point2D> prism_spots;
 
-        for (const auto &prism : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)))
+        for (const auto &prism : Observation()->GetUnits(IsFinishedUnit(PRISM_SIEGED)))
         {
             for (int i = -4; i <= 4; i += 1)
             {
@@ -784,7 +784,7 @@ namespace sc2 {
 
 		std::vector<Point2D> prism_spots;
 
-		for (const auto& prism : Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPPRISMPHASING)))
+		for (const auto& prism : Observation()->GetUnits(IsFinishedUnit(PRISM_SIEGED)))
 		{
 			for (int i = -4; i <= 4; i += 1)
 			{
@@ -1091,166 +1091,162 @@ namespace sc2 {
 
 	void TheBigBot::SetUpUnitTypeInfo()
 	{
-		unit_type_info[UNIT_TYPEID::PROTOSS_PROBE] =					UnitTypeInfo(true, false, true, false); // protoss
-		unit_type_info[UNIT_TYPEID::PROTOSS_ZEALOT] =					UnitTypeInfo(true, true, true, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_STALKER] =					UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::PROTOSS_SENTRY] =					UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::PROTOSS_ADEPT] =					UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_HIGHTEMPLAR] =				UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_DARKTEMPLAR] =				UnitTypeInfo(true, true, true, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_IMMORTAL] =					UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_COLOSSUS] =					UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_DISRUPTOR] =				UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_ARCHON] =					UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::PROTOSS_OBSERVER] =					UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_WARPPRISM] =				UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_WARPPRISMPHASING] =			UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_PHOENIX] =					UnitTypeInfo(false, true, false, true);
-		unit_type_info[UNIT_TYPEID::PROTOSS_VOIDRAY] =					UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::PROTOSS_ORACLE] =					UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_CARRIER] =					UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::PROTOSS_TEMPEST] =					UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::PROTOSS_MOTHERSHIP] =				UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::PROTOSS_NEXUS] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_PYLON] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_ASSIMILATOR] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_ASSIMILATORRICH] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_GATEWAY] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_WARPGATE] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_FORGE] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_CYBERNETICSCORE] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_PHOTONCANNON] =				UnitTypeInfo(false, false, true, true);
-		unit_type_info[UNIT_TYPEID::PROTOSS_SHIELDBATTERY] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_STARGATE] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_ROBOTICSBAY] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_FLEETBEACON] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::PROTOSS_DARKSHRINE] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_SCV] =						UnitTypeInfo(true, false, true, false); // terran
-		unit_type_info[UNIT_TYPEID::TERRAN_MULE] =						UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_MARINE] =					UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::TERRAN_MARAUDER] =					UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_REAPER] =					UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_GHOST] =						UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::TERRAN_HELLION] =					UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_HELLIONTANK] =				UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_SIEGETANK] =					UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_SIEGETANKSIEGED] =			UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_CYCLONE] =					UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::TERRAN_WIDOWMINE] =					UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_WIDOWMINEBURROWED] =			UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_THOR] =						UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::TERRAN_THORAP] =					UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::TERRAN_VIKINGASSAULT] =				UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_VIKINGFIGHTER] = 			UnitTypeInfo(false, true, false, true);
-		unit_type_info[UNIT_TYPEID::TERRAN_MEDIVAC] =					UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_LIBERATOR] =					UnitTypeInfo(false, true, false, true);
-		unit_type_info[UNIT_TYPEID::TERRAN_LIBERATORAG] =				UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_RAVEN] =						UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_BANSHEE] =					UnitTypeInfo(false, true, false, true);
-		unit_type_info[UNIT_TYPEID::TERRAN_BATTLECRUISER] =				UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::TERRAN_AUTOTURRET] =				UnitTypeInfo(false, false, true, true);
-		unit_type_info[UNIT_TYPEID::TERRAN_COMMANDCENTER] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_COMMANDCENTERFLYING] =		UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_ORBITALCOMMAND] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING] =		UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_PLANETARYFORTRESS] =			UnitTypeInfo(false, false, true, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_SUPPLYDEPOT] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED] =		UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_REFINERY] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_REFINERYRICH] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_BARRACKS] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_BARRACKSFLYING] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_BARRACKSREACTOR] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_BARRACKSTECHLAB] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_ENGINEERINGBAY] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_BUNKER] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_PREVIEWBUNKERUPGRADED] =		UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_SENSORTOWER] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_MISSILETURRET] =				UnitTypeInfo(false, false, false, true);
-		unit_type_info[UNIT_TYPEID::TERRAN_FACTORY] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_FACTORYFLYING] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_FACTORYREACTOR] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_FACTORYTECHLAB] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_GHOSTACADEMY] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_STARPORT] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_STARPORTFLYING] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_STARPORTREACTOR] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_STARPORTTECHLAB] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_ARMORY] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::TERRAN_FUSIONCORE] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_LARVA] =						UnitTypeInfo(false, false, false, false); // zerg
-		unit_type_info[UNIT_TYPEID::ZERG_BANELINGCOCOON] =				UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_BROODLORDCOCOON] =				UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_OVERLORDCOCOON] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_RAVAGERCOCOON] =				UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_TRANSPORTOVERLORDCOCOON] =		UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_DRONE] =						UnitTypeInfo(true, false, true, false);
-		unit_type_info[UNIT_TYPEID::ZERG_DRONEBURROWED] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_QUEEN] =						UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::ZERG_QUEENBURROWED] =				UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_ZERGLING] =					UnitTypeInfo(true, true, true, false);
-		unit_type_info[UNIT_TYPEID::ZERG_ZERGLINGBURROWED] =			UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_BANELING] =					UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::ZERG_BANELINGBURROWED] =			UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_ROACH] =						UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::ZERG_ROACHBURROWED] =				UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_RAVAGER] =						UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::RAVAGERBURROWED] =					UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_HYDRALISK] =					UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::ZERG_HYDRALISKBURROWED] =			UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_LURKERMP] =					UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_LURKERMPBURROWED] =			UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::ZERG_LURKERMPEGG] =					UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_INFESTOR] =					UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_INFESTORBURROWED] =			UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_SWARMHOSTMP] =					UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_SWARMHOSTBURROWEDMP] =			UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_ULTRALISK] =					UnitTypeInfo(true, true, true, false);
-		unit_type_info[UNIT_TYPEID::ZERG_ULTRALISKBURROWED] =			UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_OVERLORD] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_OVERLORDTRANSPORT] =			UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_OVERSEER] =					UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_OVERSEERSIEGEMODE] =			UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_MUTALISK] =					UnitTypeInfo(false, true, true, true);
-		unit_type_info[UNIT_TYPEID::ZERG_CORRUPTOR] =					UnitTypeInfo(false, true, false, true);
-		unit_type_info[UNIT_TYPEID::ZERG_BROODLORD] =					UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::ZERG_VIPER] =						UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_LOCUSTMP] =					UnitTypeInfo(false, true, true, false);
-		unit_type_info[UNIT_TYPEID::ZERG_LOCUSTMPFLYING] =				UnitTypeInfo(false, true, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_BROODLING] =					UnitTypeInfo(true, true, true, false);
-		unit_type_info[UNIT_TYPEID::ZERG_CHANGELING] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_CHANGELINGMARINE] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_CHANGELINGMARINESHIELD] =		UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_CHANGELINGZEALOT] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_CHANGELINGZERGLING] = 			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_CHANGELINGZERGLINGWINGS] =		UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_HATCHERY] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_LAIR] =						UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_HIVE] =						UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_SPINECRAWLER] =				UnitTypeInfo(false, false, true, false);
-		unit_type_info[UNIT_TYPEID::ZERG_SPINECRAWLERUPROOTED] =		UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_SPORECRAWLER] =				UnitTypeInfo(false, false, false, true);
-		unit_type_info[UNIT_TYPEID::ZERG_SPORECRAWLERUPROOTED] =		UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_EXTRACTOR] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_EXTRACTORRICH] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_SPAWNINGPOOL] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_EVOLUTIONCHAMBER] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_ROACHWARREN] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_BANELINGNEST] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_HYDRALISKDEN] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_LURKERDENMP] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_INFESTATIONPIT] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_SPIRE] =						UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_GREATERSPIRE] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_ULTRALISKCAVERN] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_NYDUSCANAL] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_NYDUSNETWORK] =				UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_CREEPTUMOR] =					UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_CREEPTUMORBURROWED] =			UnitTypeInfo(false, false, false, false);
-		unit_type_info[UNIT_TYPEID::ZERG_CREEPTUMORQUEEN] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[PROBE] =					UnitTypeInfo(true, false, true, false); // protoss
+		unit_type_info[ZEALOT] =					UnitTypeInfo(true, true, true, false);
+		unit_type_info[STALKER] =					UnitTypeInfo(false, true, true, true);
+		unit_type_info[SENTRY] =					UnitTypeInfo(false, true, true, true);
+		unit_type_info[ADEPT] =					UnitTypeInfo(false, true, true, false);
+		unit_type_info[HIGH_TEMPLAR] =				UnitTypeInfo(false, true, true, false);
+		unit_type_info[DARK_TEMPLAR] =				UnitTypeInfo(true, true, true, false);
+		unit_type_info[IMMORTAL] =					UnitTypeInfo(false, true, true, false);
+		unit_type_info[COLOSSUS] =					UnitTypeInfo(false, true, true, false);
+		unit_type_info[DISRUPTOR] =				UnitTypeInfo(false, true, false, false);
+		unit_type_info[ARCHON] =					UnitTypeInfo(false, true, true, true);
+		unit_type_info[OBSERVER] =					UnitTypeInfo(false, true, false, false);
+		unit_type_info[PRISM] =				UnitTypeInfo(false, true, false, false);
+		unit_type_info[PRISM_SIEGED] =			UnitTypeInfo(false, true, false, false);
+		unit_type_info[PHOENIX] =					UnitTypeInfo(false, true, false, true);
+		unit_type_info[VOID_RAY] =					UnitTypeInfo(false, true, true, true);
+		unit_type_info[ORACLE] =					UnitTypeInfo(false, true, true, false);
+		unit_type_info[CARRIER] =					UnitTypeInfo(false, true, true, true);
+		unit_type_info[TEMPEST] =					UnitTypeInfo(false, true, true, true);
+		unit_type_info[MOTHERSHIP] =				UnitTypeInfo(false, true, true, true);
+		unit_type_info[NEXUS] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[PYLON] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[ASSIMILATOR] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[ASSIMILATOR_RICH] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[GATEWAY] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[WARP_GATE] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[FORGE] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[CYBERCORE] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[CANNON] =				UnitTypeInfo(false, false, true, true);
+		unit_type_info[BATTERY] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[ROBO] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[STARGATE] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[TWILIGHT] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[ROBO_BAY] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[FLEET_BEACON] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[TEMPLAR_ARCHIVE] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[DARK_SHRINE] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[SCV] =						UnitTypeInfo(true, false, true, false); // terran
+		unit_type_info[MULE] =						UnitTypeInfo(false, false, false, false);
+		unit_type_info[MARINE] =					UnitTypeInfo(false, true, true, true);
+		unit_type_info[MARAUDER] =					UnitTypeInfo(false, true, true, false);
+		unit_type_info[REAPER] =					UnitTypeInfo(false, true, true, false);
+		unit_type_info[GHOST] =						UnitTypeInfo(false, true, true, true);
+		unit_type_info[HELLION] =					UnitTypeInfo(false, true, true, false);
+		unit_type_info[HELLBAT] =				UnitTypeInfo(false, true, true, false);
+		unit_type_info[SIEGE_TANK] =					UnitTypeInfo(false, true, true, false);
+		unit_type_info[SIEGE_TANK_SIEGED] =			UnitTypeInfo(false, true, true, false);
+		unit_type_info[CYCLONE] =					UnitTypeInfo(false, true, true, true);
+		unit_type_info[WIDOW_MINE] =					UnitTypeInfo(false, true, false, false);
+		unit_type_info[WIDOW_MINE_BURROWED] =			UnitTypeInfo(false, true, false, false);
+		unit_type_info[THOR_AOE] =						UnitTypeInfo(false, true, true, true);
+		unit_type_info[THOR_AP] =					UnitTypeInfo(false, true, true, true);
+		unit_type_info[VIKING_LANDED] =				UnitTypeInfo(false, true, true, false);
+		unit_type_info[VIKING] = 			UnitTypeInfo(false, true, false, true);
+		unit_type_info[MEDIVAC] =					UnitTypeInfo(false, true, false, false);
+		unit_type_info[LIBERATOR] =					UnitTypeInfo(false, true, false, true);
+		unit_type_info[LIBERATOR_SIEGED] =				UnitTypeInfo(false, true, true, false);
+		unit_type_info[RAVEN] =						UnitTypeInfo(false, true, false, false);
+		unit_type_info[BANSHEE] =					UnitTypeInfo(false, true, false, true);
+		unit_type_info[BATTLECRUISER] =				UnitTypeInfo(false, true, true, true);
+		unit_type_info[AUTO_TURRET] =				UnitTypeInfo(false, false, true, true);
+		unit_type_info[COMMAND_CENTER] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[COMMAND_CENTER_FLYING] =		UnitTypeInfo(false, false, false, false);
+		unit_type_info[ORBITAL] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[ORBITAL_FLYING] =		UnitTypeInfo(false, false, false, false);
+		unit_type_info[PLANETARY] =			UnitTypeInfo(false, false, true, false);
+		unit_type_info[SUPPLY_DEPOT] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[SUPPLY_DEPOT_LOWERED] =		UnitTypeInfo(false, false, false, false);
+		unit_type_info[REFINERY] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[REFINERY_RICH] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[BARRACKS] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[BARRACKS_FLYING] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[BARRACKS_REACTOR] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[BARRACKS_TECH_LAB] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[ENGINEERING_BAY] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[BUNKER] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[NEOSTEEL_BUNKER] =		UnitTypeInfo(false, false, false, false);
+		unit_type_info[SENSOR_TOWER] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[MISSILE_TURRET] =				UnitTypeInfo(false, false, false, true);
+		unit_type_info[FACTORY] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[FACTORY_FLYING] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[FACTORY_REACTOR] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[FACTORY_TECH_LAB] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[GHOST_ACADEMY] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[STARPORT] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[STARPORT_FLYING] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[STARPORT_REACTOR] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[STARPORT_TECH_LAB] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[ARMORY] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[FUSION_CORE] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[LARVA] =						UnitTypeInfo(false, false, false, false); // zerg
+		unit_type_info[BANELING_EGG] =				UnitTypeInfo(false, true, false, false);
+		unit_type_info[BROOD_LORD_EGG] =				UnitTypeInfo(false, true, false, false);
+		unit_type_info[OVERSEER_EGG] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[RAVAGER_EGG] =				UnitTypeInfo(false, true, false, false);
+		unit_type_info[DROPPERLORD_EGG] =		UnitTypeInfo(false, false, false, false);
+		unit_type_info[DRONE] =						UnitTypeInfo(true, false, true, false);
+		unit_type_info[DRONE_BURROWED] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[QUEEN] =						UnitTypeInfo(false, true, true, true);
+		unit_type_info[QUEEN_BURROWED] =				UnitTypeInfo(false, true, false, false);
+		unit_type_info[ZERGLING] =					UnitTypeInfo(true, true, true, false);
+		unit_type_info[ZERGLING_BURROWED] =			UnitTypeInfo(false, true, false, false);
+		unit_type_info[BANELING] =					UnitTypeInfo(false, true, true, false);
+		unit_type_info[BANELING_BURROWED] =			UnitTypeInfo(false, true, false, false);
+		unit_type_info[ROACH] =						UnitTypeInfo(false, true, true, false);
+		unit_type_info[ROACH_BURROWED] =				UnitTypeInfo(false, true, false, false);
+		unit_type_info[RAVAGER] =						UnitTypeInfo(false, true, true, false);
+		unit_type_info[RAVAGER_BURROWED] =					UnitTypeInfo(false, true, false, false);
+		unit_type_info[HYDRA] =					UnitTypeInfo(false, true, true, true);
+		unit_type_info[HYDRA_BURROWED] =			UnitTypeInfo(false, true, false, false);
+		unit_type_info[LURKER] =					UnitTypeInfo(false, true, false, false);
+		unit_type_info[LURKER_BURROWED] =			UnitTypeInfo(false, true, true, false);
+		unit_type_info[LURKER_EGG] =					UnitTypeInfo(false, true, false, false);
+		unit_type_info[INFESTOR] =					UnitTypeInfo(false, true, false, false);
+		unit_type_info[INFESTOR_BURROWED] =			UnitTypeInfo(false, true, false, false);
+		unit_type_info[SWARMHOST] =					UnitTypeInfo(false, true, false, false);
+		unit_type_info[SWARMHOST_BURROWED] =			UnitTypeInfo(false, true, false, false);
+		unit_type_info[ULTRALISK] =					UnitTypeInfo(true, true, true, false);
+		unit_type_info[ULTRALISK_BURROWED] =			UnitTypeInfo(false, true, false, false);
+		unit_type_info[OVERLORD] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[DROPPERLORD] =			UnitTypeInfo(false, true, false, false);
+		unit_type_info[OVERSEER] =					UnitTypeInfo(false, true, false, false);
+		unit_type_info[OVERSEER_SIEGED] =			UnitTypeInfo(false, true, false, false);
+		unit_type_info[MUTALISK] =					UnitTypeInfo(false, true, true, true);
+		unit_type_info[CORRUPTER] =					UnitTypeInfo(false, true, false, true);
+		unit_type_info[BROOD_LORD] =					UnitTypeInfo(false, true, true, false);
+		unit_type_info[VIPER] =						UnitTypeInfo(false, true, false, false);
+		unit_type_info[LOCUST] =					UnitTypeInfo(false, true, true, false);
+		unit_type_info[LOCUST_FLYING] =				UnitTypeInfo(false, true, false, false);
+		unit_type_info[BROODLING] =					UnitTypeInfo(true, true, true, false);
+		unit_type_info[CHANGELING] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[CHANGELING_ZEALOT] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[HATCHERY] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[LAIR] =						UnitTypeInfo(false, false, false, false);
+		unit_type_info[HIVE] =						UnitTypeInfo(false, false, false, false);
+		unit_type_info[SPINE_CRAWLER] =				UnitTypeInfo(false, false, true, false);
+		unit_type_info[SPINE_CRAWLER_UPROOTED] =		UnitTypeInfo(false, false, false, false);
+		unit_type_info[SPORE_CRAWLER] =				UnitTypeInfo(false, false, false, true);
+		unit_type_info[SPORE_CRAWLER_UPROOTED] =		UnitTypeInfo(false, false, false, false);
+		unit_type_info[EXTRACTOR] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[EXTRACTOR_RICH] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[SPAWNING_POOL] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[EVO_CHAMBER] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[ROACH_WARREN] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[BANELING_NEST] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[HYDRA_DEN] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[LURKER_DEN] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[INFESTATION_PIT] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[SPIRE] =						UnitTypeInfo(false, false, false, false);
+		unit_type_info[GREATER_SPIRE] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[ULTRALISK_CAVERN] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[NYDUS_WORM] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[NYDUS] =				UnitTypeInfo(false, false, false, false);
+		unit_type_info[CREEP_TUMOR_1] =					UnitTypeInfo(false, false, false, false);
+		unit_type_info[CREEP_TUMOR_2] =			UnitTypeInfo(false, false, false, false);
+		unit_type_info[CREEP_TUMOR_3] =				UnitTypeInfo(false, false, false, false);
 	}
 
 	void TheBigBot::PrintAttacks(std::map<const Unit*, const Unit*> attacks)
@@ -1343,13 +1339,13 @@ namespace sc2 {
 		Polygon polygon;
 		switch (unit->unit_type.ToType())
 		{
-		case UNIT_TYPEID::PROTOSS_PYLON:
+		case PYLON:
 			polygon.points.push_back(unit->pos + Point2D(3, 3));
 			polygon.points.push_back(unit->pos + Point2D(3, -3));
 			polygon.points.push_back(unit->pos + Point2D(-3, -3));
 			polygon.points.push_back(unit->pos + Point2D(-3, 3));
 			break;
-		case UNIT_TYPEID::TERRAN_MISSILETURRET:
+		case MISSILE_TURRET:
 			polygon.points.push_back(unit->pos + Point2D(12, 3));
 			polygon.points.push_back(unit->pos + Point2D(10, 7));
 			polygon.points.push_back(unit->pos + Point2D(7, 10));
@@ -1551,7 +1547,7 @@ namespace sc2 {
     void TheBigBot::DisplayBuildingStatuses()
     {
         std::string new_lines = "";
-        std::vector<UNIT_TYPEID> builging_order = { UNIT_TYPEID::PROTOSS_NEXUS, UNIT_TYPEID::PROTOSS_GATEWAY, UNIT_TYPEID::PROTOSS_WARPGATE, UNIT_TYPEID::PROTOSS_FORGE, UNIT_TYPEID::PROTOSS_CYBERNETICSCORE, UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL };
+        std::vector<UNIT_TYPEID> builging_order = { NEXUS, GATEWAY, WARP_GATE, FORGE, CYBERCORE, ROBO, TWILIGHT };
         for (const auto &building_type : builging_order)
         {
             std::vector<const Unit*> buildings = Observation()->GetUnits(IsFriendlyUnit(building_type));
@@ -1562,7 +1558,7 @@ namespace sc2 {
 				info += " ";
                 Color text_color = Color(0, 255, 0);
 				
-                if (building_type == UNIT_TYPEID::PROTOSS_WARPGATE)
+                if (building_type == WARP_GATE)
                 {
 					if (mediator.unit_production_manager.warpgate_status.count(building) == 0)
 					{
@@ -1668,13 +1664,13 @@ namespace sc2 {
         int build_pylon_actions = 0;
         for (const auto &action : mediator.action_manager.active_actions)
         {
-            if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == UNIT_TYPEID::PROTOSS_PYLON)
+            if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == PYLON)
             {
                 build_pylon_actions++;
             }
         }
         int pending_pylons = 0;
-        for (const auto &pylon : Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+        for (const auto &pylon : Observation()->GetUnits(IsFriendlyUnit(PYLON)))
         {
             if (pylon->build_progress < 1)
                 pending_pylons++;
@@ -1686,13 +1682,13 @@ namespace sc2 {
         if (pending_pylons > 0 || build_pylon_actions > 0)
             supply_message += "new supply: " + std::to_string(used) + '/' + std::to_string(cap + 8 * pending_pylons + 8 * build_pylon_actions) + '\n';
 
-        size_t gates = Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_WARPGATE)).size();
-        size_t other_prod = Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)).size() + Observation()->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size();
+        size_t gates = Observation()->GetUnits(IsFinishedUnit(WARP_GATE)).size();
+        size_t other_prod = Observation()->GetUnits(IsFinishedUnit(ROBO)).size() + Observation()->GetUnits(IsFinishedUnit(STARGATE)).size();
         if (gates > 0)
             supply_message += "warpgates: " + std::to_string(gates) + '\n';
         if (other_prod > 0)
             supply_message += "other prod: " + std::to_string(other_prod) + '\n';
-        size_t nexi = Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
+        size_t nexi = Observation()->GetUnits(IsFriendlyUnit(NEXUS)).size();
         supply_message += "nexi: " + std::to_string(nexi) + '\n';
         supply_message += "new supply: " + std::to_string(used + 2 * gates + 3 * other_prod + nexi) + '/' + std::to_string(cap + 8 * pending_pylons + 8 * build_pylon_actions) + '\n';
 

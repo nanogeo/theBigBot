@@ -97,13 +97,13 @@ namespace sc2 {
 						}
 						if (highest_over_75 != nullptr)
 						{
-							mediator->SetUnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos, 0);
+							mediator->SetUnitCommand(highest_over_75, A_REVELATION, unit_to_revelate->pos, 0);
 							//agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
 
 						}
 						else if (lowest_over_25 != nullptr)
 						{
-							mediator->SetUnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos, 0);
+							mediator->SetUnitCommand(lowest_over_25, A_REVELATION, unit_to_revelate->pos, 0);
 							//agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
 						}
 					}
@@ -134,11 +134,11 @@ namespace sc2 {
 					if (Distance2D(oracle->pos, closest_unit->pos) > 4)
 					{
 						float dist = Distance2D(oracle->pos, closest_unit->pos);
-						mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), 0, false);
+						mediator->SetUnitCommand(oracle, A_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), 0, false);
 					}
 					else if (weapon_ready)
 					{
-						mediator->SetUnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit, 0, false);
+						mediator->SetUnitCommand(oracle, A_ATTACK, closest_unit, 0, false);
 						time_last_attacked[oracle] = now;
 						has_attacked[oracle] = false;
 						//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 255, 0));
@@ -148,7 +148,7 @@ namespace sc2 {
 						if ((mediator->GetUnit(oracle->engaged_target_tag) == nullptr ||
 							Distance2D(oracle->pos, mediator->GetUnit(oracle->engaged_target_tag)->pos) > 3) ||
 							Distance2D(oracle->pos, closest_unit->pos) > 3)  // only move if target is getting away
-							mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, 0, false);
+							mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, 0, false);
 						//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 					}
 					else
@@ -160,16 +160,16 @@ namespace sc2 {
 				{
 					if (Distance2D(oracle->pos, closest_unit->pos) < 2 && enemy_ground_units.size() > 5) // TODO use battle sim to determine this better
 					{
-						mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, 0, false);
+						mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_ON, 0, false);
 					}
 					else
 					{
-						mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, 0, false);
+						mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, 0, false);
 					}
 				}
 				else
 				{
-					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, closest_unit->pos, 0, false);
+					mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, 0, false);
 					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
 				}
 				//agent->Debug()->DebugTextOut(std::to_string(now - state_machine->time_last_attacked[oracle]), Point2D(.7, .7), Color(0, 255, 255), 20);
@@ -183,7 +183,7 @@ namespace sc2 {
 			{
 				if (mediator->IsOracleBeamActive(oracle))
 				{
-					mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+					mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, 0);
 					continue;
 				}
 
@@ -197,18 +197,18 @@ namespace sc2 {
 				}
 				else if (dist_to_start < 1)
 				{
-					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, end, 0);
+					mediator->SetUnitCommand(oracle, A_MOVE, end, 0);
 				}
 				else if (dist_to_end < 1)
 				{
-					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, start, 0);
+					mediator->SetUnitCommand(oracle, A_MOVE, start, 0);
 				}
 				else
 				{
 					if (dist_to_end < dist_to_start)
-						mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, end, 0);
+						mediator->SetUnitCommand(oracle, A_MOVE, end, 0);
 					else
-						mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, start, 0);
+						mediator->SetUnitCommand(oracle, A_MOVE, start, 0);
 				}
 			}
 		}
@@ -221,9 +221,9 @@ namespace sc2 {
 					continue;
 
 				const Unit* closest_unit = Utility::ClosestTo(enemy_units, unit->pos);
-				if (closest_unit && (unit->orders.size() == 0 || unit->orders[0].ability_id != ABILITY_ID::ATTACK))
+				if (closest_unit && (unit->orders.size() == 0 || unit->orders[0].ability_id != A_ATTACK))
 				{
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest_unit->pos, 0);
+					mediator->SetUnitCommand(unit, A_ATTACK, closest_unit->pos, 0);
 				}
 				else if (closest_unit == nullptr)
 				{
@@ -237,18 +237,18 @@ namespace sc2 {
 					}
 					else if (dist_to_start < 1)
 					{
-						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, end, 0);
+						mediator->SetUnitCommand(unit, A_MOVE, end, 0);
 					}
 					else if (dist_to_end < 1)
 					{
-						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, start, 0);
+						mediator->SetUnitCommand(unit, A_MOVE, start, 0);
 					}
 					else
 					{
 						if (dist_to_end < dist_to_start)
-							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, end, 0);
+							mediator->SetUnitCommand(unit, A_MOVE, end, 0);
 						else
-							mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, start, 0);
+							mediator->SetUnitCommand(unit, A_MOVE, start, 0);
 					}
 				}
 			}

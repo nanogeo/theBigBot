@@ -12,7 +12,7 @@ namespace sc2 {
 void ScoutTInitialMove::TickState()
 {
 	if (state_machine->scout->orders.size() == 0 || state_machine->scout->orders[0].target_pos != state_machine->current_target)
-		mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutTInitialMove::EnterState()
@@ -49,7 +49,7 @@ void ScoutTScoutMain::TickState()
 		if (state_machine->index < state_machine->main_scout_path.size())
 			state_machine->current_target = state_machine->main_scout_path[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutTScoutMain::EnterState()
@@ -71,9 +71,9 @@ State* ScoutTScoutMain::TestTransitions()
 	}
 	if (state_machine->index >= state_machine->main_scout_path.size())
 	{
-		if (mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_BARRACKS)).size() > 1 ||
+		if (mediator->GetUnits(IsUnit(BARRACKS)).size() > 1 ||
 			mediator->scouting_manager.first_barrack_timing == 0 ||
-			mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_REFINERY)).size() > 1)
+			mediator->GetUnits(IsUnit(REFINERY)).size() > 1)
 		{
 			state_machine->index = 0;
 			state_machine->current_target = state_machine->main_scout_path[0];
@@ -104,7 +104,7 @@ void ScoutTScoutNatural::TickState()
 		if (state_machine->index < state_machine->natural_scout_path.size())
 			state_machine->current_target = state_machine->natural_scout_path[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
 }
 
 void ScoutTScoutNatural::EnterState()
@@ -146,7 +146,7 @@ void ScoutTScoutRax::EnterState()
 	if (mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING })).size() > 0)
 	{
 		rax = mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0];
-		mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, rax->pos, 0);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, rax->pos, 0);
 	}
 	else
 	{
@@ -155,7 +155,7 @@ void ScoutTScoutRax::EnterState()
 			if (pos.first->unit_type == BARRACKS || pos.first->unit_type == BARRACKS_FLYING)
 			{
 				rax = pos.first;
-				mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, rax->pos, 0);
+				mediator->SetUnitCommand(state_machine->scout, A_MOVE, rax->pos, 0);
 				return;
 			}
 		}
@@ -174,13 +174,13 @@ State* ScoutTScoutRax::TestTransitions()
 	if (rax == nullptr)
 		return new ScoutTReturnToBase(mediator, state_machine);
 
-	if (mediator->GetCurrentTime() >= mediator->scouting_manager.first_barrack_timing + 46 + 20 || mediator->GetUnits(IsUnit(UNIT_TYPEID::TERRAN_MARINE)).size() > 0)
+	if (mediator->GetCurrentTime() >= mediator->scouting_manager.first_barrack_timing + 46 + 20 || mediator->GetUnits(IsUnit(MARINE)).size() > 0)
 	{
 		mediator->scouting_manager.first_rax_production = FirstRaxProduction::reaper;
 
 		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
 		{
-			if (unit->unit_type == UNIT_TYPEID::TERRAN_BARRACKSTECHLAB)
+			if (unit->unit_type == BARRACKS_TECH_LAB)
 			{
 				if (Distance2D(unit->pos, rax->pos) < 3)
 				{
@@ -188,7 +188,7 @@ State* ScoutTScoutRax::TestTransitions()
 					break;
 				}
 			}
-			else if (unit->unit_type == UNIT_TYPEID::TERRAN_BARRACKSREACTOR)
+			else if (unit->unit_type == BARRACKS_REACTOR)
 			{
 				if (Distance2D(unit->pos, rax->pos) < 3)
 				{
@@ -196,7 +196,7 @@ State* ScoutTScoutRax::TestTransitions()
 					break;
 				}
 			}
-			else if (unit->unit_type == UNIT_TYPEID::TERRAN_MARINE)
+			else if (unit->unit_type == MARINE)
 			{
 				mediator->scouting_manager.first_rax_production = FirstRaxProduction::marine;
 				break;
@@ -220,7 +220,7 @@ void ScoutTReturnToBase::TickState()
 {
 	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
 	{
-		if (unit->unit_type == UNIT_TYPEID::TERRAN_MARINE)
+		if (unit->unit_type == MARINE)
 		{
 			mediator->scouting_manager.first_rax_production = FirstRaxProduction::marine;
 			break;
@@ -231,7 +231,7 @@ void ScoutTReturnToBase::TickState()
 
 void ScoutTReturnToBase::EnterState()
 {
-	mediator->SetUnitCommand(state_machine->scout, ABILITY_ID::GENERAL_MOVE, mediator->GetLocations().start_location, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetLocations().start_location, 0);
 }
 
 void ScoutTReturnToBase::ExitState()

@@ -43,7 +43,7 @@ namespace sc2 {
 		// no enemies
 		if (enemies.size() == 0)
 		{
-			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, door_open_pos, 0);
+			mediator->SetUnitCommand(guard, A_MOVE, door_open_pos, 0);
 			return;
 		}
 
@@ -53,7 +53,7 @@ namespace sc2 {
 		// no enemies near
 		if (dist_to_closest > 10)
 		{
-			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, door_open_pos, 0);
+			mediator->SetUnitCommand(guard, A_MOVE, door_open_pos, 0);
 			return;
 		}
 
@@ -74,7 +74,7 @@ namespace sc2 {
 					Distance2D(door_closed_pos, Utility::ClosestTo(mediator->GetUnits(IsUnit(NEXUS)), guard->pos)->pos))
 				{
 					mediator->CancelAttack(guard);
-					mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to, 0);
+					mediator->SetUnitCommand(guard, A_MOVE, guard_move_to, 0);
 				}
 			}
 			else if (guard->weapon_cooldown == 0)
@@ -83,12 +83,12 @@ namespace sc2 {
 			}
 			else
 			{
-				mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to, 0);
+				mediator->SetUnitCommand(guard, A_MOVE, guard_move_to, 0);
 			}
 		}
 		else if (mediator->GetAttackStatus(guard) == false || Distance2D(guard->pos, guard_move_to) > .5)
 		{
-			mediator->SetUnitCommand(guard, ABILITY_ID::GENERAL_MOVE, guard_move_to, 0);
+			mediator->SetUnitCommand(guard, A_MOVE, guard_move_to, 0);
 		}
 	}
 

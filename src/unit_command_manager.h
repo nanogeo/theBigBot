@@ -4,6 +4,7 @@
 
 #include "sc2api/sc2_interfaces.h"
 
+#include "definitions.h"
 
 namespace sc2
 {
@@ -48,16 +49,16 @@ struct UnitCommand
     {
         if ((target_point == u.target_point && target == u.target))
         {
-            if (ability == ABILITY_ID::SMART && 
-                (u.ability == ABILITY_ID::SMART ||
-                u.ability == ABILITY_ID::HARVEST_GATHER ||
-                u.ability == ABILITY_ID::HARVEST_RETURN ||
-                u.ability == ABILITY_ID::GENERAL_MOVE))
+            if (ability == A_SMART && 
+                (u.ability == A_SMART ||
+                u.ability == A_GATHER_RESOURCE ||
+                u.ability == A_RETURN_RESOURCE ||
+                u.ability == A_MOVE))
                     return true;
-            if (u.ability == ABILITY_ID::SMART &&
-                    (ability == ABILITY_ID::HARVEST_GATHER ||
-                    ability == ABILITY_ID::HARVEST_RETURN ||
-                    ability == ABILITY_ID::GENERAL_MOVE))
+            if (u.ability == A_SMART &&
+                    (ability == A_GATHER_RESOURCE ||
+                    ability == A_RETURN_RESOURCE ||
+                    ability == A_MOVE))
                 return true;
         }
         return false;

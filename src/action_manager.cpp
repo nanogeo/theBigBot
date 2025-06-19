@@ -56,7 +56,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 		{
 			if (unit->unit_type == PROBE)
 				continue;
-			mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(pos, unit->pos, 10), 20);
+			mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(pos, unit->pos, 10), 20);
 		}
 		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
@@ -65,7 +65,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		mediator->SetUnitCommand(builder, ABILITY_ID::GENERAL_MOVE, pos, 0);
+		mediator->SetUnitCommand(builder, A_MOVE, pos, 0);
 	}
 	return false;
 }
@@ -129,7 +129,7 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 		{
 			if (unit == builder)
 				continue;
-			mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::PointBetween(pos, unit->pos, 10), 20);
+			mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(pos, unit->pos, 10), 20);
 		}
 		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
@@ -138,7 +138,7 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		mediator->SetUnitCommand(builder, ABILITY_ID::GENERAL_MOVE, pos, 0);
+		mediator->SetUnitCommand(builder, A_MOVE, pos, 0);
 	}
 	return false;
 }
@@ -186,7 +186,7 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data) // TODO add avoid
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		mediator->SetUnitCommand(builder, ABILITY_ID::GENERAL_MOVE, pos, 0);
+		mediator->SetUnitCommand(builder, A_MOVE, pos, 0);
 	}
 	return false;
 }
@@ -208,8 +208,8 @@ bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 
 	int extra_workers = 0;// data->index; TODO add extra workers to worker manager
 	int num_workers = mediator->GetNumWorkers();
-	int num_nexi = (int)mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
-	int num_assimilators = (int)mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ASSIMILATOR)).size();
+	int num_nexi = (int)mediator->GetUnits(IsFriendlyUnit(NEXUS)).size();
+	int num_assimilators = (int)mediator->GetUnits(IsFriendlyUnit(ASSIMILATOR)).size();
 	if (num_workers >= std::min(num_nexi * 16 + num_assimilators * 3, 70) + extra_workers)
 	{
 		mediator->SetBuildWorkers(false);
@@ -244,7 +244,7 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 	int build_pylon_actions = 0;
 	for (const auto &action : active_actions)
 	{
-		if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == UNIT_TYPEID::PROTOSS_PYLON)
+		if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == PYLON)
 		{
 			build_pylon_actions++;
 		}
@@ -257,34 +257,34 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 	{
 		if (supply_cap >= 200)
 			return false;
-		if (building->unit_type == UNIT_TYPEID::PROTOSS_PYLON)
+		if (building->unit_type == PYLON)
 		{
 			if (building->build_progress < 1)
 				supply_cap += 8;
 		}
-		else if(building->unit_type == UNIT_TYPEID::PROTOSS_NEXUS)
+		else if(building->unit_type == NEXUS)
 		{
 			supply_used += 1;
 		}
-		else if (building->unit_type == UNIT_TYPEID::PROTOSS_GATEWAY)
+		else if (building->unit_type == GATEWAY)
 		{
 			supply_used += 2;
 		}
-		else if (building->unit_type == UNIT_TYPEID::PROTOSS_WARPGATE)
+		else if (building->unit_type == WARP_GATE)
 		{
 			supply_used += 2;
 		}
-		else if (building->unit_type == UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)
+		else if (building->unit_type == ROBO)
 		{
 			supply_used += 3;
 		}
-		else if (building->unit_type == UNIT_TYPEID::PROTOSS_STARGATE)
+		else if (building->unit_type == STARGATE)
 		{
 			supply_used += 4;
 		}
 	}
 	/*
-	for (const auto &pylon : mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+	for (const auto &pylon : mediator->Observation()->GetUnits(IsFriendlyUnit(PYLON)))
 	{
 		if (pylon->build_progress < 1)
 			pending_pylons++;
@@ -294,14 +294,14 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 	if (supply_cap >= 200)
 		return false;
 	supply_cap += 8 * (build_pylon_actions + pending_pylons);
-	supply_used += mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)).size();
-	supply_used += 2 * mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPGATE)).size();
-	supply_used += 2 * mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_GATEWAY)).size();
-	supply_used += 3 * mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)).size();
-	supply_used += 3 * mediator->Observation()->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STARGATE)).size();
+	supply_used += mediator->Observation()->GetUnits(IsFriendlyUnit(NEXUS)).size();
+	supply_used += 2 * mediator->Observation()->GetUnits(IsFriendlyUnit(WARP_GATE)).size();
+	supply_used += 2 * mediator->Observation()->GetUnits(IsFriendlyUnit(GATEWAY)).size();
+	supply_used += 3 * mediator->Observation()->GetUnits(IsFriendlyUnit(ROBO)).size();
+	supply_used += 3 * mediator->Observation()->GetUnits(IsFriendlyUnit(STARGATE)).size();
 	*/
 	if (supply_used >= supply_cap)
-		mediator->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_PYLON);
+		mediator->build_order_manager.BuildBuilding(PYLON);
 
 #ifdef DEBUG_TIMING
 	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -331,33 +331,33 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 	if (mediator->GetEnemyRace() == Race::Zerg)
 	{
 		if (mediator->GetUpgradeLevel(UpgradeType::shields) < 3)
-			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSSHIELDS);
+			upgrades.push_back(A_RESEARCH_SHIELDS);
 		if (mediator->GetUpgradeLevel(UpgradeType::ground_weapons) < 3)
-			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS);
+			upgrades.push_back(A_RESEARCH_GROUND_WEAPONS);
 		if (mediator->GetUpgradeLevel(UpgradeType::ground_armor) < 3)
-			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR);
+			upgrades.push_back(A_RESEARCH_GROUND_ARMOR);
 	}
 	else if (mediator->GetEnemyRace() == Race::Terran)
 	{
 		if (mediator->GetUpgradeLevel(UpgradeType::ground_armor) < 3)
-			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR);
+			upgrades.push_back(A_RESEARCH_GROUND_ARMOR);
 		if (mediator->GetUpgradeLevel(UpgradeType::ground_weapons) < 3)
-			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS);
+			upgrades.push_back(A_RESEARCH_GROUND_WEAPONS);
 		if (mediator->GetUpgradeLevel(UpgradeType::shields) < 3)
-			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSSHIELDS);
+			upgrades.push_back(A_RESEARCH_SHIELDS);
 	}
 	else
 	{
 		if (mediator->GetUpgradeLevel(UpgradeType::ground_weapons) < 3)
-			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONS);
+			upgrades.push_back(A_RESEARCH_GROUND_WEAPONS);
 		if (mediator->GetUpgradeLevel(UpgradeType::ground_armor) < 3)
-			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSGROUNDARMOR);
+			upgrades.push_back(A_RESEARCH_GROUND_ARMOR);
 		if (mediator->GetUpgradeLevel(UpgradeType::shields) < 3)
-			upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSSHIELDS);
+			upgrades.push_back(A_RESEARCH_SHIELDS);
 	}
 
 	Units idle_forges;
-	for (const auto &forge : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
+	for (const auto &forge : mediator->GetUnits(IsFinishedUnit(FORGE)))
 	{
 		if (forge->orders.size() > 0)
 			upgrades.erase(std::remove(upgrades.begin(), upgrades.end(), forge->orders[0].ability_id), upgrades.end());
@@ -380,12 +380,12 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 
 	std::vector<ABILITY_ID> air_upgrades = {};
 	if (mediator->GetUpgradeLevel(UpgradeType::air_weapons) < 3)
-		air_upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONS);
+		air_upgrades.push_back(A_RESEARCH_AIR_WEAPONS);
 	if (mediator->GetUpgradeLevel(UpgradeType::air_armor) < 3)
-		air_upgrades.push_back(ABILITY_ID::RESEARCH_PROTOSSAIRARMOR);
+		air_upgrades.push_back(A_RESEARCH_AIR_ARMOR);
 
 	Units idle_cybers;
-	for (const auto &cyber : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_CYBERNETICSCORE)))
+	for (const auto &cyber : mediator->GetUnits(IsFinishedUnit(CYBERCORE)))
 	{
 		if (cyber->orders.size() > 0)
 			air_upgrades.erase(std::remove(air_upgrades.begin(), air_upgrades.end(), cyber->orders[0].ability_id), air_upgrades.end());
@@ -427,34 +427,34 @@ bool ActionManager::ActionContinueChronos(ActionArgData* data)
 #endif
 
 	Units need_chrono;
-	for (const auto &building : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSBAY)))
+	for (const auto &building : mediator->GetUnits(IsFinishedUnit(ROBO_BAY)))
 	{
 		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
 			need_chrono.push_back(building);
 	}
-	for (const auto &building : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
+	for (const auto &building : mediator->GetUnits(IsFinishedUnit(ROBO)))
 	{
 		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
 			need_chrono.push_back(building);
 	}
-	for (const auto &building : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_STARGATE)))
+	for (const auto &building : mediator->GetUnits(IsFinishedUnit(STARGATE)))
 	{
 		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
 			need_chrono.push_back(building);
 	}
-	for (const auto &building : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_FORGE)))
+	for (const auto &building : mediator->GetUnits(IsFinishedUnit(FORGE)))
 	{
 		if (building->build_progress == 1 && building->orders.size() > 0 && std::find(building->buffs.begin(), building->buffs.end(), BUFF_ID::CHRONOBOOSTENERGYCOST) == building->buffs.end())
 			need_chrono.push_back(building);
 	}
 
-	for (const auto &nexus : mediator->GetUnits(IsFinishedUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+	for (const auto &nexus : mediator->GetUnits(IsFinishedUnit(NEXUS)))
 	{
 		if (need_chrono.size() == 0)
 			break;
 		if (nexus->energy >= 50 && nexus->build_progress == 1)
 		{
-			mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, need_chrono[0], 0);
+			mediator->SetUnitCommand(nexus, A_CHRONO, need_chrono[0], 0);
 			need_chrono.erase(need_chrono.begin());
 		}
 	}
@@ -484,14 +484,14 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 
 	if (mediator->NumFar3rdWorkers() > 0)
 	{
-		for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+		for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(NEXUS)))
 		{
 			if (nexus->build_progress < 1)
 				return false;
 		}
 		for (const auto &action : active_actions)
 		{
-			if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == UNIT_TYPEID::PROTOSS_NEXUS)
+			if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == NEXUS)
 			{
 				return false;
 			}
@@ -509,7 +509,7 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 		}
 		else
 		{
-			mediator->build_order_manager.BuildBuilding(UNIT_TYPEID::PROTOSS_NEXUS);
+			mediator->build_order_manager.BuildBuilding(NEXUS);
 		}
 		return false;
 	}
@@ -545,18 +545,18 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 		if (buff == BUFF_ID::CHRONOBOOSTENERGYCOST)
 			return false;
 	}
-	for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+	for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(NEXUS)))
 	{
 		if (nexus->energy >= 50 && nexus->build_progress == 1)
 		{
-			mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building, 0);
+			mediator->SetUnitCommand(nexus, A_CHRONO, building, 0);
 			return false;
 		}
 		/*for (const auto &ability : mediator->Query()->GetAbilitiesForUnit(nexus).abilities)
 		{
-			if (ability.ability_id == ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST)
+			if (ability.ability_id == A_CHRONO)
 			{
-				mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, building, 0);
+				mediator->SetUnitCommand(nexus, A_CHRONO, building, 0);
 				return false;
 			}
 		}*/
@@ -610,8 +610,8 @@ bool ActionManager::ActionConstantChrono(ActionArgData* data)
 bool ActionManager::ActionTrainFromProxyRobo(ActionArgData* data)
 {
 	const Unit * robo = data->unit;
-	int num_prisms = (int)mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_WARPPRISM)).size();
-	int num_obs = (int)mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_OBSERVER)).size();
+	int num_prisms = (int)mediator->GetUnits(IsFriendlyUnit(PRISM)).size();
+	int num_obs = (int)mediator->GetUnits(IsFriendlyUnit(OBSERVER)).size();
 
 	if (robo->build_progress == 1 && robo->orders.size() == 0)
 	{
@@ -646,7 +646,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 {
 	bool pylon_placed = false;
 	bool pylon_finished = false;
-	for (const auto &pylon : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_PYLON)))
+	for (const auto &pylon : mediator->GetUnits(IsFriendlyUnit(PYLON)))
 	{
 		if (Distance2D(pylon->pos, data->position) < 1)
 		{
@@ -662,7 +662,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 	
 	if (Distance2D(scout->pos, data->position) > 1 && !pylon_placed)
 	{
-		mediator->SetUnitCommand(scout, ABILITY_ID::GENERAL_MOVE, data->position, 0);
+		mediator->SetUnitCommand(scout, A_MOVE, data->position, 0);
 	}
 	else if (Distance2D(scout->pos, data->position) < 5 && !pylon_placed)
 	{
@@ -684,7 +684,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 				}
 				else
 				{
-					mediator->SetUnitCommand(scout, ABILITY_ID::SMART, base_minerals, 1);
+					mediator->SetUnitCommand(scout, A_SMART, base_minerals, 1);
 				}
 			}
 			else
@@ -697,13 +697,13 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 					angle += 15;
 				}
 				mediator->DebugSphere(mediator->ToPoint3D(run_away_pos), .5, Color(0, 0, 255));
-				mediator->SetUnitCommand(scout, ABILITY_ID::GENERAL_MOVE, run_away_pos, 1);
+				mediator->SetUnitCommand(scout, A_MOVE, run_away_pos, 1);
 			}
 		}
 	}
 	else if (pylon_placed)
 	{
-		if (data->unitId == UNIT_TYPEID::PROTOSS_PYLON)
+		if (data->unitId == PYLON)
 		{
 			mediator->PlaceWorker(data->unit);
 			return true;
@@ -729,7 +729,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 				}
 				else
 				{
-					mediator->SetUnitCommand(scout, ABILITY_ID::SMART, base_minerals, 1);
+					mediator->SetUnitCommand(scout, A_SMART, base_minerals, 1);
 				}
 			}
 			else
@@ -742,7 +742,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 					angle += 15;
 				}
 				mediator->DebugSphere(mediator->ToPoint3D(run_away_pos), .5, Color(0, 0, 255));
-				mediator->SetUnitCommand(scout, ABILITY_ID::GENERAL_MOVE, run_away_pos, 1);
+				mediator->SetUnitCommand(scout, A_MOVE, run_away_pos, 1);
 			}
 		}
 	}
@@ -753,12 +753,12 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 #pragma warning(disable : 4100)
 bool ActionManager::ActionDTHarassTerran(ActionArgData* data)
 {
-	/*for (const auto &unit : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_DARKTEMPLAR)))
+	/*for (const auto &unit : mediator->GetUnits(IsFriendlyUnit(DARK_TEMPLAR)))
 	{
 		// if outside -> move into enemy main
 		if ((unit->pos.z + .1 < mediator->ToPoint3D(mediator->GetStartLocation()).z || unit->pos.z - .1 > mediator->ToPoint3D(mediator->GetStartLocation()).z) && unit->orders.size() == 0)
 		{
-			mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, mediator->locations->initial_scout_pos, 0);
+			mediator->SetUnitCommand(unit, A_MOVE, mediator->locations->initial_scout_pos, 0);
 			mediator->SetUnitCommand(unit, ABILITY_ID::EFFECT_SHADOWSTRIDE, Utility::PointBetween(mediator->locations->initial_scout_pos, mediator->GetEnemyStartLocation(), 7), 0, true);
 			continue;
 		}
@@ -782,7 +782,7 @@ bool ActionManager::ActionDTHarassTerran(ActionArgData* data)
 
 bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 {
-	for (const auto &robo : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY)))
+	for (const auto &robo : mediator->GetUnits(IsFriendlyUnit(ROBO)))
 	{
 		if (robo->build_progress < 1)
 			continue;
@@ -803,15 +803,15 @@ bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 			if (Utility::HasBuff(robo, BUFF_ID::CHRONOBOOSTENERGYCOST))
 				continue;
 
-			for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_NEXUS)))
+			for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(NEXUS)))
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
-					mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, robo, 0);
+					mediator->SetUnitCommand(nexus, A_CHRONO, robo, 0);
 				/*for (const auto &ability : mediator->Query()->GetAbilitiesForUnit(nexus).abilities)
 				{
-					if (ability.ability_id == ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST)
+					if (ability.ability_id == A_CHRONO)
 					{
-						mediator->SetUnitCommand(nexus, ABILITY_ID::EFFECT_CHRONOBOOSTENERGYCOST, robo, 0);
+						mediator->SetUnitCommand(nexus, A_CHRONO, robo, 0);
 					}
 				}*/
 			}
@@ -891,7 +891,7 @@ bool ActionManager::ActionScourMap(ActionArgData* data)
 				y = std::rand() % raw_map.height;
 				pos = Point2D((float)x, (float)y);
 			}
-			mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, pos, 0);
+			mediator->SetUnitCommand(unit, A_ATTACK, pos, 0);
 		}
 	}
 	return false;
@@ -920,7 +920,7 @@ bool ActionManager::ActionCheckBaseForCannons(ActionArgData* data)
 	if (Distance2D(data->unit->pos, pos) < 2)
 		data->index++;
 	else
-		mediator->SetUnitCommand(data->unit, ABILITY_ID::GENERAL_MOVE, pos, 0);
+		mediator->SetUnitCommand(data->unit, A_MOVE, pos, 0);
 
 	return false;
 }
@@ -947,7 +947,7 @@ bool ActionManager::ActionCheckNaturalForCannons(ActionArgData* data)
 	if (Distance2D(data->unit->pos, pos) < 2)
 		data->index++;
 	else
-		mediator->SetUnitCommand(data->unit, ABILITY_ID::GENERAL_MOVE, pos, 0);
+		mediator->SetUnitCommand(data->unit, A_MOVE, pos, 0);
 
 	return false;
 }
@@ -981,20 +981,20 @@ bool ActionManager::ActionCheckForBunkerRush(ActionArgData* data)
 	if (target)
 	{
 		if (data->unit->weapon_cooldown == 0)
-			mediator->SetUnitCommand(data->unit, ABILITY_ID::ATTACK, target, 0);
+			mediator->SetUnitCommand(data->unit, A_ATTACK, target, 0);
 		else
-			mediator->SetUnitCommand(data->unit, ABILITY_ID::GENERAL_MOVE, target, 0);
+			mediator->SetUnitCommand(data->unit, A_MOVE, target, 0);
 	}
 	else
 	{
 		if (data->unit->weapon_cooldown == 0 && Utility::GetUnitsInRange(mediator->GetUnits(Unit::Alliance::Enemy), data->unit, 0).size() > 0)
 		{
-			mediator->SetUnitCommand(data->unit, ABILITY_ID::ATTACK, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), data->unit->pos), 0);
+			mediator->SetUnitCommand(data->unit, A_ATTACK, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), data->unit->pos), 0);
 		}
-		else if (data->unit->orders.size() == 0 || data->unit->orders[0].ability_id == ABILITY_ID::ATTACK || Distance2D(data->unit->pos, mediator->GetNaturalLocation()) > 15)
+		else if (data->unit->orders.size() == 0 || data->unit->orders[0].ability_id == A_ATTACK || Distance2D(data->unit->pos, mediator->GetNaturalLocation()) > 15)
 		{
 			Point2D pos = Utility::FurthestFrom(mediator->GetLocations().natural_front, data->unit->pos);
-			mediator->SetUnitCommand(data->unit, ABILITY_ID::GENERAL_MOVE, pos, 0);
+			mediator->SetUnitCommand(data->unit, A_MOVE, pos, 0);
 		}
 	}
 

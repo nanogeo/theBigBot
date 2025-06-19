@@ -48,19 +48,19 @@ namespace sc2 {
 				if (Utility::GetGroundRange(unit) == 0 && enemy_flying_buildings.size() > 0)
 				{
 					const Unit* closest = Utility::ClosestTo(enemy_flying_buildings, unit->pos);
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
+					mediator->SetUnitCommand(unit, A_ATTACK, closest->pos, 0);
 				}
 				else if (Utility::GetAirRange(unit) == 0 && enemy_ground_buildings.size() > 0)
 				{
 					const Unit* closest = Utility::ClosestTo(enemy_ground_buildings, unit->pos);
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
+					mediator->SetUnitCommand(unit, A_ATTACK, closest->pos, 0);
 				}
 				else if (Utility::GetGroundRange(unit) > 0 &&
 					Utility::GetAirRange(unit) > 0 &&
 					enemy_buildings.size() > 0)
 				{
 					const Unit* closest = Utility::ClosestTo(enemy_buildings, unit->pos);
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, closest->pos, 0);
+					mediator->SetUnitCommand(unit, A_ATTACK, closest->pos, 0);
 				}
 				else
 				{
@@ -74,7 +74,7 @@ namespace sc2 {
 						y = std::rand() % raw_map.height;
 						pos = Point2D((float)x, (float)y);
 					}
-					mediator->SetUnitCommand(unit, ABILITY_ID::ATTACK, pos, 0);
+					mediator->SetUnitCommand(unit, A_ATTACK, pos, 0);
 				}
 			}
 		}
@@ -108,7 +108,7 @@ namespace sc2 {
 		if (unit == nullptr)
 			return; // TODO log error and callstack
 
-		mediator->SetUnitCommand(unit, ABILITY_ID::STOP, 1);
+		mediator->SetUnitCommand(unit, A_STOP, 1);
 
 		all_units.erase(std::remove(all_units.begin(), all_units.end(), unit), all_units.end());
 		new_units.erase(std::remove(new_units.begin(), new_units.end(), unit), new_units.end());
@@ -367,10 +367,10 @@ namespace sc2 {
 
 				mediator->CancelAttack(unit);
 
-				if (unit->orders.size() > 0 && unit->orders[0].ability_id == ABILITY_ID::ATTACK && unit->weapon_cooldown == 0)
-					mediator->SetUnitCommand(unit, ABILITY_ID::SMART, prism.first, 0, true);
+				if (unit->orders.size() > 0 && unit->orders[0].ability_id == A_ATTACK && unit->weapon_cooldown == 0)
+					mediator->SetUnitCommand(unit, A_SMART, prism.first, 0, true);
 				else
-					mediator->SetUnitCommand(unit, ABILITY_ID::SMART, prism.first, 0);
+					mediator->SetUnitCommand(unit, A_SMART, prism.first, 0);
 				prism.second -= cargo_size;
 				break;
 			}
@@ -379,7 +379,7 @@ namespace sc2 {
 
 	void ArmyGroup::DodgeShots()
 	{
-		for (const auto &Funit : mediator->GetUnits(IsFriendlyUnit(UNIT_TYPEID::PROTOSS_STALKER)))
+		for (const auto &Funit : mediator->GetUnits(IsFriendlyUnit(STALKER)))
 		{
 			int danger = mediator->agent->IncomingDamage(Funit);
 			if (danger)
@@ -387,8 +387,8 @@ namespace sc2 {
 				bool blink_ready = mediator->IsStalkerBlinkOffCooldown(Funit);
 				if (blink_ready && (danger > Funit->shield || danger > (Funit->shield_max / 2)))
 				{
-					mediator->SetUnitCommand(Funit, ABILITY_ID::EFFECT_BLINK, Funit->pos + Point2D(0, 4), 2);
-					mediator->SetUnitCommand(Funit, ABILITY_ID::ATTACK, Funit->pos - Point2D(0, 4), 0, true);
+					mediator->SetUnitCommand(Funit, A_BLINK, Funit->pos + Point2D(0, 4), 2);
+					mediator->SetUnitCommand(Funit, A_ATTACK, Funit->pos - Point2D(0, 4), 0, true);
 					//agent->Debug()->DebugTextOut(std::to_string(danger), Funit->pos, Color(0, 255, 0), 20);
 				}
 				else
@@ -511,20 +511,20 @@ namespace sc2 {
 				}
 				if (highest_over_75 != nullptr)
 				{
-					mediator->SetUnitCommand(highest_over_75, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos, 10);
+					mediator->SetUnitCommand(highest_over_75, A_REVELATION, unit_to_revelate->pos, 10);
 					//agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
 
 				}
 				else if (lowest_over_25 != nullptr)
 				{
-					mediator->SetUnitCommand(lowest_over_25, ABILITY_ID::EFFECT_ORACLEREVELATION, unit_to_revelate->pos, 10);
+					mediator->SetUnitCommand(lowest_over_25, A_REVELATION, unit_to_revelate->pos, 10);
 					//agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
 				}
 			}
 		}
 
 
-		Units enemy_lings = mediator->GetUnits(IsUnit(UNIT_TYPEID::ZERG_ZERGLING));
+		Units enemy_lings = mediator->GetUnits(IsUnit(ZERGLING));
 		int num_close_lings = 0;
 		for (const auto& ling : enemy_lings)
 		{
@@ -600,7 +600,7 @@ namespace sc2 {
 					{
 						if (mediator->IsOracleBeamActive(oracle))
 						{
-							mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+							mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, 0);
 							num_oracles_active--;
 						}
 					}
@@ -621,7 +621,7 @@ namespace sc2 {
 					{
 						if (mediator->IsOracleBeamActive(oracle) == false)
 						{
-							mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMON, 0);
+							mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_ON, 0);
 							num_oracles_active++;
 						}
 					}
@@ -641,7 +641,7 @@ namespace sc2 {
 				{
 					if (mediator->IsOracleBeamActive(oracle))
 					{
-						mediator->SetUnitCommand(oracle, ABILITY_ID::BEHAVIOR_PULSARBEAMOFF, 0);
+						mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, 0);
 					}
 				}
 			}
@@ -656,7 +656,7 @@ namespace sc2 {
 			}
 			if (mediator->IsOracleBeamActive(oracle) == false)
 			{
-				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center, 0);
+				mediator->SetUnitCommand(oracle, A_MOVE, center, 0);
 				continue;
 			}
 			float now = mediator->GetGameLoop() / FRAME_TIME;
@@ -672,12 +672,12 @@ namespace sc2 {
 				const Unit* closest_unit = Utility::ClosestTo(enemy_lings, oracle->pos);
 				if (closest_unit == nullptr || Distance2D(closest_unit->pos, oracle->pos) > 6)
 				{
-					mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center, 0);
+					mediator->SetUnitCommand(oracle, A_MOVE, center, 0);
 					continue;
 				}
 
 
-				mediator->SetUnitCommand(oracle, ABILITY_ID::ATTACK_ATTACK, closest_unit, 0);
+				mediator->SetUnitCommand(oracle, A_ATTACK, closest_unit, 0);
 				//agent->Debug()->DebugSphereOut(closest_unit->pos, .75, Color(0, 255, 255));
 
 				target[oracle] = closest_unit->tag;
@@ -687,7 +687,7 @@ namespace sc2 {
 			}
 			else if (has_attacked[oracle])
 			{
-				mediator->SetUnitCommand(oracle, ABILITY_ID::GENERAL_MOVE, center, 0);
+				mediator->SetUnitCommand(oracle, A_MOVE, center, 0);
 
 				//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 			}
@@ -923,9 +923,9 @@ namespace sc2 {
 
 				// no order but no danger so just move forward
 				if (unit_position_asignments.find(unit) != unit_position_asignments.end())
-					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit_position_asignments[unit], 0);
+					mediator->SetUnitCommand(unit, A_MOVE, unit_position_asignments[unit], 0);
 				else
-					mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, unit->pos, 0);
+					mediator->SetUnitCommand(unit, A_MOVE, unit->pos, 0);
 
 
 				if (using_standby)
@@ -935,12 +935,12 @@ namespace sc2 {
 						standby_units.push_back(unit);
 
 						if (standby_pos == Point2D(0, 0))
-							mediator->SetUnitCommand(unit, ABILITY_ID::EFFECT_BLINK,
+							mediator->SetUnitCommand(unit, A_BLINK,
 								Utility::PointBetween(unit->pos, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), unit->pos)->pos, -4), 2);
 						else
-							mediator->SetUnitCommand(unit, ABILITY_ID::EFFECT_BLINK, standby_pos, 2); // TODO adjustable blink distance
+							mediator->SetUnitCommand(unit, A_BLINK, standby_pos, 2); // TODO adjustable blink distance
 
-						mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, standby_pos, 0, true);
+						mediator->SetUnitCommand(unit, A_MOVE, standby_pos, 0, true);
 					}
 				}
 			}
@@ -954,10 +954,10 @@ namespace sc2 {
 		{
 
 			if (unit_position_asignments.find(prism) != unit_position_asignments.end())
-				mediator->SetUnitCommand(prism, ABILITY_ID::GENERAL_MOVE, unit_position_asignments[prism], 0);
+				mediator->SetUnitCommand(prism, A_MOVE, unit_position_asignments[prism], 0);
 			else
-				mediator->SetUnitCommand(prism, ABILITY_ID::GENERAL_MOVE, prism->pos, 0);
-			mediator->SetUnitCommand(prism, ABILITY_ID::UNLOADALLAT, prism, 0);
+				mediator->SetUnitCommand(prism, A_MOVE, prism->pos, 0);
+			mediator->SetUnitCommand(prism, A_UNLOAD_AT, prism, 0);
 		}
 
 		for (auto cargo = units_in_cargo.begin(); cargo != units_in_cargo.end();)
@@ -1023,7 +1023,7 @@ namespace sc2 {
 			if (units_in_cargo.find(request.first) != units_in_cargo.end())
 			{
 				// unit is already being picked up but just in case give the order again
-				mediator->SetUnitCommand(request.first, ABILITY_ID::SMART, units_in_cargo[request.first].prism, 0);
+				mediator->SetUnitCommand(request.first, A_SMART, units_in_cargo[request.first].prism, 0);
 				continue;
 			}
 			for (const auto& prism : warp_prisms)
@@ -1033,7 +1033,7 @@ namespace sc2 {
 				if (8 - (prism_cargo[prism]) >= necessary_space)
 				{
 					unit_found_space = true;
-					mediator->SetUnitCommand(request.first, ABILITY_ID::SMART, prism, 0);
+					mediator->SetUnitCommand(request.first, A_SMART, prism, 0);
 					units_in_cargo[request.first] = PrismCargo(prism);
 					prism_cargo[prism] += size;
 					break;
@@ -1048,10 +1048,10 @@ namespace sc2 {
 					if (mediator->upgrade_manager.has_blink && blink_off_cooldown)
 					{
 						if (standby_pos == Point2D(0, 0))
-							mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK,
+							mediator->SetUnitCommand(request.first, A_BLINK,
 								Utility::PointBetween(request.first->pos, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), request.first->pos)->pos, -4), 2);
 						else
-							mediator->SetUnitCommand(request.first, ABILITY_ID::EFFECT_BLINK, standby_pos, 2); // TODO adjustable blink distance
+							mediator->SetUnitCommand(request.first, A_BLINK, standby_pos, 2); // TODO adjustable blink distance
 
 						mediator->CancelAttack(request.first);
 					}
