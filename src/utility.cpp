@@ -3728,8 +3728,8 @@ std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
 		return "build assimilator";
 	case A_CHRONO:
 		return "chrono";
-	case A_ENERGY_RECHARGE:
-		return "energy recharge";
+	//case A_ENERGY_RECHARGE:
+	//	return "energy recharge";
 	case A_ORACLE_BEAM_ON:
 		return "pulsar beam on";
 	case A_ORACLE_BEAM_OFF:

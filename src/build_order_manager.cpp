@@ -802,7 +802,7 @@ bool BuildOrderManager::BuildMainDefensiveBuilding(BuildOrderResultArgData data)
 bool BuildOrderManager::ReturnToOracleGatewaymanPvZ(BuildOrderResultArgData data)
 {
 	SetOracleGatewaymanPvZ();
-	build_order_step = 21;
+	build_order_step = 20;
 	std::cerr << "Return to oracle gatewayman. build order step now " << std::to_string(build_order_step) << std::endl;
 	return true;
 }
@@ -1272,8 +1272,13 @@ bool BuildOrderManager::EnergyRechargeOracle(BuildOrderResultArgData data)
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1 && Distance2D(nexus->pos, oracle->pos) < RANGE_ENERGY_RECHARGE)
 				{
-					mediator->SetUnitCommand(nexus, A_ENERGY_RECHARGE, oracle, 0);
-					return true;
+					for (const auto& ability : mediator->agent->Query()->GetAbilitiesForUnit(nexus).abilities)
+					{
+						if (strcmp(AbilityTypeToName(ability.ability_id), "UNKNOWN") == 0)
+						{
+							mediator->SetUnitCommand(nexus, ability.ability_id, oracle, 0);
+							return true;
+						}
 				}
 			}
 		}
@@ -1438,7 +1443,6 @@ void BuildOrderManager::SetEarlyPoolInterrupt()
 					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::SetUnitProduction,					Result(ORACLE)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::ChronoBuilding,						Result(STARGATE)),
-					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(180.0f),			&BuildOrderManager::ReturnToOracleGatewaymanPvZ,		Result()),
 	};
@@ -1685,7 +1689,6 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(173.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(186.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(190.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(191.0f),			&BuildOrderManager::ChronoBuilding,						Result(STARGATE)),
 
 					Data(&BuildOrderManager::TimePassed,			Condition(203.0f),			&BuildOrderManager::DefendThirdBase,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(205.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, PYLON})),
