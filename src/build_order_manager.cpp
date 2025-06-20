@@ -1279,6 +1279,7 @@ bool BuildOrderManager::EnergyRechargeOracle(BuildOrderResultArgData data)
 							mediator->SetUnitCommand(nexus, ability.ability_id, oracle, 0);
 							return true;
 						}
+					}
 				}
 			}
 		}
