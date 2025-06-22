@@ -53,8 +53,8 @@ void BuildOrderManager::PauseBuildOrder()
 	if (!mediator->HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
 		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
 
-	if (!mediator->HasActionOfType(&ActionManager::ActionContinueChronos))
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueChronos, new ActionArgData()));
+	if (!mediator->HasActionOfType(&ActionManager::ActionContinueSpendingNexusEnergy))
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData()));
 }
 
 void BuildOrderManager::UnpauseBuildOrder()
@@ -416,10 +416,10 @@ bool BuildOrderManager::ContinueUpgrades(BuildOrderResultArgData data)
 	return true;
 }
 
-bool BuildOrderManager::ContinueChronos(BuildOrderResultArgData data)
+bool BuildOrderManager::ContinueSpendingNexusEnergy(BuildOrderResultArgData data)
 {
-	if (!mediator->HasActionOfType(&ActionManager::ActionContinueChronos))
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueChronos, new ActionArgData()));
+	if (!mediator->HasActionOfType(&ActionManager::ActionContinueSpendingNexusEnergy))
+		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData()));
 	return true;
 }
 
@@ -1272,7 +1272,7 @@ bool BuildOrderManager::EnergyRechargeOracle(BuildOrderResultArgData data)
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1 && Distance2D(nexus->pos, oracle->pos) < RANGE_ENERGY_RECHARGE)
 				{
-					for (const auto& ability : mediator->agent->Query()->GetAbilitiesForUnit(nexus).abilities)
+					for (const auto& ability : mediator->GetAbilitiesForUnit(nexus).abilities)
 					{
 						if (strcmp(AbilityTypeToName(ability.ability_id), "UNKNOWN") == 0)
 						{
@@ -1469,7 +1469,7 @@ void BuildOrderManager::Set12PoolInterrupt()
 					Data(&BuildOrderManager::TimePassed,			Condition(146.0f),			&BuildOrderManager::TrainUnit,							Result(ADEPT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::BalanceIncome,						Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::ContinueChronos,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)),
 					Data(&BuildOrderManager::HasBuildingStarted,	Condition(STARGATE),		&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::SetUnitProduction,					Result(ORACLE)),
@@ -1543,7 +1543,7 @@ void BuildOrderManager::SetChargeTransition()
 
 					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::ContinueUpgrades,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::ContinueChronos,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(320.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY, GATEWAY})),
 					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(0)),
@@ -1611,7 +1611,7 @@ void BuildOrderManager::SetWorkerRushDefense()
 					Data(&BuildOrderManager::HasBuilding,			Condition(GATEWAY),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(GATEWAY),			&BuildOrderManager::OptionalChronoBuilding,				Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({ GATEWAY, GATEWAY })),
-					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::ContinueChronos,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::ZealotSimpleAttack,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 	};
@@ -1658,7 +1658,7 @@ void BuildOrderManager::SetCannonRushResponse()
 					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::SetUnitProduction,					Result(IMMORTAL)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::OptionalChronoBuilding,				Result(ROBO)),
 					Data(&BuildOrderManager::HasUnits,				Condition(IMMORTAL, 1),		&BuildOrderManager::SetUnitProduction,					Result(PRISM)),
-					Data(&BuildOrderManager::HasUnits,				Condition(IMMORTAL, 1),		&BuildOrderManager::ContinueChronos,					Result()),
+					Data(&BuildOrderManager::HasUnits,				Condition(IMMORTAL, 1),		&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
 					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::SetUnitProduction,					Result(IMMORTAL)),
 					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::SetWarpInAtProxy,					Result(STALKER)),
 	};
@@ -1701,7 +1701,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),		&BuildOrderManager::ResearchBlink,						Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),		&BuildOrderManager::ChronoTillFinished,					Result(TWILIGHT)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(FORGE),			&BuildOrderManager::ResearchAttackOne,					Result()),
-					Data(&BuildOrderManager::HasBuilding,			Condition(FORGE),			&BuildOrderManager::ChronoBuilding,						Result(FORGE)),
+					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result(0)),
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
@@ -1718,7 +1718,6 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					//Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					//Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::ContinueUpgrades,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::ContinueChronos,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BalanceIncome,						Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(420.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
@@ -1803,7 +1802,7 @@ void BuildOrderManager::Set2GateProxyRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(196.0f),			&BuildOrderManager::TrainUnit,							Result(PRISM)),
 					Data(&BuildOrderManager::TimePassed,			Condition(196.0f),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::ContinueChronos,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetUnitProduction,					Result(IMMORTAL)),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(STALKER)),
@@ -1833,7 +1832,7 @@ void BuildOrderManager::SetReturnTo2GateProxyRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(196.0f),			&BuildOrderManager::TrainUnit,							Result(PRISM)),
 					Data(&BuildOrderManager::TimePassed,			Condition(196.0f),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::ContinueChronos,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetUnitProduction,					Result(IMMORTAL)),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(STALKER)),
@@ -1928,7 +1927,7 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({FORGE, FORGE})),
 					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueUpgrades,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueChronos,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(410.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY, GATEWAY, GATEWAY})),
 					Data(&BuildOrderManager::TimePassed,			Condition(420.0f),			&BuildOrderManager::ResearchCharge,						Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(500.0f),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
@@ -1954,7 +1953,7 @@ void BuildOrderManager::SetCannonRushTerran()
 					Data(&BuildOrderManager::HasBuildingStarted,	Condition(STARGATE),		&BuildOrderManager::TrainUnit,							Result(STALKER)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::BuildBuilding,						Result(FLEET_BEACON)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(FLEET_BEACON),	&BuildOrderManager::ContinueChronos,					Result(STARGATE)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(FLEET_BEACON),	&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
 
 	};
 }

@@ -1253,7 +1253,7 @@ void Mediator::ContinueUpgrades()
 
 void Mediator::ContinueChronos()
 {
-	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueChronos, new ActionArgData()));
+	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData()));
 }
 
 void Mediator::ContinueExpanding()

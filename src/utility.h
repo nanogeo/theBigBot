@@ -184,6 +184,8 @@ public:
 	static bool IsStructure(UNIT_TYPEID);
 	static bool IsMelee(UNIT_TYPEID);
 	static bool OnSameLevel(Point3D, Point3D);
+	static float GetAbilityTime(ABILITY_ID);
+	static float GetOrderTimeLeft(UnitOrder);
 
 	static std::string AbilityIdToString(ABILITY_ID);
 

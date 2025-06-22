@@ -3630,6 +3630,141 @@ bool Utility::OnSameLevel(Point3D pos1, Point3D pos2)
 	return pos1.z + .15 > pos2.z && pos1.z - .15 < pos2.z;
 }
 
+float Utility::GetAbilityTime(ABILITY_ID ability)
+{
+	switch (ability)
+	{
+	case ABILITY_ID::TRAIN_PROBE:
+		return 12;
+	case ABILITY_ID::TRAIN_ZEALOT:
+		return 27;
+	case ABILITY_ID::TRAIN_ADEPT:
+		return 30;
+	case ABILITY_ID::TRAIN_STALKER:
+		return 27;
+	case ABILITY_ID::TRAIN_SENTRY:
+		return 23;
+	case ABILITY_ID::TRAIN_HIGHTEMPLAR:
+		return 39;
+	case ABILITY_ID::TRAIN_DARKTEMPLAR:
+		return 39;
+	case ABILITY_ID::TRAIN_IMMORTAL:
+		return 39;
+	case ABILITY_ID::TRAIN_OBSERVER:
+		return 18;
+	case ABILITY_ID::TRAIN_WARPPRISM:
+		return 36;
+	case ABILITY_ID::TRAIN_COLOSSUS:
+		return 54;
+	case ABILITY_ID::TRAIN_DISRUPTOR:
+		return 36;
+	case ABILITY_ID::TRAIN_PHOENIX:
+		return 25;
+	case ABILITY_ID::TRAIN_ORACLE:
+		return 37;
+	case ABILITY_ID::TRAIN_VOIDRAY:
+		return 43;
+	case ABILITY_ID::TRAIN_CARRIER:
+		return 64;
+	case ABILITY_ID::TRAIN_TEMPEST:
+		return 43;
+	case ABILITY_ID::TRAIN_MOTHERSHIP:
+		return 589;
+	case ABILITY_ID::RESEARCH_WARPGATE:
+		return 100;
+	case ABILITY_ID::RESEARCH_BLINK:
+		return 121;
+	case ABILITY_ID::RESEARCH_CHARGE:
+		return 100;
+	case ABILITY_ID::RESEARCH_ADEPTRESONATINGGLAIVES:
+		return 100;
+	case ABILITY_ID::RESEARCH_PSISTORM:
+		return 79;
+	case ABILITY_ID::RESEARCH_SHADOWSTRIKE:
+		return 100;
+	case ABILITY_ID::RESEARCH_GRAVITICBOOSTER:
+		return 57;
+	case ABILITY_ID::RESEARCH_GRAVITICDRIVE:
+		return 57;
+	case ABILITY_ID::RESEARCH_EXTENDEDTHERMALLANCE:
+		return 100;
+	case ABILITY_ID::RESEARCH_PHOENIXANIONPULSECRYSTALS:
+		return 64;
+	case ABILITY_ID::RESEARCH_VOIDRAYSPEEDUPGRADE:
+		return 57;
+	case ABILITY_ID::RESEARCH_TEMPESTRESEARCHGROUNDATTACKUPGRADE:
+		return 100;
+	case ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL1:
+		return 121;
+	case ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL2:
+		return 145;
+	case ABILITY_ID::RESEARCH_PROTOSSGROUNDWEAPONSLEVEL3:
+		return 168;
+	case ABILITY_ID::RESEARCH_PROTOSSGROUNDARMORLEVEL1:
+		return 121;
+	case ABILITY_ID::RESEARCH_PROTOSSGROUNDARMORLEVEL2:
+		return 145;
+	case ABILITY_ID::RESEARCH_PROTOSSGROUNDARMORLEVEL3:
+		return 168;
+	case ABILITY_ID::RESEARCH_PROTOSSSHIELDSLEVEL1:
+		return 121;
+	case ABILITY_ID::RESEARCH_PROTOSSSHIELDSLEVEL2:
+		return 145;
+	case ABILITY_ID::RESEARCH_PROTOSSSHIELDSLEVEL3:
+		return 168;
+	case ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONSLEVEL1:
+		return 129;
+	case ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONSLEVEL2:
+		return 154;
+	case ABILITY_ID::RESEARCH_PROTOSSAIRWEAPONSLEVEL3:
+		return 179;
+	case ABILITY_ID::RESEARCH_PROTOSSAIRARMORLEVEL1:
+		return 129;
+	case ABILITY_ID::RESEARCH_PROTOSSAIRARMORLEVEL2:
+		return 154;
+	case ABILITY_ID::RESEARCH_PROTOSSAIRARMORLEVEL3:
+		return 179;
+	case ABILITY_ID::BUILD_PYLON:
+		return 18;
+	case ABILITY_ID::BUILD_NEXUS:
+		return 71;
+	case ABILITY_ID::BUILD_GATEWAY:
+		return 46;
+	case ABILITY_ID::BUILD_FORGE:
+		return 32;
+	case ABILITY_ID::BUILD_CYBERNETICSCORE:
+		return 36;
+	case ABILITY_ID::BUILD_PHOTONCANNON:
+		return 29;
+	case ABILITY_ID::BUILD_SHIELDBATTERY:
+		return 29;
+	case ABILITY_ID::BUILD_TWILIGHTCOUNCIL:
+		return 36;
+	case ABILITY_ID::BUILD_STARGATE:
+		return 43;
+	case ABILITY_ID::BUILD_ROBOTICSFACILITY:
+		return 46;
+	case ABILITY_ID::BUILD_ROBOTICSBAY:
+		return 46;
+	case ABILITY_ID::BUILD_TEMPLARARCHIVE:
+		return 36;
+	case ABILITY_ID::BUILD_DARKSHRINE:
+		return 71;
+	case ABILITY_ID::BUILD_FLEETBEACON:
+		return 43;
+	case ABILITY_ID::BUILD_ASSIMILATOR:
+		return 21;
+	default:
+		std::cerr << "Error unknown ability id in Utility::GetAbilityTime " << AbilityIdToString(ability) << std::endl;
+		return 0;
+	}
+}
+
+float Utility::GetOrderTimeLeft(UnitOrder order)
+{
+	return GetAbilityTime(order.ability_id.ToType()) * (1 - order.progress);
+}
+
 std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
 {
 	switch (abilityId)

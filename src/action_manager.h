@@ -92,7 +92,7 @@ public:
 	bool ActionContinueMakingWorkers(ActionArgData*);
 	bool ActionContinueBuildingPylons(ActionArgData*);
 	bool ActionContinueUpgrades(ActionArgData*);
-	bool ActionContinueChronos(ActionArgData*);
+	bool ActionContinueSpendingNexusEnergy(ActionArgData*);
 	bool ActionContinueExpanding(ActionArgData*);
 	bool ActionChronoTillFinished(ActionArgData*);
 	bool ActionConstantChrono(ActionArgData*);
@@ -169,7 +169,7 @@ struct ActionData
 		{
 			str += "Continue getting upgrades";
 		}
-		else if (action == &ActionManager::ActionContinueChronos)
+		else if (action == &ActionManager::ActionContinueSpendingNexusEnergy)
 		{
 			str += "Continue chronoing";
 		}

@@ -140,7 +140,7 @@ public:
 	bool ContinueBuildingPylons(BuildOrderResultArgData);
 	bool ContinueMakingWorkers(BuildOrderResultArgData);
 	bool ContinueUpgrades(BuildOrderResultArgData);
-	bool ContinueChronos(BuildOrderResultArgData);
+	bool ContinueSpendingNexusEnergy(BuildOrderResultArgData);
 	bool ContinueExpanding(BuildOrderResultArgData);
 	bool TrainFromProxy(BuildOrderResultArgData);
 	bool ContinueChronoProxyRobo(BuildOrderResultArgData);
@@ -456,9 +456,9 @@ struct BuildOrderData
 		{
 		str += "macro upgrades";
 		}
-		else if (result == &BuildOrderManager::ContinueChronos)
+		else if (result == &BuildOrderManager::ContinueSpendingNexusEnergy)
 		{
-		str += "macro chrono";
+		str += "macro nexus energy";
 		}
 		else if (result == &BuildOrderManager::ContinueExpanding)
 		{

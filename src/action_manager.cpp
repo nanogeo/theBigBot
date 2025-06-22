@@ -418,14 +418,35 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 	return false;
 }
 
-bool ActionManager::ActionContinueChronos(ActionArgData* data)
+bool ActionManager::ActionContinueSpendingNexusEnergy(ActionArgData* data)
 {
-#ifdef DEBUG_TIMING
-	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
+	std::map<const Unit*, uint16_t> nexi_with_energy;
+	uint16_t total = 0;
+	for (const auto& nexus : mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(NEXUS)))
+	{
+		if (nexus->energy >= 200)
+		{
+			nexi_with_energy[nexus] = 4;
+			total += 4;
+		}
+		else if (nexus->energy >= 150)
+		{
+			nexi_with_energy[nexus] = 3;
+			total += 3;
+		}
+		else if (nexus->energy >= 100)
+		{
+			nexi_with_energy[nexus] = 2;
+			total += 2;
+		}
+		else if (nexus->energy >= 50)
+		{
+			nexi_with_energy[nexus] = 1;
+			total += 1;
+		}
+	}
 
+	// chrono
 	Units need_chrono;
 	for (const auto &building : mediator->GetUnits(IsFinishedUnit(ROBO_BAY)))
 	{
@@ -448,28 +469,54 @@ bool ActionManager::ActionContinueChronos(ActionArgData* data)
 			need_chrono.push_back(building);
 	}
 
-	for (const auto &nexus : mediator->GetUnits(IsFinishedUnit(NEXUS)))
+	for (auto &nexus : nexi_with_energy)
 	{
-		if (need_chrono.size() == 0)
+		if (need_chrono.size() == 0 || total <= 1)
 			break;
-		if (nexus->energy >= 50 && nexus->build_progress == 1)
+		if (nexus.second >= 1)
 		{
-			mediator->SetUnitCommand(nexus, A_CHRONO, need_chrono[0], 0);
+			nexus.second--;
+			total--;
+			mediator->SetUnitCommand(nexus.first, A_CHRONO, need_chrono[0], 0);
 			need_chrono.erase(need_chrono.begin());
 		}
 	}
 
-#ifdef DEBUG_TIMING
-	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
+	// energy recharge
+	Units energy_units = mediator->GetUnits(Unit::Alliance::Self, IsUnits({ ORACLE, SENTRY }));
+	if (mediator->IsEnergyRechargeOffCooldown() &&
+		energy_units.size() > 0)
+	{
+		bool recharge_used = false;
+		for (const auto& unit : energy_units)
+		{
+			if (unit->energy < 100)
+			{
+				for (const auto& nexus : nexi_with_energy)
+				{
+					if (Distance2D(nexus.first->pos, unit->pos) < RANGE_ENERGY_RECHARGE)
+					{
+						for (const auto& ability : mediator->GetAbilitiesForUnit(nexus.first).abilities)
+						{
+							if (strcmp(AbilityTypeToName(ability.ability_id), "UNKNOWN") == 0)
+							{
+								mediator->SetUnitCommand(nexus.first, ability.ability_id, unit, 0);
+								recharge_used = true;
+								break;
+							}
+						}
+					}
+					if (recharge_used)
+						break;
+				}
+			}
+			if (recharge_used)
+				break;
+		}
+	}
 
-	std::ofstream chronoing;
-	chronoing.open("chronoing.txt", std::ios_base::app);
+	// recall TODO
 
-	chronoing << end_time - start_time << "\n";
-	chronoing.close();
-#endif
 
 	return false;
 }
@@ -536,7 +583,7 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 		return false;
 
 	const Unit* building = data->unit;
-	if (building->orders.size() == 0)
+	if (building->orders.size() == 0 || Utility::GetOrderTimeLeft(building->orders[0]) < 15)
 	{
 		return true;
 	}
