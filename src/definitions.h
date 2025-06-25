@@ -465,9 +465,8 @@ enum class GameStateWorker
 struct GameState
 {
 	GameStateWorker game_state_worker = GameStateWorker::even;
-	bool good_worker_intel;
+	bool good_worker_intel = false;
 };
 
-};
 
 }
