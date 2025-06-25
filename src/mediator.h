@@ -173,6 +173,7 @@ public:
 	float GetRoachWarrenTiming();
 	int GetEnemyUnitCount(UNIT_TYPEID);
 	void InitializeGameState();
+	GameState GetGameState();
 
 	StateMachine* GetStateMachineByName(std::string);
 	void AddStateMachine(StateMachine*);

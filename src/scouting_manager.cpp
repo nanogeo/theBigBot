@@ -232,6 +232,29 @@ void ScoutingManager::UpdateInfo()
 		if (mediator->GetGameLoop() % 200 == 0)
 		{
 			std::string str = game_state_manager->GameStateToString();
+			str += "Worker status: ";
+			switch (current_game_state.game_state_worker)
+			{
+			case GameStateWorker::even:
+				str += "even";
+				break;
+			case GameStateWorker::slightly_less:
+				str += "slightly less";
+				break;
+			case GameStateWorker::slightly_more:
+				str += "slightly more";
+				break;
+			case GameStateWorker::much_less:
+				str += "much less";
+				break;
+			case GameStateWorker::much_more:
+				str += "much more";
+				break;
+			}
+			if (current_game_state.good_worker_intel)
+				str += " good intel";
+			else
+				str += " low intel";
 			std::cerr << str << std::endl;
 		}
 	}
@@ -367,7 +390,7 @@ void ScoutingManager::InitializeGameState()
 	switch (enemy_race)
 	{
 	case Race::Zerg:
-		game_state_manager = new GameStateManagerZerg(this, mediator->GetUnits(Unit::Alliance::Enemy, IsUnits(TOWNHALL_TYPES)));
+		game_state_manager = new GameStateManagerZerg(this, mediator);
 		break;
 	case Race::Protoss:
 		break;

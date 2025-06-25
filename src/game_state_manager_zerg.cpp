@@ -3,12 +3,15 @@
 #include "scouting_manager.h"
 #include "definitions.h"
 #include "utility.h"
+#include "mediator.h"
 
 namespace sc2 {
 
-GameStateManagerZerg::GameStateManagerZerg(ScoutingManager* scouting_manager, Units enemy_bases)
+GameStateManagerZerg::GameStateManagerZerg(ScoutingManager* scouting_manager, Mediator* mediator)
 {
+	this->mediator = mediator;
 	this->scouting_manager = scouting_manager;
+	Units enemy_bases = mediator->GetUnits(Unit::Alliance::Enemy, IsUnits(TOWNHALL_TYPES));
 	float current_time = scouting_manager->GetCurrentTime();
 	known_workers = scouting_manager->enemy_unit_counts[DRONE];
 	assumed_workers = scouting_manager->enemy_unit_counts[DRONE];
@@ -29,8 +32,26 @@ GameStateManagerZerg::GameStateManagerZerg(ScoutingManager* scouting_manager, Un
 
 GameState GameStateManagerZerg::GetCurrentGameState()
 {
+	GameState game_state = GameState();
 	UpdateWorkerCount();
-	return GameState::unknown;
+	if ((float)assumed_workers / known_workers >= 2)
+		game_state.good_worker_intel = false;
+	else
+		game_state.good_worker_intel = true;
+
+	uint16_t workers = mediator->GetUnits(Unit::Alliance::Self, IsUnit(PROBE)).size();
+	if (workers + 20 < assumed_workers)
+		game_state.game_state_worker = GameStateWorker::much_less;
+	else if (workers - 20 > assumed_workers)
+		game_state.game_state_worker = GameStateWorker::much_more;
+	else if (workers + 5 < assumed_workers)
+		game_state.game_state_worker = GameStateWorker::slightly_less;
+	else if (workers - 5 > assumed_workers)
+		game_state.game_state_worker = GameStateWorker::slightly_more;
+	else
+		game_state.game_state_worker = GameStateWorker::even;
+
+	return game_state;
 }
 
 void GameStateManagerZerg::UpdateWorkerCount()

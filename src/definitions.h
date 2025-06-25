@@ -453,11 +453,21 @@ enum class TryActionResult
 	busy
 };
 
-enum class GameState
+enum class GameStateWorker
 {
-	unknown,
-	early_build,
-	even_late_game
+	even,
+	slightly_less,
+	slightly_more,
+	much_less,
+	much_more
+};
+
+struct GameState
+{
+	GameStateWorker game_state_worker = GameStateWorker::even;
+	bool good_worker_intel;
+};
+
 };
 
 }

@@ -23,6 +23,7 @@ class GameStateManagerZerg : public GameStateManager
 {
 public:
 	ScoutingManager* scouting_manager;
+	Mediator* mediator;
 
 	uint16_t known_workers;
 	uint16_t assumed_workers;
@@ -34,7 +35,7 @@ public:
 	bool odd_zergling = false;
 
 
-	GameStateManagerZerg(ScoutingManager*, Units);
+	GameStateManagerZerg(ScoutingManager*, Mediator*);
 
 	GameState GetCurrentGameState() override;
 	void UpdateWorkerCount();

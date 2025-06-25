@@ -51,7 +51,7 @@ public:
 	
 
 	// game state
-	GameState current_game_state = GameState::early_build;
+	GameState current_game_state;
 	GameStateManager* game_state_manager = nullptr;
 
 

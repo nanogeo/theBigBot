@@ -1432,6 +1432,11 @@ void Mediator::InitializeGameState()
 	scouting_manager.InitializeGameState();
 }
 
+GameState Mediator::GetGameState()
+{
+	return scouting_manager.current_game_state;
+}
+
 StateMachine* Mediator::GetStateMachineByName(std::string name)
 {
 	for (auto& fsm : finite_state_machine_manager.active_state_machines)
