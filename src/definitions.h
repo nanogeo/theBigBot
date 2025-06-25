@@ -392,9 +392,9 @@ struct UnitCost
 {
 	int mineral_cost = 0;
 	int vespene_cost = 0;
-	int supply = 0;
+	float supply = 0;
 	UnitCost() {};
-	UnitCost(int x, int y, int z)
+	UnitCost(int x, int y, float z)
 	{
 		mineral_cost = x;
 		vespene_cost = y;
@@ -451,6 +451,13 @@ enum class TryActionResult
 	cannot_afford,
 	unpowered,
 	busy
+};
+
+enum class GameState
+{
+	unknown,
+	early_build,
+	even_late_game
 };
 
 }

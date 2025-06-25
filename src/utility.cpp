@@ -2406,38 +2406,262 @@ bool Utility::IsOnHighGround(Point3D unit, Point3D enemy_unit)
 
 float Utility::GetTimeBuilt(const Unit* unit, float curr_time)
 {
-	float build_time = 0;
-	switch (unit->unit_type.ToType())
-	{
-	case HATCHERY:
-		build_time = 71.0f;
-		break;
-	case EXTRACTOR:
-		build_time = 21.0f;
-		break;
-	case SPAWNING_POOL:
-		build_time = 46.0f;
-		break;
-	case ROACH_WARREN:
-		build_time = 39.0f;
-		break;
-	case COMMAND_CENTER:
-		build_time = 71.0f;
-		break;
-	case REFINERY:
-		build_time = 30.0f;
-		break;
-	case BARRACKS:
-		build_time = 46.0f;
-		break;
-	case FACTORY:
-		build_time = 43.0f;
-		break;
-	default:
-		//std::cout << "Error Unknown building in GetTimeBuilt\n";
-		break;
-	}
+	float build_time = GetTimeToBuild(unit->unit_type);
+	
 	return curr_time - (build_time * unit->build_progress);
+}
+
+float Utility::GetTimeToBuild(UNIT_TYPEID unit_type)
+{
+	switch (unit_type)
+	{
+	case NEXUS:
+		return 71.0f;
+	case PYLON:
+		return 18.0f;
+	case GATEWAY:
+	case WARP_GATE:
+		return 46.0f;
+	case ASSIMILATOR:
+	case ASSIMILATOR_RICH:
+		return 21.0f;
+	case FORGE:
+		return 32.0f;
+	case CYBERCORE:
+		return 36.0f;
+	case CANNON:
+		return 29.0f;
+	case BATTERY:
+		return 29.0f;
+	case TWILIGHT:
+		return 36.0f;
+	case TEMPLAR_ARCHIVE:
+		return 36.0f;
+	case STARGATE:
+		return 43.0f;
+	case FLEET_BEACON:
+		return 43.0f;
+	case DARK_SHRINE:
+		return 71.0f;
+	case ROBO:
+		return 46.0f;
+	case ROBO_BAY:
+		return 46.0f;
+	case PROBE:
+		return 12.0f;
+	case ZEALOT:
+		return 27.0f;
+	case STALKER:
+		return 27.0f;
+	case SENTRY:
+		return 23.0f;
+	case ADEPT:
+		return 30.0f;
+	case HIGH_TEMPLAR:
+		return 39.0f;
+	case DARK_TEMPLAR:
+		return 39.0f;
+	case IMMORTAL:
+		return 39.0f;
+	case COLOSSUS:
+		return 54.0f;
+	case DISRUPTOR:
+		return 36.0f;
+	case OBSERVER:
+	case OBSERVER_SIEGED:
+		return 18.0f;
+	case PRISM:
+	case PRISM_SIEGED:
+		return 36.0f;
+	case PHOENIX:
+		return 25.0f;
+	case VOID_RAY:
+		return 43.0f;
+	case ORACLE:
+		return 37.0f;
+	case CARRIER:
+		return 64.0f;
+	case TEMPEST:
+		return 43.0f;
+	case MOTHERSHIP:
+		return 89.0f;
+	case COMMAND_CENTER:
+	case COMMAND_CENTER_FLYING:
+		return 71.0f;
+	case SUPPLY_DEPOT:
+	case SUPPLY_DEPOT_LOWERED:
+		return 21.0f;
+	case REFINERY:
+	case REFINERY_RICH:
+		return 21.0f;
+	case BARRACKS:
+	case BARRACKS_FLYING:
+		return 46.0f;
+	case ENGINEERING_BAY:
+		return 25.0f;
+	case BUNKER:
+	case NEOSTEEL_BUNKER:
+		return 29.0f;
+	case SENSOR_TOWER:
+		return 18.0f;
+	case MISSILE_TURRET:
+		return 18.0f;
+	case FACTORY:
+	case FACTORY_FLYING:
+		return 43.0f;
+	case GHOST_ACADEMY:
+		return 29.0f;
+	case STARPORT:
+	case STARPORT_FLYING:
+		return 36.0f;
+	case ARMORY:
+		return 46.0f;
+	case FUSION_CORE:
+		return 46.0f;
+	case REACTOR:
+	case BARRACKS_REACTOR:
+	case FACTORY_REACTOR:
+	case STARPORT_REACTOR:
+		return 36.0f;
+	case TECH_LAB:
+	case BARRACKS_TECH_LAB:
+	case FACTORY_TECH_LAB:
+	case STARPORT_TECH_LAB:
+		return 18.0f;
+	case SCV:
+		return 12.0f;
+	case MARINE:
+		return 18.0f;
+	case MARAUDER:
+		return 21.0f;
+	case REAPER:
+		return 32.0f;
+	case GHOST:
+		return 29.0f;
+	case HELLION:
+	case HELLBAT:
+		return 21.0f;
+	case SIEGE_TANK:
+	case SIEGE_TANK_SIEGED:
+		return 32.0f;
+	case CYCLONE:
+		return 32.0f;
+	case THOR_AOE:
+	case THOR_AP:
+		return 43.0f;
+	case WIDOW_MINE:
+	case WIDOW_MINE_BURROWED:
+		return 21.0f;
+	case VIKING:
+	case VIKING_LANDED:
+		return 30.0f;
+	case MEDIVAC:
+		return 30.0f;
+	case LIBERATOR:
+	case LIBERATOR_SIEGED:
+		return 43.0f;
+	case RAVEN:
+		return 34.0f;
+	case BANSHEE:
+		return 43.0f;
+	case BATTLECRUISER:
+		return 64.0f;
+	case DRONE:
+	case DRONE_BURROWED:
+		return 12.0f;
+	case QUEEN:
+	case QUEEN_BURROWED:
+		return 36.0f;
+	case ZERGLING:
+	case ZERGLING_BURROWED:
+		return 17.0f;
+	case BANELING_EGG:
+	case BANELING:
+	case BANELING_BURROWED:
+		return 14.0f;
+	case ROACH:
+	case ROACH_BURROWED:
+		return 19.0f;
+	case RAVAGER_EGG:
+	case RAVAGER:
+	case RAVAGER_BURROWED:
+		return 12.0f;
+	case HYDRA:
+	case HYDRA_BURROWED:
+		return 25.0f;
+	case LURKER_EGG:
+	case LURKER:
+	case LURKER_BURROWED:
+		return 18.0f;
+	case INFESTOR:
+	case INFESTOR_BURROWED:
+		return 36.0f;
+	case SWARMHOST:
+	case SWARMHOST_BURROWED:
+		return 29.0f;
+	case ULTRALISK:
+	case ULTRALISK_BURROWED:
+		return 39.0f;
+	case NYDUS_WORM:
+		return 14.0f;
+	case OVERLORD:
+		return 18.0f;
+	case DROPPERLORD_EGG:
+	case DROPPERLORD:
+		return 15.0f;
+	case OVERSEER_EGG:
+	case OVERSEER:
+	case OVERSEER_SIEGED:
+		return 12.0f;
+	case MUTALISK:
+		return 24.0f;
+	case CORRUPTER:
+		return 29.0f;
+	case BROOD_LORD_EGG:
+	case BROOD_LORD:
+		return 24.0f;
+	case VIPER:
+		return 29.0f;
+	case HATCHERY:
+		return 71.0f;
+	case LAIR:
+		return 57.0f;
+	case HIVE:
+		return 71.0f;
+	case SPINE_CRAWLER:
+	case SPINE_CRAWLER_UPROOTED:
+		return 36.0f;
+	case SPORE_CRAWLER:
+	case SPORE_CRAWLER_UPROOTED:
+		return 21.0f;
+	case SPAWNING_POOL:
+		return 46.0f;
+	case ROACH_WARREN:
+		return 39.0f;
+	case EVO_CHAMBER:
+		return 25.0f;
+	case EXTRACTOR:
+	case EXTRACTOR_RICH:
+		return 21.0f;
+	case BANELING_NEST:
+		return 43.0f;
+	case HYDRA_DEN:
+		return 29.0f; 
+	case LURKER_DEN:
+		return 57.0f;
+	case INFESTATION_PIT:
+		return 36.0f;
+	case NYDUS:
+		return 36.0f;
+	case SPIRE:
+		return 71.0f;
+	case GREATER_SPIRE:
+		return 71.0f;
+	case ULTRALISK_CAVERN:
+		return 46.0f;
+	default:
+		return 0.0f;
+	}
 }
 
 AbilityID Utility::UnitToWarpInAbility(UNIT_TYPEID type)
@@ -2920,8 +3144,188 @@ UnitCost Utility::GetCost(UNIT_TYPEID unit_type)
 		return UnitCost(400, 400, 8);
 	case UNIT_TYPEID::BEACON_PROTOSS: // represents void ray + fleet beacon
 		return UnitCost(550, 350, 4);
+	case COMMAND_CENTER:
+	case COMMAND_CENTER_FLYING:
+		return UnitCost(400, 0, 0);
+	case PLANETARY:
+		return UnitCost(550, 150, 0);
+	case ORBITAL:
+	case ORBITAL_FLYING:
+		return UnitCost(550, 0, 0);
+	case SUPPLY_DEPOT:
+	case SUPPLY_DEPOT_LOWERED:
+		return UnitCost(100, 0, 0);
+	case REFINERY:
+	case REFINERY_RICH:
+		return UnitCost(75, 0, 0);
+	case BARRACKS:
+	case BARRACKS_FLYING:
+		return UnitCost(150, 0, 0);
+	case ENGINEERING_BAY:
+		return UnitCost(125, 0, 0);
+	case BUNKER:
+	case NEOSTEEL_BUNKER:
+		return UnitCost(100, 0, 0);
+	case SENSOR_TOWER:
+		return UnitCost(100, 50, 0);
+	case MISSILE_TURRET:
+		return UnitCost(100, 0, 0);
+	case FACTORY:
+		return UnitCost(150, 100, 0);
+	case FACTORY_FLYING:
+		return UnitCost(150, 100, 0);
+	case GHOST_ACADEMY:
+		return UnitCost(150, 50, 0);
+	case STARPORT:
+		return UnitCost(150, 100, 0);
+	case STARPORT_FLYING:
+		return UnitCost(150, 100, 0);
+	case ARMORY:
+		return UnitCost(150, 50, 0);
+	case FUSION_CORE:
+		return UnitCost(1505, 150, 0);
+	case TECH_LAB:
+	case BARRACKS_TECH_LAB:
+	case FACTORY_TECH_LAB:
+	case STARPORT_TECH_LAB:
+		return UnitCost(50, 25, 0);
+	case REACTOR:
+	case BARRACKS_REACTOR:
+	case FACTORY_REACTOR:
+	case STARPORT_REACTOR:
+		return UnitCost(50, 50, 0);
+	case SCV:
+		return UnitCost(50, 0, 1);
+	case MULE:
+		return UnitCost(0, 0, 0);
+	case MARINE:
+		return UnitCost(50, 0, 1);
+	case MARAUDER:
+		return UnitCost(100, 25, 2);
+	case REAPER:
+		return UnitCost(50, 50, 1);
+	case GHOST:
+		return UnitCost(150, 125, 3);
+	case HELLION:
+	case HELLBAT:
+		return UnitCost(100, 0, 2);
+	case SIEGE_TANK:
+	case SIEGE_TANK_SIEGED:
+		return UnitCost(150, 125, 3);
+	case CYCLONE:
+		return UnitCost(150, 100, 3);
+	case THOR_AOE:
+	case THOR_AP:
+		return UnitCost(300, 200, 6);
+	case WIDOW_MINE:
+	case WIDOW_MINE_BURROWED:
+		return UnitCost(75, 25, 2);
+	case VIKING:
+	case VIKING_LANDED:
+		return UnitCost(150, 75, 2);
+	case MEDIVAC:
+		return UnitCost(100, 100, 2);
+	case LIBERATOR:
+	case LIBERATOR_SIEGED:
+		return UnitCost(150, 125, 3);
+	case RAVEN:
+		return UnitCost(100, 150, 2);
+	case BANSHEE:
+		return UnitCost(150, 100, 3);
+	case BATTLECRUISER:
+		return UnitCost(400, 300, 6);
+	case DRONE:
+	case DRONE_BURROWED:
+		return UnitCost(50, 0, 1);
+	case QUEEN:
+	case QUEEN_BURROWED:
+		return UnitCost(175, 0, 2);
+	case ZERGLING:
+	case ZERGLING_BURROWED:
+		return UnitCost(25, 0, .5f);
+	case BANELING_EGG:
+	case BANELING:
+	case BANELING_BURROWED:
+		return UnitCost(50, 25, .5f);
+	case ROACH:
+	case ROACH_BURROWED:
+		return UnitCost(75, 25, 2);
+	case RAVAGER_EGG:
+	case RAVAGER:
+	case RAVAGER_BURROWED:
+		return UnitCost(100, 100, 3);
+	case HYDRA:
+	case HYDRA_BURROWED:
+		return UnitCost(100, 50, 2);
+	case LURKER_EGG:
+	case LURKER:
+	case LURKER_BURROWED:
+		return UnitCost(150, 150, 3);
+	case INFESTOR:
+	case INFESTOR_BURROWED:
+		return UnitCost(100, 150, 2);
+	case SWARMHOST:
+	case SWARMHOST_BURROWED:
+		return UnitCost(100, 75, 3);
+	case ULTRALISK:
+	case ULTRALISK_BURROWED:
+		return UnitCost(275, 200, 6);
+	case OVERLORD:
+		return UnitCost(100, 0, 0);
+	case DROPPERLORD_EGG:
+	case DROPPERLORD:
+		return UnitCost(125, 25, 0);
+	case OVERSEER_EGG:
+	case OVERSEER:
+	case OVERSEER_SIEGED:
+		return UnitCost(150, 50, 0);
+	case MUTALISK:
+		return UnitCost(100, 100, 2);
+	case CORRUPTER:
+		return UnitCost(150, 100, 2);
+	case BROOD_LORD_EGG:
+	case BROOD_LORD:
+		return UnitCost(300, 250, 4);
+	case VIPER:
+		return UnitCost(100, 200, 3);
+	case HATCHERY:
+		return UnitCost(275, 0, 0);
+	case LAIR:
+		return UnitCost(425, 100, 0);
+	case HIVE:
+		return UnitCost(650, 250, 0);
+	case SPINE_CRAWLER:
+	case SPINE_CRAWLER_UPROOTED:
+		return UnitCost(100, 0, 0);
+	case SPORE_CRAWLER:
+	case SPORE_CRAWLER_UPROOTED:
+		return UnitCost(75, 0, 0);
+	case SPAWNING_POOL:
+		return UnitCost(200, 0, 0);
+	case ROACH_WARREN:
+		return UnitCost(150, 0, 0);
+	case EVO_CHAMBER:
+		return UnitCost(75, 0, 0);
+	case EXTRACTOR:
+	case EXTRACTOR_RICH:
+		return UnitCost(25, 0, 0);
+	case BANELING_NEST:
+		return UnitCost(100, 50, 0);
+	case HYDRA_DEN:
+		return UnitCost(100, 100, 0);
+	case LURKER_DEN:
+		return UnitCost(100, 150, 0);
+	case INFESTATION_PIT:
+		return UnitCost(100, 100, 0);
+	case NYDUS:
+		return UnitCost(150, 150, 0);
+	case SPIRE:
+		return UnitCost(200, 200, 0);
+	case GREATER_SPIRE:
+		return UnitCost(300, 350, 0);
+	case ULTRALISK_CAVERN:
+		return UnitCost(150, 200, 0);
 	default:
-		std::cerr << "Error invalid unit id in GetCost " << UnitTypeToName(unit_type) << std::endl;
 		return UnitCost(0, 0, 0);
 	}
 }

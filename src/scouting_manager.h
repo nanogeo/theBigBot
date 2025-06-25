@@ -7,6 +7,18 @@ namespace sc2
 
 class Mediator;
 
+class ScoutingManager;
+
+class GameStateManager
+{
+public:
+	ScoutingManager* scouting_manager;
+
+	virtual GameState GetCurrentGameState() = 0;
+	virtual void AddNewUnit(const Unit*) = 0;
+	virtual std::string GameStateToString() = 0;
+};
+
 class ScoutingManager
 {
 public:
@@ -38,6 +50,11 @@ public:
 	float roach_warren_timing = 0;
 	
 
+	// game state
+	GameState current_game_state = GameState::early_build;
+	GameStateManager* game_state_manager = nullptr;
+
+
 	ScoutingManager(Mediator* mediator)
 	{
 		this->mediator = mediator;
@@ -47,6 +64,7 @@ public:
 	void SetEnemyRace(UNIT_TYPEID);
 
 	int GetEnemyUnitCount(UNIT_TYPEID);
+	uint16_t GetEnemyArmySupply();
 
 	void UpdateInfo();
 	void AddNewUnit(const Unit*);
@@ -54,6 +72,11 @@ public:
 
 	void OnUnitDestroyed(const Unit*);
 
+	// game state
+	void InitializeGameState();
+	float GetCurrentTime();
+
 };
+
 
 }

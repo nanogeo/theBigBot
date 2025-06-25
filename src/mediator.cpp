@@ -1427,6 +1427,11 @@ int Mediator::GetEnemyUnitCount(UNIT_TYPEID type)
 	return scouting_manager.GetEnemyUnitCount(type);
 }
 
+void Mediator::InitializeGameState()
+{
+	scouting_manager.InitializeGameState();
+}
+
 StateMachine* Mediator::GetStateMachineByName(std::string name)
 {
 	for (auto& fsm : finite_state_machine_manager.active_state_machines)

@@ -154,6 +154,7 @@ public:
 	static float GetSpeed(const Unit*);
 	static bool IsOnHighGround(Point3D, Point3D);
 	static float GetTimeBuilt(const Unit*, float);
+	static float GetTimeToBuild(UNIT_TYPEID);
 	static AbilityID UnitToWarpInAbility(UNIT_TYPEID);
 	static UNIT_TYPEID GetBuildStructure(UNIT_TYPEID);
 	static int GetTrainingTime(UNIT_TYPEID);

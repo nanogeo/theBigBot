@@ -1,5 +1,6 @@
 
 #include "scouting_manager.h"
+#include "game_state_manager_zerg.h"
 #include "mediator.h"
 #include "definitions.h"
 
@@ -191,6 +192,17 @@ int ScoutingManager::GetEnemyUnitCount(UNIT_TYPEID type)
 		return 0;
 }
 
+uint16_t ScoutingManager::GetEnemyArmySupply()
+{
+	float total_supply = 0;
+	for (const auto& unit : enemy_unit_saved_position)
+	{
+		if (unit.first->unit_type != DRONE && unit.first->unit_type != SCV && unit.first->unit_type != PROBE)
+			total_supply += Utility::GetCost(unit.first->unit_type).supply;
+	}
+	return total_supply;
+}
+
 void ScoutingManager::UpdateInfo()
 {
 	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
@@ -214,12 +226,24 @@ void ScoutingManager::UpdateInfo()
 			AddNewUnit(unit);
 		}
 	}
+	if (game_state_manager != nullptr)
+	{
+		current_game_state = game_state_manager->GetCurrentGameState();
+		if (mediator->GetGameLoop() % 200 == 0)
+		{
+			std::string str = game_state_manager->GameStateToString();
+			std::cerr << str << std::endl;
+		}
+	}
 }
 
 void ScoutingManager::AddNewUnit(const Unit* unit)
 {
 	if (enemy_race == Race::Random)
 		SetEnemyRace(unit->unit_type);
+
+	if (game_state_manager != nullptr)
+		game_state_manager->AddNewUnit(unit);
 
 	enemy_unit_saved_position[unit] = EnemyUnitPosition(unit->pos);
 	if (enemy_unit_counts.count(unit->unit_type) > 0)
@@ -336,6 +360,28 @@ void ScoutingManager::OnUnitDestroyed(const Unit* unit)
 		if (enemy_unit_counts.count(unit->unit_type) > 0)
 			enemy_unit_counts[unit->unit_type] -= 1;
 	}
+}
+
+void ScoutingManager::InitializeGameState()
+{
+	switch (enemy_race)
+	{
+	case Race::Zerg:
+		game_state_manager = new GameStateManagerZerg(this, mediator->GetUnits(Unit::Alliance::Enemy, IsUnits(TOWNHALL_TYPES)));
+		break;
+	case Race::Protoss:
+		break;
+	case Race::Terran:
+		break;
+	case Race::Random:
+		std::cerr << "Error enemy race still unknown in ScoutingManager::InitializeGameState" << std::endl;
+		break;
+	}
+}
+
+float ScoutingManager::GetCurrentTime()
+{
+	return mediator->GetCurrentTime();
 }
 
 }
