@@ -91,7 +91,7 @@ void ArmyManager::CreateZergArmyTemplates()
 	std::vector<UNIT_TYPEID> oracle_harass_types = { ORACLE };
 	std::map<UNIT_TYPEID, uint16_t> oracle_harass_req;
 	oracle_harass_req[ORACLE] = 2;
-	bool(sc2::ArmyManager:: * oracle_condition)() = &ArmyManager::NoOngoingAttacks;
+	bool(sc2::ArmyManager:: * oracle_condition)() = &ArmyManager::OracleHarassCondition;
 	ArmyTemplateStateMachine<OutsideControlArmyGroup, OracleHarassStateMachine>* oracle_harass = new ArmyTemplateStateMachine<OutsideControlArmyGroup, OracleHarassStateMachine>(oracle_harass_req, oracle_condition, 20, oracle_harass_types, 2, 2);
 	army_templates.push_back(oracle_harass);
 }
@@ -396,9 +396,22 @@ Point2D ArmyManager::FindExposedBase()
 	return Point2D(0, 0);
 }
 
-bool ArmyManager::NoOngoingAttacks()
+bool ArmyManager::OracleHarassCondition()
 {
-	return mediator->GetWorstOngoingAttackValue() > -50;
+	GameState game_state = mediator->GetGameState();
+	switch (game_state.game_state_worker)
+	{
+	case GameStateWorker::even:
+	case GameStateWorker::slightly_less:
+		if (game_state.good_worker_intel && mediator->GetWorstOngoingAttackValue() > -20)
+			return true;
+		break;
+	case GameStateWorker::much_less:
+		if (mediator->GetWorstOngoingAttackValue() > -20)
+			return true;
+		break;
+	}
+	return false;
 }
 
 

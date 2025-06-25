@@ -56,7 +56,7 @@ public:
 
 	bool EnemyHasExposedBase();
 	Point2D FindExposedBase();
-	bool NoOngoingAttacks();
+	bool OracleHarassCondition();
 
 };
 
