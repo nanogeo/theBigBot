@@ -100,7 +100,8 @@ void GameStateManagerZerg::AddNewUnit(const Unit* unit)
 	case HATCHERY:
 		known_bases.push_back(EnemyBase(unit, Utility::GetTimeBuilt(unit, current_time) + Utility::GetTimeToBuild(HATCHERY), 
 			Utility::GetTimeBuilt(unit, current_time) + Utility::GetTimeToBuild(HATCHERY) + Utility::GetTimeToBuild(QUEEN) + 29));
-		assumed_bases.pop_back();
+		if (assumed_bases.size() > 0)
+			assumed_bases.pop_back();
 	case ROACH:
 	case ROACH_BURROWED:
 	case HYDRA:
