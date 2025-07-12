@@ -59,6 +59,11 @@ void ResourceManager::UpdateResources()
 	}
 }
 
+UnitCost ResourceManager::GetAvailableResources()
+{
+	return current_resources;
+}
+
 bool ResourceManager::CanAfford(UNIT_TYPEID unit_type)
 {
 	UnitCost cost = Utility::GetCost(unit_type);

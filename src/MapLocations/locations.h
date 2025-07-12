@@ -110,6 +110,7 @@ public:
 	std::vector<Point2D> defensive_natural_battery_locations;
 
 	Point2D gateway_walloff;
+	Point2D pylon_walloff;
 
 	std::vector<Point2D> attack_path_short;
 	PathManager attack_path_short_line;

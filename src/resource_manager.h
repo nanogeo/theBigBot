@@ -50,6 +50,7 @@ public:
 	}
 
 	void UpdateResources();
+	UnitCost GetAvailableResources();
 	bool CanAfford(UNIT_TYPEID);
 	bool CanAfford(UNIT_TYPEID, uint16_t);
 	bool CanAfford(UPGRADE_ID);

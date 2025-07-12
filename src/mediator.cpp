@@ -519,6 +519,11 @@ UnitCost Mediator::GetCurrentResources()
 		agent->Observation()->GetFoodCap() - agent->Observation()->GetFoodUsed());
 }
 
+UnitCost Mediator::GetAvailableResources()
+{
+	return resource_manager.GetAvailableResources();
+}
+
 void Mediator::CancelBuilding(const Unit* building)
 {
 	SetUnitCommand(building, A_CANCEL_BUILDING, 100);
@@ -539,6 +544,12 @@ void Mediator::CancelUnit(UNIT_TYPEID unit_type)
 void Mediator::RebuildBuilding(Point2D pos, UNIT_TYPEID type)
 {
 	action_manager.AddAction(new ActionData(&ActionManager::ActionBuildBuildingWhenSafe, new ActionArgData(type, pos)));
+}
+
+
+void Mediator::AddBuildingToDoNotRebuild(Point2D pos)
+{
+	do_not_rebuild.push_back(pos);
 }
 
 void Mediator::SendChat(std::string message, ChatChannel channel)
@@ -1585,13 +1596,18 @@ void Mediator::CreateWorkerRushDefenseFSM()
 
 void Mediator::CreatePvPRampWallOffFSM()
 {
-	Units attackers = Utility::GetUnitsWithin(GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })),
-		GetStartLocation(), 20.0f);
+	Point2D wall_off_pos = agent->locations->pylon_walloff;
+	const Unit* probe = GetBuilder(wall_off_pos);
+	if (probe == nullptr)
+	{
+		return;
+	}
+	worker_manager.RemoveWorker(probe);
 
-	WorkerRushDefenseStateMachine* worker_rush_defense_fsm =
-		new WorkerRushDefenseStateMachine(this, "Worker rush defense");
+	PvPMainRampWallOffStateMachine* pvp_ramp_wall_off_fsm =
+		new PvPMainRampWallOffStateMachine(this, "PvP ramp walloff", probe, wall_off_pos);
 
-	finite_state_machine_manager.active_state_machines.push_back(worker_rush_defense_fsm);
+	finite_state_machine_manager.active_state_machines.push_back(pvp_ramp_wall_off_fsm);
 }
 
 void Mediator::MarkStateMachineForDeletion(StateMachine* state_machine)
@@ -2420,6 +2436,14 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 	}
 	else if (unit->is_building && unit->alliance == Unit::Alliance::Self)
 	{
+		for (const auto& pos : do_not_rebuild)
+		{
+			if (pos == unit->pos)
+			{
+				do_not_rebuild.erase(std::remove(do_not_rebuild.begin(), do_not_rebuild.end(), pos), do_not_rebuild.end());
+				return;
+			}
+		}
 		if (Utility::DistanceToClosest(GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)), unit->pos) < 15)
 		{
 			if (unit->unit_type == WARP_GATE)

@@ -62,6 +62,7 @@ public:
 	ResourceManager resource_manager;
 
 	bool minor_error_logged = false;
+	std::vector<Point2D> do_not_rebuild;
 
 public:
 	void SetUpManagers(bool);
@@ -102,9 +103,11 @@ public:
 	bool IsVisible(Point2D);
 	std::vector<std::vector<UNIT_TYPEID>> GetPrio();
 	UnitCost GetCurrentResources();
+	UnitCost GetAvailableResources();
 	void CancelBuilding(const Unit*);
 	void CancelUnit(UNIT_TYPEID);
 	void RebuildBuilding(Point2D, UNIT_TYPEID);
+	void AddBuildingToDoNotRebuild(Point2D);
 
 	void SendChat(std::string, ChatChannel);
 	void LogMinorError();

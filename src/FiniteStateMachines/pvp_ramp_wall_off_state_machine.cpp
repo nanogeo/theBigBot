@@ -58,7 +58,9 @@ void PvPMainRampWallOffBuildBuilding::TickState()
 			return;
 		mediator->RemoveWorker(state_machine->probe);
 	}
-	mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::BUILD_GATEWAY, state_machine->wall_off_pos, 1);
+	TryActionResult result = mediator->TryBuildBuilding(state_machine->probe, BATTERY, state_machine->wall_off_pos);
+
+	//mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::BUILD_SHIELDBATTERY, state_machine->wall_off_pos, 1);
 }
 
 void PvPMainRampWallOffBuildBuilding::EnterState()
@@ -71,7 +73,9 @@ void PvPMainRampWallOffBuildBuilding::EnterState()
 			return;
 		mediator->RemoveWorker(state_machine->probe);
 	}
-	mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::BUILD_GATEWAY, state_machine->wall_off_pos, 1);
+	TryActionResult result = mediator->TryBuildBuilding(state_machine->probe, BATTERY, state_machine->wall_off_pos);
+	
+	//mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::BUILD_SHIELDBATTERY, state_machine->wall_off_pos, 1);
 }
 
 void PvPMainRampWallOffBuildBuilding::ExitState()
@@ -81,8 +85,8 @@ void PvPMainRampWallOffBuildBuilding::ExitState()
 
 State* PvPMainRampWallOffBuildBuilding::TestTransitions()
 {
-	const Unit* wall = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Self, IsNonPlaceholderUnit(GATEWAY)), state_machine->wall_off_pos);
-	if (Distance2D(wall->pos, state_machine->wall_off_pos) < 1)
+	const Unit* wall = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Self, IsNonPlaceholderUnit(BATTERY)), state_machine->wall_off_pos);
+	if (wall != nullptr && Distance2D(wall->pos, state_machine->wall_off_pos) < 1)
 		return new PvPMainRampWallOffWaitForSafety(mediator, state_machine, wall, Utility::PointBetween(state_machine->wall_off_pos, mediator->GetStartLocation(), 5));
 	return nullptr;
 }
@@ -113,19 +117,22 @@ void PvPMainRampWallOffWaitForSafety::TickState()
 
 void PvPMainRampWallOffWaitForSafety::EnterState()
 {
-
+	build_time = mediator->GetCurrentTime();
 }
 
 void PvPMainRampWallOffWaitForSafety::ExitState()
 {
 	if (wall != nullptr && wall->is_alive)
+	{
 		mediator->SetUnitCommand(wall, ABILITY_ID::CANCEL, 1);
+		mediator->AddBuildingToDoNotRebuild(wall->pos);
+	}
 	return;
 }
 
 State* PvPMainRampWallOffWaitForSafety::TestTransitions()
 {
-	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy), state_machine->wall_off_pos) > 8)
+	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy), state_machine->wall_off_pos) > 8 && mediator->GetCurrentTime() > build_time + 25)
 		return new PvPMainRampWallOffWaitForEnemies(mediator, state_machine);
 	return nullptr;
 }
@@ -136,5 +143,21 @@ std::string PvPMainRampWallOffWaitForSafety::toString()
 }
 
 #pragma endregion
+
+
+PvPMainRampWallOffStateMachine::PvPMainRampWallOffStateMachine(Mediator* mediator, std::string name, const Unit* probe, Point2D wall_off_pos) : StateMachine(mediator, name)
+{
+	this->probe = probe;
+	this->wall_off_pos = wall_off_pos;
+
+	current_state = new PvPMainRampWallOffWaitForEnemies(mediator, this);
+	current_state->EnterState();
+}
+
+PvPMainRampWallOffStateMachine::~PvPMainRampWallOffStateMachine()
+{
+	if (probe != nullptr)
+		mediator->PlaceWorker(probe);
+}
 
 }

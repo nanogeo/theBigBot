@@ -1792,7 +1792,7 @@ void BuildOrderManager::Set2GateProxyRobo()
 					Data(&BuildOrderManager::HasBuildingStarted,	Condition(ROBO),			&BuildOrderManager::TrainUnit,							Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(146.0f),			&BuildOrderManager::TrainUnit,							Result(STALKER)),
-					//Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::PrepRampWallOff,					Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(150.0f),			&BuildOrderManager::PrepRampWallOff,					Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(153.0f),			&BuildOrderManager::TrainUnit,							Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(153.0f),			&BuildOrderManager::SendAllInAttack,					Result()),
 					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::TrainUnit,							Result(IMMORTAL)),

@@ -142,6 +142,7 @@ namespace sc2 {
 												P(141, 78) };
 
 		gateway_walloff = P(164.5, 81.5);
+		pylon_walloff = P(163.25, 82);
 		
 		attack_path_short = { P(138, 86),
 								P(128, 98),

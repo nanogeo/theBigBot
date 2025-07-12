@@ -10,7 +10,6 @@ namespace sc2
 class Mediator;
 
 class PvPMainRampWallOffStateMachine;
-class TheBigBot;
 
 class PvPMainRampWallOffWaitForEnemies : public State
 {
@@ -52,6 +51,7 @@ class PvPMainRampWallOffWaitForSafety : public State
 public:
 	const Unit* wall;
 	Point2D fallback;
+	float build_time;
 	class PvPMainRampWallOffStateMachine* state_machine;
 	PvPMainRampWallOffWaitForSafety(Mediator* mediator, PvPMainRampWallOffStateMachine* state_machine, const Unit* wall, Point2D fallback)
 	{
@@ -73,7 +73,8 @@ class PvPMainRampWallOffStateMachine : public StateMachine
 public:
 	const Unit* probe;
 	Point2D wall_off_pos;
-	PvPMainRampWallOffStateMachine(TheBigBot*, std::string, const Unit*, Point2D);
+	PvPMainRampWallOffStateMachine(Mediator*, std::string, const Unit*, Point2D);
+	~PvPMainRampWallOffStateMachine();
 };
 
 
