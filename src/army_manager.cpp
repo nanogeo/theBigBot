@@ -32,7 +32,7 @@ void ArmyManager::SetUpInitialArmies()
 {
 	unassigned_group = new ArmyGroup(mediator, { ALL_ARMY_UNITS });
 
-	AddArmyGroup(new DefendBaseArmyGroup(mediator, mediator->GetStartLocation(), { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 3));
+	AddArmyGroup(new DefendBaseArmyGroup(mediator, mediator->GetStartLocation(), { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS, VOID_RAY }, 0, 3));
 
 	switch (mediator->GetEnemyRace())
 	{
@@ -306,7 +306,7 @@ void ArmyManager::ScourMap()
 void ArmyManager::NexusStarted(Point2D pos) // TODO move to mediator
 {
 	if (mediator->GetArmyGroupDefendingBase(pos) == nullptr)
-		AddArmyGroup(new DefendBaseArmyGroup(mediator, pos, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS }, 0, 10));
+		AddArmyGroup(new DefendBaseArmyGroup(mediator, pos, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS, VOID_RAY }, 0, 10));
 }
 
 template<typename T>
