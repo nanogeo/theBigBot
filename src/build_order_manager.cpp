@@ -171,6 +171,20 @@ bool BuildOrderManager::BuildFirstPylon(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::BuildLowGroundFirstPylon(BuildOrderResultArgData data)
+{
+	Point2D pos = mediator->GetLocations().first_pylon_location_zerg;
+
+	const Unit* builder = mediator->GetBuilder(pos);
+	if (builder == nullptr)
+	{
+		//std::cout << "Error could not find builder in BuildBuilding" << std::endl;
+		return false;
+	}
+	mediator->BuildBuilding(PYLON, pos, builder);
+	return true;
+}
+
 bool BuildOrderManager::BuildBuildingMulti(BuildOrderResultArgData data)
 {
 	Point2D pos = mediator->GetLocation(data.unitIds[0]);
@@ -1762,6 +1776,44 @@ void BuildOrderManager::SetThreeGateRobo()
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(210.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
+	};
+}
+
+void BuildOrderManager::Set1GateExpandWithRamp()
+{
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(5.5f),			&BuildOrderManager::BuildLowGroundFirstPylon,			Result(PYLON)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(PYLON),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(GATEWAY),			&BuildOrderManager::Scout,								Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(36.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
+					Data(&BuildOrderManager::TimePassed,			Condition(41.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					//Data(&BuildOrderManager::TimePassed,			Condition(63.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
+					//Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::CheckProtossOpening2,				Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(68.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, CYBERCORE})),
+					Data(&BuildOrderManager::HasUnits,				Condition(PROBE, 20),		&BuildOrderManager::CutWorkers,							Result()),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::UncutWorkers,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(93.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::TimePassed,			Condition(100.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(ADEPT)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(STARGATE),		&BuildOrderManager::ResearchWarpgate,					Result()),
+					//Data(&BuildOrderManager::TimePassed,			Condition(65.0f),			&BuildOrderManager::CheckForExpansion,					Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(STALKER)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ContinueBuildingPylons,				Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ContinueMakingWorkers,				Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::SetUnitProduction,					Result(VOID_RAY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::ChronoBuilding,						Result(STARGATE)),
+					Data(&BuildOrderManager::TimePassed,			Condition(195.0f),			&BuildOrderManager::BuildMainDefensiveBuilding,			Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(200.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(230.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(240.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::TimePassed,			Condition(250.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
 	};
 }
 

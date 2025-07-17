@@ -79,7 +79,8 @@ enum BuildOrder {
 	recessed_cannon_rush,
 	cannon_rush_terran,
 	three_gate_robo,
-	pvp_openner
+	pvp_openner,
+	one_gate_expand_with_ramp
 };
 
 
@@ -116,6 +117,7 @@ public:
 	bool NOP(BuildOrderResultArgData);
 	bool BuildBuilding(BuildOrderResultArgData);
 	bool BuildFirstPylon(BuildOrderResultArgData);
+	bool BuildLowGroundFirstPylon(BuildOrderResultArgData);
 	bool BuildBuildingMulti(BuildOrderResultArgData);
 	bool Scout(BuildOrderResultArgData);
 	bool CannonRushProbe1(BuildOrderResultArgData);
@@ -215,6 +217,7 @@ public:
 	void SetProxyDoubleRobo();
 	void SetCannonRushTerran();
 	void SetThreeGateRobo();
+	void Set1GateExpandWithRamp();
 	void SetPvPOpenner();
 	void Set2GateProxyRobo();
 	void SetReturnTo2GateProxyRobo();
@@ -334,6 +337,10 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::BuildFirstPylon)
 		{
 			str += "build first pylon";
+		}
+		else if (result == &BuildOrderManager::BuildLowGroundFirstPylon)
+		{
+			str += "build low ground first pylon";
 		}
 		else if (result == &BuildOrderManager::BuildBuildingMulti)
 		{

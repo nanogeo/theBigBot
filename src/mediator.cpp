@@ -57,9 +57,20 @@ void Mediator::SetUpManagers(bool debug)
 		switch (scouting_manager.enemy_race)
 		{
 		case Race::Protoss:
+		{
 			SendChat("Tag:race_protoss", ChatChannel::Team);
-			SetBuildOrder(BuildOrder::pvp_openner);
+			std::string name = GetEnemyName();
+			if (GetMapName() == "torches aie" && 
+				(name == "negativeZero" || name == "Aeolus" || name == "norman" || "Deimos"))
+			{
+				SetBuildOrder(BuildOrder::one_gate_expand_with_ramp);
+			}
+			else
+			{
+				SetBuildOrder(BuildOrder::pvp_openner);
+			}
 			break;
+		}
 		case Race::Terran:
 			SendChat("Tag:race_terran", ChatChannel::Team);
 			SetBuildOrder(BuildOrder::four_gate_blink);
