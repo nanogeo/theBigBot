@@ -62,7 +62,7 @@ void Mediator::SetUpManagers(bool debug)
 			std::string name = GetEnemyName();
 			std::cerr << "map: " << GetMapName() << std::endl;
 			std::cerr << "enemy: " << name << std::endl;
-			if (std::strcmp(GetMapName().c_str(), "torches aie") == 0 &&
+			if (std::strcmp(GetMapName().c_str(), "Torches AIE") == 0 &&
 				(std::strcmp(name.c_str(), "negativeZero") == 0 || 
 					std::strcmp(name.c_str(), "Aeolus") == 0 || 
 					std::strcmp(name.c_str(), "norman") == 0 || 
