@@ -19,11 +19,11 @@ public:
 	UNIT_TYPEID warpgate_production = UNIT_TYPEID::INVALID;
 	UNIT_TYPEID robo_production = UNIT_TYPEID::INVALID;
 	UNIT_TYPEID stargate_production = UNIT_TYPEID::INVALID;
+	std::map<UNIT_TYPEID, uint16_t> target_unit_comp;
+	bool automatic_unit_production = false;
 
 	std::map<const Unit*, WarpgateStatus> warpgate_status;
 	bool warp_in_at_proxy = false;
-
-	UnitCost resources_used_this_frame = UnitCost(0, 0, 0);
 
 	UnitProductionManager(Mediator* mediator)
 	{
@@ -31,12 +31,15 @@ public:
 	}
 
 
+	void ChooseUnitProduction();
 	void SetWarpgateProduction(UNIT_TYPEID);
 	void SetRoboProduction(UNIT_TYPEID);
 	void SetStargateProduction(UNIT_TYPEID);
 
 	void OnBuildingConstructionComplete(const Unit*); // TODO on unit destroyed
 	void RunUnitProduction();
+	void RunAutomaticUnitProduction();
+	void RunSpecificUnitProduction();
 
 	void SetWarpInAtProxy(bool);
 	std::vector<Point2D> FindWarpInSpots(Point2D);
@@ -48,6 +51,10 @@ public:
 	void WarpInUnit(UNIT_TYPEID, Point2D);
 	bool WarpInUnits(UNIT_TYPEID, int, Point2D);
 	bool WarpInUnitsAt(UNIT_TYPEID, int, Point2D);
+
+	std::map<UNIT_TYPEID, uint16_t> GetTargetUnitComp();
+	void IncreaseUnitAmountInTargetComposition(UNIT_TYPEID, uint16_t);
+	void DecreaseUnitAmountInTargetComposition(UNIT_TYPEID, uint16_t);
 };
 
 

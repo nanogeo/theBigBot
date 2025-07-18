@@ -7,6 +7,28 @@
 namespace sc2
 {
 
+void UnitProductionManager::ChooseUnitProduction()
+{
+	std::map<UNIT_TYPEID, uint16_t> units;
+	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Self))
+	{
+		if (units.find(unit->unit_type) != units.end())
+			units[unit->unit_type] = units[unit->unit_type] + 1;
+		else
+			units[unit->unit_type] = 1;
+	}
+
+	std::map<UNIT_TYPEID, uint16_t> needed_units;
+
+	for (const auto& unit_type : target_unit_comp)
+	{
+		if (unit_type.second > units[unit_type.first])
+			needed_units[unit_type.first] = unit_type.second - units[unit_type.first];
+	}
+
+
+}
+
 void UnitProductionManager::SetWarpgateProduction(UNIT_TYPEID unit_type)
 {
 	// TODO check if this is a unit made by the warp gate
@@ -52,20 +74,176 @@ void UnitProductionManager::RunUnitProduction()
 {
 	UpdateWarpgateStatus();
 
-	resources_used_this_frame = UnitCost(0, 0, 0);
+	if (automatic_unit_production)
+		RunAutomaticUnitProduction();
+	else
+		RunSpecificUnitProduction();
 
+	
+}
+
+void UnitProductionManager::RunAutomaticUnitProduction()
+{
+	std::map<UNIT_TYPEID, uint16_t> units;
+	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Self))
+	{
+		if (units.find(unit->unit_type) != units.end())
+			units[unit->unit_type] = units[unit->unit_type] + 1;
+		else
+			units[unit->unit_type] = 1;
+	}
+
+	std::map<UNIT_TYPEID, uint16_t> needed_gateway_units;
+	std::map<UNIT_TYPEID, uint16_t> needed_robo_units;
+	std::map<UNIT_TYPEID, uint16_t> needed_stargate_units;
+
+	for (const auto& unit_type : target_unit_comp)
+	{
+		if (unit_type.second > units[unit_type.first])
+		{
+			switch (Utility::GetBuildStructure(unit_type.first))
+			{
+			case GATEWAY:
+				needed_gateway_units[unit_type.first] = unit_type.second - units[unit_type.first];
+				break;
+			case STARGATE:
+				needed_stargate_units[unit_type.first] = unit_type.second - units[unit_type.first];
+				break;
+			case ROBO:
+				needed_robo_units[unit_type.first] = unit_type.second - units[unit_type.first];
+				break;
+			default:
+				std::cerr << "Error, unknown build structure in RunAutomaticUnitProduction for unit type: " << UnitTypeToName(unit_type.first) << std::endl;
+				break;
+			}
+		}
+	}
+
+	for (const auto& stargate : stargates)
+	{
+		if (stargate->orders.size() != 0 && stargate->is_powered == false)
+			continue;
+		for (auto itr = needed_stargate_units.begin(); itr != needed_stargate_units.end(); itr++)
+		{
+			TryActionResult result = mediator->TryTrainUnit(stargate, itr->first);
+			if (result == TryActionResult::success)
+			{
+				if (itr->second == 1)
+				{
+					itr = needed_stargate_units.erase(itr);
+				}
+				else
+				{
+					itr->second = itr->second - 1;
+				}
+				break;
+			}
+		}
+	}
+
+	for (const auto& robo : robos)
+	{
+		if (robo->orders.size() != 0 || robo->is_powered == false)
+			continue;
+		
+		for (auto itr = needed_robo_units.begin(); itr != needed_robo_units.end(); itr++)
+		{
+			TryActionResult result = mediator->TryTrainUnit(robo, itr->first);
+			if (result == TryActionResult::success)
+			{
+				if (itr->second == 1)
+				{
+					itr = needed_robo_units.erase(itr);
+				}
+				else
+				{
+					itr->second = itr->second - 1;
+				}
+				break;
+			}
+		}
+	}
+
+	if (mediator->CheckUpgrade(UPGRADE_ID::WARPGATERESEARCH))
+	{
+		std::vector<Point2D> spots = FindWarpInSpots(mediator->GetEnemyStartLocation());
+		for (const auto& warpgate : warpgates)
+		{
+			if (warpgate_status[warpgate].frame_ready != 0 || warpgate->is_powered == false)
+				continue;
+			if (spots.size() == 0)
+				break;
+
+			for (auto itr = needed_gateway_units.begin(); itr != needed_gateway_units.end(); itr++)
+			{
+				TryActionResult result = mediator->TryWarpIn(warpgate, itr->first, spots.back());
+				while (result == TryActionResult::invalid_position && spots.size() > 1)
+				{
+					spots.pop_back();
+					result = mediator->TryWarpIn(warpgate, itr->first, spots.back());
+				}
+				if (result == TryActionResult::success)
+				{
+					warpgate_status[warpgate].used = true;
+					warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(itr->first) * FRAME_TIME);
+					spots.pop_back();
+					if (itr->second == 1)
+					{
+						itr = needed_gateway_units.erase(itr);
+					}
+					else
+					{
+						itr->second = itr->second - 1;
+					}
+					break;
+				}
+				else if (result == TryActionResult::invalid_position)
+				{
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		for (const auto& gateway : gateways)
+		{
+			if (gateway->orders.size() != 0 && gateway->is_powered == false)
+				continue;
+			for (auto itr = needed_gateway_units.begin(); itr != needed_gateway_units.end(); itr++)
+			{
+				TryActionResult result = mediator->TryTrainUnit(gateway, itr->first);
+				if (result == TryActionResult::success)
+				{
+					if (itr->second == 1)
+					{
+						itr = needed_gateway_units.erase(itr);
+					}
+					else
+					{
+						itr->second = itr->second - 1;
+					}
+					break;
+				}
+			}
+		}
+	}
+}
+
+void UnitProductionManager::RunSpecificUnitProduction()
+{
 	if (stargate_production != UNIT_TYPEID::INVALID)
 	{
 		// use stargates
 		for (const auto& stargate : stargates)
 		{
-			if (stargate->orders.size() == 0)
+			if (stargate->orders.size() != 0 || stargate->is_powered == false)
+				continue;
+		
+			TryActionResult result = mediator->TryTrainUnit(stargate, stargate_production);
+			if (result == TryActionResult::cannot_afford || result == TryActionResult::low_tech)
 			{
-				TryActionResult result = mediator->TryTrainUnit(stargate, stargate_production);
-				if (result == TryActionResult::cannot_afford || result == TryActionResult::low_tech)
-				{
-					break;
-				}
+				break;
 			}
 		}
 	}
@@ -75,13 +253,13 @@ void UnitProductionManager::RunUnitProduction()
 		// use robos
 		for (const auto& robo : robos)
 		{
-			if (robo->orders.size() == 0)
+			if (robo->orders.size() != 0 || robo->is_powered == false)
+				continue;
+
+			TryActionResult result = mediator->TryTrainUnit(robo, robo_production);
+			if (result == TryActionResult::cannot_afford || result == TryActionResult::low_tech)
 			{
-				TryActionResult result = mediator->TryTrainUnit(robo, robo_production);
-				if (result == TryActionResult::cannot_afford || result == TryActionResult::low_tech)
-				{
-					break;
-				}
+				break;
 			}
 		}
 	}
@@ -93,26 +271,26 @@ void UnitProductionManager::RunUnitProduction()
 			std::vector<Point2D> spots = FindWarpInSpots(mediator->GetEnemyStartLocation());
 			for (const auto& warpgate : warpgates)
 			{
-				if (warpgate_status[warpgate].frame_ready == 0)
+				if (warpgate_status[warpgate].frame_ready != 0 || warpgate->is_powered == false)
+					continue;
+				if (spots.size() == 0)
+					break;
+
+				TryActionResult result = mediator->TryWarpIn(warpgate, warpgate_production, spots.back());
+				while (result == TryActionResult::invalid_position && spots.size() > 1)
 				{
-					if (spots.size() == 0)
-						break;
-					TryActionResult result = mediator->TryWarpIn(warpgate, warpgate_production, spots.back());
-					while (result == TryActionResult::invalid_position && spots.size() > 1)
-					{
-						spots.pop_back();
-						result = mediator->TryWarpIn(warpgate, warpgate_production, spots.back());
-					}
-					if (result == TryActionResult::success)
-					{
-						warpgate_status[warpgate].used = true;
-						warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(warpgate_production) * FRAME_TIME);
-						spots.pop_back();
-					}
-					else if (result == TryActionResult::invalid_position || result == TryActionResult::low_tech || result == TryActionResult::cannot_afford)
-					{
-						break;
-					}
+					spots.pop_back();
+					result = mediator->TryWarpIn(warpgate, warpgate_production, spots.back());
+				}
+				if (result == TryActionResult::success)
+				{
+					warpgate_status[warpgate].used = true;
+					warpgate_status[warpgate].frame_ready = mediator->GetGameLoop() + (int)round(Utility::GetWarpCooldown(warpgate_production) * FRAME_TIME);
+					spots.pop_back();
+				}
+				else if (result == TryActionResult::invalid_position || result == TryActionResult::low_tech || result == TryActionResult::cannot_afford)
+				{
+					break;
 				}
 			}
 		}
@@ -124,13 +302,12 @@ void UnitProductionManager::RunUnitProduction()
 			// use gateways
 			for (const auto& gateway : gateways)
 			{
-				if (gateway->orders.size() == 0)
+				if (gateway->orders.size() != 0 || gateway->is_powered == false)
+					continue;
+				TryActionResult result = mediator->TryTrainUnit(gateway, warpgate_production);
+				if (result == TryActionResult::cannot_afford || result == TryActionResult::low_tech)
 				{
-					TryActionResult result = mediator->TryTrainUnit(gateway, warpgate_production);
-					if (result == TryActionResult::cannot_afford || result == TryActionResult::low_tech)
-					{
-						break;
-					}
+					break;
 				}
 			}
 		}
@@ -438,6 +615,31 @@ bool UnitProductionManager::WarpInUnitsAt(UNIT_TYPEID unit_type, int num, Point2
 			return true;
 	}
 	return false;
+}
+
+
+std::map<UNIT_TYPEID, uint16_t> UnitProductionManager::GetTargetUnitComp()
+{
+	return target_unit_comp;
+}
+
+void UnitProductionManager::IncreaseUnitAmountInTargetComposition(UNIT_TYPEID unit_type, uint16_t amount)
+{
+	if (target_unit_comp.find(unit_type) != target_unit_comp.end())
+		target_unit_comp[unit_type] = target_unit_comp[unit_type] + amount;
+	else
+		target_unit_comp[unit_type] = amount;
+}
+
+void UnitProductionManager::DecreaseUnitAmountInTargetComposition(UNIT_TYPEID unit_type, uint16_t amount)
+{
+	if (target_unit_comp.find(unit_type) != target_unit_comp.end())
+	{
+		if (target_unit_comp[unit_type] > amount)
+			target_unit_comp[unit_type] = target_unit_comp[unit_type] - amount;
+		else
+			target_unit_comp[unit_type] = 0;
+	}
 }
 
 }
