@@ -60,6 +60,8 @@ void Mediator::SetUpManagers(bool debug)
 		{
 			SendChat("Tag:race_protoss", ChatChannel::Team);
 			std::string name = GetEnemyName();
+			std::cerr << "map: " << GetMapName() << std::endl;
+			std::cerr << "enemy: " << name << std::endl;
 			if (GetMapName() == "torches aie" && 
 				(name == "negativeZero" || name == "Aeolus" || name == "norman" || "Deimos"))
 			{
