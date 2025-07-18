@@ -62,8 +62,11 @@ void Mediator::SetUpManagers(bool debug)
 			std::string name = GetEnemyName();
 			std::cerr << "map: " << GetMapName() << std::endl;
 			std::cerr << "enemy: " << name << std::endl;
-			if (GetMapName() == "torches aie" && 
-				(name == "negativeZero" || name == "Aeolus" || name == "norman" || "Deimos"))
+			if (std::strcmp(GetMapName().c_str(), "torches aie") == 0 &&
+				(std::strcmp(name.c_str(), "negativeZero") == 0 || 
+					std::strcmp(name.c_str(), "Aeolus") == 0 || 
+					std::strcmp(name.c_str(), "norman") == 0 || 
+					std::strcmp(name.c_str(), "Deimos") == 0))
 			{
 				SetBuildOrder(BuildOrder::one_gate_expand_with_ramp);
 			}

@@ -1413,6 +1413,9 @@ void BuildOrderManager::SetBuildOrder(BuildOrder build)
 	case BuildOrder::pvp_openner:
 		SetPvPOpenner();
 		break;
+	case BuildOrder::one_gate_expand_with_ramp:
+		Set1GateExpandWithRamp();
+		break;
 	default:
 		//std::cout << "Error invalid build order in SetBuildOrder" << std::endl;
 		break;
