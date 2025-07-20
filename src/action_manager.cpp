@@ -50,7 +50,7 @@ void ActionManager::AddAction(ActionData* action)
 
 std::vector<ActionData*>::iterator ActionManager::EraseAction(ActionData* action)
 {
-	for (auto itr = active_actions.begin(); itr != active_actions.end();)
+	for (auto itr = active_actions.begin(); itr != active_actions.end();itr++)
 	{
 		if ((*itr) == action)
 			return active_actions.erase(itr);
