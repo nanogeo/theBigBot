@@ -706,7 +706,7 @@ Point2D Utility::PointBetween(Point2D start, Point2D end, float dist)
 
 Point2D Utility::RunAwayCircle(Point2D start, Point2D end, float dist, float theta)
 {
-	theta = theta * PI / 180;
+	theta = theta * (float)PI / 180.0f;
 	float total_dist = Distance2D(start, end);
 	if (total_dist == 0)
 	{
@@ -2784,42 +2784,16 @@ float Utility::GetFacingAngle(const Unit* unit, const Unit* target)
 
 const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 {
-#ifdef DEBUG_TIMING
-	std::ofstream amaing_at_time;
-	amaing_at_time.open("amaing_at_time.txt", std::ios_base::app);
-
-	unsigned long long distance_check_total = 0;
-	unsigned long long angle_check_total = 0;
-	unsigned long long total = 0;
-#endif
-
 	float smallest_angle = 180;
 	const Unit* target = nullptr;
 
 
 	for (const auto Funit : allied_units)
 	{ // try flipped
-#ifdef DEBUG_TIMING
-		unsigned long long unit_start = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count();
-#endif
-
 		if (Distance2D(unit->pos, Funit->pos) >= RealRange(unit, Funit))
 		{
-#ifdef DEBUG_TIMING
-			/*unsigned long long dist_check = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				).count();
-			distance_check_total += dist_check - unit_start;*/
-#endif
 			continue;
 		}
-#ifdef DEBUG_TIMING
-		unsigned long long dist_check = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count();
-#endif
 		float angle = GetFacingAngle(unit, Funit);
 
 		if (angle < smallest_angle)
@@ -2827,21 +2801,7 @@ const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 			smallest_angle = angle;
 			target = Funit;
 		}
-#ifdef DEBUG_TIMING
-		unsigned long long angle_check = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count();
-
-		distance_check_total += dist_check - unit_start;
-		angle_check_total += angle_check - dist_check;
-#endif
 	}
-
-#ifdef DEBUG_TIMING
-	amaing_at_time << distance_check_total << ", ";
-	amaing_at_time << angle_check_total << "\n";
-	amaing_at_time.close();
-#endif
 
 	return target;
 }
@@ -4278,6 +4238,19 @@ std::string Utility::AbilityIdToString(ABILITY_ID abilityId)
 	}
 }
 
+std::string Utility::OrdersToString(std::vector<UnitOrder> orders)
+{
+	std::string text = "";
+	for (const auto& order : orders)
+	{
+		text += Utility::AbilityIdToString(order.ability_id);
+		int percent = (int)std::floor(order.progress * 10);
+		std::string completed(percent, '|');
+		std::string todo(10 - percent, '-');
+		text += " <" + completed + todo + "> ";
+	}
+	return text;
+}
 
 
 }

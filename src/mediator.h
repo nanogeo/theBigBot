@@ -23,28 +23,7 @@ namespace sc2
 
 class Mediator
 {
-public:
-
-	Mediator(TheBigBot* agent) : 
-		build_order_manager(this), 
-		action_manager(this), 
-		worker_manager(this), 
-		unit_command_manager(this, agent),
-		upgrade_manager(this),
-		finite_state_machine_manager(this),
-		army_manager(this),
-		unit_production_manager(this),
-		scouting_manager(this),
-		defense_manager(this),
-		ability_manager(this),
-		fire_control_manager(this),
-		transition_manager(this),
-		resource_manager(this)
-	{
-		this->agent = agent;
-	}
-
-//private:
+private:
 	TheBigBot* agent;
 	BuildOrderManager build_order_manager;
 	ActionManager action_manager;
@@ -65,16 +44,36 @@ public:
 	std::vector<Point2D> do_not_rebuild;
 
 public:
+	Mediator(TheBigBot* agent) :
+		build_order_manager(this),
+		action_manager(this),
+		worker_manager(this),
+		unit_command_manager(this, agent),
+		upgrade_manager(this),
+		finite_state_machine_manager(this),
+		army_manager(this),
+		unit_production_manager(this),
+		scouting_manager(this),
+		defense_manager(this),
+		ability_manager(this),
+		fire_control_manager(this),
+		transition_manager(this),
+		resource_manager(this)
+	{
+		this->agent = agent;
+	}
+
 	void SetUpManagers(bool);
 	void RunManagers();
 
-	int GetGameLoop();
-	float GetCurrentTime();
+	uint32_t GetGameLoop();
+	float GetCurrentTime() const;
 	int GetUniqueId();
 	int GetNumWorkers();
 	int GetSupplyUsed();
 	int GetArmySupply();
 	int GetSupplyCap();
+	const std::vector<Effect>& GetEffects();
 	ImageData GetPathingGrid();
 	bool IsPathable(Point2D);
 	bool IsBuildable(Point2D);
@@ -96,10 +95,10 @@ public:
 	bool HasTechForBuilding(UNIT_TYPEID);
 	bool HasTechForUnit(UNIT_TYPEID);
 	bool CanTrainUnit(UNIT_TYPEID);
-	bool IsUnitOccupied(const Unit*);
 	int GetUpgradeLevel(UpgradeType);
 	const Unit* GetMostRecentBuilding(UNIT_TYPEID);
 	float GetLineDangerLevel(PathManager);
+	const std::vector<Point2D>& GetCorrosiveBilePositions();
 	bool IsVisible(Point2D);
 	std::vector<std::vector<UNIT_TYPEID>> GetPrio();
 	UnitCost GetCurrentResources();
@@ -112,6 +111,7 @@ public:
 	void SendChat(std::string, ChatChannel);
 	void LogMinorError();
 	void DebugSphere(Point3D, float, Color);
+	void DebugText(std::string, Point2D, Color, int);
 
 	const Unit* GetBuilder(Point2D);
 	bool BuildBuilding(UNIT_TYPEID);
@@ -119,7 +119,6 @@ public:
 	void BuildBuildingMulti(std::vector<UNIT_TYPEID>, Point2D, const Unit*);
 	//void BuildBuilding(UNIT_TYPEID);
 	//void BuildGas(const Unit*);
-	Units GetAllWorkersOnGas();
 	int NumFar3rdWorkers();
 	bool SendScout();
 	bool SendCannonRushProbe1();
@@ -137,7 +136,7 @@ public:
 	void SetWorkerRushDefenseBuidOrder();
 
 	Point2D GetLocation(UNIT_TYPEID);
-	Point2D GetLocation(UNIT_TYPEID, int);
+	Point2D GetLocation(UNIT_TYPEID, int) const;
 	Point2D GetProxyLocation(UNIT_TYPEID);
 	std::vector<Point2D> GetProxyLocations(UNIT_TYPEID);
 	Point2D GetNaturalDefensiveLocation(UNIT_TYPEID);
@@ -146,7 +145,7 @@ public:
 	Point2D FindBuildLocationNear(UNIT_TYPEID, Point2D);
 	Point2D FindBuildLocationNearWithinNexusRange(UNIT_TYPEID, Point2D);
 	Point2D GetWallOffLocation(UNIT_TYPEID);
-	const Locations& GetLocations();
+	const Locations& GetLocations() const;
 
 	void ContinueBuildingPylons();
 	void ContinueMakingWorkers();
@@ -156,27 +155,31 @@ public:
 	bool TrainFromProxyRobo();
 	int GetNumBuildActions(UNIT_TYPEID);
 	void AddAction(bool(sc2::ActionManager::* action)(ActionArgData*), ActionArgData*);
+	void AddUniqueAction(bool(sc2::ActionManager::* action)(ActionArgData*), ActionArgData*);
 	bool HasActionOfType(bool(sc2::ActionManager::* action)(ActionArgData*));
 	void CancelAllBuildActions();
 	void CancelAllActionsOfType(bool(sc2::ActionManager::* action)(ActionArgData*));
 	UnitCost CalculateCostOfCurrentBuildActions();
 
-	float GetFirstGasTiming();
-	float GetSecondGasTiming();
-	float GetNaturalTiming();
-	float GetThirdTiming();
-	float GetFirstBarrackTiming();
-	float GetFactoryTiming();
-	float GetFirstGateTiming();
-	float GetSecondGateTiming();
-	float GetFirstPylonTiming();
-	float GetSecondPylonTiming();
-	UNIT_TYPEID GetTechChoice();
-	float GetSpawningPoolTiming();
-	float GetRoachWarrenTiming();
+	float GetFirstGasTiming() const;
+	float GetSecondGasTiming() const;
+	float GetNaturalTiming() const;
+	float GetThirdTiming() const;
+	float GetFirstBarrackTiming() const;
+	FirstRaxProduction GetFirstBarrackProduction() const;
+	void SetFirstBarrackProduction(FirstRaxProduction);
+	float GetFactoryTiming() const;
+	float GetFirstGateTiming() const;
+	float GetSecondGateTiming() const;
+	float GetFirstPylonTiming() const;
+	float GetSecondPylonTiming() const;
+	UNIT_TYPEID GetTechChoice() const;
+	float GetSpawningPoolTiming() const;
+	float GetRoachWarrenTiming() const;
 	int GetEnemyUnitCount(UNIT_TYPEID);
 	void InitializeGameState();
-	GameState GetGameState();
+	GameState GetGameState() const;
+	int GetIncomingDamage(const Unit*);
 
 	StateMachine* GetStateMachineByName(std::string);
 	void AddStateMachine(StateMachine*);
@@ -195,8 +198,8 @@ public:
 
 	void DefendThirdBaseZerg();
 	void SetDoorGuard();
-	void CreateAttack(std::vector<UNIT_TYPEID>, uint16_t, uint16_t, uint16_t, uint16_t);
-	void CreateSimpleAttack(std::vector<UNIT_TYPEID>, uint16_t, uint16_t);
+	void CreateAttack(std::vector<UNIT_TYPEID>, int, int, int, int);
+	void CreateSimpleAttack(std::vector<UNIT_TYPEID>, int, int);
 	void StartCannonRushDefense();
 	void ScoutBases();
 	void DefendMainRamp(Point2D);
@@ -205,13 +208,13 @@ public:
 	void BuildDefensiveBuilding(UNIT_TYPEID, Point2D);
 
 	float JudgeFight(Units, Units, float, float, bool);
-	std::vector<OngoingAttack> GetOngoingAttacks();
+	std::vector<OngoingAttack> GetOngoingAttacks() const;
 	float GetWorstOngoingAttackValue();
 	void SetAllowProductionInterrupt(bool);
 
 	void PlaceWorker(const Unit*);
 	RemoveWorkerResult RemoveWorker(const Unit*);
-	void PullOutOfGas();
+	bool PullOutOfGas();
 	void PullOutOfGas(int);
 	UnitCost CalculateIncome();
 
@@ -235,27 +238,27 @@ public:
 	ArmyGroup* GetDoorGuardArmyGroup();
 	void ScourMap();
 
-	Point2D GetStartLocation();
-	Point2D GetNaturalLocation();
-	Point2D GetEnemyStartLocation();
-	Point2D GetEnemyNaturalLocation();
-	PathManager GetDirectAttackLine();
-	std::vector<Point2D> GetDirectAttackPath();
-	PathManager GetStalkerAttackLine();
-	std::vector<Point2D> GetStalkerAttackPath();
-	PathManager GetIndirectAttackLine();
-	std::vector<Point2D> GetIndirectAttackPath();
-	std::vector<Point2D> GetAltAttackPath();
-	std::vector<Point2D> GetBadWarpInSpots();
+	Point2D GetStartLocation() const;
+	Point2D GetNaturalLocation() const;
+	Point2D GetEnemyStartLocation() const;
+	Point2D GetEnemyNaturalLocation() const;
+	PathManager GetDirectAttackLine() const;
+	std::vector<Point2D> GetDirectAttackPath() const;
+	PathManager GetStalkerAttackLine() const;
+	std::vector<Point2D> GetStalkerAttackPath() const;
+	PathManager GetIndirectAttackLine() const;
+	std::vector<Point2D> GetIndirectAttackPath() const;
+	std::vector<Point2D> GetAltAttackPath() const;
+	std::vector<Point2D> GetBadWarpInSpots() const;
 	const Unit* GetWorkerRushDefenseAttackingMineralPatch();
 	const Unit* GetWorkerRushDefenseGroupingMineralPatch();
-	std::vector<Point2D> GetAllBases();
-	std::vector<Point2D> GetPossibleEnemyThirdBaseLocations();
-	std::vector<Point2D> GetSelfMainScoutPath();
-	std::vector<Point2D> GetSelfNaturalScoutPath();
+	std::vector<Point2D> GetAllBases() const;
+	std::vector<Point2D> GetPossibleEnemyThirdBaseLocations() const;
+	std::vector<Point2D> GetSelfMainScoutPath() const;
+	std::vector<Point2D> GetSelfNaturalScoutPath() const;
 
-	std::string GetMapName();
-	Race GetEnemyRace();
+	std::string GetMapName() const;
+	Race GetEnemyRace() const;
 	std::string GetEnemyName();
 	Point3D ToPoint3D(Point2D);
 
@@ -288,12 +291,15 @@ public:
 	TryActionResult TryTrainProbe(const Unit*);
 	TryActionResult TryWarpIn(const Unit*, UNIT_TYPEID, Point2D);
 	TryActionResult TryResearchUpgrade(const Unit*, UPGRADE_ID);
-	void SetUnitCommand(const Unit* unit, AbilityID ability, int prio, bool queued_command = false);
-	void SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, int prio, bool queued_command = false);
-	void SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, int prio, bool queued_command = false);
-	void SetUnitsCommand(const Units& units, AbilityID ability, int prio, bool queued_command = false);
-	void SetUnitsCommand(const Units& units, AbilityID ability, const Point2D& point, int prio, bool queued_command = false);
-	void SetUnitsCommand(const Units& units, AbilityID ability, const Unit* target, int prio, bool queued_command = false);
+	void SetUnitCommand(const Unit* unit, AbilityID ability, CommandPriorty prio, bool queued_command = false);
+	void SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, CommandPriorty prio, bool queued_command = false);
+	void SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, CommandPriorty prio, bool queued_command = false);
+	void SetUnitsCommand(const Units& units, AbilityID ability, CommandPriorty prio, bool queued_command = false);
+	void SetUnitsCommand(const Units& units, AbilityID ability, const Point2D& point, CommandPriorty prio, bool queued_command = false);
+	void SetUnitsCommand(const Units& units, AbilityID ability, const Unit* target, CommandPriorty prio, bool queued_command = false);
+	void ForceUnitCommand(const Unit* unit, AbilityID ability, bool queued_command = false);
+	void ForceUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, bool queued_command = false);
+	void ForceUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, bool queued_command = false);
 
 	void OnBuildingConstructionComplete(const Unit*);
 	void OnNeutralUnitCreated(const Unit*);
@@ -303,6 +309,8 @@ public:
 	void OnUnitDestroyed(const Unit*); // remove from army units
 	void OnUpgradeCompleted(UPGRADE_ID);
 
+	void DisplayDebugHUD();
+	void DisplaySupplyInfo();
 
 	void AddListenerToOnUnitDamagedEvent(int, std::function<void(const Unit*, float, float)>);
 	void RemoveListenerToOnUnitDamagedEvent(int);

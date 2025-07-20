@@ -48,9 +48,6 @@ struct IsGroundBuilding{
 	explicit IsGroundBuilding();
 
 	bool operator()(const Unit& unit_) const;
-
-private:
-	UNIT_TYPEID m_type;
 };
 
 struct IsNonPlaceholderUnit {
@@ -189,6 +186,7 @@ public:
 	static float GetOrderTimeLeft(UnitOrder);
 
 	static std::string AbilityIdToString(ABILITY_ID);
+	static std::string OrdersToString(std::vector<UnitOrder>);
 
 };
 

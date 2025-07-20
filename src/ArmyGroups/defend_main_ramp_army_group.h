@@ -13,17 +13,18 @@ class Mediator;
 
 class DefendMainRampArmyGroup : public ArmyGroup
 {
-public:
+protected:
 	Units sentries;
 
 	Point2D ramp_top;
 	Point2D forcefield_pos;
 	Point2D walloff_pos;
 
+public:
 	DefendMainRampArmyGroup(Mediator*, Point2D, Point2D);
 
 	void Run() override;
-	std::string ToString() override
+	std::string ToString() const override
 	{
 		return "Defend main ramp army group";
 	}

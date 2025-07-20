@@ -19,7 +19,7 @@ void PvPMainRampWallOffWaitForEnemies::TickState()
 		mediator->RemoveWorker(state_machine->probe);
 	}
 	if (Distance2D(state_machine->probe->pos, state_machine->wall_off_pos) > 1)
-		mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::MOVE_MOVE, state_machine->wall_off_pos, 1);
+		mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::MOVE_MOVE, state_machine->wall_off_pos, CommandPriorty::normal);
 }
 
 void PvPMainRampWallOffWaitForEnemies::EnterState()
@@ -39,7 +39,7 @@ State* PvPMainRampWallOffWaitForEnemies::TestTransitions()
 	return nullptr;
 }
 
-std::string PvPMainRampWallOffWaitForEnemies::toString()
+std::string PvPMainRampWallOffWaitForEnemies::toString() const
 {
 	return "waiting for enemies";
 }
@@ -91,7 +91,7 @@ State* PvPMainRampWallOffBuildBuilding::TestTransitions()
 	return nullptr;
 }
 
-std::string PvPMainRampWallOffBuildBuilding::toString()
+std::string PvPMainRampWallOffBuildBuilding::toString() const
 {
 	return "build wall off";
 }
@@ -112,7 +112,7 @@ void PvPMainRampWallOffWaitForSafety::TickState()
 		mediator->RemoveWorker(state_machine->probe);
 	}
 	if (Distance2D(state_machine->probe->pos, fallback) > 1)
-		mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::MOVE_MOVE, fallback, 1);
+		mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::MOVE_MOVE, fallback, CommandPriorty::normal);
 }
 
 void PvPMainRampWallOffWaitForSafety::EnterState()
@@ -124,7 +124,7 @@ void PvPMainRampWallOffWaitForSafety::ExitState()
 {
 	if (wall != nullptr && wall->is_alive)
 	{
-		mediator->SetUnitCommand(wall, ABILITY_ID::CANCEL, 1);
+		mediator->SetUnitCommand(wall, ABILITY_ID::CANCEL, CommandPriorty::normal);
 		mediator->AddBuildingToDoNotRebuild(wall->pos);
 	}
 	return;
@@ -137,7 +137,7 @@ State* PvPMainRampWallOffWaitForSafety::TestTransitions()
 	return nullptr;
 }
 
-std::string PvPMainRampWallOffWaitForSafety::toString()
+std::string PvPMainRampWallOffWaitForSafety::toString() const
 {
 	return "waiting for safety";
 }

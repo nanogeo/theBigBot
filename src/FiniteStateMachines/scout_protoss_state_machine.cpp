@@ -12,7 +12,7 @@ namespace sc2 {
 void ScoutPInitialMove::TickState()
 {
 	if (state_machine->scout->orders.size() == 0 || state_machine->scout->orders[0].target_pos != state_machine->current_target)
-		mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
 }
 
 void ScoutPInitialMove::EnterState()
@@ -38,7 +38,7 @@ State* ScoutPInitialMove::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutPInitialMove::toString()
+std::string ScoutPInitialMove::toString() const
 {
 	return "initial move";
 }
@@ -53,7 +53,7 @@ void ScoutPScoutPylon::TickState()
 	{
 		Units pylons = mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON));
 		if (pylons.size() > 0)
-			mediator->SetUnitCommand(state_machine->scout, A_MOVE, pylons[0]->pos, 0);
+			mediator->SetUnitCommand(state_machine->scout, A_MOVE, pylons[0]->pos, CommandPriorty::low);
 	}
 }
 
@@ -61,7 +61,7 @@ void ScoutPScoutPylon::EnterState()
 {
 	Units pylons = mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON));
 	if (pylons.size() > 0)
-		mediator->SetUnitCommand(state_machine->scout, A_MOVE, pylons[0]->pos, 0);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, pylons[0]->pos, CommandPriorty::low);
 }
 
 void ScoutPScoutPylon::ExitState()
@@ -79,7 +79,7 @@ State* ScoutPScoutPylon::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutPScoutPylon::toString()
+std::string ScoutPScoutPylon::toString() const
 {
 	return "scout pylon";
 }
@@ -96,7 +96,7 @@ void ScoutPScoutMain::TickState()
 		if (state_machine->index < state_machine->main_scout_path.size())
 			state_machine->current_target = state_machine->main_scout_path[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
 }
 
 void ScoutPScoutMain::EnterState()
@@ -122,7 +122,7 @@ State* ScoutPScoutMain::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutPScoutMain::toString()
+std::string ScoutPScoutMain::toString() const
 {
 	return "scout main";
 }
@@ -134,13 +134,13 @@ std::string ScoutPScoutMain::toString()
 void ScoutPScoutNatural::TickState()
 {
 	if (state_machine->scout->orders.size() == 0 && Distance2D(state_machine->scout->pos, mediator->GetEnemyNaturalLocation()) > 6)
-		mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetEnemyNaturalLocation(), 0);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetEnemyNaturalLocation(), CommandPriorty::low);
 
 }
 
 void ScoutPScoutNatural::EnterState()
 {
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetEnemyNaturalLocation(), 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetEnemyNaturalLocation(), CommandPriorty::low);
 }
 
 void ScoutPScoutNatural::ExitState()
@@ -157,7 +157,7 @@ State* ScoutPScoutNatural::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutPScoutNatural::toString()
+std::string ScoutPScoutNatural::toString() const
 {
 	return "scout natural";
 }
@@ -174,7 +174,7 @@ void ScoutPReturnToBase::TickState()
 
 void ScoutPReturnToBase::EnterState()
 {
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetStartLocation(), 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetStartLocation(), CommandPriorty::low);
 }
 
 void ScoutPReturnToBase::ExitState()
@@ -192,7 +192,7 @@ State* ScoutPReturnToBase::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutPReturnToBase::toString()
+std::string ScoutPReturnToBase::toString() const
 {
 	return "return to base";
 }
@@ -205,5 +205,9 @@ ScoutProtossStateMachine::~ScoutProtossStateMachine()
 	
 }
 
+const Unit* ScoutProtossStateMachine::GetScout()
+{
+	return scout;
+}
 
 }

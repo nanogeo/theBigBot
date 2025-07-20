@@ -22,7 +22,7 @@ DenyOuterBaseArmyGroup::DenyOuterBaseArmyGroup(Mediator* mediator, ArmyTemplate<
 void DenyOuterBaseArmyGroup::SetUp()
 {
 	// TODO check for units mid warp in
-	mediator->SetUnitsCommand(all_units, A_MOVE, Utility::MedianCenter(all_units), 0);
+	mediator->SetUnitsCommand(all_units, A_MOVE, Utility::MedianCenter(all_units), CommandPriorty::low);
 	if (Utility::GetUnitsWithin(all_units, Utility::MedianCenter(all_units), 5).size() >= desired_units)
 	{
 		ready = true;
@@ -32,7 +32,7 @@ void DenyOuterBaseArmyGroup::SetUp()
 
 void DenyOuterBaseArmyGroup::Run()
 {
-	mediator->SetUnitsCommand(all_units, A_ATTACK, base_pos, 1);
+	mediator->SetUnitsCommand(all_units, A_ATTACK, base_pos, CommandPriorty::normal);
 
 	if (all_units.size() == 0 || Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits(TOWNHALL_TYPES)), base_pos) > 7)
 		mediator->MarkArmyGroupForDeletion(this);

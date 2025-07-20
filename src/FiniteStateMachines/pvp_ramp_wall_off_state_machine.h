@@ -13,17 +13,18 @@ class PvPMainRampWallOffStateMachine;
 
 class PvPMainRampWallOffWaitForEnemies : public State
 {
-public:
+private:
 	Units new_workers;
 	Point2D group_pos;
 	float enter_time = 0;;
-	class PvPMainRampWallOffStateMachine* state_machine;
+	PvPMainRampWallOffStateMachine* state_machine;
+public:
 	PvPMainRampWallOffWaitForEnemies(Mediator* mediator, PvPMainRampWallOffStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -32,14 +33,15 @@ public:
 
 class PvPMainRampWallOffBuildBuilding : public State
 {
+private:
+	PvPMainRampWallOffStateMachine* state_machine;
 public:
-	class PvPMainRampWallOffStateMachine* state_machine;
 	PvPMainRampWallOffBuildBuilding(Mediator* mediator, PvPMainRampWallOffStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -48,11 +50,12 @@ public:
 
 class PvPMainRampWallOffWaitForSafety : public State
 {
-public:
+private:
 	const Unit* wall;
 	Point2D fallback;
-	float build_time;
-	class PvPMainRampWallOffStateMachine* state_machine;
+	float build_time = 0;
+	PvPMainRampWallOffStateMachine* state_machine;
+public:
 	PvPMainRampWallOffWaitForSafety(Mediator* mediator, PvPMainRampWallOffStateMachine* state_machine, const Unit* wall, Point2D fallback)
 	{
 		this->mediator = mediator;
@@ -60,7 +63,7 @@ public:
 		this->wall = wall;
 		this->fallback = fallback;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -70,9 +73,13 @@ public:
 
 class PvPMainRampWallOffStateMachine : public StateMachine
 {
-public:
+	friend PvPMainRampWallOffWaitForEnemies;
+	friend PvPMainRampWallOffBuildBuilding;
+	friend PvPMainRampWallOffWaitForSafety;
+private:
 	const Unit* probe;
 	Point2D wall_off_pos;
+public:
 	PvPMainRampWallOffStateMachine(Mediator*, std::string, const Unit*, Point2D);
 	~PvPMainRampWallOffStateMachine();
 };

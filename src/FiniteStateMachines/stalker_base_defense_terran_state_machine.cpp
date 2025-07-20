@@ -23,13 +23,13 @@ void StalkerBaseDefenseTerranDefendFront::TickState()
 		{
 			if (forward)
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->front_of_base[1], 0);
+				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->front_of_base[1], CommandPriorty::low);
 				if (Distance2D(state_machine->stalker->pos, state_machine->front_of_base[1]) < 1)
 					forward = false;
 			}
 			else
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->front_of_base[0], 0);
+				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->front_of_base[0], CommandPriorty::low);
 				if (Distance2D(state_machine->stalker->pos, state_machine->front_of_base[0]) < 1)
 					forward = true;
 			}
@@ -42,12 +42,12 @@ void StalkerBaseDefenseTerranDefendFront::TickState()
 			// TODO move infront of units based on distance away
 			if (Distance2D(state_machine->target->pos, state_machine->stalker->pos) <= 6 && state_machine->stalker->weapon_cooldown == 0)
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, state_machine->target, 0);
+				mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, state_machine->target, CommandPriorty::low);
 				state_machine->attack_status = true;
 			}
 			else
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->target->pos, 0);
+				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->target->pos, CommandPriorty::low);
 
 			}
 		}
@@ -74,12 +74,12 @@ State* StalkerBaseDefenseTerranDefendFront::TestTransitions()
 {
 	Units gates = mediator->GetUnits(IsFriendlyUnit(GATEWAY));
 	Units other_units = mediator->GetUnits(IsUnits({ ADEPT, STALKER }));
-	if (other_units.size() > 1 || mediator->scouting_manager.first_rax_production != reaper || (gates.size() > 0 && gates[0]->orders.size() > 0 && gates[0]->orders[0].progress > .9))
+	if (other_units.size() > 1 || mediator->GetFirstBarrackProduction() != reaper || (gates.size() > 0 && gates[0]->orders.size() > 0 && gates[0]->orders[0].progress > .9))
 		return new StalkerBaseDefenseTerranMoveAcross(mediator, state_machine);
 	return nullptr;
 }
 
-std::string StalkerBaseDefenseTerranDefendFront::toString()
+std::string StalkerBaseDefenseTerranDefendFront::toString() const
 {
 	return "defend front";
 }
@@ -102,7 +102,7 @@ void StalkerBaseDefenseTerranMoveAcross::TickState()
 		}
 		if (state_machine->target == nullptr)
 		{
-			mediator->SetUnitCommand(state_machine->stalker, A_MOVE, mediator->GetLocations().adept_scout_runaway, 0);
+			mediator->SetUnitCommand(state_machine->stalker, A_MOVE, mediator->GetLocations().adept_scout_runaway, CommandPriorty::low);
 		}
 	}
 	else
@@ -118,12 +118,12 @@ void StalkerBaseDefenseTerranMoveAcross::TickState()
 			// TODO move infront of units based on distance away
 			if (Distance2D(state_machine->target->pos, state_machine->stalker->pos) <= 4 && state_machine->stalker->weapon_cooldown == 0)
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, state_machine->target, 0);
+				mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, state_machine->target, CommandPriorty::low);
 				state_machine->attack_status = true;
 			}
 			else
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->target->pos, 0);
+				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->target->pos, CommandPriorty::low);
 
 			}
 		}
@@ -152,7 +152,7 @@ State* StalkerBaseDefenseTerranMoveAcross::TestTransitions()
 	return nullptr;
 }
 
-std::string StalkerBaseDefenseTerranMoveAcross::toString()
+std::string StalkerBaseDefenseTerranMoveAcross::toString() const
 {
 	return "move across map";
 }
@@ -192,22 +192,22 @@ void ScoutBaseDefenseTerranHarrassFront::TickState()
 	{
 		if (state_machine->stalker->shield < 5)
 			shields_regening = true;
-		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, furthest_point, 0);
+		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, furthest_point, CommandPriorty::low);
 	}
 	else if (shields_regening)
 	{
 		if (state_machine->stalker->shield >= 75)
 			shields_regening = false;
-		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, furthest_point, 0);
+		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, furthest_point, CommandPriorty::low);
 	}
 	else if (Distance2D(closest_unit->pos, state_machine->stalker->pos) <= 6)
 	{
-		mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, closest_unit, 0);
+		mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, closest_unit, CommandPriorty::low);
 		state_machine->attack_status = true;
 	}
 	else
 	{
-		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, closest_unit, 0);
+		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, closest_unit, CommandPriorty::low);
 	}
 }
 
@@ -226,7 +226,7 @@ State* ScoutBaseDefenseTerranHarrassFront::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutBaseDefenseTerranHarrassFront::toString()
+std::string ScoutBaseDefenseTerranHarrassFront::toString() const
 {
 	return "harass front";
 }

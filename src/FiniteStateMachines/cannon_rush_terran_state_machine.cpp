@@ -11,7 +11,7 @@ namespace sc2 {
 
 void CannonRushTerranMoveAcross::TickState()
 {
-	mediator->SetUnitCommand(probe, A_MOVE, mediator->GetLocations().enemy_natural, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, mediator->GetLocations().enemy_natural, CommandPriorty::low);
 }
 
 void CannonRushTerranMoveAcross::EnterState()
@@ -31,7 +31,7 @@ State* CannonRushTerranMoveAcross::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranMoveAcross::toString()
+std::string CannonRushTerranMoveAcross::toString() const
 {
 	return "move across 1";
 }
@@ -43,7 +43,7 @@ std::string CannonRushTerranMoveAcross::toString()
 void CannonRushTerranFindAvaibleCorner::TickState()
 {
 	Point2D pos = mediator->GetLocations().cannon_rush_terran_positions[curr_index].initial_pylon;
-	mediator->SetUnitCommand(probe, A_MOVE, pos, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, pos, CommandPriorty::low);
 
 	if (Distance2D(probe->pos, pos) < 6)
 	{
@@ -55,7 +55,7 @@ void CannonRushTerranFindAvaibleCorner::TickState()
 		}
 		else if (Distance2D(probe->pos, pos) < 1 && mediator->CanAfford(PYLON, 1))
 		{
-			mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pos, 0);
+			mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pos, CommandPriorty::low);
 		}
 	}
 }
@@ -78,7 +78,7 @@ State* CannonRushTerranFindAvaibleCorner::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranFindAvaibleCorner::toString()
+std::string CannonRushTerranFindAvaibleCorner::toString() const
 {
 	return "find available corner";
 }
@@ -97,7 +97,7 @@ void CannonRushTerranScout::TickState()
 		else
 			index = 0;
 	}
-	mediator->SetUnitCommand(probe, A_MOVE, current_target, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, current_target, CommandPriorty::low);
 }
 
 void CannonRushTerranScout::EnterState()
@@ -143,7 +143,7 @@ State* CannonRushTerranScout::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranScout::toString()
+std::string CannonRushTerranScout::toString() const
 {
 	return "scout";
 }
@@ -156,12 +156,12 @@ void CannonRushTerranGasSteal::TickState()
 {
 	//agent->Debug()->DebugSphereOut(gas->pos, 1.5, Color(255, 0, 0));
 	if (Distance2D(probe->pos, gas->pos) < 1.75)
-		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_ASSIMILATOR, gas, 0);
+		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_ASSIMILATOR, gas, CommandPriorty::low);
 }
 
 void CannonRushTerranGasSteal::EnterState()
 {
-	mediator->SetUnitCommand(probe, A_MOVE, gas, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, gas, CommandPriorty::low);
 }
 
 void CannonRushTerranGasSteal::ExitState()
@@ -184,7 +184,7 @@ State* CannonRushTerranGasSteal::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranGasSteal::toString()
+std::string CannonRushTerranGasSteal::toString() const
 {
 	return "steal gas";
 }
@@ -195,7 +195,7 @@ std::string CannonRushTerranGasSteal::toString()
 
 void CannonRushTerranMoveAcross2::TickState()
 {
-	mediator->SetUnitCommand(probe, A_MOVE, mediator->GetLocations().enemy_natural, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, mediator->GetLocations().enemy_natural, CommandPriorty::low);
 }
 
 void CannonRushTerranMoveAcross2::EnterState()
@@ -220,7 +220,7 @@ State* CannonRushTerranMoveAcross2::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranMoveAcross2::toString()
+std::string CannonRushTerranMoveAcross2::toString() const
 {
 	return "move across 2";
 }
@@ -232,7 +232,7 @@ std::string CannonRushTerranMoveAcross2::toString()
 void CannonRushTerranFindWallOffSpot::TickState()
 {
 	CannonRushPosition pos = mediator->GetLocations().cannon_rush_terran_positions[index];
-	mediator->SetUnitCommand(probe, A_MOVE, pos.initial_pylon, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, pos.initial_pylon, CommandPriorty::low);
 	if (Utility::DistanceToClosest(mediator->GetUnits(IsFriendlyUnit(PYLON)), pos.initial_pylon) > 1)
 	{
 		index++;
@@ -315,7 +315,7 @@ State* CannonRushTerranFindWallOffSpot::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranFindWallOffSpot::toString()
+std::string CannonRushTerranFindWallOffSpot::toString() const
 {
 	return "find walloff spot";
 }
@@ -332,9 +332,9 @@ void CannonRushTerranWallOff::TickState()
 	{
 		building_pos = cannon_pos;
 		move_to_pos = cannon_move_to;
-		mediator->SetUnitCommand(probe, A_MOVE, move_to_pos, 0);
+		mediator->SetUnitCommand(probe, A_MOVE, move_to_pos, CommandPriorty::low);
 		if (mediator->CanAfford(CANNON, 1) && Distance2D(probe->pos, move_to_pos) < .25)
-			mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, building_pos, 0);
+			mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, building_pos, CommandPriorty::low);
 	}
 	else
 	{
@@ -342,18 +342,18 @@ void CannonRushTerranWallOff::TickState()
 		building_pos = pos.building_pos;
 		move_to_pos = pos.move_to_pos;
 		float dist = Distance2D(probe->pos, move_to_pos);
-		mediator->SetUnitCommand(probe, A_MOVE, Utility::PointBetween(probe->pos, move_to_pos, dist + .5f), 0);
+		mediator->SetUnitCommand(probe, A_MOVE, Utility::PointBetween(probe->pos, move_to_pos, dist + .5f), CommandPriorty::low);
 
 		if (pos.type == PYLON)
 		{
 			if (mediator->CanAfford(PYLON, 1) && Distance2D(probe->pos, move_to_pos) < .1)
-				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, building_pos, 0);
+				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, building_pos, CommandPriorty::low);
 		}
 		else
 		{
 
 			if (mediator->CanAfford(GATEWAY, 1) && Distance2D(probe->pos, move_to_pos) < .1)
-				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, building_pos, 0);
+				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, building_pos, CommandPriorty::low);
 		}
 	}
 	const Unit* closest_building = Utility::ClosestUnitTo(mediator->GetUnits(IsUnits({ CANNON, PYLON, GATEWAY })), building_pos);
@@ -378,7 +378,7 @@ State* CannonRushTerranWallOff::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranWallOff::toString()
+std::string CannonRushTerranWallOff::toString() const
 {
 	return "walloff spot";
 }
@@ -397,7 +397,7 @@ void CannonRushTerranCannonFirstWallOff::TickState()
 		if (closest_building != nullptr && closest_building->display_type != Unit::DisplayType::Placeholder && (Distance2D(cannon_pos, closest_building->pos) < 1))
 			cannon_placed = true;
 		else
-			mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos, 0);
+			mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos, CommandPriorty::low);
 	}
 	else
 	{
@@ -413,10 +413,10 @@ void CannonRushTerranCannonFirstWallOff::TickState()
 				{
 					if (mediator->CanAfford(PYLON, 1) == false)
 					{
-						mediator->worker_manager.should_build_workers = false;
-						mediator->SetUnitsCommand(mediator->GetUnits(IsFriendlyUnit(NEXUS)), A_CANCEL_PRODUCTION, 0);
+						mediator->SetBuildWorkers(false);
+						mediator->SetUnitsCommand(mediator->GetUnits(IsFriendlyUnit(NEXUS)), A_CANCEL_PRODUCTION, CommandPriorty::low);
 					}
-					mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, wall[0].building_pos, 0);
+					mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, wall[0].building_pos, CommandPriorty::low);
 				}
 			}
 			else
@@ -430,9 +430,9 @@ void CannonRushTerranCannonFirstWallOff::TickState()
 					if (mediator->CanAfford(GATEWAY, 1) == false)
 					{
 						mediator->SetBuildWorkers(false);
-						mediator->SetUnitsCommand(mediator->GetUnits(IsFriendlyUnit(NEXUS)), A_CANCEL_PRODUCTION, 0);
+						mediator->SetUnitsCommand(mediator->GetUnits(IsFriendlyUnit(NEXUS)), A_CANCEL_PRODUCTION, CommandPriorty::low);
 					}
-					mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, wall[0].building_pos, 0);
+					mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, wall[0].building_pos, CommandPriorty::low);
 				}
 			}
 		}
@@ -452,7 +452,7 @@ void CannonRushTerranCannonFirstWallOff::TickState()
 
 			Point2D move_to = Utility::PointBetween(gate_pos, pylon_pos, 1);
 
-			mediator->SetUnitCommand(probe, A_MOVE, move_to, 0);
+			mediator->SetUnitCommand(probe, A_MOVE, move_to, CommandPriorty::low);
 
 			if (dist_to_closest < 8 && minerals < 200)
 			{
@@ -474,7 +474,7 @@ void CannonRushTerranCannonFirstWallOff::TickState()
 
 void CannonRushTerranCannonFirstWallOff::EnterState()
 {
-	mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos, 0);
+	mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos, CommandPriorty::low);
 	return;
 }
 
@@ -494,7 +494,7 @@ State* CannonRushTerranCannonFirstWallOff::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranCannonFirstWallOff::toString()
+std::string CannonRushTerranCannonFirstWallOff::toString() const
 {
 	return "cannon first walloff spot";
 }
@@ -505,7 +505,7 @@ std::string CannonRushTerranCannonFirstWallOff::toString()
 
 void CannonRushTerranStandBy::TickState()
 {
-	mediator->SetUnitCommand(probe, A_MOVE, stand_by_spot, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, stand_by_spot, CommandPriorty::low);
 }
 
 void CannonRushTerranStandBy::EnterState()
@@ -588,7 +588,7 @@ State* CannonRushTerranStandBy::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranStandBy::toString()
+std::string CannonRushTerranStandBy::toString() const
 {
 	return "stand by";
 }
@@ -599,7 +599,7 @@ std::string CannonRushTerranStandBy::toString()
 
 void CannonRushTerranStandByLoop::TickState()
 {
-	mediator->SetUnitCommand(probe, A_MOVE, loop_path[index], 0);
+	mediator->SetUnitCommand(probe, A_MOVE, loop_path[index], CommandPriorty::low);
 	if (Distance2D(probe->pos, loop_path[index]) < 2)
 		index++;
 }
@@ -627,7 +627,7 @@ State* CannonRushTerranStandByLoop::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranStandByLoop::toString()
+std::string CannonRushTerranStandByLoop::toString() const
 {
 	return "stand by loop";
 }
@@ -641,18 +641,18 @@ void CannonRushTerranExtraPylon::TickState()
 	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy), pylon_pos) < 2)
 	{
 		pylon_pos = FindPylonPlacement();
-		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, 0);
+		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, CommandPriorty::low);
 	}
 	if (probe->orders.size() == 0)
 	{
-		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, 0);
+		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, CommandPriorty::low);
 	}
 }
 
 void CannonRushTerranExtraPylon::EnterState()
 {
 	pylon_pos = FindPylonPlacement();
-	mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, 0);
+	mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, CommandPriorty::low);
 	return;
 }
 
@@ -673,7 +673,7 @@ State* CannonRushTerranExtraPylon::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranExtraPylon::toString()
+std::string CannonRushTerranExtraPylon::toString() const
 {
 	return "place extra pylon";
 }
@@ -720,18 +720,18 @@ void CannonRushTerranExtraCannon::TickState()
 	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy), cannon_pos) < 2 || cannon_pos == Point2D(0, 0))
 	{
 		cannon_pos = FindCannonPlacement();
-		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos, 0);
+		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos, CommandPriorty::low);
 	}
 	if (probe->orders.size() == 0)
 	{
-		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos, 0);
+		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos, CommandPriorty::low);
 	}
 }
 
 void CannonRushTerranExtraCannon::EnterState()
 {
 	cannon_pos = FindCannonPlacement();
-	mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos, 0);
+	mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, cannon_pos, CommandPriorty::low);
 	return;
 }
 
@@ -752,7 +752,7 @@ State* CannonRushTerranExtraCannon::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranExtraCannon::toString()
+std::string CannonRushTerranExtraCannon::toString() const
 {
 	return "place extra cannon";
 }
@@ -788,18 +788,18 @@ void CannonRushTerranBuildGateway::TickState()
 	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy), gate_pos) < 2 || gate_pos == Point2D(0, 0))
 	{
 		gate_pos = FindGatewayPlacement();
-		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, gate_pos, 0);
+		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, gate_pos, CommandPriorty::low);
 	}
 	if (probe->orders.size() == 0)
 	{
-		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, gate_pos, 0);
+		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, gate_pos, CommandPriorty::low);
 	}
 }
 
 void CannonRushTerranBuildGateway::EnterState()
 {
 	gate_pos = FindGatewayPlacement();
-	mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, gate_pos, 0);
+	mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_GATEWAY, gate_pos, CommandPriorty::low);
 	return;
 }
 
@@ -820,7 +820,7 @@ State* CannonRushTerranBuildGateway::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranBuildGateway::toString()
+std::string CannonRushTerranBuildGateway::toString() const
 {
 	return "place gateway";
 }
@@ -856,18 +856,18 @@ void CannonRushTerranBuildStargate::TickState()
 	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy), stargate_pos) < 2 || stargate_pos == Point2D(0, 0))
 	{
 		stargate_pos = FindStargatePlacement();
-		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_STARGATE, stargate_pos, 0);
+		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_STARGATE, stargate_pos, CommandPriorty::low);
 	}
 	if (probe->orders.size() == 0)
 	{
-		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_STARGATE, stargate_pos, 0);
+		mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_STARGATE, stargate_pos, CommandPriorty::low);
 	}
 }
 
 void CannonRushTerranBuildStargate::EnterState()
 {
 	stargate_pos = FindStargatePlacement();
-	mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_STARGATE, stargate_pos, 0);
+	mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_STARGATE, stargate_pos, CommandPriorty::low);
 	return;
 }
 
@@ -888,7 +888,7 @@ State* CannonRushTerranBuildStargate::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranBuildStargate::toString()
+std::string CannonRushTerranBuildStargate::toString() const
 {
 	return "place stargate";
 }
@@ -928,7 +928,7 @@ void CannonRushTerranStandByPhase2::TickState()
 		{
 			if (mediator->CanAfford(VOID_RAY, 1))
 			{
-				mediator->SetUnitCommand(state_machine->stargates[0], ABILITY_ID::TRAIN_VOIDRAY, 0);
+				mediator->SetUnitCommand(state_machine->stargates[0], ABILITY_ID::TRAIN_VOIDRAY, CommandPriorty::low);
 				next_unit = FLEET_BEACON;
 				return;
 			}
@@ -944,7 +944,7 @@ void CannonRushTerranStandByPhase2::TickState()
 				{
 					if (mediator->CanAfford(TEMPEST, 1))
 					{
-						mediator->SetUnitCommand(state_machine->stargates[0], ABILITY_ID::TRAIN_TEMPEST, 0);
+						mediator->SetUnitCommand(state_machine->stargates[0], ABILITY_ID::TRAIN_TEMPEST, CommandPriorty::low);
 						return;
 					}
 				}
@@ -1003,7 +1003,7 @@ void CannonRushTerranStandByPhase2::TickState()
 			Point2D pos = FindBuildingPlacement();
 			if (pos != Point2D(0, 0))
 			{
-				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_STARGATE, pos, 0);
+				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_STARGATE, pos, CommandPriorty::low);
 				return;
 			}
 			else
@@ -1013,7 +1013,7 @@ void CannonRushTerranStandByPhase2::TickState()
 				if (pylon_pos != Point2D(0, 0))
 				{
 					if (state_machine->pylons[state_machine->pylons.size() - 1]->build_progress == 1)
-						mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, 0);
+						mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, CommandPriorty::low);
 					return;
 				}
 			}
@@ -1025,7 +1025,7 @@ void CannonRushTerranStandByPhase2::TickState()
 	if (extra_minerals < 100)
 	{
 		if (probe->orders.size() == 0)
-			mediator->SetUnitCommand(probe, A_MOVE, stand_by_spot, 0);
+			mediator->SetUnitCommand(probe, A_MOVE, stand_by_spot, CommandPriorty::low);
 		return;
 	}
 
@@ -1041,7 +1041,7 @@ void CannonRushTerranStandByPhase2::TickState()
 		if (pylon_pos != Point2D(0, 0))
 		{
 			if (state_machine->pylons[state_machine->pylons.size() - 1]->build_progress == 1)
-				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, 0);
+				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, CommandPriorty::low);
 			return;
 		}
 
@@ -1062,7 +1062,7 @@ void CannonRushTerranStandByPhase2::TickState()
 			Point2D pos = FindBatteryPlacement();
 			if (pos != Point2D(0, 0))
 			{
-				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_SHIELDBATTERY, pos, 0);
+				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_SHIELDBATTERY, pos, CommandPriorty::low);
 				return;
 			}
 			else
@@ -1072,7 +1072,7 @@ void CannonRushTerranStandByPhase2::TickState()
 				if (pylon_pos != Point2D(0, 0))
 				{
 					if (state_machine->pylons[state_machine->pylons.size() - 1]->build_progress == 1)
-						mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, 0);
+						mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, CommandPriorty::low);
 					return;
 				}
 			}
@@ -1083,7 +1083,7 @@ void CannonRushTerranStandByPhase2::TickState()
 			Point2D pos = FindCannonPlacement();
 			if (pos != Point2D(0, 0))
 			{
-				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, pos, 0);
+				mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PHOTONCANNON, pos, CommandPriorty::low);
 				return;
 			}
 			else
@@ -1093,13 +1093,13 @@ void CannonRushTerranStandByPhase2::TickState()
 				if (pylon_pos != Point2D(0, 0))
 				{
 					if (state_machine->pylons[state_machine->pylons.size() - 1]->build_progress == 1)
-						mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, 0);
+						mediator->SetUnitCommand(probe, ABILITY_ID::BUILD_PYLON, pylon_pos, CommandPriorty::low);
 					return;
 				}
 			}
 		}
 	}
-	mediator->SetUnitCommand(probe, A_MOVE, stand_by_spot, 0);
+	mediator->SetUnitCommand(probe, A_MOVE, stand_by_spot, CommandPriorty::low);
 }
 
 void CannonRushTerranStandByPhase2::EnterState()
@@ -1133,7 +1133,7 @@ State* CannonRushTerranStandByPhase2::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranStandByPhase2::toString()
+std::string CannonRushTerranStandByPhase2::toString() const
 {
 	return "stand by phase 2";
 }
@@ -1302,7 +1302,7 @@ State* CannonRushTerranUnitMicro::TestTransitions()
 	return nullptr;
 }
 
-std::string CannonRushTerranUnitMicro::toString()
+std::string CannonRushTerranUnitMicro::toString() const
 {
 	return "micro units";
 }

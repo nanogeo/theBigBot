@@ -10,7 +10,7 @@
 namespace sc2 {
 
 
-	BlinkFSMArmyGroup::BlinkFSMArmyGroup(Mediator* mediator, BlinkStalkerAttackTerran* state_machine, uint16_t desired_units, uint16_t max_units, uint16_t required_units, uint16_t min_reinfore_group_size) :
+	BlinkFSMArmyGroup::BlinkFSMArmyGroup(Mediator* mediator, BlinkStalkerAttackTerran* state_machine, int desired_units, int max_units, int required_units, int min_reinfore_group_size) :
 		AttackArmyGroup(mediator, mediator->GetDirectAttackLine(), { STALKER, PRISM }, desired_units, max_units, required_units, min_reinfore_group_size)
 	{
 		this->state_machine = state_machine;
@@ -23,36 +23,12 @@ namespace sc2 {
 	
 	void BlinkFSMArmyGroup::SetUp()
 	{
-		// TODO check for units mid warp in
-		mediator->SetUnitsCommand(all_units, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(all_units), 0);
-		if (Utility::GetUnitsWithin(all_units, Utility::MedianCenter(all_units), 5).size() >= desired_units)
-		{
-			ready = true;
-		}
+		
 	}
 
 	void BlinkFSMArmyGroup::Run()
 	{
-		GroupUpNewUnits();
 
-		for (auto itr = units_on_their_way.begin(); itr != units_on_their_way.end();)
-		{
-			if (MobilizeNewUnits(*itr))
-			{
-				for (const auto& unit : *itr)
-				{
-					AddUnit(unit);
-				}
-				itr = units_on_their_way.erase(itr);
-			}
-			else
-			{
-				itr++;
-			}
-		}
-
-		if (AttackLine() == AttackLineResult::all_units_dead)
-			mediator->MarkArmyGroupForDeletion(this);
 	}
 
 	void BlinkFSMArmyGroup::AddUnit(const Unit* unit)
@@ -84,7 +60,7 @@ namespace sc2 {
 			if (unit->weapon_cooldown == 0)
 				mediator->AddUnitToAttackers(unit);
 
-			mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(all_units), 0);
+			mediator->SetUnitCommand(unit, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(all_units), CommandPriorty::low);
 			// TODO make sure units stay grouped up
 		}
 		return false;
@@ -93,7 +69,7 @@ namespace sc2 {
 	void BlinkFSMArmyGroup::GroupUpNewUnits()
 	{
 		// TODO check for enemies in range
-		mediator->SetUnitsCommand(new_units, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(new_units), 0);
+		mediator->SetUnitsCommand(new_units, ABILITY_ID::GENERAL_MOVE, Utility::MedianCenter(new_units), CommandPriorty::low);
 
 		Units group = Utility::GetUnitsWithin(new_units, Utility::MedianCenter(new_units), 5);
 		if (group.size() >= min_reinforce_group_size)
@@ -104,6 +80,36 @@ namespace sc2 {
 				new_units.erase(std::remove(new_units.begin(), new_units.end(), unit), new_units.end());
 			}
 		}
+	}
+
+	Point2D BlinkFSMArmyGroup::GetConcaveOrigin() const
+	{
+		return concave_origin;
+	}
+
+	void BlinkFSMArmyGroup::ResetConcaveOrigin()
+	{
+		concave_origin = Point2D(0, 0);
+	}
+
+	void BlinkFSMArmyGroup::SetAttackPath(PathManager path)
+	{
+		attack_path = path;
+	}
+
+	const PathManager& BlinkFSMArmyGroup::GetAttackPath() const
+	{
+		return attack_path;
+	}
+
+	void BlinkFSMArmyGroup::SetUseStandby(bool value)
+	{
+		using_standby = value;
+	}
+
+	void BlinkFSMArmyGroup::SetStandbyPos(Point2D pos)
+	{
+		standby_pos = pos;
 	}
 
 }

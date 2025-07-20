@@ -6,6 +6,175 @@
 
 namespace sc2 {
 
+
+void ScoutingManager::UpdateEnemyWeaponCooldowns()
+{
+	Units allied_units = mediator->GetUnits(Unit::Alliance::Self);
+	Units enemy_attacking_units = mediator->GetUnits(Unit::Alliance::Enemy, IsUnits(PROJECTILE_UNIT_TYPES));
+
+	for (const auto &Eunit : enemy_attacking_units)
+	{
+		if (enemy_weapon_cooldown.count(Eunit) == 0)
+			enemy_weapon_cooldown[Eunit] = 0;
+
+		const Unit* target = Utility::AimingAt(Eunit, allied_units);
+
+		if (target != NULL && enemy_weapon_cooldown[Eunit] == 0 && enemy_unit_saved_position[Eunit].frames > Utility::GetDamagePoint(Eunit) * 22.4)
+		{
+			float damage_point = Utility::GetDamagePoint(Eunit);
+			if (damage_point == 0)
+			{
+				enemy_weapon_cooldown[Eunit] = Utility::GetWeaponCooldown(Eunit) - damage_point - (1 / FRAME_TIME);
+				EnemyAttack attack = EnemyAttack(Eunit, mediator->GetGameLoop() + (int)std::floor(Utility::GetProjectileTime(Eunit, Distance2D(Eunit->pos, target->pos) - Eunit->radius - target->radius) - 1));
+				if (enemy_attacks.count(target) == 0)
+					enemy_attacks[target] = { attack };
+				else
+					enemy_attacks[target].push_back(attack);
+			}
+			else
+			{
+				enemy_weapon_cooldown[Eunit] = Utility::GetWeaponCooldown(Eunit);
+				EnemyAttack attack = EnemyAttack(Eunit, mediator->GetGameLoop() + (int)std::floor(Utility::GetProjectileTime(Eunit, Distance2D(Eunit->pos, target->pos) - Eunit->radius - target->radius)));
+				if (enemy_attacks.count(target) == 0)
+					enemy_attacks[target] = { attack };
+				else
+					enemy_attacks[target].push_back(attack);
+			}
+		}
+
+		if (enemy_weapon_cooldown[Eunit] > 0)
+			enemy_weapon_cooldown[Eunit] -= 1 / FRAME_TIME;
+		if (enemy_weapon_cooldown[Eunit] < 0)
+		{
+			enemy_weapon_cooldown[Eunit] = 0;
+			enemy_unit_saved_position[Eunit].frames = -1;
+		}
+		//Debug()->DebugTextOut(std::to_string(enemy_weapon_cooldown[Eunit]), Eunit->pos + Point3D(0, 0, .2), Color(255, 0, 255), 20);
+
+	}
+
+}
+
+void ScoutingManager::RemoveCompletedAttacks()
+{
+	for (auto& attack : enemy_attacks)
+	{
+		for (int i = (int)attack.second.size() - 1; i >= 0; i--)
+		{
+			if (attack.second[i].impact_frame <= mediator->GetGameLoop())
+			{
+				attack.second.erase(attack.second.begin() + i);
+			}
+		}
+	}
+}
+
+void ScoutingManager::UpdateEffectPositions()
+{
+	for (auto& zone : liberator_zone_current)
+	{
+		zone.current = false;
+	}
+
+	for (const auto& effect : mediator->GetEffects())
+	{
+		if (effect.effect_id == 11) // EFFECT_CORROSIVEBILE
+		{
+			for (const auto& pos : effect.positions)
+			{
+				if (std::find(corrosive_bile_positions.begin(), corrosive_bile_positions.end(), pos) == corrosive_bile_positions.end())
+				{
+					corrosive_bile_positions.push_back(pos);
+					corrosive_bile_times.push_back(mediator->GetGameLoop() + 48);
+				}
+			}
+		}
+		if (effect.effect_id == 9 || effect.effect_id == 8) // LIBERATORDEFENDERZONE || LIBERATORDEFENDERZONESETUP
+		{
+			for (const auto& pos : effect.positions)
+			{
+				auto itr = std::find_if(liberator_zone_current.begin(), liberator_zone_current.end(), [pos](const LiberatorZone& zone) { return zone.pos == pos; });
+
+				if (itr == liberator_zone_current.end())
+				{
+					liberator_zone_current.push_back(LiberatorZone(pos));
+				}
+				else
+				{
+					itr->current = true;
+				}
+			}
+		}
+	}
+	for (int i = 0; i < corrosive_bile_positions.size(); i++)
+	{
+		if (mediator->GetGameLoop() > corrosive_bile_times[i])
+		{
+			corrosive_bile_positions.erase(corrosive_bile_positions.begin() + i);
+			corrosive_bile_times.erase(corrosive_bile_times.begin() + i);
+		}
+	}
+	/*for (int i = 0; i < corrosive_bile_positions.size(); i++)
+	{
+		Debug()->DebugSphereOut(ToPoint3D(corrosive_bile_positions[i]), .5, Color(255, 0, 255));
+		Debug()->DebugTextOut(std::to_string(corrosive_bile_times[i]), ToPoint3D(corrosive_bile_positions[i]), Color(255, 0, 255), 14);
+	}*/
+
+
+	for (int k = 0; k < liberator_zone_current.size(); k++)
+	{
+		if (liberator_zone_current[k].current == false && mediator->IsVisible(liberator_zone_current[k].pos))
+		{
+			liberator_zone_current.erase(std::remove(liberator_zone_current.begin(), liberator_zone_current.end(), liberator_zone_current[k]), liberator_zone_current.end());
+			k--;
+		}
+	}
+
+}
+
+
+void ScoutingManager::DisplayEnemyAttacks() const
+{
+	std::string message = "Current frame: " + std::to_string(mediator->GetGameLoop()) + "\n";
+	message += "Current time: " + std::to_string(mediator->GetCurrentTime()) + "\n";
+	for (const auto& unit : enemy_attacks)
+	{
+		message += UnitTypeToName(unit.first->unit_type.ToType());
+		message += ":\n";
+		for (const auto& attack : unit.second)
+		{
+			message += "    ";
+			message += UnitTypeToName(attack.unit->unit_type.ToType());
+			message += " - " + std::to_string(attack.impact_frame) + "\n";
+		}
+	}
+	mediator->DebugText(message, Point2D(.8f, .4f), Color(255, 0, 0), 20);
+}
+
+void ScoutingManager::DisplayEnemyPositions() const
+{
+	for (const auto& unit : enemy_unit_saved_position)
+	{
+		mediator->DebugText(UnitTypeToName(unit.first->unit_type), mediator->ToPoint3D(unit.second.pos), Color(255, 128, 128), 20);
+		if (unit.first->unit_type == SIEGE_TANK || unit.first->unit_type == SIEGE_TANK_SIEGED)
+			mediator->DebugSphere(mediator->ToPoint3D(unit.second.pos), 14, Color(255, 128, 128));
+	}
+}
+
+void ScoutingManager::DisplayKnownEffects() const
+{
+	for (const auto& bile : corrosive_bile_positions)
+	{
+		mediator->DebugText("bile", mediator->ToPoint3D(bile), Color(255, 140, 0), 20);
+		mediator->DebugSphere(mediator->ToPoint3D(bile), .5, Color(255, 140, 0));
+	}
+	for (const auto& zone : liberator_zone_current)
+	{
+		mediator->DebugText("liberator zone", mediator->ToPoint3D(zone.pos), Color(0, 0, 160), 20);
+		mediator->DebugSphere(mediator->ToPoint3D(zone.pos), 5, Color(0, 0, 160));
+	}
+}
+
 void ScoutingManager::SetEnemyRace(Race race)
 {
 	enemy_race = race;
@@ -184,15 +353,15 @@ void ScoutingManager::SetEnemyRace(UNIT_TYPEID type)
 	}
 }
 
-int ScoutingManager::GetEnemyUnitCount(UNIT_TYPEID type)
+int ScoutingManager::GetEnemyUnitCount(UNIT_TYPEID type) const
 {
 	if (enemy_unit_counts.count(type) > 0)
-		return enemy_unit_counts[type];
+		return enemy_unit_counts.at(type);
 	else
 		return 0;
 }
 
-uint16_t ScoutingManager::GetEnemyArmySupply()
+float ScoutingManager::GetEnemyArmySupply() const
 {
 	float total_supply = 0;
 	for (const auto& unit : enemy_unit_saved_position)
@@ -203,8 +372,17 @@ uint16_t ScoutingManager::GetEnemyArmySupply()
 	return total_supply;
 }
 
+const std::vector<Point2D>& ScoutingManager::GetCorrosiveBilePositions() const
+{
+	return corrosive_bile_positions;
+}
+
 void ScoutingManager::UpdateInfo()
 {
+	UpdateEffectPositions();
+	UpdateEnemyWeaponCooldowns();
+	RemoveCompletedAttacks();
+
 	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
 	{
 		if (unit->display_type != Unit::DisplayType::Visible)
@@ -229,7 +407,7 @@ void ScoutingManager::UpdateInfo()
 	if (game_state_manager != nullptr)
 	{
 		current_game_state = game_state_manager->GetCurrentGameState();
-		if (mediator->GetGameLoop() % 200 == 0)
+		if (mediator->GetGameLoop() % (int)(10 * FRAME_TIME) == 0) // display every 10 seconds
 		{
 			std::string str = game_state_manager->GameStateToString();
 			str += "Worker status: ";
@@ -375,8 +553,42 @@ int ScoutingManager::CheckTerranScoutingInfoEarly()
 	}
 }
 
+int ScoutingManager::GetIncomingDamage(const Unit* unit) const
+{
+	int damage = 0;
+	if (enemy_attacks.count(unit) > 0)
+	{
+		for (const auto& attack : enemy_attacks.at(unit))
+		{
+			damage += Utility::GetDamage(attack.unit, unit);
+		}
+	}
+	for (int i = 0; i < corrosive_bile_positions.size(); i++)
+	{
+		if (mediator->GetGameLoop() + 5 > corrosive_bile_times[i])
+		{
+			if (Distance2D(corrosive_bile_positions[i], unit->pos) < .5 + unit->radius + .3) // TODO maybe change extra distance
+			{
+				damage += 60;
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+	for (const auto& enemy : Utility::GetUnitsThatCanAttack(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits(HIT_SCAN_UNIT_TYPES)), unit, 0))
+	{
+		damage += Utility::GetDamage(enemy, unit) / 2;
+	}
+	return damage;
+}
+
 void ScoutingManager::OnUnitDestroyed(const Unit* unit)
 {
+	if (enemy_weapon_cooldown.find(unit) != enemy_weapon_cooldown.end())
+		enemy_weapon_cooldown.erase(unit);
+
 	if (enemy_unit_saved_position.find(unit) != enemy_unit_saved_position.end())
 	{
 		enemy_unit_saved_position.erase(unit);
@@ -402,7 +614,7 @@ void ScoutingManager::InitializeGameState()
 	}
 }
 
-float ScoutingManager::GetCurrentTime()
+float ScoutingManager::GetCurrentTime() const
 {
 	return mediator->GetCurrentTime();
 }

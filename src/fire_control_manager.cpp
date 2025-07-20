@@ -10,9 +10,8 @@
 
 namespace sc2 {
 
-	FireControl::FireControl(TheBigBot* agent, std::map<const Unit*, Units> units, std::vector<UNIT_TYPEID> priority)
+	FireControl::FireControl(std::map<const Unit*, Units> units, std::vector<UNIT_TYPEID> priority)
 	{
-		this->agent = agent;
 		this->priority = priority;
 		for (const auto &Funit : units)
 		{
@@ -48,9 +47,8 @@ namespace sc2 {
 		}
 	}
 
-	FireControl::FireControl(TheBigBot* agent, std::map<const Unit*, Units> units, std::map<const Unit*, int> enemy_health, std::vector<UNIT_TYPEID> priority)
+	FireControl::FireControl(std::map<const Unit*, Units> units, std::map<const Unit*, int> enemy_health, std::vector<UNIT_TYPEID> priority)
 	{
-		this->agent = agent;
 		this->priority = priority;
 		for (const auto& Funit : units)
 		{
@@ -86,9 +84,8 @@ namespace sc2 {
 		}
 	}
 
-	FireControl::FireControl(TheBigBot* agent, std::map<const Unit*, Units> units, std::map<const Unit*, int> enemy_health, std::vector<std::vector<UNIT_TYPEID>> priority)
+	FireControl::FireControl(std::map<const Unit*, Units> units, std::map<const Unit*, int> enemy_health, std::vector<std::vector<UNIT_TYPEID>> priority)
 	{
-		this->agent = agent;
 		this->priority2D = priority;
 		for (const auto& Funit : units)
 		{
@@ -129,7 +126,7 @@ namespace sc2 {
 		}
 	}
 
-	EnemyUnitInfo* FireControl::GetEnemyUnitInfo(const Unit* unit)
+	EnemyUnitInfo* FireControl::GetEnemyUnitInfo(const Unit* unit) const
 	{
 		for (auto &unit_info : enemy_units)
 		{
@@ -139,7 +136,7 @@ namespace sc2 {
 		return nullptr;
 	}
 
-	FriendlyUnitInfo* FireControl::GetFriendlyUnitInfo(const Unit* unit)
+	FriendlyUnitInfo* FireControl::GetFriendlyUnitInfo(const Unit* unit) const
 	{
 		for (auto &unit_info : friendly_units)
 		{
@@ -149,7 +146,7 @@ namespace sc2 {
 		return nullptr;
 	}
 
-	int FireControl::GetDamage(const Unit* Funit, const Unit* Eunit)
+	int FireControl::GetDamage(const Unit* Funit, const Unit* Eunit) const
 	{
 		return Utility::GetDamage(Funit, Eunit);
 	}
@@ -196,34 +193,11 @@ namespace sc2 {
 
 	std::map<const Unit*, const Unit*> FireControl::FindAttacks()
 	{
-#ifdef DEBUG_TIMING
-		unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count();
-
-		std::ofstream fire_control_time;
-		fire_control_time.open("fire_control_time.txt", std::ios_base::app);
-
-		unsigned long long single_target = 0;
-		unsigned long long enemy_min_heap = 0;
-		unsigned long long friendly_min_heap = 0;
-#endif
-
 		for (const auto &unit : friendly_units)
 		{
 			if (unit->units_in_range.size() == 1)
 				ApplyAttack(unit, unit->units_in_range[0]);
 		}
-
-#ifdef DEBUG_TIMING
-		single_target = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count() - start_time;
-
-		start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count();
-#endif
 
 		// order enemy units by number of friendly units that can hit them
 		MinHeap<EnemyUnitInfo*> enemy_units_ordered = MinHeap<EnemyUnitInfo*>((int)enemy_units.size());
@@ -262,16 +236,6 @@ namespace sc2 {
 			//}
 		}
 
-#ifdef DEBUG_TIMING
-		enemy_min_heap = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count() - start_time;
-
-		start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count();
-#endif
-
 		MinHeap<FriendlyUnitInfo*>  friendly_units_ordered = MinHeap<FriendlyUnitInfo*>((int)friendly_units.size());
 		for (const auto &unit : friendly_units)
 		{
@@ -296,16 +260,6 @@ namespace sc2 {
 				ApplyAttack(current_unit, current_unit->units_in_range[0]);
 			}
 		}
-#ifdef DEBUG_TIMING
-		friendly_min_heap = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-			).count() - start_time;
-
-		fire_control_time << single_target << ", ";
-		fire_control_time << enemy_min_heap << ", ";
-		fire_control_time << friendly_min_heap << "\n";
-		fire_control_time.close();
-#endif
 
 		return attacks;
 	}
@@ -315,6 +269,12 @@ namespace sc2 {
 
 
 
+void FireControlManager::ApplyAttack(const Unit* attacker, const Unit* target)
+{
+	int damage = Utility::GetDamage(attacker, target);
+	enemy_unit_hp[target] = enemy_unit_hp[target] - damage;
+	outgoing_attacks.push_back(OutgoingDamage(attacker, target, damage, mediator->GetGameLoop())); // TODO calculate frame of hit
+}
 
 void FireControlManager::UpdateInfo()
 {
@@ -326,7 +286,7 @@ void FireControlManager::UpdateInfo()
 		{
 			// special case because zealot attack go on cooldown after the first blade does damage 
 			// but it takes a few more frames for the second blade to do damage
-			if (status.first->unit_type == ZEALOT && status.first->weapon_cooldown > 15) 
+			if (status.first->unit_type == ZEALOT && status.first->weapon_cooldown > 15) // 15 frame wait for the zealots second psi blade to hit
 				continue;
 			ConfirmAttack(status.first, mediator->GetUnit(status.first->engaged_target_tag));
 		}
@@ -339,23 +299,23 @@ void FireControlManager::UpdateInfo()
 
 void FireControlManager::UpdateEnemyUnitHealth()
 {
-	for (const auto unit_hp : enemy_unit_hp)
+	for (auto &unit_hp : enemy_unit_hp)
 	{
 		if (mediator->GetEnemyRace() == Race::Zerg)
 		{
-			enemy_unit_hp[unit_hp.first] = (int)ceil(unit_hp.first->health + unit_hp.first->shield + 1);
+			unit_hp.second = (int)ceil(unit_hp.first->health + unit_hp.first->shield + 1);
 		}
 		else if (mediator->GetEnemyRace() == Race::Terran && Utility::IsBiological(unit_hp.first->unit_type))
 		{
 			Units medivacs = mediator->GetUnits(IsUnit(MEDIVAC));
-			if (medivacs.size() > 0 && Utility::DistanceToClosest(medivacs, unit_hp.first->pos) < 4)
-				enemy_unit_hp[unit_hp.first] = (int)ceil(unit_hp.first->health + unit_hp.first->shield + 10);
+			if (medivacs.size() > 0 && Utility::DistanceToClosest(medivacs, unit_hp.first->pos) < RANGE_MEDIVAC_HEAL)
+				unit_hp.second = (int)ceil(unit_hp.first->health + unit_hp.first->shield + HEAL_RATE_MEDIVAC);
 			else
-				enemy_unit_hp[unit_hp.first] = (int)ceil(unit_hp.first->health + unit_hp.first->shield);
+				unit_hp.second = (int)ceil(unit_hp.first->health + unit_hp.first->shield);
 		}
 		else
 		{
-			enemy_unit_hp[unit_hp.first] = (int)ceil(unit_hp.first->health + unit_hp.first->shield + 1);
+			unit_hp.second = (int)ceil(unit_hp.first->health + unit_hp.first->shield + 1);
 		}
 	}
 
@@ -374,27 +334,20 @@ void FireControlManager::UpdateEnemyUnitHealth()
 		}
 	}
 
-	for (const auto damage : outgoing_attacks)
+	for (const auto &damage : outgoing_attacks)
 	{
 		enemy_unit_hp[damage.target] = enemy_unit_hp[damage.target] - damage.damage;
 	}
 }
 
-bool FireControlManager::GetAttackStatus(const Unit* unit)
+bool FireControlManager::GetAttackStatus(const Unit* unit) const
 {
-	return attack_status[unit];
+	return attack_status.at(unit);
 }
 
 void FireControlManager::AddUnit(const Unit* unit)
 {
 	units_ready_to_attack.push_back(unit);
-}
-
-void FireControlManager::ApplyAttack(const Unit* attacker, const Unit* target)
-{
-	int damage = Utility::GetDamage(attacker, target);
-	enemy_unit_hp[target] = enemy_unit_hp[target] - damage;
-	outgoing_attacks.push_back(OutgoingDamage(attacker, target, damage, mediator->GetGameLoop())); // TODO calculate frame of hit
 }
 
 void FireControlManager::ConfirmAttack(const Unit* attacker, const Unit* target)
@@ -463,13 +416,13 @@ void FireControlManager::DoAttacks()
 			unit_targets[unit] = units_in_range;
 	}
 
-	FireControl fire_control = FireControl(mediator->agent, unit_targets, enemy_unit_hp, mediator->GetPrio());
+	FireControl fire_control = FireControl(unit_targets, enemy_unit_hp, mediator->GetPrio());
 	std::map<const Unit*, const Unit*> attacks = fire_control.FindAttacks();
-	for (const auto attack : attacks)
+	for (const auto &attack : attacks)
 	{
 		ApplyAttack(attack.first, attack.second);
 		attack_status[attack.first] = true;
-		mediator->SetUnitCommand(attack.first, A_ATTACK, attack.second, 2);
+		mediator->SetUnitCommand(attack.first, A_ATTACK, attack.second, CommandPriorty::normal);
 	}
 
 	units_ready_to_attack.clear();

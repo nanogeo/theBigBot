@@ -10,7 +10,7 @@ namespace sc2 {
 
 void ScoutZInitialMove::TickState()
 {
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
 }
 
 void ScoutZInitialMove::EnterState()
@@ -30,7 +30,7 @@ State* ScoutZInitialMove::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutZInitialMove::toString()
+std::string ScoutZInitialMove::toString() const
 {
 	return "initial move";
 }
@@ -47,7 +47,7 @@ void ScoutZScoutMain::TickState()
 		if (state_machine->index < state_machine->main_scout_path.size())
 			state_machine->current_target = state_machine->main_scout_path[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
 }
 
 void ScoutZScoutMain::EnterState()
@@ -65,12 +65,12 @@ State* ScoutZScoutMain::TestTransitions()
 {
 	if (state_machine->index >= state_machine->main_scout_path.size())
 	{
-		if (mediator->scouting_manager.natural_timing == 0)
+		if (mediator->GetNaturalTiming() == 0)
 		{
 			return new ScoutZScoutNatural(mediator, state_machine);
 		}
-		else if (mediator->scouting_manager.third_timing == 0 &&
-					((mediator->scouting_manager.spawning_pool_timing > 0 && mediator->scouting_manager.first_gas_timing > 0) ||
+		else if (mediator->GetThirdTiming() == 0 &&
+					((mediator->GetSpawningPoolTiming() > 0 && mediator->GetFirstGateTiming() > 0) ||
 					mediator->GetCurrentTime() > 120))
 		{
 			return new ScoutZLookFor3rd(mediator, state_machine);
@@ -83,8 +83,8 @@ State* ScoutZScoutMain::TestTransitions()
 	}
 
 
-	if (mediator->scouting_manager.spawning_pool_timing > 0 &&
-		mediator->GetCurrentTime() > mediator->scouting_manager.spawning_pool_timing + 60)
+	if (mediator->GetSpawningPoolTiming() > 0 &&
+		mediator->GetCurrentTime() > mediator->GetSpawningPoolTiming() + 60)
 	{
 		mediator->MarkStateMachineForDeletion(state_machine);
 		return nullptr;
@@ -92,7 +92,7 @@ State* ScoutZScoutMain::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutZScoutMain::toString()
+std::string ScoutZScoutMain::toString() const
 {
 	return "scout main";
 }
@@ -103,7 +103,7 @@ std::string ScoutZScoutMain::toString()
 
 void ScoutZScoutNatural::TickState()
 {
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
 }
 
 void ScoutZScoutNatural::EnterState()
@@ -119,12 +119,12 @@ void ScoutZScoutNatural::ExitState()
 
 State* ScoutZScoutNatural::TestTransitions()
 {
-	if (mediator->scouting_manager.natural_timing > 0 || Distance2D(state_machine->scout->pos, state_machine->current_target) < 2)
+	if (mediator->GetNaturalTiming() > 0 || Distance2D(state_machine->scout->pos, state_machine->current_target) < 2)
 		return new ScoutZScoutMain(mediator, state_machine);
 	return nullptr;
 }
 
-std::string ScoutZScoutNatural::toString()
+std::string ScoutZScoutNatural::toString() const
 {
 	return "scout natural";
 }
@@ -141,7 +141,7 @@ void ScoutZLookFor3rd::TickState()
 		if (state_machine->index < state_machine->possible_3rds.size())
 			state_machine->current_target = state_machine->possible_3rds[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
 }
 
 void ScoutZLookFor3rd::EnterState()
@@ -157,12 +157,12 @@ void ScoutZLookFor3rd::ExitState()
 
 State* ScoutZLookFor3rd::TestTransitions()
 {
-	if (state_machine->index >= state_machine->possible_3rds.size() || mediator->scouting_manager.third_timing > 0)
+	if (state_machine->index >= state_machine->possible_3rds.size() || mediator->GetThirdTiming() > 0)
 		return new ScoutZScoutMain(mediator, state_machine);
 	return nullptr;
 }
 
-std::string ScoutZLookFor3rd::toString()
+std::string ScoutZLookFor3rd::toString() const
 {
 	return "look for 3rd";
 }
@@ -186,8 +186,12 @@ ScoutZergStateMachine::ScoutZergStateMachine(Mediator* mediator, std::string nam
 ScoutZergStateMachine::~ScoutZergStateMachine()
 {
 	if (scout != nullptr && scout->is_alive)
-		mediator->worker_manager.PlaceWorker(scout);
+		mediator->PlaceWorker(scout);
 }
 
+const Unit* ScoutZergStateMachine::GetScout()
+{
+	return scout;
+}
 
 }

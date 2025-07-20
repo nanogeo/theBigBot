@@ -25,7 +25,7 @@ void WorkerRushDefenseGroupUp::TickState()
 		}
 		new_workers.push_back(worker);
 
-		mediator->SetUnitCommand(worker, A_MOVE, group_pos, 0);
+		mediator->SetUnitCommand(worker, A_MOVE, group_pos, CommandPriorty::low);
 
 	}
 
@@ -38,14 +38,14 @@ void WorkerRushDefenseGroupUp::TickState()
 		}
 		else
 		{
-			mediator->SetUnitCommand(*itr, A_MOVE, group_pos, 0);
+			mediator->SetUnitCommand(*itr, A_MOVE, group_pos, CommandPriorty::low);
 			itr++;
 		}
 	}
 
 	for (const auto &worker : state_machine->workers)
 	{
-		mediator->SetUnitCommand(worker, A_SMART, state_machine->grouping_mineral_patch, 0);
+		mediator->SetUnitCommand(worker, A_SMART, state_machine->grouping_mineral_patch, CommandPriorty::low);
 	}
 }
 
@@ -54,7 +54,7 @@ void WorkerRushDefenseGroupUp::EnterState()
 	group_pos = Utility::PointBetween(state_machine->grouping_mineral_patch->pos,
 		Utility::ClosestTo(mediator->GetUnits(IsUnit(NEXUS)), state_machine->grouping_mineral_patch->pos)->pos, 2.5);
 
-	mediator->SetUnitsCommand(state_machine->workers, A_MOVE, group_pos, 0);
+	mediator->SetUnitsCommand(state_machine->workers, A_MOVE, group_pos, CommandPriorty::low);
 
 	enter_time = mediator->GetCurrentTime();
 }
@@ -83,7 +83,7 @@ State* WorkerRushDefenseGroupUp::TestTransitions()
 	return nullptr;
 }
 
-std::string WorkerRushDefenseGroupUp::toString()
+std::string WorkerRushDefenseGroupUp::toString() const
 {
 	return "group up";
 }
@@ -97,7 +97,7 @@ void WorkerRushDefenseInitialMove::TickState()
 {
 	for (const auto& worker : state_machine->workers)
 	{
-		mediator->SetUnitCommand(worker, A_SMART, state_machine->attacking_mineral_patch, 0);
+		mediator->SetUnitCommand(worker, A_SMART, state_machine->attacking_mineral_patch, CommandPriorty::low);
 	}
 }
 
@@ -105,7 +105,7 @@ void WorkerRushDefenseInitialMove::EnterState()
 {
 	for (const auto& worker : state_machine->workers)
 	{
-		mediator->SetUnitCommand(worker, A_SMART, state_machine->attacking_mineral_patch, 0);
+		mediator->SetUnitCommand(worker, A_SMART, state_machine->attacking_mineral_patch, CommandPriorty::low);
 	}
 }
 
@@ -128,7 +128,7 @@ State* WorkerRushDefenseInitialMove::TestTransitions()
 	return nullptr;
 }
 
-std::string WorkerRushDefenseInitialMove::toString()
+std::string WorkerRushDefenseInitialMove::toString() const
 {
 	return "initial move";
 }
@@ -190,11 +190,11 @@ void WorkerRushDefenseDefend::TickState()
 		{
 			const Unit* closest_enemy = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), state_machine->workers[i]->pos);
 			if (closest_enemy != nullptr)
-				mediator->SetUnitCommand(state_machine->workers[i], A_ATTACK, mediator->GetEnemyNaturalLocation(), 0);
+				mediator->SetUnitCommand(state_machine->workers[i], A_ATTACK, mediator->GetEnemyNaturalLocation(), CommandPriorty::low);
 		}
 		else
 		{
-			mediator->SetUnitCommand(state_machine->workers[i], A_SMART, state_machine->grouping_mineral_patch, 0);
+			mediator->SetUnitCommand(state_machine->workers[i], A_SMART, state_machine->grouping_mineral_patch, CommandPriorty::low);
 		}
 	}
 }
@@ -217,7 +217,7 @@ State* WorkerRushDefenseDefend::TestTransitions()
 	return nullptr;
 }
 
-std::string WorkerRushDefenseDefend::toString()
+std::string WorkerRushDefenseDefend::toString() const
 {
 	return "defend";
 }

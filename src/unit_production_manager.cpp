@@ -6,85 +6,10 @@
 
 namespace sc2
 {
-
-void UnitProductionManager::ChooseUnitProduction()
-{
-	std::map<UNIT_TYPEID, uint16_t> units;
-	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Self))
-	{
-		if (units.find(unit->unit_type) != units.end())
-			units[unit->unit_type] = units[unit->unit_type] + 1;
-		else
-			units[unit->unit_type] = 1;
-	}
-
-	std::map<UNIT_TYPEID, uint16_t> needed_units;
-
-	for (const auto& unit_type : target_unit_comp)
-	{
-		if (unit_type.second > units[unit_type.first])
-			needed_units[unit_type.first] = unit_type.second - units[unit_type.first];
-	}
-
-
-}
-
-void UnitProductionManager::SetWarpgateProduction(UNIT_TYPEID unit_type)
-{
-	// TODO check if this is a unit made by the warp gate
-	warpgate_production = unit_type;
-	std::cerr << "Warpgate production changed to " << UnitTypeToName(unit_type) << std::endl;
-}
-
-void UnitProductionManager::SetRoboProduction(UNIT_TYPEID unit_type)
-{
-	// TODO check if this is a unit made by the robo
-	robo_production = unit_type;
-	std::cerr << "Robo production changed to " << UnitTypeToName(unit_type) << std::endl;
-}
-
-void UnitProductionManager::SetStargateProduction(UNIT_TYPEID unit_type)
-{
-	// TODO check if this is a unit made by the stargate
-	stargate_production = unit_type;
-	std::cerr << "Stargate production changed to " << UnitTypeToName(unit_type) << std::endl;
-}
-
-void UnitProductionManager::OnBuildingConstructionComplete(const Unit* building)
-{
-	switch (building->unit_type.ToType())
-	{
-	case WARP_GATE:
-		warpgates.push_back(building);
-		warpgate_status[building] = WarpgateStatus(mediator->GetGameLoop());
-		break;
-	case ROBO:
-		robos.push_back(building);
-		break;
-	case STARGATE:
-		stargates.push_back(building);
-		break;
-	case GATEWAY:
-		gateways.push_back(building);
-		break;
-	}
-}
-
-void UnitProductionManager::RunUnitProduction()
-{
-	UpdateWarpgateStatus();
-
-	if (automatic_unit_production)
-		RunAutomaticUnitProduction();
-	else
-		RunSpecificUnitProduction();
-
 	
-}
-
 void UnitProductionManager::RunAutomaticUnitProduction()
 {
-	std::map<UNIT_TYPEID, uint16_t> units;
+	std::map<UNIT_TYPEID, int> units;
 	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Self))
 	{
 		if (units.find(unit->unit_type) != units.end())
@@ -93,9 +18,9 @@ void UnitProductionManager::RunAutomaticUnitProduction()
 			units[unit->unit_type] = 1;
 	}
 
-	std::map<UNIT_TYPEID, uint16_t> needed_gateway_units;
-	std::map<UNIT_TYPEID, uint16_t> needed_robo_units;
-	std::map<UNIT_TYPEID, uint16_t> needed_stargate_units;
+	std::map<UNIT_TYPEID, int> needed_gateway_units;
+	std::map<UNIT_TYPEID, int> needed_robo_units;
+	std::map<UNIT_TYPEID, int> needed_stargate_units;
 
 	for (const auto& unit_type : target_unit_comp)
 	{
@@ -314,12 +239,143 @@ void UnitProductionManager::RunSpecificUnitProduction()
 	}
 }
 
+void UnitProductionManager::DisplayBuildingStatuses()
+{
+	std::string new_lines = "";
+	std::vector<UNIT_TYPEID> builging_order = { NEXUS, GATEWAY, WARP_GATE, FORGE, CYBERCORE, ROBO, TWILIGHT };
+	for (const auto& building_type : builging_order)
+	{
+		std::vector<const Unit*> buildings = mediator->GetUnits(IsFriendlyUnit(building_type));
+		sort(begin(buildings), end(buildings), [](const Unit* a, const Unit* b) { return a->tag < b->tag; });
+		for (const auto& building : buildings)
+		{
+			std::string info = UnitTypeToName(building_type);
+			info += " ";
+			Color text_color = Color(0, 255, 0);
+
+			if (building_type == WARP_GATE)
+			{
+				if (warpgate_status.count(building) == 0)
+				{
+					std::string todo(10, '-');
+					info += " <" + todo + "> ";
+				}
+				else if (warpgate_status[building].frame_ready == 0)
+				{
+					text_color = Color(255, 0, 0);
+				}
+				else
+				{
+					/*int curr_frame = Observation()->GetGameLoop();
+					int start_frame = mediator.unit_production_manager.warpgate_status[building].frame_ready - 720;
+					int percent = floor((curr_frame - start_frame) / 72);
+					std::string completed(percent, '|');
+					std::string todo(10 - percent, '-');
+					info += " <" + completed + todo + "> ";*/
+				}
+			}
+			else if (building->orders.empty())
+			{
+				text_color = Color(255, 0, 0);
+			}
+			if (building->build_progress < 1)
+			{
+				text_color = Color(255, 255, 0);
+			}
+			for (const auto& buff : building->buffs)
+			{
+				if (buff == BUFF_ID::CHRONOBOOSTENERGYCOST)
+				{
+					text_color = Color(0, 255, 255);
+				}
+			}
+			if (!building->orders.empty())
+			{
+				info += "Orders: " + Utility::OrdersToString(building->orders);
+			}
+			mediator->DebugText(new_lines + info, Point2D(0, .5), text_color, 20);
+			new_lines += "\n";
+		}
+		new_lines += "\n";
+	}
+
+}
+
+
+void UnitProductionManager::SetWarpgateProduction(UNIT_TYPEID unit_type)
+{
+	// TODO check if this is a unit made by the warp gate
+	warpgate_production = unit_type;
+	std::cerr << "Warpgate production changed to " << UnitTypeToName(unit_type) << std::endl;
+}
+
+void UnitProductionManager::SetRoboProduction(UNIT_TYPEID unit_type)
+{
+	// TODO check if this is a unit made by the robo
+	robo_production = unit_type;
+	std::cerr << "Robo production changed to " << UnitTypeToName(unit_type) << std::endl;
+}
+
+void UnitProductionManager::SetStargateProduction(UNIT_TYPEID unit_type)
+{
+	// TODO check if this is a unit made by the stargate
+	stargate_production = unit_type;
+	std::cerr << "Stargate production changed to " << UnitTypeToName(unit_type) << std::endl;
+}
+
+UNIT_TYPEID UnitProductionManager::GetWarpgateProduction() const
+{
+	return warpgate_production;
+}
+
+UNIT_TYPEID UnitProductionManager::GetRoboProduction() const
+{
+	return robo_production;
+}
+
+UNIT_TYPEID UnitProductionManager::GetStargateProduction() const
+{
+	return stargate_production;
+}
+
+void UnitProductionManager::OnBuildingConstructionComplete(const Unit* building)
+{
+	switch (building->unit_type.ToType())
+	{
+	case WARP_GATE:
+		warpgates.push_back(building);
+		warpgate_status[building] = WarpgateStatus(mediator->GetGameLoop());
+		break;
+	case ROBO:
+		robos.push_back(building);
+		break;
+	case STARGATE:
+		stargates.push_back(building);
+		break;
+	case GATEWAY:
+		gateways.push_back(building);
+		break;
+	}
+}
+
+void UnitProductionManager::RunUnitProduction()
+{
+	UpdateWarpgateStatus();
+
+	if (automatic_unit_production)
+		RunAutomaticUnitProduction();
+	else
+		RunSpecificUnitProduction();
+
+	
+}
+
 void UnitProductionManager::SetWarpInAtProxy(bool status)
 {
 	warp_in_at_proxy = status;
 }
 
-std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to)
+std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to) const
 {
 	// order by worst to best
 
@@ -437,7 +493,7 @@ std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to)
 	return spots;
 }
 
-std::vector<Point2D> UnitProductionManager::FindWarpInSpotsAt(Point2D pos)
+std::vector<Point2D> UnitProductionManager::FindWarpInSpotsAt(Point2D pos) const
 {
 	std::vector<Point2D> spots = FindWarpInSpots(pos);
 	for (size_t i = 0; i < spots.size(); i++)
@@ -484,7 +540,7 @@ void UnitProductionManager::UpdateWarpgateStatus()
 	}
 }
 
-int UnitProductionManager::NumWarpgatesReady()
+int UnitProductionManager::NumWarpgatesReady() const
 {
 	int gates_ready = 0;
 	for (const auto& status : warpgate_status)
@@ -495,7 +551,7 @@ int UnitProductionManager::NumWarpgatesReady()
 	return gates_ready;
 }
 
-UnitCost UnitProductionManager::CalculateCostOfProduction()
+UnitCost UnitProductionManager::CalculateCostOfProduction() const
 {
 	float mineral_cost = 0;
 	float gas_cost = 0;
@@ -618,12 +674,12 @@ bool UnitProductionManager::WarpInUnitsAt(UNIT_TYPEID unit_type, int num, Point2
 }
 
 
-std::map<UNIT_TYPEID, uint16_t> UnitProductionManager::GetTargetUnitComp()
+std::map<UNIT_TYPEID, int> UnitProductionManager::GetTargetUnitComp() const
 {
 	return target_unit_comp;
 }
 
-void UnitProductionManager::IncreaseUnitAmountInTargetComposition(UNIT_TYPEID unit_type, uint16_t amount)
+void UnitProductionManager::IncreaseUnitAmountInTargetComposition(UNIT_TYPEID unit_type, int amount)
 {
 	if (target_unit_comp.find(unit_type) != target_unit_comp.end())
 		target_unit_comp[unit_type] = target_unit_comp[unit_type] + amount;
@@ -631,7 +687,7 @@ void UnitProductionManager::IncreaseUnitAmountInTargetComposition(UNIT_TYPEID un
 		target_unit_comp[unit_type] = amount;
 }
 
-void UnitProductionManager::DecreaseUnitAmountInTargetComposition(UNIT_TYPEID unit_type, uint16_t amount)
+void UnitProductionManager::DecreaseUnitAmountInTargetComposition(UNIT_TYPEID unit_type, int amount)
 {
 	if (target_unit_comp.find(unit_type) != target_unit_comp.end())
 	{

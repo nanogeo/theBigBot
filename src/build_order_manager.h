@@ -87,21 +87,31 @@ enum BuildOrder {
 
 class BuildOrderManager
 {
-public:
+	friend BuildOrderData;
+private:
 	Mediator* mediator;
 	BuildOrder current_build_order = BuildOrder::blank;
 	std::vector<BuildOrderData> build_order;
 	int build_order_step = 0;
 	bool run_build_order = true;
 
+public:
 	BuildOrderManager(Mediator* mediator)
 	{
 		this->mediator = mediator;
 	}
+	void DisplayBuildOrder() const;
 
 	void CheckBuildOrder();
 	void PauseBuildOrder();
 	void UnpauseBuildOrder();
+	bool GetBuildOrderStatus() const;
+
+	void SetBuildOrder(BuildOrder);
+
+	void SetWorkerRushDefense();
+
+private:
 	// Build order condition functions
 	bool TimePassed(BuildOrderConditionArgData);
 	bool NumWorkers(BuildOrderConditionArgData);
@@ -189,6 +199,7 @@ public:
 	bool CheckTankCount(BuildOrderResultArgData);
 	bool CheckForProxyRax(BuildOrderResultArgData);
 	bool CheckProtossOpening(BuildOrderResultArgData);
+	bool CheckProtossOpening2(BuildOrderResultArgData);
 	bool DoubleCheckProxyGate(BuildOrderResultArgData);
 	bool ScoutBases(BuildOrderResultArgData);
 	bool WallOffRamp(BuildOrderResultArgData);
@@ -204,7 +215,6 @@ public:
 
 	bool RemoveProbe(BuildOrderResultArgData);
 
-	void SetBuildOrder(BuildOrder);
 	void SetBlank();
 	void SetTesting();
 	void SetBlinkProxyRoboPressureBuild();
@@ -223,8 +233,6 @@ public:
 	void SetReturnTo2GateProxyRobo();
 	void Set1GateExpand();
 
-	void SetRecessedCannonRush();
-
 
 	void SetEarlyPoolInterrupt();
 	void Set12PoolInterrupt();
@@ -233,7 +241,6 @@ public:
 	void SetChargeTransition();
 	void SetMinorProxyRaxResponse();
 	void SetMajorProxyRaxResponse();
-	void SetWorkerRushDefense();
 	void SetProxyGateResponse();
 	void SetCannonRushResponse();
 
@@ -253,7 +260,7 @@ struct BuildOrderData
 		result = z;
 		result_arg = a;
 	}
-	std::string toString()
+	std::string toString() const
 	{
 		// Condition
 		std::string str = "When ";
@@ -648,6 +655,10 @@ struct BuildOrderData
 		{
 			str += "check protoss openning";
 		}
+		else if (result == &BuildOrderManager::CheckProtossOpening2)
+		{
+			str += "check protoss openning 2";
+			}
 		else if (result == &BuildOrderManager::DoubleCheckProxyGate)
 		{
 			str += "double check proxy gate";

@@ -31,16 +31,16 @@ void DefendMainRampArmyGroup::Run()
 			for (const auto& unit : all_units)
 			{
 				if (Distance2D(unit->pos, walloff_pos) > 3)
-					mediator->SetUnitCommand(unit, A_MOVE, walloff_gate, 0);
+					mediator->SetUnitCommand(unit, A_MOVE, walloff_gate, CommandPriorty::low);
 				else
-					mediator->SetUnitCommand(unit, A_ATTACK, walloff_gate, 0);
+					mediator->SetUnitCommand(unit, A_ATTACK, walloff_gate, CommandPriorty::low);
 			}
 		}
 		else
 		{
 			mediator->CreateAttack({ ADEPT, STALKER, SENTRY }, 12, 20, 4, 4);
 			mediator->MarkArmyGroupForDeletion(this);
-			mediator->SetUnitsCommand(all_units, A_ATTACK, mediator->GetEnemyStartLocation(), 1);
+			mediator->SetUnitsCommand(all_units, A_ATTACK, mediator->GetEnemyStartLocation(), CommandPriorty::normal);
 		}
 		return;
 	}
@@ -67,11 +67,11 @@ void DefendMainRampArmyGroup::Run()
 			if (enemies_in_base.size() > 0)
 			{
 				const Unit* closest = Utility::ClosestTo(enemies_in_base, unit->pos);
-				mediator->SetUnitCommand(unit, A_MOVE, closest->pos, 0);
+				mediator->SetUnitCommand(unit, A_MOVE, closest->pos, CommandPriorty::low);
 			}
 			else
 			{
-				mediator->SetUnitCommand(unit, A_MOVE, ramp_top, 0);
+				mediator->SetUnitCommand(unit, A_MOVE, ramp_top, CommandPriorty::low);
 			}
 		}
 		else
@@ -79,7 +79,7 @@ void DefendMainRampArmyGroup::Run()
 			if (enemies_in_base.size() > 0)
 			{
 				const Unit* closest = Utility::ClosestTo(enemies_in_base, unit->pos);
-				mediator->SetUnitCommand(unit, A_MOVE, closest->pos, 0);
+				mediator->SetUnitCommand(unit, A_MOVE, closest->pos, CommandPriorty::low);
 			}
 			else
 			{
@@ -88,9 +88,9 @@ void DefendMainRampArmyGroup::Run()
 				float enemy_range = Utility::RealRange(closest_enemy, unit);
 				float unit_range = Utility::RealRange(unit, closest_enemy);
 				if ((enemy_range < unit_range || unit->shield / unit->shield_max < .5) && Distance2D(closest_enemy->pos, unit->pos) <= enemy_range)
-					mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(unit->pos, mediator->GetStartLocation(), unit_range), 1);
+					mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(unit->pos, mediator->GetStartLocation(), unit_range), CommandPriorty::normal);
 				else if (Distance2D(unit->pos, ramp_top) > 6) // move units close to ramp
-					mediator->SetUnitCommand(unit, A_MOVE, ramp_top, 0);
+					mediator->SetUnitCommand(unit, A_MOVE, ramp_top, CommandPriorty::low);
 			}
 		}
 
@@ -109,7 +109,7 @@ void DefendMainRampArmyGroup::Run()
 			{
 				if (Distance2D(sentry->pos, forcefield_pos) < 9)
 				{
-					mediator->SetUnitCommand(sentry, A_FORCEFIELD, forcefield_pos, 10);
+					mediator->SetUnitCommand(sentry, A_FORCEFIELD, forcefield_pos, CommandPriorty::high);
 					forcefield_cast = true;
 					break;
 				}
@@ -121,7 +121,7 @@ void DefendMainRampArmyGroup::Run()
 		}
 		if (forcefield_cast == false && available_sentries.size() > 0)
 		{
-			mediator->SetUnitCommand(Utility::ClosestTo(available_sentries, forcefield_pos), A_FORCEFIELD, forcefield_pos, 10);
+			mediator->SetUnitCommand(Utility::ClosestTo(available_sentries, forcefield_pos), A_FORCEFIELD, forcefield_pos, CommandPriorty::high);
 		}
 	}
 }

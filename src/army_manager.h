@@ -19,7 +19,7 @@ class Mediator;
 
 class ArmyManager
 {
-public:
+private:
 	Mediator* mediator;
 	ArmyGroup* unassigned_group = nullptr;
 	std::vector<ArmyGroup*> army_groups;
@@ -28,20 +28,27 @@ public:
 
 	std::vector<IArmyTemplate*> army_templates;
 
-	ArmyManager(Mediator* mediator);
-
-	void SetUpInitialArmies();
 	void CreateProtossArmyTemplates();
 	void CreateTerranArmyTemplates();
 	void CreateZergArmyTemplates();
 
+	bool EnemyHasExposedBase();
+	Point2D FindExposedBase() const;
+	bool OracleHarassCondition();
+public:
+	ArmyManager(Mediator* mediator);
+
+	void DisplayArmyGroups() const;
+	void SetUpInitialArmies();
+
 	void CreateNewArmyGroups();
 
 	void AddArmyGroup(ArmyGroup*);
+	const std::vector<ArmyGroup*>& GetArmyGroups() const;
 
 	void RunArmyGroups();
 
-	void FindArmyGroupForUnit(const Unit*);
+	void FindArmyGroupForUnit(const Unit*) const;
 	void OnUnitDestroyed(const Unit*);
 	void BalanceUnits();
 
@@ -53,18 +60,13 @@ public:
 	void RemoveDefenseGroupAt(Point2D);
 	void DeleteArmyGroup(ArmyGroup*);
 	void MarkArmyGroupForDeletion(ArmyGroup*);
-
-	bool EnemyHasExposedBase();
-	Point2D FindExposedBase();
-	bool OracleHarassCondition();
-
 };
 
 struct IArmyTemplate
 {
-	std::map<UNIT_TYPEID, uint16_t> required_units;
+	std::map<UNIT_TYPEID, int> required_units;
 	bool(sc2::ArmyManager::* condition)() = nullptr;
-	uint16_t priority = 0;
+	int priority = 0; // TODO change to enum
 	virtual ArmyGroup* CreateArmyGroup(Mediator* mediator) = 0;
 };
 
@@ -72,11 +74,11 @@ template<typename T>
 struct ArmyTemplate : public IArmyTemplate
 {
 	std::vector<UNIT_TYPEID> unit_types;
-	uint16_t desired_units = 0;
-	uint16_t max_units = 0;
+	int desired_units = 0;
+	int max_units = 0;
 	ArmyTemplate() {};
-	ArmyTemplate(std::map<UNIT_TYPEID, uint16_t> required_units, uint16_t priority, std::vector<UNIT_TYPEID> unit_types, 
-		uint16_t desired_units, uint16_t max_units)
+	ArmyTemplate(std::map<UNIT_TYPEID, int> required_units, int priority, std::vector<UNIT_TYPEID> unit_types,
+		int desired_units, int max_units)
 	{
 		this->required_units = required_units;
 		this->priority = priority;
@@ -84,8 +86,8 @@ struct ArmyTemplate : public IArmyTemplate
 		this->desired_units = desired_units;
 		this->max_units = max_units;
 	}
-	ArmyTemplate(std::map<UNIT_TYPEID, uint16_t> required_units, bool(sc2::ArmyManager::* condition)(), 
-		uint16_t priority, std::vector<UNIT_TYPEID> unit_types, uint16_t desired_units, uint16_t max_units)
+	ArmyTemplate(std::map<UNIT_TYPEID, int> required_units, bool(sc2::ArmyManager::* condition)(),
+		int priority, std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)
 	{
 		this->required_units = required_units;
 		this->priority = priority;
@@ -109,8 +111,8 @@ struct IArmyTemplateStateMachine : ArmyTemplate<OutsideControlArmyGroup>
 template<typename T, typename U>
 struct ArmyTemplateStateMachine : public IArmyTemplateStateMachine
 {
-	ArmyTemplateStateMachine(std::map<UNIT_TYPEID, uint16_t> required_units, uint16_t priority, std::vector<UNIT_TYPEID> unit_types,
-		uint16_t desired_units, uint16_t max_units)
+	ArmyTemplateStateMachine(std::map<UNIT_TYPEID, int> required_units, int priority, std::vector<UNIT_TYPEID> unit_types,
+		int desired_units, int max_units)
 	{
 		this->required_units = required_units;
 		this->priority = priority;
@@ -118,8 +120,8 @@ struct ArmyTemplateStateMachine : public IArmyTemplateStateMachine
 		this->desired_units = desired_units;
 		this->max_units = max_units;
 	}
-	ArmyTemplateStateMachine(std::map<UNIT_TYPEID, uint16_t> required_units, bool(sc2::ArmyManager::* condition)(), uint16_t priority, 
-		std::vector<UNIT_TYPEID> unit_types, uint16_t desired_units, uint16_t max_units)
+	ArmyTemplateStateMachine(std::map<UNIT_TYPEID, int> required_units, bool(sc2::ArmyManager::* condition)(), int priority,
+		std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)
 	{
 		this->required_units = required_units;
 		this->priority = priority;

@@ -15,14 +15,15 @@ class ArmyGroup;
 
 class ScoutPInitialMove : public State
 {
-public:
+private:
     ScoutProtossStateMachine* state_machine;
+public:
     ScoutPInitialMove(Mediator* mediator, ScoutProtossStateMachine* state_machine)
     {
         this->mediator = mediator;
         this->state_machine = state_machine;
     }
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     void TickState() override;
     virtual void EnterState() override;
     virtual void ExitState() override;
@@ -31,14 +32,15 @@ public:
 
 class ScoutPScoutPylon : public State
 {
-public:
+private:
     ScoutProtossStateMachine* state_machine;
+public:
     ScoutPScoutPylon(Mediator* mediator, ScoutProtossStateMachine* state_machine)
     {
         this->mediator = mediator;
         this->state_machine = state_machine;
     }
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     void TickState() override;
     virtual void EnterState() override;
     virtual void ExitState() override;
@@ -47,16 +49,17 @@ public:
 
 class ScoutPScoutMain : public State
 {
-public:
+private:
     ScoutProtossStateMachine* state_machine;
     bool scouted_pylon;
+public:
     ScoutPScoutMain(Mediator* mediator, ScoutProtossStateMachine* state_machine, bool scouted_pylon)
     {
         this->mediator = mediator;
         this->state_machine = state_machine;
         this->scouted_pylon = scouted_pylon;
     }
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     void TickState() override;
     virtual void EnterState() override;
     virtual void ExitState() override;
@@ -65,14 +68,15 @@ public:
 
 class ScoutPScoutNatural : public State
 {
-public:
+private:
     ScoutProtossStateMachine* state_machine;
+public:
     ScoutPScoutNatural(Mediator* mediator, ScoutProtossStateMachine* state_machine)
     {
         this->mediator = mediator;
         this->state_machine = state_machine;
     }
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     void TickState() override;
     virtual void EnterState() override;
     virtual void ExitState() override;
@@ -81,14 +85,15 @@ public:
 
 class ScoutPReturnToBase : public State
 {
-public:
+private:
     ScoutProtossStateMachine* state_machine;
+public:
     ScoutPReturnToBase(Mediator* mediator, ScoutProtossStateMachine* state_machine)
     {
         this->mediator = mediator;
         this->state_machine = state_machine;
     }
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     void TickState() override;
     virtual void EnterState() override;
     virtual void ExitState() override;
@@ -100,7 +105,12 @@ public:
 
 class ScoutProtossStateMachine : public StateMachine
 {
-public:
+    friend ScoutPInitialMove;
+    friend ScoutPScoutPylon;
+    friend ScoutPScoutMain;
+    friend ScoutPScoutNatural;
+    friend ScoutPReturnToBase;
+private:
     const Unit* scout;
     Point2D enemy_main;
     int index = 0;
@@ -108,6 +118,7 @@ public:
     std::vector<Point2D> natural_scout_path;
     Point2D enemy_natural_pos;
     Point2D current_target;
+public:
     ScoutProtossStateMachine(Mediator* mediator, std::string name, const Unit* scout, Point2D enemy_main, 
         std::vector<Point2D> main_scout_path, std::vector<Point2D> natural_scout_path, Point2D enemy_natural_pos) : StateMachine(mediator, name)
     {
@@ -127,6 +138,8 @@ public:
     {
         StateMachine::RunStateMachine();
     }
+
+    const Unit* GetScout();
 
 };
 

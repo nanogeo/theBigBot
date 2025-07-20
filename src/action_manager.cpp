@@ -10,6 +10,25 @@
 namespace sc2
 {
 
+
+void ActionManager::DisplayActiveActions() const
+{
+	std::string actions_message = "Active Actions:\n";
+	for (int i = 0; i < active_actions.size(); i++)
+	{
+		actions_message += active_actions[i]->toString() + "\n";
+		const Unit* unit = active_actions[i]->action_arg->unit;
+		if (unit != nullptr)
+			mediator->DebugText(active_actions[i]->toString(), unit->pos, Color(0, 255, 0), 20);
+	}
+	mediator->DebugText(actions_message, Point2D(.1f, 0), Color(0, 255, 0), 20);
+}
+
+const std::vector<ActionData*>& ActionManager::GetActiveActions() const
+{
+	return active_actions;
+}
+
 void ActionManager::ProcessActions()
 {
 	for (int i = 0; i < active_actions.size(); i++)
@@ -27,6 +46,16 @@ void ActionManager::ProcessActions()
 void ActionManager::AddAction(ActionData* action)
 {
 	active_actions.push_back(action);
+}
+
+std::vector<ActionData*>::iterator ActionManager::EraseAction(ActionData* action)
+{
+	for (auto itr = active_actions.begin(); itr != active_actions.end();)
+	{
+		if ((*itr) == action)
+			return active_actions.erase(itr);
+	}
+	return active_actions.end();
 }
 
 bool ActionManager::ActionBuildBuilding(ActionArgData* data)
@@ -52,11 +81,11 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	}
 	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId))
 	{
-		for (const auto& unit : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self), pos, .5 + Utility::BuildingSize(buildingId)))
+		for (const auto& unit : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self), pos, .5f + Utility::BuildingSize(buildingId)))
 		{
 			if (unit->unit_type == PROBE)
 				continue;
-			mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(pos, unit->pos, 10), 20);
+			mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(pos, unit->pos, MEDIUM_RANGE), CommandPriorty::high);
 		}
 		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
@@ -65,7 +94,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		mediator->SetUnitCommand(builder, A_MOVE, pos, 0);
+		mediator->SetUnitCommand(builder, A_MOVE, pos, CommandPriorty::low);
 	}
 	return false;
 }
@@ -74,7 +103,7 @@ bool ActionManager::ActionBuildBuildingWhenSafe(ActionArgData* data)
 {
 	mediator->DebugSphere(mediator->ToPoint3D(data->position), 1, Color(255, 128, 0));
 	if (mediator->CanAfford(data->unitId, 1) && 
-		Utility::DistanceToClosest(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), data->position) > 10 &&
+		Utility::DistanceToClosest(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), data->position) > MEDIUM_RANGE &&
 		(data->unitId == PYLON || data->unitId == NEXUS || Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PYLON)), data->position) < 6.5))
 	{
 		const Unit* builder = mediator->GetBuilder(data->position);
@@ -125,11 +154,11 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	}
 	if (Distance2D(builder->pos, pos) < Utility::BuildingSize(buildingId))
 	{
-		for (const auto& unit : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self), pos, .5 + Utility::BuildingSize(buildingId)))
+		for (const auto& unit : Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Self), pos, .5f + Utility::BuildingSize(buildingId)))
 		{
 			if (unit == builder)
 				continue;
-			mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(pos, unit->pos, 10), 20);
+			mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(pos, unit->pos, MEDIUM_RANGE), CommandPriorty::high);
 		}
 		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
@@ -138,7 +167,7 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		mediator->SetUnitCommand(builder, A_MOVE, pos, 0);
+		mediator->SetUnitCommand(builder, A_MOVE, pos, CommandPriorty::low);
 	}
 	return false;
 }
@@ -186,7 +215,7 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data) // TODO add avoid
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		mediator->SetUnitCommand(builder, A_MOVE, pos, 0);
+		mediator->SetUnitCommand(builder, A_MOVE, pos, CommandPriorty::low);
 	}
 	return false;
 }
@@ -200,17 +229,11 @@ bool ActionManager::ActionScoutZerg(ActionArgData* data)
 
 bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 {
-#ifdef DEBUG_TIMING
-	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
 	int extra_workers = 0;// data->index; TODO add extra workers to worker manager
 	int num_workers = mediator->GetNumWorkers();
 	int num_nexi = (int)mediator->GetUnits(IsFriendlyUnit(NEXUS)).size();
 	int num_assimilators = (int)mediator->GetUnits(IsFriendlyUnit(ASSIMILATOR)).size();
-	if (num_workers >= std::min(num_nexi * 16 + num_assimilators * 3, 70) + extra_workers)
+	if (num_workers >= std::min(num_nexi * 16 + num_assimilators * 3, MAX_WORKERS) + extra_workers)
 	{
 		mediator->SetBuildWorkers(false);
 	}
@@ -218,29 +241,12 @@ bool ActionManager::ActionContinueMakingWorkers(ActionArgData* data)
 	{
 		mediator->SetBuildWorkers(true);
 	}
-#ifdef DEBUG_TIMING
-	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-
-	std::ofstream make_workers;
-	make_workers.open("make_workers.txt", std::ios_base::app);
-
-	make_workers << end_time - start_time << "\n";
-	make_workers.close();
-#endif
 
 	return false;
 }
 
 bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 {
-#ifdef DEBUG_TIMING
-	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
 	int build_pylon_actions = 0;
 	for (const auto &action : active_actions)
 	{
@@ -301,31 +307,13 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 	supply_used += 3 * mediator->Observation()->GetUnits(IsFriendlyUnit(STARGATE)).size();
 	*/
 	if (supply_used >= supply_cap)
-		mediator->build_order_manager.BuildBuilding(PYLON);
-
-#ifdef DEBUG_TIMING
-	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-
-	std::ofstream build_pylons;
-	build_pylons.open("build_pylons.txt", std::ios_base::app);
-
-	build_pylons << end_time - start_time << "\n";
-	build_pylons.close();
-#endif
+		mediator->BuildBuilding(PYLON);
 
 	return false;
 }
 
 bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 {
-#ifdef DEBUG_TIMING
-	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
 	// TODO make global upgrade tracker
 	std::vector<ABILITY_ID> upgrades = {};
 	if (mediator->GetEnemyRace() == Race::Zerg)
@@ -368,7 +356,7 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 	{
 		for (const auto &forge : idle_forges)
 		{
-			mediator->SetUnitCommand(forge, upgrades[0], 0);
+			mediator->SetUnitCommand(forge, upgrades[0], CommandPriorty::low);
 			upgrades.erase(upgrades.begin());
 			if (upgrades.size() == 0)
 				break;
@@ -396,32 +384,20 @@ bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
 	{
 		for (const auto &cyber : idle_cybers)
 		{
-			mediator->SetUnitCommand(cyber, air_upgrades[0], 0);
+			mediator->SetUnitCommand(cyber, air_upgrades[0], CommandPriorty::low);
 			air_upgrades.erase(air_upgrades.begin());
 			if (air_upgrades.size() == 0)
 				break;
 		}
 	}
 
-#ifdef DEBUG_TIMING
-	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-
-	std::ofstream get_upgrades;
-	get_upgrades.open("get_upgrades.txt", std::ios_base::app);
-
-	get_upgrades << end_time - start_time << "\n";
-	get_upgrades.close();
-#endif
-
 	return false;
 }
 
 bool ActionManager::ActionContinueSpendingNexusEnergy(ActionArgData* data)
 {
-	std::map<const Unit*, uint16_t> nexi_with_energy;
-	uint16_t total = 0;
+	std::map<const Unit*, float> nexi_with_energy;
+	float total = 0;
 	for (const auto& nexus : mediator->GetUnits(Unit::Alliance::Self, IsFinishedUnit(NEXUS)))
 	{
 		if (nexus->energy >= 200)
@@ -477,7 +453,7 @@ bool ActionManager::ActionContinueSpendingNexusEnergy(ActionArgData* data)
 		{
 			nexus.second--;
 			total--;
-			mediator->SetUnitCommand(nexus.first, A_CHRONO, need_chrono[0], 0);
+			mediator->SetUnitCommand(nexus.first, A_CHRONO, need_chrono[0], CommandPriorty::low);
 			need_chrono.erase(need_chrono.begin());
 		}
 	}
@@ -500,7 +476,7 @@ bool ActionManager::ActionContinueSpendingNexusEnergy(ActionArgData* data)
 						{
 							if (strcmp(AbilityTypeToName(ability.ability_id), "UNKNOWN") == 0)
 							{
-								mediator->SetUnitCommand(nexus.first, ability.ability_id, unit, 0);
+								mediator->SetUnitCommand(nexus.first, ability.ability_id, unit, CommandPriorty::low);
 								recharge_used = true;
 								break;
 							}
@@ -523,11 +499,6 @@ bool ActionManager::ActionContinueSpendingNexusEnergy(ActionArgData* data)
 
 bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 {
-#ifdef DEBUG_TIMING
-	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
 
 	if (mediator->NumFar3rdWorkers() > 0)
 	{
@@ -552,26 +523,15 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 					return false;
 				}
 			}
-			mediator->build_order_manager.BuildBuilding(ASSIMILATOR);
+			mediator->BuildBuilding(ASSIMILATOR);
 		}
 		else
 		{
-			mediator->build_order_manager.BuildBuilding(NEXUS);
+			mediator->BuildBuilding(NEXUS);
 		}
 		return false;
 	}
 
-#ifdef DEBUG_TIMING
-	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-
-	std::ofstream expanding;
-	expanding.open("expanding.txt", std::ios_base::app);
-
-	expanding << end_time - start_time << "\n";
-	expanding.close();
-#endif
 	return false;
 }
 
@@ -583,7 +543,7 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 		return false;
 
 	const Unit* building = data->unit;
-	if (building->orders.size() == 0 || Utility::GetOrderTimeLeft(building->orders[0]) < 15)
+	if (building->orders.size() == 0 || Utility::GetOrderTimeLeft(building->orders[0]) < LONG_RANGE)
 	{
 		return true;
 	}
@@ -594,9 +554,9 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 	}
 	for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(NEXUS)))
 	{
-		if (nexus->energy >= 50 && nexus->build_progress == 1)
+		if (nexus->energy >= ENERGY_COST_CHRONO && nexus->build_progress == 1)
 		{
-			mediator->SetUnitCommand(nexus, A_CHRONO, building, 0);
+			mediator->SetUnitCommand(nexus, A_CHRONO, building, CommandPriorty::low);
 			return false;
 		}
 		/*for (const auto &ability : mediator->Query()->GetAbilitiesForUnit(nexus).abilities)
@@ -613,44 +573,15 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 
 bool ActionManager::ActionConstantChrono(ActionArgData* data)
 {
-#ifdef DEBUG_TIMING
-	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-#endif
-
 	const Unit* building = data->unit;
 	for (const auto &buff : building->buffs)
 	{
 		if (buff == BUFF_ID::CHRONOBOOSTENERGYCOST)
 		{
-
-#ifdef DEBUG_TIMING
-			unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
-				std::chrono::high_resolution_clock::now().time_since_epoch()
-				).count();
-
-			std::ofstream constant_chrono;
-			constant_chrono.open("constant_chrono.txt", std::ios_base::app);
-
-			constant_chrono << end_time - start_time << "\n";
-			constant_chrono.close();
-#endif
 			return false;
 		}
 	}
 
-#ifdef DEBUG_TIMING
-	unsigned long long end_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-
-	std::ofstream constant_chrono;
-	constant_chrono.open("constant_chrono.txt", std::ios_base::app);
-
-	constant_chrono << end_time - start_time << "\n";
-	constant_chrono.close();
-#endif
 	return false;
 }
 
@@ -676,14 +607,7 @@ bool ActionManager::ActionTrainFromProxyRobo(ActionArgData* data)
 #pragma warning(disable : 4100)
 bool ActionManager::ActionPullOutOfGas(ActionArgData* data)
 {
-	Units workers = mediator->GetAllWorkersOnGas();
-
-	for (const auto &worker : workers)
-	{
-		mediator->RemoveWorker(worker);
-		mediator->PlaceWorker(worker);
-	}
-	if (mediator->GetAllWorkersOnGas().size() == 0)
+	if (mediator->PullOutOfGas())
 		return true;
 	return false;
 }
@@ -709,15 +633,15 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 	
 	if (Distance2D(scout->pos, data->position) > 1 && !pylon_placed)
 	{
-		mediator->SetUnitCommand(scout, A_MOVE, data->position, 0);
+		mediator->SetUnitCommand(scout, A_MOVE, data->position, CommandPriorty::low);
 	}
 	else if (Distance2D(scout->pos, data->position) < 5 && !pylon_placed)
 	{
 		if (mediator->GetGameLoop() / FRAME_TIME >= data->index)
 		{
-			mediator->SetUnitCommand(scout, ABILITY_ID::BUILD_PYLON, data->position, 0);
+			mediator->SetUnitCommand(scout, ABILITY_ID::BUILD_PYLON, data->position, CommandPriorty::low);
 		}
-		else if (Utility::DistanceToClosest(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), scout->pos) < 3)
+		else if (Utility::DistanceToClosest(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), scout->pos) < VERY_CLOSE_RANGE)
 		{
 			const Unit* enemy = Utility::ClosestTo(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), scout->pos);
 			if (Utility::GetUnitsThatCanAttack(mediator->GetUnits(Unit::Alliance::Enemy), scout, 0).size() > 0)
@@ -731,7 +655,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 				}
 				else
 				{
-					mediator->SetUnitCommand(scout, A_SMART, base_minerals, 1);
+					mediator->SetUnitCommand(scout, A_SMART, base_minerals, CommandPriorty::normal);
 				}
 			}
 			else
@@ -744,7 +668,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 					angle += 15;
 				}
 				mediator->DebugSphere(mediator->ToPoint3D(run_away_pos), .5, Color(0, 0, 255));
-				mediator->SetUnitCommand(scout, A_MOVE, run_away_pos, 1);
+				mediator->SetUnitCommand(scout, A_MOVE, run_away_pos, CommandPriorty::normal);
 			}
 		}
 	}
@@ -776,7 +700,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 				}
 				else
 				{
-					mediator->SetUnitCommand(scout, A_SMART, base_minerals, 1);
+					mediator->SetUnitCommand(scout, A_SMART, base_minerals, CommandPriorty::normal);
 				}
 			}
 			else
@@ -789,7 +713,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 					angle += 15;
 				}
 				mediator->DebugSphere(mediator->ToPoint3D(run_away_pos), .5, Color(0, 0, 255));
-				mediator->SetUnitCommand(scout, A_MOVE, run_away_pos, 1);
+				mediator->SetUnitCommand(scout, A_MOVE, run_away_pos, CommandPriorty::normal);
 			}
 		}
 	}
@@ -853,7 +777,7 @@ bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 			for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(NEXUS)))
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
-					mediator->SetUnitCommand(nexus, A_CHRONO, robo, 0);
+					mediator->SetUnitCommand(nexus, A_CHRONO, robo, CommandPriorty::low);
 				/*for (const auto &ability : mediator->Query()->GetAbilitiesForUnit(nexus).abilities)
 				{
 					if (ability.ability_id == A_CHRONO)
@@ -938,7 +862,7 @@ bool ActionManager::ActionScourMap(ActionArgData* data)
 				y = std::rand() % raw_map.height;
 				pos = Point2D((float)x, (float)y);
 			}
-			mediator->SetUnitCommand(unit, A_ATTACK, pos, 0);
+			mediator->SetUnitCommand(unit, A_ATTACK, pos, CommandPriorty::low);
 		}
 	}
 	return false;
@@ -967,7 +891,7 @@ bool ActionManager::ActionCheckBaseForCannons(ActionArgData* data)
 	if (Distance2D(data->unit->pos, pos) < 2)
 		data->index++;
 	else
-		mediator->SetUnitCommand(data->unit, A_MOVE, pos, 0);
+		mediator->SetUnitCommand(data->unit, A_MOVE, pos, CommandPriorty::low);
 
 	return false;
 }
@@ -994,7 +918,7 @@ bool ActionManager::ActionCheckNaturalForCannons(ActionArgData* data)
 	if (Distance2D(data->unit->pos, pos) < 2)
 		data->index++;
 	else
-		mediator->SetUnitCommand(data->unit, A_MOVE, pos, 0);
+		mediator->SetUnitCommand(data->unit, A_MOVE, pos, CommandPriorty::low);
 
 	return false;
 }
@@ -1019,7 +943,7 @@ bool ActionManager::ActionCheckForBunkerRush(ActionArgData* data)
 	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) < 15)
 	{
 		const Unit* scv = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(SCV)), data->unit->pos);
-		if (scv == nullptr || Distance2D(scv->pos, data->unit->pos) > 10)
+		if (scv == nullptr || Distance2D(scv->pos, data->unit->pos) > MEDIUM_RANGE)
 			target = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), data->unit->pos);
 		else
 			target = scv;
@@ -1028,20 +952,20 @@ bool ActionManager::ActionCheckForBunkerRush(ActionArgData* data)
 	if (target)
 	{
 		if (data->unit->weapon_cooldown == 0)
-			mediator->SetUnitCommand(data->unit, A_ATTACK, target, 0);
+			mediator->SetUnitCommand(data->unit, A_ATTACK, target, CommandPriorty::low);
 		else
-			mediator->SetUnitCommand(data->unit, A_MOVE, target, 0);
+			mediator->SetUnitCommand(data->unit, A_MOVE, target, CommandPriorty::low);
 	}
 	else
 	{
 		if (data->unit->weapon_cooldown == 0 && Utility::GetUnitsInRange(mediator->GetUnits(Unit::Alliance::Enemy), data->unit, 0).size() > 0)
 		{
-			mediator->SetUnitCommand(data->unit, A_ATTACK, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), data->unit->pos), 0);
+			mediator->SetUnitCommand(data->unit, A_ATTACK, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), data->unit->pos), CommandPriorty::low);
 		}
-		else if (data->unit->orders.size() == 0 || data->unit->orders[0].ability_id == A_ATTACK || Distance2D(data->unit->pos, mediator->GetNaturalLocation()) > 15)
+		else if (data->unit->orders.size() == 0 || data->unit->orders[0].ability_id == A_ATTACK || Distance2D(data->unit->pos, mediator->GetNaturalLocation()) > LONG_RANGE)
 		{
 			Point2D pos = Utility::FurthestFrom(mediator->GetLocations().natural_front, data->unit->pos);
-			mediator->SetUnitCommand(data->unit, A_MOVE, pos, 0);
+			mediator->SetUnitCommand(data->unit, A_MOVE, pos, CommandPriorty::low);
 		}
 	}
 

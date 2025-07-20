@@ -6,14 +6,20 @@
 namespace sc2
 {
 
-bool AbilityManager::IsOracleBeamOn(const Unit* unit)
+void AbilityManager::UpdatedAbilityInfo()
 {
-	return oracle_beam_status[unit];
+	UpdateOracleInfo();
+	UpdateStalkerInfo();
 }
 
-bool AbilityManager::IsOracleCasting(const Unit* unit)
+bool AbilityManager::IsOracleBeamOn(const Unit* unit) const
 {
-	return oracle_casting[unit];
+	return oracle_beam_status.at(unit);
+}
+
+bool AbilityManager::IsOracleCasting(const Unit* unit) const
+{
+	return oracle_casting.at(unit);
 }
 
 void AbilityManager::UpdateOracleInfo() 
@@ -23,7 +29,7 @@ void AbilityManager::UpdateOracleInfo()
 	for (auto &oracle : previous_oracle_energy)
 	{
 		// check revelation cooldown
-		if (last_time_oracle_revealed[oracle.first] + 10 <= mediator->GetCurrentTime())
+		if (last_time_oracle_revealed[oracle.first] + CD_REVELATION <= mediator->GetCurrentTime())
 		{
 			oracle_revelation_off_cooldown[oracle.first] = true;
 		}
@@ -32,7 +38,7 @@ void AbilityManager::UpdateOracleInfo()
 			switch (oracle_order[oracle.first])
 			{
 			case A_ORACLE_BEAM_ON:
-				if (oracle.first->energy <= oracle.second - 24) // not 25 because energy is a float for some reason
+				if (oracle.first->energy <= oracle.second - ENERGY_COST_PULSAR_BEAM + 1) // +1 because energy is a float for some reason
 				{
 					oracle_beam_status[oracle.first] = true;
 					oracle_order.erase(oracle.first);
@@ -43,7 +49,7 @@ void AbilityManager::UpdateOracleInfo()
 				oracle_order.erase(oracle.first);
 				break;
 			case A_REVELATION:
-				if (oracle.first->energy <= oracle.second - 25)
+				if (oracle.first->energy <= oracle.second - ENERGY_COST_REVELATION)
 				{
 					oracle_casting[oracle.first] = false;
 					oracle_order.erase(oracle.first);
@@ -72,9 +78,9 @@ void AbilityManager::SetOracleOrder(const Unit* unit, ABILITY_ID ability)
 		oracle_casting[unit] = true;
 }
 
-bool AbilityManager::IsStalkerBlinkOffCooldown(const Unit* unit)
+bool AbilityManager::IsStalkerBlinkOffCooldown(const Unit* unit) const
 {
-	return stalker_blink_off_cooldown[unit];
+	return stalker_blink_off_cooldown.at(unit);
 }
 
 void AbilityManager::UpdateStalkerInfo()
@@ -110,14 +116,14 @@ void AbilityManager::SetStalkerOrder(const Unit* unit)
 	stalkers_ordered_to_blink[unit] = mediator->GetGameLoop();
 }
 
-bool AbilityManager::NexusRecallOffCooldown()
+bool AbilityManager::NexusRecallOffCooldown() const
 {
-	return mediator->GetCurrentTime() > last_time_nexus_recalled + 130;
+	return mediator->GetCurrentTime() > last_time_nexus_recalled + CD_NEXUS_RECALL;
 }
 
-bool AbilityManager::NexusEnergyRechargeOffCooldown()
+bool AbilityManager::NexusEnergyRechargeOffCooldown() const
 {
-	return mediator->GetCurrentTime() > last_time_nexus_energy_recharged + 60;
+	return mediator->GetCurrentTime() > last_time_nexus_energy_recharged + CD_ENERGY_RECHARGE;
 }
 
 void AbilityManager::SetNexusRecallCooldown(float time)

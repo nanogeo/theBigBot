@@ -10,14 +10,29 @@
 #include "army_group.h"
 
 
-namespace sc2 {
+namespace sc2 
+{
+
+
+void DefenseManager::DisplayOngoingAttacks() const
+{
+	std::string attacks_message = "Ongoing attacks:\n";
+	for (int i = 0; i < ongoing_attacks.size(); i++)
+	{
+		attacks_message += "pos: (" + std::to_string(ongoing_attacks[i].location.x) + ", " + std::to_string(ongoing_attacks[i].location.y) + ") ";
+		attacks_message += "pulled workers: " + std::to_string(ongoing_attacks[i].pulled_workers.size()) + ", ";
+		attacks_message += "status: " + std::to_string(ongoing_attacks[i].status) + "\n";
+
+	}
+	mediator->DebugText(attacks_message, Point2D(.5, 0), Color(0, 255, 0), 20);
+}
 
 
 void DefenseManager::CheckForAttacks()
 {
 	for (const auto& base : mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)))
 	{
-		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), base->pos, 20);
+		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), base->pos, VERY_LONG_RANGE);
 		// consider wall when defending nat vs zerg
 		
 		auto itr = std::find_if(ongoing_attacks.begin(), ongoing_attacks.end(), [base](const OngoingAttack& attack) { return Point2D(base->pos) == attack.location; });
@@ -34,7 +49,7 @@ void DefenseManager::CheckForAttacks()
 						mediator->PlaceWorker(worker);
 				}
 				// reset desired defenses
-				mediator->AddToDefense(itr->location, -1 * army_group->desired_units);
+				mediator->AddToDefense(itr->location, -1 * army_group->GetDesiredUnits());
 			}
 			ongoing_attacks.erase(itr);
 		}
@@ -51,9 +66,9 @@ void DefenseManager::UpdateOngoingAttacks()
 	bool scary_attack = false;
 	for (auto& attack : ongoing_attacks)
 	{
-		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), attack.location, 20);
-		Units close_allies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)), attack.location, 20);
-		Units batteries = Utility::GetUnitsWithin(mediator->GetUnits(IsFinishedUnit(BATTERY)), attack.location, 20);
+		Units close_enemies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), attack.location, VERY_LONG_RANGE);
+		Units close_allies = Utility::GetUnitsWithin(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Self)), attack.location, VERY_LONG_RANGE);
+		Units batteries = Utility::GetUnitsWithin(mediator->GetUnits(IsFinishedUnit(BATTERY)), attack.location, VERY_LONG_RANGE);
 		float total_energy = 0.0f;
 		for (const auto& battery : batteries)
 		{
@@ -86,7 +101,7 @@ void DefenseManager::UpdateOngoingAttacks()
 			}
 
 			// make a new battery
-			if (attack.location == mediator->GetNaturalLocation() && attack.status <= -50 && 
+			if (attack.location == mediator->GetNaturalLocation() && attack.status <= OGA_LOSING &&
 				mediator->GetNumBuildActions(BATTERY) == 0 && 
 				mediator->GetUnits(Unit::Alliance::Self, IsNotFinishedUnit(BATTERY)).size() <= 1)
 				mediator->BuildDefensiveBuilding(BATTERY, attack.location);
@@ -119,11 +134,11 @@ void DefenseManager::UpdateOngoingAttacks()
 
 			// increase desired defenders
 			ArmyGroup* defense_group = mediator->GetArmyGroupDefendingBase(attack.location);
-			if (defense_group && close_allies.size() >= defense_group->desired_units)
+			if (defense_group && close_allies.size() >= defense_group->GetDesiredUnits())
 			{
-				if (attack.status < -100)
+				if (attack.status < OGA_LOSING_HARD)
 					mediator->AddToDefense(attack.location, 5);
-				else if (attack.status < -50)
+				else if (attack.status < OGA_LOSING)
 					mediator->AddToDefense(attack.location, 4);
 				else if (attack.status < 0)
 					mediator->AddToDefense(attack.location, 2);
@@ -153,7 +168,7 @@ void DefenseManager::UpdateOngoingAttacks()
 	}
 }
 
-float DefenseManager::JudgeFight(Units friendly_units, Units enemy_units, float enemy_battery_energy, float friendly_battery_energy, bool sim_city)
+float DefenseManager::JudgeFight(Units friendly_units, Units enemy_units, float enemy_battery_energy, float friendly_battery_energy, bool sim_city) const
 {
 	/*std::vector<std::vector<UNIT_TYPEID>> prio;
 	switch (mediator->GetEnemyRace())
@@ -269,7 +284,7 @@ float DefenseManager::JudgeFight(Units friendly_units, Units enemy_units, float 
 						continue;
 					}
 				}
-				else if (friendly_units[i]->energy >= 40) // TODO maybe dont take into account this 40 energy cutoff to switch the oracle on?
+				else if (friendly_units[i]->energy >= 40) // TODO maybe dont take into account this 40 energy cutoff to switch the oracle on? 
 				{
 					if (((friendly_units[i]->energy - 25) / 2) - (20 - max_runs) <= 0)
 					{
@@ -384,6 +399,7 @@ void DefenseManager::UseBatteries()
 		Units close_units = mediator->GetUnits(Unit::Alliance::Self);
 		for (auto itr = close_units.begin(); itr != close_units.end();)
 		{
+			// ignore units that are out of range, have enough shields or enough health
 			if ((*itr)->build_progress < 1 ||
 				Distance2D((*itr)->pos, battery->pos) > Utility::RealRange(battery, (*itr)) ||
 				(((*itr)->shield > 10 || (*itr)->health > 50)))
@@ -402,11 +418,9 @@ void DefenseManager::UseBatteries()
 			{
 				return a->health + a->shield < b->health + b->shield;
 			});
-			mediator->SetUnitCommand(battery, A_SMART, close_units[0], 1);
+			mediator->SetUnitCommand(battery, A_SMART, close_units[0], CommandPriorty::normal);
 			mediator->DebugSphere(close_units[0]->pos, 2, Color(255, 0, 0));
 		}
-
-		break;
 	}
 
 }
@@ -427,7 +441,7 @@ void DefenseManager::RemoveOngoingAttackAt(Point2D location)
 						mediator->PlaceWorker(worker);
 				}
 				// reset desired defenses
-				mediator->AddToDefense(location, -1 * army_group->desired_units);
+				mediator->AddToDefense(location, -1 * army_group->GetDesiredUnits());
 			}
 			ongoing_attacks.erase(ongoing_attacks.begin() + i);
 			i--;

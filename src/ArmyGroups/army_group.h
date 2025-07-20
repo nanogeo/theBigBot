@@ -10,6 +10,7 @@
 namespace sc2
 {
 
+class ArmyManager;
 class Mediator;
 
 struct UnitDanger
@@ -53,7 +54,8 @@ struct PrismCargo
 
 class ArmyGroup
 {
-public:
+	friend ArmyManager;
+protected:
 	Mediator* mediator = nullptr;
 
 	Units all_units;
@@ -61,8 +63,8 @@ public:
 
 	bool accept_new_units = true;
 	std::vector<UNIT_TYPEID> unit_types;
-	uint16_t desired_units = 0;
-	uint16_t max_units = 100;
+	int desired_units = 0;
+	int max_units = 100;
 	bool ready = false;
 
 	// oracles TODO move to interface of other subclass
@@ -70,6 +72,7 @@ public:
 	std::map<const Unit*, bool> has_attacked;
 	std::map<const Unit*, uint64_t> target;
 
+public:
 	ArmyGroup(Mediator* mediator)
 	{
 		this->mediator = mediator;
@@ -87,7 +90,7 @@ public:
 	};
 	virtual void Run() {};
 	virtual void ScourMap();
-	virtual std::string ToString()
+	virtual std::string ToString() const
 	{
 		return "Army group";
 	}
@@ -95,30 +98,10 @@ public:
 	virtual void AddUnit(const Unit* unit);
 	virtual void AddNewUnit(const Unit* unit);
 	virtual void RemoveUnit(const Unit* unit);
-	Units GetExtraUnits();
-
-	
-	/*
-	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float, float);
-	std::vector<Point2D> FindConcaveWithPrism(Point2D, Point2D, int, int, float, float, float, std::vector<Point2D>&);
-	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);
-	bool TestSwap(Point2D, Point2D, Point2D, Point2D);
-	std::map<const Unit*, Point2D> AssignUnitsToPositions(Units, std::vector<Point2D>);
-	void PickUpUnits(std::map<const Unit*, int>);
-	void DodgeShots();
-
-	void FindStalkerPositions(std::map<const Unit*, Point2D>&, std::map<const Unit*, Point2D>&, float, float);
-
-	int AttackLine(float, float, std::vector<std::vector<UNIT_TYPEID>>, bool = false);
-	int AttackLine(Units, float, float, std::vector<std::vector<UNIT_TYPEID>>, bool = false);
-	void OraclesDefendArmy(Units);
-
-	bool FindUnitPositions(Units, Units, float, float, Point2D);
-	void FindReadyUnits(Units, Units&, Units&);
-	std::vector<std::pair<const Unit*, UnitDanger>> MicroNonReadyUnits(Units);
-	void MicroWarpPrisms(std::vector<std::pair<const Unit*, UnitDanger>>);
-	Point2D FindLimitToAdvance();
-	*/
+	Units GetExtraUnits() const;
+	int GetDesiredUnits() const;
+	void AddDesiredUnits(int);
+	void AddMaxUnits(int);
 
 	void OnUnitDamagedListener(const Unit*, float, float);
 	void OnUnitDestroyedListener(const Unit*);

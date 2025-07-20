@@ -38,23 +38,24 @@ struct ActiveCost
 
 class ResourceManager
 {
-public:
+private:
 	Mediator* mediator;
 	// oracles
 	std::vector<ActiveCost> active_costs;
 	UnitCost current_resources = UnitCost(0, 0, 0);
 
+public:
 	ResourceManager(Mediator* mediator)
 	{
 		this->mediator = mediator;
 	}
 
 	void UpdateResources();
-	UnitCost GetAvailableResources();
-	bool CanAfford(UNIT_TYPEID);
-	bool CanAfford(UNIT_TYPEID, uint16_t);
-	bool CanAfford(UPGRADE_ID);
-	uint16_t MaxCanAfford(UNIT_TYPEID);
+	UnitCost GetAvailableResources() const;
+	bool CanAfford(UNIT_TYPEID) const;
+	bool CanAfford(UNIT_TYPEID, int) const;
+	bool CanAfford(UPGRADE_ID) const;
+	int MaxCanAfford(UNIT_TYPEID) const;
 	bool SpendResources(UNIT_TYPEID, const Unit*);
 	bool SpendResources(UNIT_TYPEID, Point2D);
 	bool SpendResources(UPGRADE_ID, const Unit*);

@@ -63,33 +63,6 @@ struct BaseInfo
     }
 };
 
-struct LiberatorZone
-{
-	Point2D pos;
-	bool current;
-	LiberatorZone(Point2D pos)
-	{
-		this->pos = pos;
-		current = true;
-	}
-	bool operator==(const LiberatorZone &b)
-	{
-		return pos == b.pos;
-	}
-};
-
-
-
-struct EnemyAttack
-{
-	const Unit* unit;
-	uint32_t impact_frame;
-	EnemyAttack(const Unit* unit, int impact_frame)
-	{
-		this->unit = unit;
-		this->impact_frame = impact_frame;
-	}
-};
 
 struct UnitTypeInfo
 {
@@ -124,12 +97,6 @@ public:
     NavMesh nav_mesh;
     const Unit* probe = nullptr;
 	std::vector<Triangle*> overlaps;
-	std::map<const Unit*, float> enemy_weapon_cooldown;
-	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
-	std::unordered_map<UNIT_TYPEID, UnitTypeInfo> unit_type_info;
-	std::vector<Point2D> corrosive_bile_positions;
-	std::vector<uint32_t> corrosive_bile_times;
-	std::vector<LiberatorZone> liberator_zone_current;
 	int current_unique_id = 0;
 
 
@@ -179,9 +146,6 @@ public:
 	void RemoveListenerToOnUnitEntersVisionEvent(int);
 	void CallOnUnitEntersVisionEvent(const Unit*);
 
-    // To strings
-    static std::string OrdersToString(std::vector<UnitOrder>);
-
     // Overrides
     virtual void OnBuildingConstructionComplete(const Unit*);
     virtual void OnNeutralUnitCreated(const Unit *);
@@ -195,16 +159,9 @@ public:
 
 
     // Utility
-	int IncomingDamage(const Unit*);
-	void UpdateEnemyWeaponCooldowns();
-	void RemoveCompletedAtacks();
-	std::vector<Point2D> FindConcave(Point2D, Point2D, int, float, float);
-	std::vector<Point2D> FindConcaveFromBack(Point2D, Point2D, int, float, float);
-	void SetUpUnitTypeInfo();
 	void PrintAttacks(std::map<const Unit*, const Unit*>);
 	Point3D ToPoint3D(Point2D);
 	int GetUniqueId();
-	void UpdateEffectPositions();
 
 
     // Pathing
@@ -213,24 +170,10 @@ public:
 
     // Debug info
     void DisplayDebugHud();
-    void DisplayWorkerStatus();
-    void DisplayBuildOrder();
-    void DisplayActiveActions();
-    void DisplayActiveStateMachines();
-    void DisplayBuildingStatuses();
-    void DisplayArmyGroups();
-    void DisplaySupplyInfo();
-	void DisplayOngoingAttacks();
-	void DisplayEnemyAttacks();
-	void DisplayEnemyPositions();
-	void DisplayKnownEffects();
 	void DisplayAlliedAttackStatus();
 	void PrintNonPathablePoints();
 	void ShowLocations();
 
-
-	// Other
-	std::map<const Unit*, const Unit*> FindTargets(Units, std::vector<UNIT_TYPEID>, float);
 
 };
 

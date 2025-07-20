@@ -10,7 +10,7 @@ constexpr double PI = 3.14159265358979323;
 namespace sc2
 {
 
-Point2D LineSegmentLinearX::FindClosestPoint(Point2D point)
+Point2D LineSegmentLinearX::FindClosestPoint(Point2D point) const
 {
 	float perp_slope = - 1 / a;
 	float perp_coef = point.y - point.x * perp_slope;
@@ -25,7 +25,7 @@ Point2D LineSegmentLinearX::FindClosestPoint(Point2D point)
 	return closest_pos;
 }
 
-Point2D LineSegmentLinearY::FindClosestPoint(Point2D point)
+Point2D LineSegmentLinearY::FindClosestPoint(Point2D point) const
 {
 	float perp_slope = -1 / a;
 	float perp_coef = point.x - point.y * perp_slope;
@@ -42,7 +42,7 @@ Point2D LineSegmentLinearY::FindClosestPoint(Point2D point)
 
 #pragma warning(push)
 #pragma warning(disable : 4244)
-Point2D LineSegmentCurveX::FindClosestPoint(Point2D point)
+Point2D LineSegmentCurveX::FindClosestPoint(Point2D point) const
 {
 	// derivative of distance
 	double a1 = 4 * pow(a, 2);
@@ -110,7 +110,7 @@ Point2D LineSegmentCurveX::FindClosestPoint(Point2D point)
 	return closest_point;
 }
 
-Point2D LineSegmentCurveY::FindClosestPoint(Point2D point)
+Point2D LineSegmentCurveY::FindClosestPoint(Point2D point) const
 {
 	// derivative of distance
 	double a1 = 4 * pow(a, 2);
@@ -178,7 +178,7 @@ Point2D LineSegmentCurveY::FindClosestPoint(Point2D point)
 	return closest_point;
 }
 
-std::vector<Point2D> LineSegmentLinearX::FindCircleIntersection(Point2D center, float radius)
+std::vector<Point2D> LineSegmentLinearX::FindCircleIntersection(Point2D center, float radius) const
 {
 	double A = pow(a, 2) + 1;
 	double B = (2 * a * b) - (2 * center.x) - (2 * a * center.y);
@@ -209,7 +209,7 @@ std::vector<Point2D> LineSegmentLinearX::FindCircleIntersection(Point2D center, 
 	}
 }
 
-std::vector<Point2D> LineSegmentLinearY::FindCircleIntersection(Point2D center, float radius)
+std::vector<Point2D> LineSegmentLinearY::FindCircleIntersection(Point2D center, float radius) const
 {
 	double A = pow(a, 2) + 1;
 	double B = (2 * a * b) - (2 * center.y) - (2 * a * center.x);
@@ -240,7 +240,7 @@ std::vector<Point2D> LineSegmentLinearY::FindCircleIntersection(Point2D center, 
 	}
 }
 
-std::vector<Point2D> LineSegmentCurveX::FindCircleIntersection(Point2D center, float radius)
+std::vector<Point2D> LineSegmentCurveX::FindCircleIntersection(Point2D center, float radius) const
 {
 	std::vector<Point2D> solutions;
 	// combine equations to get quartic
@@ -302,7 +302,7 @@ std::vector<Point2D> LineSegmentCurveX::FindCircleIntersection(Point2D center, f
 	return solutions;
 }
 
-std::vector<Point2D> LineSegmentCurveY::FindCircleIntersection(Point2D center, float radius)
+std::vector<Point2D> LineSegmentCurveY::FindCircleIntersection(Point2D center, float radius) const
 {
 	std::vector<Point2D> solutions;
 	// combine equations to get quartic
@@ -365,7 +365,7 @@ std::vector<Point2D> LineSegmentCurveY::FindCircleIntersection(Point2D center, f
 }
 
 
-Point2D LineSegmentLinearX::GetPointFrom(Point2D point, float dist, bool forward, float& dist_left)
+Point2D LineSegmentLinearX::GetPointFrom(Point2D point, float dist, bool forward, float& dist_left) const
 {
 	bool direction = forward == pos_direction;
 	if (!direction)
@@ -386,7 +386,7 @@ Point2D LineSegmentLinearX::GetPointFrom(Point2D point, float dist, bool forward
 	return EvaluateAt(new_pos);
 }
 
-Point2D LineSegmentLinearY::GetPointFrom(Point2D point, float dist, bool forward, float& dist_left)
+Point2D LineSegmentLinearY::GetPointFrom(Point2D point, float dist, bool forward, float& dist_left) const
 {
 	bool direction = forward == pos_direction;
 	if (!direction)
@@ -407,7 +407,7 @@ Point2D LineSegmentLinearY::GetPointFrom(Point2D point, float dist, bool forward
 	return EvaluateAt(new_pos);
 }
 
-Point2D LineSegmentCurveX::GetPointFrom(Point2D point, float dist, bool forward, float& dist_left)
+Point2D LineSegmentCurveX::GetPointFrom(Point2D point, float dist, bool forward, float& dist_left) const
 {
 	bool direction = forward == pos_direction;
 	if (!direction)
@@ -428,7 +428,7 @@ Point2D LineSegmentCurveX::GetPointFrom(Point2D point, float dist, bool forward,
 	return EvaluateAt(new_pos);
 }
 
-Point2D LineSegmentCurveY::GetPointFrom(Point2D point, float dist, bool forward, float& dist_left)
+Point2D LineSegmentCurveY::GetPointFrom(Point2D point, float dist, bool forward, float& dist_left) const
 {
 	bool direction = forward == pos_direction;
 	if (!direction)
@@ -450,7 +450,7 @@ Point2D LineSegmentCurveY::GetPointFrom(Point2D point, float dist, bool forward,
 }
 
 
-Point2D PathManager::FindClosestPoint(Point2D point)
+Point2D PathManager::FindClosestPoint(Point2D point) const
 {
 	Point2D closest;
 	double distance_to_closest = INFINITY;
@@ -468,7 +468,7 @@ Point2D PathManager::FindClosestPoint(Point2D point)
 	return closest;
 }
 
-int PathManager::FindClosestSegmentIndex(Point2D point)
+int PathManager::FindClosestSegmentIndex(Point2D point) const
 {
 	int closest = 0;
 	double distance_to_closest = INFINITY;
@@ -486,7 +486,7 @@ int PathManager::FindClosestSegmentIndex(Point2D point)
 	return closest;
 }
 
-std::vector<Point2D> PathManager::FindCircleIntersection(Point2D center, float radius)
+std::vector<Point2D> PathManager::FindCircleIntersection(Point2D center, float radius) const
 {
 	std::vector<Point2D> intersections;
 	for (const auto &segment : segments)
@@ -498,7 +498,7 @@ std::vector<Point2D> PathManager::FindCircleIntersection(Point2D center, float r
 	return intersections;
 }
 
-Point2D PathManager::GetPointFrom(Point2D point, float dist, bool forward)
+Point2D PathManager::GetPointFrom(Point2D point, float dist, bool forward) const
 {
 	if (dist < 0)
 	{
@@ -523,7 +523,7 @@ Point2D PathManager::GetPointFrom(Point2D point, float dist, bool forward)
 	}
 }
 
-std::vector<Point2D> PathManager::GetPoints()
+std::vector<Point2D> PathManager::GetPoints() const
 {
 	Point2D current = segments[0]->GetStartPoint();
 
@@ -536,17 +536,17 @@ std::vector<Point2D> PathManager::GetPoints()
 	return points;
 }
 
-Point2D PathManager::GetStartPoint()
+Point2D PathManager::GetStartPoint() const
 {
 	return segments[0]->GetStartPoint();
 }
 
-Point2D PathManager::GetEndPoint()
+Point2D PathManager::GetEndPoint() const
 {
 	return segments[segments.size() - 1]->GetEndPoint();
 }
 
-Point2D PathManager::GetFurthestForward(std::vector<Point2D> points)
+Point2D PathManager::GetFurthestForward(std::vector<Point2D> points) const
 {
 	int best_index = 0;
 	Point2D best_point = GetStartPoint();
@@ -584,7 +584,7 @@ Point2D PathManager::GetFurthestForward(std::vector<Point2D> points)
 	return best_point;
 }
 
-Point2D PathManager::GetFurthestBack(std::vector<Point2D> points)
+Point2D PathManager::GetFurthestBack(std::vector<Point2D> points) const
 {
 	int best_index = 1000;
 	Point2D best_point = GetEndPoint();
@@ -627,7 +627,7 @@ Point2D PathManager::GetFurthestBack(std::vector<Point2D> points)
 #pragma warning(push)
 #pragma warning(disable : 4005)
 #pragma warning(disable : 4189)
-LineSegment* PathManager::FitLineSegment(Point2D p1, Point2D p2, Point2D p3, Point2D p4)
+LineSegment* PathManager::FitLineSegment(Point2D p1, Point2D p2, Point2D p3, Point2D p4) const
 {
 
 	double curve_x_a, curve_x_b, curve_x_c, curve_x_loss;

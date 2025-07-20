@@ -9,7 +9,7 @@
 namespace sc2 {
 
 
-DefendBaseArmyGroup::DefendBaseArmyGroup(Mediator* mediator, Point2D base_pos, std::vector<UNIT_TYPEID> unit_types, uint16_t desired_units, uint16_t max_units) : ArmyGroup(mediator)
+DefendBaseArmyGroup::DefendBaseArmyGroup(Mediator* mediator, Point2D base_pos, std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units) : ArmyGroup(mediator)
 {
 	this->unit_types = unit_types;
 
@@ -80,15 +80,15 @@ void DefendBaseArmyGroup::Run()
 			{
 				Units units_in_range = Utility::GetUnitsInRange(mediator->GetUnits(Unit::Alliance::Enemy), unit, 0);
 				if (units_in_range.size() > 0)
-					mediator->SetUnitCommand(unit, A_ATTACK, units_in_range[0], 1);
+					mediator->SetUnitCommand(unit, A_ATTACK, units_in_range[0], CommandPriorty::normal);
 				else if (Distance2D(unit->pos, base_pos) > 15)
-					mediator->SetUnitCommand(unit, A_ATTACK, unit->pos, 0);
+					mediator->SetUnitCommand(unit, A_ATTACK, unit->pos, CommandPriorty::low);
 				else
-					mediator->SetUnitCommand(unit, A_SMART, enemy_minerals, 0);
+					mediator->SetUnitCommand(unit, A_SMART, enemy_minerals, CommandPriorty::low);
 			}
 			else
 			{
-				mediator->SetUnitCommand(unit, A_SMART, base_minerals, 0);
+				mediator->SetUnitCommand(unit, A_SMART, base_minerals, CommandPriorty::low);
 			}
 			continue;
 		}
@@ -97,7 +97,7 @@ void DefendBaseArmyGroup::Run()
 			continue;
 		if (Distance2D(unit->pos, base_pos) > leash_range)
 		{
-			mediator->SetUnitCommand(unit, A_MOVE, base_pos, 0);
+			mediator->SetUnitCommand(unit, A_MOVE, base_pos, CommandPriorty::low);
 		}
 		else if (unit->weapon_cooldown == 0)
 		{
@@ -107,7 +107,7 @@ void DefendBaseArmyGroup::Run()
 			if (enemy_units.size() == 0)
 			{
 				if (unit->orders.size() == 0)
-					mediator->SetUnitCommand(unit, A_MOVE, base_pos, 0);
+					mediator->SetUnitCommand(unit, A_MOVE, base_pos, CommandPriorty::low);
 				continue;
 			}
 			Point2D base_pos_L = base_pos;
@@ -117,7 +117,7 @@ void DefendBaseArmyGroup::Run()
 				return Distance2D(unit->pos, a->pos) + Distance2D(base_pos_L, a->pos) <
 					Distance2D(unit->pos, b->pos) + Distance2D(base_pos_L, b->pos);
 			});
-			mediator->SetUnitCommand(unit, A_MOVE, enemy_units[0]->pos, 0);
+			mediator->SetUnitCommand(unit, A_MOVE, enemy_units[0]->pos, CommandPriorty::low);
 		}
 		else
 		{
@@ -125,9 +125,9 @@ void DefendBaseArmyGroup::Run()
 			if (closest == NULL)
 				closest = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), unit->pos);
 			if (closest == NULL || Distance2D(closest->pos, unit->pos) < Utility::GetGroundRange(unit) - 1)
-				mediator->SetUnitCommand(unit, A_MOVE, base_pos, 0);
+				mediator->SetUnitCommand(unit, A_MOVE, base_pos, CommandPriorty::low);
 			else
-				mediator->SetUnitCommand(unit, A_MOVE, closest->pos, 0);
+				mediator->SetUnitCommand(unit, A_MOVE, closest->pos, CommandPriorty::low);
 		}
 	}
 }
@@ -151,6 +151,11 @@ void DefendBaseArmyGroup::RemoveUnit(const Unit* unit)
 {
 	probes.erase(std::remove(probes.begin(), probes.end(), unit), probes.end());
 	ArmyGroup::RemoveUnit(unit);
+}
+
+Point2D DefendBaseArmyGroup::GetBasePos() const
+{
+	return base_pos;
 }
 
 }

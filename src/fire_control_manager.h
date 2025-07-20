@@ -118,8 +118,8 @@ struct OutgoingDamage
 	const Unit* attacker;
 	const Unit* target;
 	int damage;
-	int frame_of_hit;
-	int frame_attack_should_finish;
+	uint32_t frame_of_hit;
+	uint32_t frame_attack_should_finish;
 	bool confirmend = false;
 	OutgoingDamage(const Unit* attacker, const Unit* target, int damage, int curr_frame)
 	{
@@ -127,13 +127,13 @@ struct OutgoingDamage
 		this->target = target;
 		this->damage = damage;
 		frame_of_hit = curr_frame + 20;
-		frame_attack_should_finish = curr_frame + std::ceil(Utility::GetDamagePoint(attacker) * FRAME_TIME) + 3;
+		frame_attack_should_finish = curr_frame + (int)std::ceil(Utility::GetDamagePoint(attacker) * FRAME_TIME) + 3;
 		if (Distance2D(attacker->pos, target->pos) > Utility::RealRange(attacker, target))
 		{
 			float extra_distance = Distance2D(attacker->pos, target->pos) - Utility::RealRange(attacker, target);
 			float speed = Utility::GetSpeed(attacker);
 			float extra_time = extra_distance / speed;
-			int extra_frames = std::ceil(extra_time * FRAME_TIME);
+			int extra_frames = (int)std::ceil(extra_time * FRAME_TIME);
 			frame_attack_should_finish += extra_frames;
 		}
 	}
@@ -142,20 +142,19 @@ struct OutgoingDamage
 class FireControl
 {
 public:
-	TheBigBot* agent;
 	std::vector<FriendlyUnitInfo*> friendly_units;
 	std::vector<EnemyUnitInfo*> enemy_units;
 	std::map<const Unit*, const Unit*> attacks;
 	std::vector<UNIT_TYPEID> priority;
 	std::vector<std::vector<UNIT_TYPEID>> priority2D;
 
-	FireControl(TheBigBot*, std::map<const Unit*, std::vector<const Unit*>>, std::vector<UNIT_TYPEID>); 
-	FireControl(TheBigBot*, std::map<const Unit*, Units>, std::map<const Unit*, int>, std::vector<UNIT_TYPEID>);
-	FireControl(TheBigBot*, std::map<const Unit*, Units>, std::map<const Unit*, int>, std::vector<std::vector<UNIT_TYPEID>>);
+	FireControl(std::map<const Unit*, std::vector<const Unit*>>, std::vector<UNIT_TYPEID>); 
+	FireControl(std::map<const Unit*, Units>, std::map<const Unit*, int>, std::vector<UNIT_TYPEID>);
+	FireControl(std::map<const Unit*, Units>, std::map<const Unit*, int>, std::vector<std::vector<UNIT_TYPEID>>);
 
-	EnemyUnitInfo* GetEnemyUnitInfo(const Unit*);
-	FriendlyUnitInfo* GetFriendlyUnitInfo(const Unit*);
-	int GetDamage(const Unit*, const Unit*);
+	EnemyUnitInfo* GetEnemyUnitInfo(const Unit*) const;
+	FriendlyUnitInfo* GetFriendlyUnitInfo(const Unit*) const;
+	int GetDamage(const Unit*, const Unit*) const;
 
 	bool ApplyAttack(FriendlyUnitInfo*, EnemyUnitInfo*);
 	bool ApplyDamage(EnemyUnitInfo*, int);
@@ -168,13 +167,15 @@ public:
 
 class FireControlManager
 {
-public:
+private:
 	Mediator* mediator;
 	Units units_ready_to_attack;
 	std::map<const Unit*, int> enemy_unit_hp;
 	std::vector<OutgoingDamage> outgoing_attacks;
 	std::map<const Unit*, bool> attack_status;
 
+	void ApplyAttack(const Unit*, const Unit*);
+public:
 	FireControlManager(Mediator* mediator)
 	{
 		this->mediator = mediator;
@@ -183,9 +184,8 @@ public:
 	void UpdateInfo();
 	void UpdateEnemyUnitHealth();
 
-	bool GetAttackStatus(const Unit*);
+	bool GetAttackStatus(const Unit*) const;
 	void AddUnit(const Unit*);
-	void ApplyAttack(const Unit*, const Unit*);
 	void ConfirmAttack(const Unit*, const Unit*);
 	void CancelAttack(const Unit*);
 

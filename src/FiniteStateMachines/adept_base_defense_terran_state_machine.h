@@ -15,15 +15,16 @@ class ArmyGroup;
 
 class AdeptBaseDefenseTerranClearBase : public State
 {
-public:
+private:
 	class AdeptBaseDefenseTerran* state_machine;
 	bool checked_dead_space = false;
+public:
 	AdeptBaseDefenseTerranClearBase(Mediator* mediator, AdeptBaseDefenseTerran* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -32,15 +33,16 @@ public:
 
 class AdeptBaseDefenseTerranDefendFront : public State
 {
-public:
+private:
 	class AdeptBaseDefenseTerran* state_machine;
 	bool forward = true;
+public:
 	AdeptBaseDefenseTerranDefendFront(Mediator* mediator, AdeptBaseDefenseTerran* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -49,14 +51,15 @@ public:
 
 class AdeptBaseDefenseTerranMoveAcross : public State
 {
-public:
+private:
 	class AdeptBaseDefenseTerran* state_machine;
+public:
 	AdeptBaseDefenseTerranMoveAcross(Mediator* mediator, AdeptBaseDefenseTerran* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -65,7 +68,7 @@ public:
 
 class AdeptBaseDefenseTerranScoutBase : public State
 {
-public:
+private:
 	class AdeptBaseDefenseTerran* state_machine;
 	Point2D shade_target;
 	Point2D adept_scout_shade;
@@ -75,6 +78,7 @@ public:
 	std::vector<Point2D> adept_scout_nat_path;
 	std::vector<Point2D> adept_scout_base_spots;
 	int base_spots_index;
+public:
 	AdeptBaseDefenseTerranScoutBase(Mediator* mediator, AdeptBaseDefenseTerran* state_machine, Point2D adept_scout_shade, Point2D adept_scout_runaway,
 		Point2D adept_scout_ramptop, std::vector<Point2D> adept_scout_nat_path, std::vector<Point2D> adept_scout_base_spots)
 	{
@@ -88,7 +92,7 @@ public:
 		shade_target = adept_scout_ramptop;
 		base_spots_index = 1;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -100,7 +104,11 @@ public:
 
 class AdeptBaseDefenseTerran : public StateMachine
 {
-public:
+	friend AdeptBaseDefenseTerranClearBase;
+	friend AdeptBaseDefenseTerranDefendFront;
+	friend AdeptBaseDefenseTerranMoveAcross;
+	friend AdeptBaseDefenseTerranScoutBase;
+private:
 	const Unit* adept = nullptr;
 	uint32_t frame_shade_used = 0;
 	bool attack_status = false;
@@ -109,6 +117,7 @@ public:
 	const Unit* target = nullptr;
 	std::vector<Point2D> front_of_base;
 	int event_id;
+public:
 	AdeptBaseDefenseTerran(Mediator* mediator, std::string name, Point2D dead_space_spot, std::vector<Point2D> front_of_base);
 	~AdeptBaseDefenseTerran();
 

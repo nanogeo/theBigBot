@@ -11,7 +11,7 @@ class Mediator;
 
 class UpgradeManager
 {
-public:
+private:
 	Mediator* mediator;
 
 	bool has_warpgate = false;
@@ -25,14 +25,15 @@ public:
 	int air_weapons = 0;
 	int air_armor = 0;
 
+public:
 	UpgradeManager(Mediator* mediator)
 	{
 		this->mediator = mediator;
 	}
 
-	int GetUpgradeLevel(UpgradeType);
+	int GetUpgradeLevel(UpgradeType) const;
 	void OnUpgradeCompleted(UPGRADE_ID);
-	bool CheckUpgrade(UPGRADE_ID);
+	bool CheckUpgrade(UPGRADE_ID) const;
 };
 
 }

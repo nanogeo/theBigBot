@@ -12,7 +12,7 @@ namespace sc2 {
 void ScoutTInitialMove::TickState()
 {
 	if (state_machine->scout->orders.size() == 0 || state_machine->scout->orders[0].target_pos != state_machine->current_target)
-		mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
 }
 
 void ScoutTInitialMove::EnterState()
@@ -32,7 +32,7 @@ State* ScoutTInitialMove::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutTInitialMove::toString()
+std::string ScoutTInitialMove::toString() const
 {
 	return "initial move";
 }
@@ -49,7 +49,7 @@ void ScoutTScoutMain::TickState()
 		if (state_machine->index < state_machine->main_scout_path.size())
 			state_machine->current_target = state_machine->main_scout_path[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
 }
 
 void ScoutTScoutMain::EnterState()
@@ -65,19 +65,19 @@ void ScoutTScoutMain::ExitState()
 
 State* ScoutTScoutMain::TestTransitions()
 {
-	if (mediator->scouting_manager.first_barrack_timing > 0 && mediator->GetCurrentTime() >= mediator->scouting_manager.first_barrack_timing + 46 + 12)
+	if (mediator->GetFirstBarrackTiming() > 0 && mediator->GetCurrentTime() >= mediator->GetFirstBarrackTiming() + 46 + 12)
 	{
 		return new ScoutTScoutRax(mediator, state_machine);
 	}
 	if (state_machine->index >= state_machine->main_scout_path.size())
 	{
 		if (mediator->GetUnits(IsUnit(BARRACKS)).size() > 1 ||
-			mediator->scouting_manager.first_barrack_timing == 0 ||
+			mediator->GetFirstBarrackTiming() == 0 ||
 			mediator->GetUnits(IsUnit(REFINERY)).size() > 1)
 		{
 			state_machine->index = 0;
 			state_machine->current_target = state_machine->main_scout_path[0];
-			mediator->scouting_manager.CheckTerranScoutingInfoEarly();
+			//mediator->scouting_manager.CheckTerranScoutingInfoEarly(); // TODO check if needed
 		}
 		else
 		{
@@ -87,7 +87,7 @@ State* ScoutTScoutMain::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutTScoutMain::toString()
+std::string ScoutTScoutMain::toString() const
 {
 	return "scout main";
 }
@@ -104,7 +104,7 @@ void ScoutTScoutNatural::TickState()
 		if (state_machine->index < state_machine->natural_scout_path.size())
 			state_machine->current_target = state_machine->natural_scout_path[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
 }
 
 void ScoutTScoutNatural::EnterState()
@@ -120,14 +120,14 @@ void ScoutTScoutNatural::ExitState()
 
 State* ScoutTScoutNatural::TestTransitions()
 {
-	if (mediator->scouting_manager.natural_timing > 0 || state_machine->index >= state_machine->natural_scout_path.size())
+	if (mediator->GetNaturalTiming() > 0 || state_machine->index >= state_machine->natural_scout_path.size())
 	{
 		return new ScoutTScoutMain(mediator, state_machine);
 	}
 	return nullptr;
 }
 
-std::string ScoutTScoutNatural::toString()
+std::string ScoutTScoutNatural::toString() const
 {
 	return "scout natural";
 }
@@ -146,7 +146,7 @@ void ScoutTScoutRax::EnterState()
 	if (mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING })).size() > 0)
 	{
 		rax = mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0];
-		mediator->SetUnitCommand(state_machine->scout, A_MOVE, rax->pos, 0);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, rax->pos, CommandPriorty::low);
 	}
 	else
 	{
@@ -155,7 +155,7 @@ void ScoutTScoutRax::EnterState()
 			if (pos.first->unit_type == BARRACKS || pos.first->unit_type == BARRACKS_FLYING)
 			{
 				rax = pos.first;
-				mediator->SetUnitCommand(state_machine->scout, A_MOVE, rax->pos, 0);
+				mediator->SetUnitCommand(state_machine->scout, A_MOVE, rax->pos, CommandPriorty::low);
 				return;
 			}
 		}
@@ -174,9 +174,9 @@ State* ScoutTScoutRax::TestTransitions()
 	if (rax == nullptr)
 		return new ScoutTReturnToBase(mediator, state_machine);
 
-	if (mediator->GetCurrentTime() >= mediator->scouting_manager.first_barrack_timing + 46 + 20 || mediator->GetUnits(IsUnit(MARINE)).size() > 0)
+	if (mediator->GetCurrentTime() >= mediator->GetFirstBarrackTiming() + 46 + 20 || mediator->GetUnits(IsUnit(MARINE)).size() > 0)
 	{
-		mediator->scouting_manager.first_rax_production = FirstRaxProduction::reaper;
+		mediator->SetFirstBarrackProduction(FirstRaxProduction::reaper);
 
 		for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
 		{
@@ -184,7 +184,7 @@ State* ScoutTScoutRax::TestTransitions()
 			{
 				if (Distance2D(unit->pos, rax->pos) < 3)
 				{
-					mediator->scouting_manager.first_rax_production = FirstRaxProduction::techlab;
+					mediator->SetFirstBarrackProduction(FirstRaxProduction::techlab);
 					break;
 				}
 			}
@@ -192,13 +192,13 @@ State* ScoutTScoutRax::TestTransitions()
 			{
 				if (Distance2D(unit->pos, rax->pos) < 3)
 				{
-					mediator->scouting_manager.first_rax_production = FirstRaxProduction::reactor;
+					mediator->SetFirstBarrackProduction(FirstRaxProduction::reactor);
 					break;
 				}
 			}
 			else if (unit->unit_type == MARINE)
 			{
-				mediator->scouting_manager.first_rax_production = FirstRaxProduction::marine;
+				mediator->SetFirstBarrackProduction(FirstRaxProduction::marine);
 				break;
 			}
 		}
@@ -207,7 +207,7 @@ State* ScoutTScoutRax::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutTScoutRax::toString()
+std::string ScoutTScoutRax::toString() const
 {
 	return "scout rax";
 }
@@ -222,7 +222,7 @@ void ScoutTReturnToBase::TickState()
 	{
 		if (unit->unit_type == MARINE)
 		{
-			mediator->scouting_manager.first_rax_production = FirstRaxProduction::marine;
+			mediator->SetFirstBarrackProduction(FirstRaxProduction::marine);
 			break;
 		}
 	}
@@ -231,7 +231,7 @@ void ScoutTReturnToBase::TickState()
 
 void ScoutTReturnToBase::EnterState()
 {
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetLocations().start_location, 0);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetLocations().start_location, CommandPriorty::low);
 }
 
 void ScoutTReturnToBase::ExitState()
@@ -249,7 +249,7 @@ State* ScoutTReturnToBase::TestTransitions()
 	return nullptr;
 }
 
-std::string ScoutTReturnToBase::toString()
+std::string ScoutTReturnToBase::toString() const
 {
 	return "return to base";
 }
@@ -259,8 +259,12 @@ std::string ScoutTReturnToBase::toString()
 
 ScoutTerranStateMachine::~ScoutTerranStateMachine()
 {
-	mediator->worker_manager.PlaceWorker(scout);
+	mediator->PlaceWorker(scout);
 }
 
+const Unit* ScoutTerranStateMachine::GetScout()
+{
+	return scout;
+}
 
 }

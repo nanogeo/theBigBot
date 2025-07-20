@@ -64,7 +64,7 @@ void AdeptHarassProtossMoveAcross::TickState()
 		}
 	}*/
 
-	mediator->SetUnitsCommand(state_machine->adepts, A_MOVE, state_machine->consolidation_points[0], 0);
+	mediator->SetUnitsCommand(state_machine->adepts, A_MOVE, state_machine->consolidation_points[0], CommandPriorty::low);
 
 }
 
@@ -88,7 +88,7 @@ State* AdeptHarassProtossMoveAcross::TestTransitions()
 	return new AdeptHarassProtossConsolidate(mediator, state_machine);
 }
 
-std::string AdeptHarassProtossMoveAcross::toString()
+std::string AdeptHarassProtossMoveAcross::toString() const
 {
 	return "adepts move across";
 }
@@ -106,11 +106,11 @@ void AdeptHarassProtossConsolidate::TickState()
 		float dist = Distance2D(adept_center, closest_enemy->pos);
 		if (dist < 9/*Utility::GetRange(closest_enemy) + 2*/)
 		{
-			mediator->SetUnitCommand(adept, A_MOVE, Utility::PointBetween(closest_enemy->pos, adept_center, dist + 2), 0);
+			mediator->SetUnitCommand(adept, A_MOVE, Utility::PointBetween(closest_enemy->pos, adept_center, dist + 2), CommandPriorty::low);
 		}
 		else
 		{
-			mediator->SetUnitCommand(adept, A_MOVE, state_machine->consolidation_points[state_machine->index], 0);
+			mediator->SetUnitCommand(adept, A_MOVE, state_machine->consolidation_points[state_machine->index], CommandPriorty::low);
 		}
 	}
 }
@@ -141,7 +141,7 @@ State* AdeptHarassProtossConsolidate::TestTransitions()
 	return nullptr;
 }
 
-std::string AdeptHarassProtossConsolidate::toString()
+std::string AdeptHarassProtossConsolidate::toString() const
 {
 	return "adepts consolidate";
 }
@@ -159,18 +159,18 @@ void AdeptHarassProtossShadeIntoBase::TickState()
 		float dist = Distance2D(adept_center, closest_enemy->pos);
 		if (dist < 8/*Utility::GetRange(closest_enemy) + 2*/)
 		{
-			mediator->SetUnitCommand(adept, A_MOVE, Utility::PointBetween(closest_enemy->pos, adept_center, dist + 1), 0);
+			mediator->SetUnitCommand(adept, A_MOVE, Utility::PointBetween(closest_enemy->pos, adept_center, dist + 1), CommandPriorty::low);
 		}
 		else
 		{
-			mediator->SetUnitCommand(adept, A_MOVE, state_machine->consolidation_points[state_machine->index], 0);
+			mediator->SetUnitCommand(adept, A_MOVE, state_machine->consolidation_points[state_machine->index], CommandPriorty::low);
 		}
 	}
 }
 
 void AdeptHarassProtossShadeIntoBase::EnterState()
 {
-	mediator->SetUnitsCommand(state_machine->adepts, A_SHADE, mediator->GetEnemyStartLocation(), 0);
+	mediator->SetUnitsCommand(state_machine->adepts, A_SHADE, mediator->GetEnemyStartLocation(), CommandPriorty::low);
 	state_machine->frame_shade_used = mediator->GetGameLoop();
 	return;
 }
@@ -192,7 +192,7 @@ State* AdeptHarassProtossShadeIntoBase::TestTransitions()
 			{
 				for (const auto& adept : state_machine->adepts)
 				{
-					mediator->SetUnitCommand(adept, A_CANCEL_SHADE, 0);
+					mediator->SetUnitCommand(adept, A_CANCEL_SHADE, CommandPriorty::low);
 				}
 				return new AdeptHarassProtossConsolidate(mediator, state_machine);
 			}
@@ -202,7 +202,7 @@ State* AdeptHarassProtossShadeIntoBase::TestTransitions()
 	return nullptr;
 }
 
-std::string AdeptHarassProtossShadeIntoBase::toString()
+std::string AdeptHarassProtossShadeIntoBase::toString() const
 {
 	return "adepts shade into base";
 }
@@ -220,18 +220,18 @@ void AdeptHarassProtossShadeToOtherSide::TickState()
 		float dist = Distance2D(adept_center, closest_enemy->pos);
 		if (dist < 9/*Utility::GetRange(closest_enemy) + 2*/)
 		{
-			mediator->SetUnitCommand(adept, A_MOVE, Utility::PointBetween(closest_enemy->pos, adept_center, dist + 2), 0);
+			mediator->SetUnitCommand(adept, A_MOVE, Utility::PointBetween(closest_enemy->pos, adept_center, dist + 2), CommandPriorty::low);
 		}
 		else
 		{
-			mediator->SetUnitCommand(adept, A_MOVE, state_machine->consolidation_points[state_machine->index], 0);
+			mediator->SetUnitCommand(adept, A_MOVE, state_machine->consolidation_points[state_machine->index], CommandPriorty::low);
 		}
 	}
 }
 
 void AdeptHarassProtossShadeToOtherSide::EnterState()
 {
-	mediator->SetUnitsCommand(state_machine->adepts, A_SHADE, state_machine->consolidation_points[(state_machine->index * -1) + 1], 0);
+	mediator->SetUnitsCommand(state_machine->adepts, A_SHADE, state_machine->consolidation_points[(state_machine->index * -1) + 1], CommandPriorty::low);
 	state_machine->frame_shade_used = mediator->GetGameLoop();
 	return;
 }
@@ -273,14 +273,14 @@ State* AdeptHarassProtossShadeToOtherSide::TestTransitions()
 		}
 		else
 		{
-			mediator->SetUnitsCommand(state_machine->adepts, A_CANCEL_SHADE, 0);
+			mediator->SetUnitsCommand(state_machine->adepts, A_CANCEL_SHADE, CommandPriorty::low);
 			return new AdeptHarassProtossConsolidate(mediator, state_machine);
 		}
 	}
 	return nullptr;
 }
 
-std::string AdeptHarassProtossShadeToOtherSide::toString()
+std::string AdeptHarassProtossShadeToOtherSide::toString() const
 {
 	return "adepts shade across";
 }
@@ -306,21 +306,21 @@ void AdeptHarassProtossKillProbes::TickState()
 	{
 		if (mediator->GetGameLoop() > state_machine->frame_shade_used + 255)
 		{
-			mediator->SetUnitsCommand(state_machine->adepts, A_SHADE, Utility::FurthestFrom(enemy_probes, center)->pos, 0);
+			mediator->SetUnitsCommand(state_machine->adepts, A_SHADE, Utility::FurthestFrom(enemy_probes, center)->pos, CommandPriorty::low);
 		}
 		if (state_machine->shades.size() > 0)
 		{
-			mediator->SetUnitsCommand(state_machine->shades, A_MOVE, Utility::FurthestFrom(enemy_probes, center)->pos, 0);
+			mediator->SetUnitsCommand(state_machine->shades, A_MOVE, Utility::FurthestFrom(enemy_probes, center)->pos, CommandPriorty::low);
 		}
 		const Unit* closest_probe = Utility::ClosestTo(enemy_probes, center);
 		if (Utility::DistanceToFurthest(state_machine->adepts, closest_probe->pos) < 4)
 		{
-			mediator->SetUnitsCommand(state_machine->adepts, A_ATTACK, closest_probe, 0);
+			mediator->SetUnitsCommand(state_machine->adepts, A_ATTACK, closest_probe, CommandPriorty::low);
 			state_machine->attack_status = true;
 		}
 		else
 		{
-			mediator->SetUnitsCommand(state_machine->adepts, A_MOVE, closest_probe->pos, 0);
+			mediator->SetUnitsCommand(state_machine->adepts, A_MOVE, closest_probe->pos, CommandPriorty::low);
 		}
 	}
 	else
@@ -329,13 +329,13 @@ void AdeptHarassProtossKillProbes::TickState()
 		float dist = Distance2D(center, enemy_start_pos);
 		if (mediator->GetGameLoop() > state_machine->frame_shade_used + 255)
 		{
-			mediator->SetUnitsCommand(state_machine->adepts, A_SHADE, Utility::PointBetween(center, enemy_start_pos, dist + 10), 0);
+			mediator->SetUnitsCommand(state_machine->adepts, A_SHADE, Utility::PointBetween(center, enemy_start_pos, dist + 10), CommandPriorty::low);
 		}
 		if (state_machine->shades.size() > 0)
 		{
-			mediator->SetUnitsCommand(state_machine->shades, A_MOVE, Utility::PointBetween(center, enemy_start_pos, dist + 10), 0);
+			mediator->SetUnitsCommand(state_machine->shades, A_MOVE, Utility::PointBetween(center, enemy_start_pos, dist + 10), CommandPriorty::low);
 		}
-		mediator->SetUnitsCommand(state_machine->adepts, A_MOVE, Utility::PointBetween(center, enemy_start_pos, dist + 6), 0);
+		mediator->SetUnitsCommand(state_machine->adepts, A_MOVE, Utility::PointBetween(center, enemy_start_pos, dist + 6), CommandPriorty::low);
 	}
 }
 
@@ -354,7 +354,7 @@ State* AdeptHarassProtossKillProbes::TestTransitions()
 	return nullptr;
 }
 
-std::string AdeptHarassProtossKillProbes::toString()
+std::string AdeptHarassProtossKillProbes::toString() const
 {
 	return "adepts kill probes";
 }

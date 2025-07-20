@@ -41,8 +41,8 @@ void ImmortalDropWaitForImmortals::EnterState()
 
 void ImmortalDropWaitForImmortals::ExitState()
 {
-	mediator->SetUnitCommand(state_machine->immortal1, A_SMART, state_machine->prism, 0);
-	mediator->SetUnitCommand(state_machine->immortal2, A_SMART, state_machine->prism, 0);
+	mediator->SetUnitCommand(state_machine->immortal1, A_SMART, state_machine->prism, CommandPriorty::low);
+	mediator->SetUnitCommand(state_machine->immortal2, A_SMART, state_machine->prism, CommandPriorty::low);
 	return;
 }
 
@@ -53,7 +53,7 @@ State* ImmortalDropWaitForImmortals::TestTransitions()
 	return nullptr;
 }
 
-std::string ImmortalDropWaitForImmortals::toString()
+std::string ImmortalDropWaitForImmortals::toString() const
 {
 	return "wait for immortals";
 }
@@ -64,7 +64,7 @@ std::string ImmortalDropWaitForImmortals::toString()
 
 void ImmortalDropInitialMove::TickState()
 {
-	mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->entry_pos, 0);
+	mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->entry_pos, CommandPriorty::low);
 }
 
 void ImmortalDropInitialMove::EnterState()
@@ -84,7 +84,7 @@ State* ImmortalDropInitialMove::TestTransitions()
 	return nullptr;
 }
 
-std::string ImmortalDropInitialMove::toString()
+std::string ImmortalDropInitialMove::toString() const
 {
 	return "initial move";
 }
@@ -95,9 +95,9 @@ std::string ImmortalDropInitialMove::toString()
 
 void ImmortalDropMicroDrop::TickState()
 {
-	mediator->SetUnitCommand(state_machine->prism, A_UNLOAD_AT, state_machine->prism, 0);
-	mediator->SetUnitCommand(state_machine->immortal1, A_MOVE, Utility::PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1), 0);
-	mediator->SetUnitCommand(state_machine->immortal2, A_MOVE, Utility::PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1), 0);
+	mediator->SetUnitCommand(state_machine->prism, A_UNLOAD_AT, state_machine->prism, CommandPriorty::low);
+	mediator->SetUnitCommand(state_machine->immortal1, A_MOVE, Utility::PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1), CommandPriorty::low);
+	mediator->SetUnitCommand(state_machine->immortal2, A_MOVE, Utility::PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1), CommandPriorty::low);
 }
 
 
@@ -118,7 +118,7 @@ State* ImmortalDropMicroDrop::TestTransitions()
 	return nullptr;
 }
 
-std::string ImmortalDropMicroDrop::toString()
+std::string ImmortalDropMicroDrop::toString() const
 {
 	return "micro immortal drop";
 }
@@ -138,16 +138,16 @@ void ImmortalDropMicroDropCarrying1::TickState()
 {
 	// don't leave immortals behind
 	if (Distance2D(state_machine->prism->pos, state_machine->immortal2->pos) > 4.5f)
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal2->pos, 0);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal2->pos, CommandPriorty::low);
 	else
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->UpdatePrismPathing(), 0);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->UpdatePrismPathing(), CommandPriorty::low);
 
 	if (mediator->GetGameLoop() >= entry_frame + 15)
-		mediator->SetUnitCommand(state_machine->prism, A_UNLOAD_AT, state_machine->prism, 0);
+		mediator->SetUnitCommand(state_machine->prism, A_UNLOAD_AT, state_machine->prism, CommandPriorty::low);
 	if (state_machine->immortal1->orders.size() == 0 || state_machine->immortal1->orders[0].ability_id != A_SMART)
-		mediator->SetUnitCommand(state_machine->immortal1, A_MOVE, Utility::PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1), 0);
+		mediator->SetUnitCommand(state_machine->immortal1, A_MOVE, Utility::PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1), CommandPriorty::low);
 	if (state_machine->immortal2->orders.size() == 0 || state_machine->immortal2->orders[0].ability_id != A_SMART)
-		mediator->SetUnitCommand(state_machine->immortal2, A_MOVE, Utility::PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1), 0);
+		mediator->SetUnitCommand(state_machine->immortal2, A_MOVE, Utility::PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1), CommandPriorty::low);
 }
 
 void ImmortalDropMicroDropCarrying1::EnterState()
@@ -167,7 +167,7 @@ State* ImmortalDropMicroDropCarrying1::TestTransitions()
 	return nullptr;
 }
 
-std::string ImmortalDropMicroDropCarrying1::toString()
+std::string ImmortalDropMicroDropCarrying1::toString() const
 {
 	return "micro immortal drop carrying 1";
 }
@@ -187,16 +187,16 @@ void ImmortalDropMicroDropCarrying2::TickState()
 {
 	// don't leave immortals behind
 	if (Distance2D(state_machine->prism->pos, state_machine->immortal1->pos) > 4.5)
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal1->pos, 0);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal1->pos, CommandPriorty::low);
 	else
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->UpdatePrismPathing(), 0);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->UpdatePrismPathing(), CommandPriorty::low);
 
 	if (mediator->GetGameLoop() >= entry_frame + 15)
-		mediator->SetUnitCommand(state_machine->prism, A_UNLOAD_AT, state_machine->prism, 0);
+		mediator->SetUnitCommand(state_machine->prism, A_UNLOAD_AT, state_machine->prism, CommandPriorty::low);
 	if (state_machine->immortal1->orders.size() == 0 || state_machine->immortal1->orders[0].ability_id != A_SMART)
-		mediator->SetUnitCommand(state_machine->immortal1, A_MOVE, Utility::PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1), 0);
+		mediator->SetUnitCommand(state_machine->immortal1, A_MOVE, Utility::PointBetween(state_machine->immortal1->pos, state_machine->prism->pos, 1), CommandPriorty::low);
 	if (state_machine->immortal2->orders.size() == 0 || state_machine->immortal2->orders[0].ability_id != A_SMART)
-		mediator->SetUnitCommand(state_machine->immortal2, A_MOVE, Utility::PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1), 0);
+		mediator->SetUnitCommand(state_machine->immortal2, A_MOVE, Utility::PointBetween(state_machine->immortal2->pos, state_machine->prism->pos, 1), CommandPriorty::low);
 }
 
 void ImmortalDropMicroDropCarrying2::EnterState()
@@ -216,7 +216,7 @@ State* ImmortalDropMicroDropCarrying2::TestTransitions()
 	return nullptr;
 }
 
-std::string ImmortalDropMicroDropCarrying2::toString()
+std::string ImmortalDropMicroDropCarrying2::toString() const
 {
 	return "micro immortal drop carrying 2";
 }
@@ -229,14 +229,14 @@ void ImmortalDropMicroDropDropped1::TickState()
 {
 	// don't leave immortals behind
 	if (Distance2D(state_machine->prism->pos, state_machine->immortal1->pos) > 4.5)
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal1->pos, 0);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal1->pos, CommandPriorty::low);
 	else if (Distance2D(state_machine->prism->pos, state_machine->immortal2->pos) > 4.5)
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal2->pos, 0);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal2->pos, CommandPriorty::low);
 	else
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->UpdatePrismPathing(), 0);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->UpdatePrismPathing(), CommandPriorty::low);
 
 	if ((!immortal1_has_attack_order || state_machine->immortal1->weapon_cooldown > 0) && (!immortal2_has_attack_order || state_machine->immortal2->weapon_cooldown > 0))
-		mediator->SetUnitCommand(state_machine->immortal2, A_SMART, state_machine->prism, 0);
+		mediator->SetUnitCommand(state_machine->immortal2, A_SMART, state_machine->prism, CommandPriorty::low);
 }
 
 void ImmortalDropMicroDropDropped1::EnterState()
@@ -267,7 +267,7 @@ State* ImmortalDropMicroDropDropped1::TestTransitions()
 	return nullptr;
 }
 
-std::string ImmortalDropMicroDropDropped1::toString()
+std::string ImmortalDropMicroDropDropped1::toString() const
 {
 	return "micro immortal drop dropped 1";
 }
@@ -280,14 +280,14 @@ void ImmortalDropMicroDropDropped2::TickState()
 {
 	// don't leave immortals behind
 	if (Distance2D(state_machine->prism->pos, state_machine->immortal1->pos) > 4.5)
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal1->pos, 0);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal1->pos, CommandPriorty::low);
 	else if (Distance2D(state_machine->prism->pos, state_machine->immortal2->pos) > 4.5)
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal2->pos, 0);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->immortal2->pos, CommandPriorty::low);
 	else
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->UpdatePrismPathing(), 0);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->UpdatePrismPathing(), CommandPriorty::low);
 
 	if ((!immortal1_has_attack_order || state_machine->immortal1->weapon_cooldown > 0) && (!immortal2_has_attack_order || state_machine->immortal2->weapon_cooldown > 0))
-		mediator->SetUnitCommand(state_machine->immortal1, A_SMART, state_machine->prism, 0);
+		mediator->SetUnitCommand(state_machine->immortal1, A_SMART, state_machine->prism, CommandPriorty::low);
 }
 
 void ImmortalDropMicroDropDropped2::EnterState()
@@ -308,7 +308,7 @@ void ImmortalDropMicroDropDropped2::EnterState()
 
 void ImmortalDropMicroDropDropped2::ExitState()
 {
-	mediator->SetUnitCommand(state_machine->immortal1, A_SMART, state_machine->prism, 0);
+	mediator->SetUnitCommand(state_machine->immortal1, A_SMART, state_machine->prism, CommandPriorty::low);
 }
 
 State* ImmortalDropMicroDropDropped2::TestTransitions()
@@ -318,7 +318,7 @@ State* ImmortalDropMicroDropDropped2::TestTransitions()
 	return nullptr;
 }
 
-std::string ImmortalDropMicroDropDropped2::toString()
+std::string ImmortalDropMicroDropDropped2::toString() const
 {
 	return "micro immortal drop dropped 2";
 }

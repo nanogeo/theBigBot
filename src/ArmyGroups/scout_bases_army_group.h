@@ -12,14 +12,15 @@ class Mediator;
 
 class ScoutBasesArmyGroup : public ArmyGroup
 {
-public:
+protected:
 	std::vector<Point2D> base_locations;
 	Point2D current_target;
 
+public:
 	ScoutBasesArmyGroup(Mediator*);
 
 	void Run() override;
-	std::string ToString() override
+	std::string ToString() const override
 	{
 		return "Scout bases army group";
 	}

@@ -14,14 +14,15 @@ class Mediator;
 
 class DefendThirdZergArmyGroup : public ArmyGroup
 {
-public:
+protected:
 	Point2D pylon_gap_pos;
 
+public:
 	DefendThirdZergArmyGroup(Mediator*, Point2D, std::vector<UNIT_TYPEID>);
 
 	void SetUp() override;
 	void Run() override;
-	std::string ToString() override
+	std::string ToString() const override
 	{
 		return "Defend third base army group";
 	}

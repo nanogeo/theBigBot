@@ -25,8 +25,8 @@ void TransitionManager::CheckTransitions()
 {
 	for (auto itr = possible_transitions.begin(); itr != possible_transitions.end();)
 	{
-		bool(sc2::TransitionManager:: * remove_condition)() = itr->remove_condition;
-		bool(sc2::TransitionManager:: * condition)() = itr->condition;
+		bool(sc2::TransitionManager:: * remove_condition)() const = itr->remove_condition;
+		bool(sc2::TransitionManager:: * condition)() const = itr->condition;
 		if ((*this.*remove_condition)())
 		{
 			itr = possible_transitions.erase(itr);
@@ -86,15 +86,15 @@ void TransitionManager::AddTransitionsFor4GateBlinkPvT()
 	}
 }
 
-bool TransitionManager::WorkerRushTransitionCondition()
+bool TransitionManager::WorkerRushTransitionCondition() const
 {
-	// if > 4? enemy workers are within 20? of base
-	return Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })), 
-		mediator->GetStartLocation(), 40).size() > 2;
+	// if > 2? enemy workers are within 20? of base
+	return Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })), mediator->GetStartLocation(), VERY_LONG_RANGE).size() > 2 ||
+		Utility::GetUnitsWithin(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ PROBE, SCV, DRONE })), mediator->GetNaturalLocation(), VERY_LONG_RANGE).size() > 2;
 	
 }
 
-bool TransitionManager::WorkerRushTransitionRemoveCondition()
+bool TransitionManager::WorkerRushTransitionRemoveCondition() const
 {
 	return mediator->GetCurrentTime() > 180;
 }
@@ -114,7 +114,7 @@ void TransitionManager::WorkerRushTransitionEnterAction()
 	}
 }
 
-bool TransitionManager::ScourTransitionCondition()
+bool TransitionManager::ScourTransitionCondition() const
 {
 	if ((mediator->GetCurrentTime() > 300 && Utility::DistanceToClosest(mediator->GetUnits(IsUnits({NEXUS, COMMAND_CENTER, ORBITAL, PLANETARY, HATCHERY, LAIR, HIVE})), mediator->GetEnemyStartLocation()) > 15)
 		|| (mediator->GetCurrentTime() > 600 && mediator->GetArmySupply() > 30)
@@ -125,7 +125,7 @@ bool TransitionManager::ScourTransitionCondition()
 	return false;
 }
 
-bool TransitionManager::ScourTransitionRemoveCondition()
+bool TransitionManager::ScourTransitionRemoveCondition() const
 {
 	return false;
 }
@@ -135,7 +135,7 @@ void TransitionManager::ScourTransitionEnterAction()
 	mediator->ScourMap();
 }
 
-bool TransitionManager::FixEarlySupplyBlockCondition()
+bool TransitionManager::FixEarlySupplyBlockCondition() const
 {
 	if (mediator->GetSupplyCap() - mediator->GetSupplyUsed() <= 1 &&
 		mediator->GetCurrentTime() > 60 &&
@@ -144,7 +144,7 @@ bool TransitionManager::FixEarlySupplyBlockCondition()
 	return false;
 }
 
-bool TransitionManager::FixEarlySupplyBlockRemoveCondition()
+bool TransitionManager::FixEarlySupplyBlockRemoveCondition() const
 {
 	if (!mediator->HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
 		return true;
@@ -153,8 +153,7 @@ bool TransitionManager::FixEarlySupplyBlockRemoveCondition()
 
 void TransitionManager::FixEarlySupplyBlockEnterAction()
 {
-	if (!mediator->HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
+	mediator->AddUniqueAction(&ActionManager::ActionContinueBuildingPylons, new ActionArgData());
 }
 
 }

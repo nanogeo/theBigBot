@@ -15,15 +15,16 @@ struct ArmyTemplate;
 
 class DenyOuterBaseArmyGroup : public ArmyGroup
 {
-public:
+protected:
 	Point2D base_pos;
 
+public:
 	DenyOuterBaseArmyGroup(Mediator*);
 	DenyOuterBaseArmyGroup(Mediator*, ArmyTemplate<DenyOuterBaseArmyGroup>*);
 
 	void SetUp() override;
 	void Run() override;
-	std::string ToString() override
+	std::string ToString() const override
 	{
 		return "Deny outer base army group";
 	}

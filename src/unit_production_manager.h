@@ -11,7 +11,7 @@ class Mediator;
 
 class UnitProductionManager
 {
-public:
+private:
 	Mediator* mediator;
 
 	Units warpgates, robos, stargates, gateways;
@@ -19,42 +19,46 @@ public:
 	UNIT_TYPEID warpgate_production = UNIT_TYPEID::INVALID;
 	UNIT_TYPEID robo_production = UNIT_TYPEID::INVALID;
 	UNIT_TYPEID stargate_production = UNIT_TYPEID::INVALID;
-	std::map<UNIT_TYPEID, uint16_t> target_unit_comp;
+	std::map<UNIT_TYPEID, int> target_unit_comp;
 	bool automatic_unit_production = false;
 
 	std::map<const Unit*, WarpgateStatus> warpgate_status;
 	bool warp_in_at_proxy = false;
 
+	void RunAutomaticUnitProduction();
+	void RunSpecificUnitProduction();
+
+public:
 	UnitProductionManager(Mediator* mediator)
 	{
 		this->mediator = mediator;
 	}
+	void DisplayBuildingStatuses();
 
-
-	void ChooseUnitProduction();
 	void SetWarpgateProduction(UNIT_TYPEID);
 	void SetRoboProduction(UNIT_TYPEID);
 	void SetStargateProduction(UNIT_TYPEID);
+	UNIT_TYPEID GetWarpgateProduction() const;
+	UNIT_TYPEID GetRoboProduction() const;
+	UNIT_TYPEID GetStargateProduction() const;
 
 	void OnBuildingConstructionComplete(const Unit*); // TODO on unit destroyed
 	void RunUnitProduction();
-	void RunAutomaticUnitProduction();
-	void RunSpecificUnitProduction();
 
 	void SetWarpInAtProxy(bool);
-	std::vector<Point2D> FindWarpInSpots(Point2D);
-	std::vector<Point2D> FindWarpInSpotsAt(Point2D);
+	std::vector<Point2D> FindWarpInSpots(Point2D) const;
+	std::vector<Point2D> FindWarpInSpotsAt(Point2D) const;
 	void UpdateWarpgateStatus();
-	int NumWarpgatesReady();
-	UnitCost CalculateCostOfProduction();
+	int NumWarpgatesReady() const;
+	UnitCost CalculateCostOfProduction() const;
 
 	void WarpInUnit(UNIT_TYPEID, Point2D);
 	bool WarpInUnits(UNIT_TYPEID, int, Point2D);
 	bool WarpInUnitsAt(UNIT_TYPEID, int, Point2D);
 
-	std::map<UNIT_TYPEID, uint16_t> GetTargetUnitComp();
-	void IncreaseUnitAmountInTargetComposition(UNIT_TYPEID, uint16_t);
-	void DecreaseUnitAmountInTargetComposition(UNIT_TYPEID, uint16_t);
+	std::map<UNIT_TYPEID, int> GetTargetUnitComp() const;
+	void IncreaseUnitAmountInTargetComposition(UNIT_TYPEID, int);
+	void DecreaseUnitAmountInTargetComposition(UNIT_TYPEID, int);
 };
 
 

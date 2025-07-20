@@ -13,7 +13,7 @@ class Mediator;
 
 class DefendBaseArmyGroup : public ArmyGroup
 {
-public:
+protected:
 	Units probes;
 
 	Point2D base_pos;
@@ -24,11 +24,12 @@ public:
 	//bool falling_back = false;
 	float leash_range = 10;
 
-	DefendBaseArmyGroup(Mediator*, Point2D, std::vector<UNIT_TYPEID>, uint16_t, uint16_t);
+public:
+	DefendBaseArmyGroup(Mediator*, Point2D, std::vector<UNIT_TYPEID>, int, int);
 
 	void SetUp() override;
 	void Run() override;
-	std::string ToString() override
+	std::string ToString() const override
 	{
 		return "Defend base army group";
 	}
@@ -36,6 +37,8 @@ public:
 	void AddNewUnit(const Unit* unit) override;
 	void AddUnit(const Unit* unit) override;
 	void RemoveUnit(const Unit* unit) override;
+
+	Point2D GetBasePos() const;
 };
 
 }

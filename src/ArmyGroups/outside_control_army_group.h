@@ -16,16 +16,21 @@ struct ArmyTemplate;
 
 class OutsideControlArmyGroup : public ArmyGroup
 {
-public:
+protected:
 	StateMachine* state_machine = nullptr;
-	OutsideControlArmyGroup(Mediator*, StateMachine*, std::vector<UNIT_TYPEID>, uint16_t, uint16_t);
+
+public:
+	OutsideControlArmyGroup(Mediator*, StateMachine*, std::vector<UNIT_TYPEID>, int, int);
 	OutsideControlArmyGroup(Mediator*, ArmyTemplate<OutsideControlArmyGroup>*);
 
 	void Run() override;
-	std::string ToString() override
+	std::string ToString() const override
 	{
 		return "Outside control army group";
 	}
+
+	void SetStateMachine(StateMachine*);
+	StateMachine* GetStateMachine() const;
 
 	void AddNewUnit(const Unit*) override;
 	void RemoveUnit(const Unit*) override;

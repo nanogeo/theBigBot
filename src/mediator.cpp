@@ -38,10 +38,10 @@ namespace sc2
 
 void Mediator::SetUpManagers(bool debug)
 {
-	worker_manager.new_base = agent->Observation()->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS))[0];
+	worker_manager.SetNewBase(agent->Observation()->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS))[0]);
 
 	int id = agent->Observation()->GetPlayerID();
-	auto infos = agent->Observation()->GetGameInfo().player_info;
+	std::vector<PlayerInfo> infos = agent->Observation()->GetGameInfo().player_info;
 	if (infos.size() > 0)
 	{
 		scouting_manager.SetEnemyRace(infos[2 - id].race_requested);
@@ -97,8 +97,7 @@ void Mediator::SetUpManagers(bool debug)
 void Mediator::RunManagers()
 {
 	resource_manager.UpdateResources();
-	ability_manager.UpdateStalkerInfo();
-	ability_manager.UpdateOracleInfo();
+	ability_manager.UpdatedAbilityInfo();
 	fire_control_manager.UpdateInfo();
 	scouting_manager.UpdateInfo();
 
@@ -113,7 +112,7 @@ void Mediator::RunManagers()
 	if (agent->Observation()->GetGameLoop() > 40)
 		worker_manager.DistributeWorkers();
 	
-	if (worker_manager.new_base != nullptr)
+	if (worker_manager.GetNewBase() != nullptr)
 	{
 		//std::cout << "add new base\n";
 		//std::cout << worker_manager.new_base->pos.x << ' ' << worker_manager.new_base->pos.y << '\n';;
@@ -145,12 +144,12 @@ void Mediator::RunManagers()
 
 }
 
-int  Mediator::GetGameLoop()
+uint32_t  Mediator::GetGameLoop()
 {
 	return agent->Observation()->GetGameLoop();
 }
 
-float Mediator::GetCurrentTime()
+float Mediator::GetCurrentTime() const
 {
 	return agent->Observation()->GetGameLoop() / FRAME_TIME;
 }
@@ -178,6 +177,11 @@ int Mediator::GetArmySupply()
 int Mediator::GetSupplyCap()
 {
 	return agent->Observation()->GetFoodCap();
+}
+
+const std::vector<Effect>& Mediator::GetEffects()
+{
+	return agent->Observation()->GetEffects();
 }
 
 ImageData Mediator::GetPathingGrid()
@@ -298,14 +302,11 @@ bool Mediator::CanBuildBuilding(UNIT_TYPEID unit_type)
 	{
 	case FLEET_BEACON:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(STARGATE)).size() > 0;
-			return false;
 	case ROBO_BAY:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(ROBO)).size() > 0;
-			return false;
 	case TEMPLAR_ARCHIVE:
 	case DARK_SHRINE:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(TWILIGHT)).size() > 0;
-			return false;
 	case STARGATE:
 	case ROBO:
 	case TWILIGHT:
@@ -333,14 +334,11 @@ bool Mediator::HasTechForBuilding(UNIT_TYPEID unit_type)
 	{
 	case FLEET_BEACON:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(STARGATE)).size() > 0;
-		return false;
 	case ROBO_BAY:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(ROBO)).size() > 0;
-		return false;
 	case TEMPLAR_ARCHIVE:
 	case DARK_SHRINE:
 		return GetUnits(Unit::Alliance::Self, IsFinishedUnit(TWILIGHT)).size() > 0;
-		return false;
 	case STARGATE:
 	case ROBO:
 	case TWILIGHT:
@@ -453,19 +451,6 @@ bool Mediator::CanTrainUnit(UNIT_TYPEID unit_type)
 	}
 }
 
-bool Mediator::IsUnitOccupied(const Unit* unit)
-{
-	for (ArmyGroup* army_group : army_manager.army_groups)
-	{
-		for (const Unit* army_unit : army_group->all_units)
-		{
-			if (unit == army_unit)
-				return true;
-		}
-	}
-	return false;
-}
-
 int Mediator::GetUpgradeLevel(UpgradeType upgrade_type)
 {
 	return upgrade_manager.GetUpgradeLevel(upgrade_type);
@@ -508,6 +493,11 @@ float Mediator::GetLineDangerLevel(PathManager path)
 	return danger;
 }
 
+const std::vector<Point2D>& Mediator::GetCorrosiveBilePositions()
+{
+	return scouting_manager.GetCorrosiveBilePositions();
+}
+
 bool Mediator::IsVisible(Point2D pos)
 {
 	return agent->Observation()->GetVisibility(pos) == Visibility::Visible;
@@ -532,7 +522,7 @@ UnitCost Mediator::GetCurrentResources()
 {
 	return UnitCost(agent->Observation()->GetMinerals(), 
 		agent->Observation()->GetVespene(), 
-		agent->Observation()->GetFoodCap() - agent->Observation()->GetFoodUsed());
+		(float)(agent->Observation()->GetFoodCap() - agent->Observation()->GetFoodUsed()));
 }
 
 UnitCost Mediator::GetAvailableResources()
@@ -542,7 +532,7 @@ UnitCost Mediator::GetAvailableResources()
 
 void Mediator::CancelBuilding(const Unit* building)
 {
-	SetUnitCommand(building, A_CANCEL_BUILDING, 100);
+	ForceUnitCommand(building, A_CANCEL_BUILDING);
 }
 
 void Mediator::CancelUnit(UNIT_TYPEID unit_type)
@@ -551,7 +541,7 @@ void Mediator::CancelUnit(UNIT_TYPEID unit_type)
 	{
 		if (building->orders.size() > 0 && building->orders[0].ability_id == Utility::GetTrainAbility(unit_type))
 		{
-			SetUnitCommand(building, A_CANCEL_PRODUCTION, 0);
+			SetUnitCommand(building, A_CANCEL_PRODUCTION, CommandPriorty::low);
 			return;
 		}
 	}
@@ -589,6 +579,13 @@ void Mediator::DebugSphere(Point3D pos, float radius, Color color)
 #endif 
 }
 
+void Mediator::DebugText(std::string text, Point2D pos, Color color, int size)
+{
+#ifndef BUILD_FOR_LADDER
+	agent->Debug()->DebugTextOut(text, pos, color, size);
+#endif 
+}
+
 const Unit* Mediator::GetBuilder(Point2D position)
 {
 	return worker_manager.GetBuilder(position);
@@ -620,19 +617,9 @@ void Mediator::BuildBuildingMulti(std::vector<UNIT_TYPEID> buildingIds, Point2D 
 	action_manager.AddAction(new ActionData(&ActionManager::ActionBuildBuildingMulti, new ActionArgData(probe, buildingIds, position, 0)));
 }
 
-Units Mediator::GetAllWorkersOnGas()
-{
-	Units workers;
-	for (const auto& data : worker_manager.assimilators_reversed)
-	{
-		workers.push_back(data.first);
-	}
-	return workers;
-}
-
 int Mediator::NumFar3rdWorkers()
 {
-	return (int)worker_manager.far_3_mineral_patch_extras.size();
+	return worker_manager.GetExtraWorkersOnMinerals();
 }
 
 bool Mediator::SendScout()
@@ -704,27 +691,27 @@ bool Mediator::SendCannonRushProbe1()
 
 void Mediator::SetBuildWorkers(bool value)
 {
-	worker_manager.should_build_workers = value;
+	worker_manager.SetBuildWorkers(value);
 }
 
 bool Mediator::CheckBuildWorkers()
 {
-	return worker_manager.should_build_workers;
+	return worker_manager.CheckBuildWorkers();
 }
 
 void Mediator::SetImmediatlySaturateGasses(bool value)
 {
-	worker_manager.immediatelySaturateGasses = value;
+	worker_manager.SetImmediatlySaturateGasses(value);
 }
 
 void Mediator::SetImmediatlySemiSaturateGasses(bool value)
 {
-	worker_manager.immediatelySemiSaturateGasses = value;
+	worker_manager.SetImmediatlySemiSaturateGasses(value);
 }
 
 void Mediator::SetBalanceIncome(bool value)
 {
-	worker_manager.balance_income = value;
+	worker_manager.SetBalanceIncome(value);
 }
 
 void Mediator::SetBuildOrder(BuildOrder build)
@@ -736,7 +723,7 @@ void Mediator::SetBuildOrder(BuildOrder build)
 
 bool Mediator::GetBuildOrderStatus()
 {
-	return build_order_manager.run_build_order;
+	return build_order_manager.GetBuildOrderStatus();
 }
 
 void Mediator::PauseBuildOrder()
@@ -753,10 +740,6 @@ void Mediator::UnPauseBuildOrder()
 void Mediator::SetWorkerRushDefenseBuidOrder()
 {
 	build_order_manager.SetWorkerRushDefense();
-	if (GetUnits(Unit::Alliance::Self, IsUnit(GATEWAY)).size() > 0)
-		build_order_manager.build_order_step = 1;
-	else
-		build_order_manager.build_order_step = 0;
 }
 
 // TODO create locations manager
@@ -764,7 +747,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 {
 	std::vector<Point2D> possible_locations;
 	int pending_buildings = 0;
-	for (const auto& action : action_manager.active_actions)
+	for (const auto& action : action_manager.GetActiveActions())
 	{
 		if (action->action == &ActionManager::ActionBuildBuilding)
 		{
@@ -894,7 +877,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 	return Point2D(0, 0);
 }
 
-Point2D Mediator::GetLocation(UNIT_TYPEID unit_type, int index)
+Point2D Mediator::GetLocation(UNIT_TYPEID unit_type, int index) const
 {
 	std::vector<Point2D> positions;
 	switch (unit_type)
@@ -1010,7 +993,7 @@ Point2D Mediator::GetNaturalDefensiveLocation(UNIT_TYPEID unit_type)
 					}
 				}
 			}
-			for (const auto& action : action_manager.active_actions)
+			for (const auto& action : action_manager.GetActiveActions())
 			{
 				if (action->action == &ActionManager::ActionBuildBuilding)
 				{
@@ -1258,34 +1241,34 @@ Point2D Mediator::GetWallOffLocation(UNIT_TYPEID unit_type)
 	}
 }
 
-const Locations& Mediator::GetLocations()
+const Locations& Mediator::GetLocations() const
 {
 	return *(agent->locations);
 }
 
 void Mediator::ContinueBuildingPylons()
 {
-	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
+	action_manager.AddAction(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
 }
 
 void Mediator::ContinueMakingWorkers()
 {
-	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData()));
+	action_manager.AddAction(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData()));
 }
 
 void Mediator::ContinueUpgrades()
 {
-	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueUpgrades, new ActionArgData()));
+	action_manager.AddAction(new ActionData(&ActionManager::ActionContinueUpgrades, new ActionArgData()));
 }
 
 void Mediator::ContinueChronos()
 {
-	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData()));
+	action_manager.AddAction(new ActionData(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData()));
 }
 
 void Mediator::ContinueExpanding()
 {
-	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueExpanding, new ActionArgData()));
+	action_manager.AddAction(new ActionData(&ActionManager::ActionContinueExpanding, new ActionArgData()));
 }
 
 bool Mediator::TrainFromProxyRobo()
@@ -1295,7 +1278,7 @@ bool Mediator::TrainFromProxyRobo()
 	{
 		if (Utility::DistanceToClosest(agent->GetProxyLocations(ROBO), robo->pos) < 2)
 		{
-			action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionTrainFromProxyRobo, new ActionArgData(robo)));
+			action_manager.AddAction(new ActionData(&ActionManager::ActionTrainFromProxyRobo, new ActionArgData(robo)));
 			return true;
 		}
 	}
@@ -1304,15 +1287,20 @@ bool Mediator::TrainFromProxyRobo()
 
 void Mediator::AddAction(bool(sc2::ActionManager::* action)(ActionArgData*), ActionArgData* data)
 {
+	action_manager.AddAction(new ActionData(action, data));
+}
+
+void Mediator::AddUniqueAction(bool(sc2::ActionManager::* action)(ActionArgData*), ActionArgData* data)
+{
 	if (!HasActionOfType(action))
-		action_manager.active_actions.push_back(new ActionData(action, data));
+		action_manager.AddAction(new ActionData(action, data));
 
 }
 
 int Mediator::GetNumBuildActions(UNIT_TYPEID unit_type)
 {
 	int actions = 0;
-	for (const auto& action : action_manager.active_actions)
+	for (const auto& action : action_manager.GetActiveActions())
 	{
 		if (action->action == &ActionManager::ActionBuildBuilding)
 		{
@@ -1327,7 +1315,7 @@ int Mediator::GetNumBuildActions(UNIT_TYPEID unit_type)
 
 bool Mediator::HasActionOfType(bool(sc2::ActionManager::* type)(ActionArgData*))
 {
-	for (const auto& action : action_manager.active_actions)
+	for (const auto& action : action_manager.GetActiveActions())
 	{
 		if (action->action == type)
 			return true;
@@ -1337,14 +1325,14 @@ bool Mediator::HasActionOfType(bool(sc2::ActionManager::* type)(ActionArgData*))
 
 void Mediator::CancelAllBuildActions()
 {
-	for (auto itr = action_manager.active_actions.begin(); itr != action_manager.active_actions.end();)
+	for (auto itr = action_manager.GetActiveActions().begin(); itr != action_manager.GetActiveActions().end();)
 	{
 		if ((*itr)->action == &ActionManager::ActionBuildBuilding)
 		{
 			if ((*itr)->action_arg->unit)
 				PlaceWorker((*itr)->action_arg->unit);
 
-			itr = action_manager.active_actions.erase(itr);
+			itr = action_manager.EraseAction((*itr));
 		}
 		else
 		{
@@ -1355,14 +1343,14 @@ void Mediator::CancelAllBuildActions()
 
 void Mediator::CancelAllActionsOfType(bool(sc2::ActionManager::* type)(ActionArgData*))
 {
-	for (auto itr = action_manager.active_actions.begin(); itr != action_manager.active_actions.end();)
+	for (auto itr = action_manager.GetActiveActions().begin(); itr != action_manager.GetActiveActions().end();)
 	{
 		if ((*itr)->action == type)
 		{
 			if ((*itr)->action_arg->unit && (*itr)->action_arg->unit->unit_type == PROBE)
 				PlaceWorker((*itr)->action_arg->unit);
 
-			itr = action_manager.active_actions.erase(itr);
+			itr = action_manager.EraseAction((*itr));
 		}
 		else
 		{
@@ -1374,7 +1362,7 @@ void Mediator::CancelAllActionsOfType(bool(sc2::ActionManager::* type)(ActionArg
 UnitCost Mediator::CalculateCostOfCurrentBuildActions()
 {
 	UnitCost total;
-	for (const auto& action : action_manager.active_actions)
+	for (const auto& action : action_manager.GetActiveActions())
 	{
 		if (action->action == &ActionManager::ActionBuildBuilding)
 		{
@@ -1384,67 +1372,77 @@ UnitCost Mediator::CalculateCostOfCurrentBuildActions()
 	return total;
 }
 
-float Mediator::GetFirstGasTiming()
+float Mediator::GetFirstGasTiming() const
 {
 	return scouting_manager.first_gas_timing;
 }
 
-float Mediator::GetSecondGasTiming()
+float Mediator::GetSecondGasTiming() const
 {
 	return scouting_manager.second_gas_timing;
 }
 
-float Mediator::GetNaturalTiming()
+float Mediator::GetNaturalTiming() const
 {
 	return scouting_manager.natural_timing;
 }
 
-float Mediator::GetThirdTiming()
+float Mediator::GetThirdTiming() const
 {
 	return scouting_manager.third_timing;
 }
 
-float Mediator::GetFirstBarrackTiming()
+float Mediator::GetFirstBarrackTiming() const
 {
 	return scouting_manager.first_barrack_timing;
 }
 
-float Mediator::GetFactoryTiming()
+FirstRaxProduction Mediator::GetFirstBarrackProduction() const
+{
+	return scouting_manager.first_rax_production;
+}
+
+void Mediator::SetFirstBarrackProduction(FirstRaxProduction prod)
+{
+	scouting_manager.first_rax_production = prod;
+}
+
+float Mediator::GetFactoryTiming() const
 {
 	return scouting_manager.factory_timing;
 }
 
-float Mediator::GetFirstGateTiming()
+float Mediator::GetFirstGateTiming() const
 {
 	return scouting_manager.first_gate_timing;
 }
 
-float Mediator::GetSecondGateTiming()
+float Mediator::GetSecondGateTiming() const
 {
 	return scouting_manager.second_gate_timing;
 }
 
-float Mediator::GetFirstPylonTiming()
+float Mediator::GetFirstPylonTiming() const
 {
 	return scouting_manager.first_pylon_timing;
 }
 
-float Mediator::GetSecondPylonTiming()
+float Mediator::GetSecondPylonTiming() const
 {
 	return scouting_manager.second_pylon_timing;
 }
 
-UNIT_TYPEID Mediator::GetTechChoice()
+UNIT_TYPEID Mediator::GetTechChoice() const
 {
 	return scouting_manager.tech_choice;
 }
 
-float Mediator::GetSpawningPoolTiming()
+float Mediator::GetSpawningPoolTiming() const
 {
 	return scouting_manager.spawning_pool_timing;
 }
 
-float Mediator::GetRoachWarrenTiming()
+float Mediator::GetRoachWarrenTiming() const
 {
 	return scouting_manager.roach_warren_timing;
 }
@@ -1459,14 +1457,19 @@ void Mediator::InitializeGameState()
 	scouting_manager.InitializeGameState();
 }
 
-GameState Mediator::GetGameState()
+GameState Mediator::GetGameState() const
 {
 	return scouting_manager.current_game_state;
 }
 
+int Mediator::GetIncomingDamage(const Unit* unit)
+{
+	return scouting_manager.GetIncomingDamage(unit);
+}
+
 StateMachine* Mediator::GetStateMachineByName(std::string name)
 {
-	for (auto& fsm : finite_state_machine_manager.active_state_machines)
+	for (auto& fsm : finite_state_machine_manager.GetActiveStateMachines())
 	{
 		if (fsm->name == name)
 			return fsm;
@@ -1488,40 +1491,40 @@ void Mediator::CreateFourGateBlinkFSM()
 {
 	BlinkStalkerAttackTerran* blink_fsm = new BlinkStalkerAttackTerran(this, "4 gate blink pressure", agent->locations->blink_presure_consolidation,
 		agent->locations->blink_pressure_prism_consolidation, agent->locations->blink_pressure_blink_up, agent->locations->blink_pressure_blink_down);
-	finite_state_machine_manager.active_state_machines.push_back(blink_fsm);
+	finite_state_machine_manager.AddStateMachine(blink_fsm);
 	BlinkFSMArmyGroup* blink_army = new BlinkFSMArmyGroup(this, blink_fsm, 15, 25, 7, 1);
 
 	army_manager.AddArmyGroup(blink_army);
-	blink_fsm->attached_army_group = blink_army;
+	blink_fsm->SetAttachedArmyGroup(blink_army);
 }
 
 void Mediator::CreateAdeptHarassProtossFSM()
 {
 	AdeptHarassProtoss* adept_fsm = new AdeptHarassProtoss(this, "adept harass protoss", GetUnits(IsFriendlyUnit(ADEPT)), agent->locations->adept_harrass_protoss_consolidation);
-	finite_state_machine_manager.active_state_machines.push_back(adept_fsm);
+	finite_state_machine_manager.AddStateMachine(adept_fsm);
 
 	OutsideControlArmyGroup* adept_army = new OutsideControlArmyGroup(this, adept_fsm, { ADEPT }, 2, 2);
 	army_manager.AddArmyGroup(adept_army);
-	adept_fsm->attached_army_group = adept_army;
+	adept_fsm->SetAttachedArmyGroup(adept_army);
 }
 
 void Mediator::StartOracleHarassStateMachine(OutsideControlArmyGroup* army)
 {
 	OracleHarassStateMachine* oracle_fsm = new OracleHarassStateMachine(this, {}, "Oracle harass");
-	finite_state_machine_manager.active_state_machines.push_back(oracle_fsm);
+	finite_state_machine_manager.AddStateMachine(oracle_fsm);
 
-	army->state_machine = oracle_fsm;
-	oracle_fsm->attached_army_group = army;
+	army->SetStateMachine(oracle_fsm);
+	oracle_fsm->SetAttachedArmyGroup(army);
 }
 
 void Mediator::StartChargelotAllInStateMachine()
 {
 	ChargelotAllInStateMachine* chargelot_fsm = new ChargelotAllInStateMachine(this, "chargelot all in", agent->locations->warp_prism_locations, GetCurrentTime());
-	finite_state_machine_manager.active_state_machines.push_back(chargelot_fsm);
+	finite_state_machine_manager.AddStateMachine(chargelot_fsm);
 
 	OutsideControlArmyGroup* chargelot_army = new OutsideControlArmyGroup(this, chargelot_fsm, { ZEALOT, PRISM }, 30, 50);
 	army_manager.AddArmyGroup(chargelot_army);
-	chargelot_fsm->attached_army_group = chargelot_army;
+	chargelot_fsm->SetAttachedArmyGroup(chargelot_army);
 }
 
 bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)
@@ -1535,45 +1538,45 @@ bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)
 		state_machine = GetStateMachineByName("Scout Zerg");
 		if (state_machine != nullptr)
 		{
-			scout = ((ScoutZergStateMachine*)state_machine)->scout;
+			scout = ((ScoutZergStateMachine*)state_machine)->GetScout();
 		}
 		else
 		{
 			state_machine = GetStateMachineByName("Scout Random");
 			if (state_machine != nullptr)
-				scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+				scout = ((ScoutTerranStateMachine*)state_machine)->GetScout();
 		}
 		break;
 	case Race::Terran:
 		state_machine = GetStateMachineByName("Scout Terran");
 		if (state_machine != nullptr)
 		{
-			scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+			scout = ((ScoutTerranStateMachine*)state_machine)->GetScout();
 		}
 		else
 		{
 			state_machine = GetStateMachineByName("Scout Random");
 			if (state_machine != nullptr)
-				scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+				scout = ((ScoutTerranStateMachine*)state_machine)->GetScout();
 		}
 		break;
 	case Race::Protoss:
 		state_machine = GetStateMachineByName("Scout Protoss");
 		if (state_machine != nullptr)
 		{
-			scout = ((ScoutProtossStateMachine*)state_machine)->scout;
+			scout = ((ScoutProtossStateMachine*)state_machine)->GetScout();
 		}
 		else
 		{
 			state_machine = GetStateMachineByName("Scout Random");
 			if (state_machine != nullptr)
-				scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+				scout = ((ScoutTerranStateMachine*)state_machine)->GetScout();
 		}
 		break;
 	case Race::Random:
 		state_machine = GetStateMachineByName("Scout Random");
 		if (state_machine != nullptr)
-			scout = ((ScoutTerranStateMachine*)state_machine)->scout;
+			scout = ((ScoutTerranStateMachine*)state_machine)->GetScout();
 		break;
 	}
 
@@ -1582,8 +1585,8 @@ bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)
 		RemoveStateMachine(state_machine);
 
 		Point2D pos = GetProxyLocations(PYLON)[0];
-		SetUnitCommand(scout, A_MOVE, pos, 0);
-		action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionRemoveScoutToProxy, new ActionArgData(scout, unitId, pos, amount)));
+		SetUnitCommand(scout, A_MOVE, pos, CommandPriorty::low);
+		action_manager.AddAction(new ActionData(&ActionManager::ActionRemoveScoutToProxy, new ActionArgData(scout, unitId, pos, amount)));
 		return true;
 	}
 	return false;
@@ -1593,10 +1596,10 @@ void Mediator::CreateAdeptBaseDefenseTerranFSM()
 {
 	AdeptBaseDefenseTerran* adept_defense_fsm = new AdeptBaseDefenseTerran(this, "Adept base defense",
 		agent->locations->main_early_dead_space, agent->locations->natural_front);
-	finite_state_machine_manager.active_state_machines.push_back(adept_defense_fsm);
+	finite_state_machine_manager.AddStateMachine(adept_defense_fsm);
 
 	OutsideControlArmyGroup* adept_harass_army = new OutsideControlArmyGroup(this, adept_defense_fsm, { ADEPT }, 1, 1);
-	adept_defense_fsm->attached_army_group = adept_harass_army;
+	adept_defense_fsm->SetAttachedArmyGroup(adept_harass_army);
 }
 
 void Mediator::CreateWorkerRushDefenseFSM()
@@ -1607,7 +1610,7 @@ void Mediator::CreateWorkerRushDefenseFSM()
 	WorkerRushDefenseStateMachine* worker_rush_defense_fsm =
 		new WorkerRushDefenseStateMachine(this, "Worker rush defense");
 
-	finite_state_machine_manager.active_state_machines.push_back(worker_rush_defense_fsm);
+	finite_state_machine_manager.AddStateMachine(worker_rush_defense_fsm);
 }
 
 void Mediator::CreatePvPRampWallOffFSM()
@@ -1623,21 +1626,21 @@ void Mediator::CreatePvPRampWallOffFSM()
 	PvPMainRampWallOffStateMachine* pvp_ramp_wall_off_fsm =
 		new PvPMainRampWallOffStateMachine(this, "PvP ramp walloff", probe, wall_off_pos);
 
-	finite_state_machine_manager.active_state_machines.push_back(pvp_ramp_wall_off_fsm);
+	finite_state_machine_manager.AddStateMachine(pvp_ramp_wall_off_fsm);
 }
 
 void Mediator::MarkStateMachineForDeletion(StateMachine* state_machine)
 {
 	finite_state_machine_manager.MarkStateMachineForDeletion(state_machine);
-	if (state_machine->attached_army_group != nullptr)
-		army_manager.MarkArmyGroupForDeletion(state_machine->attached_army_group);
+	if (state_machine->GetAttachedArmyGroup() != nullptr)
+		army_manager.MarkArmyGroupForDeletion(state_machine->GetAttachedArmyGroup());
 }
 
 void Mediator::MarkArmyGroupForDeletion(ArmyGroup* army_group)
 {
 	army_manager.MarkArmyGroupForDeletion(army_group);
 	if (dynamic_cast<OutsideControlArmyGroup*>(army_group))
-		finite_state_machine_manager.MarkStateMachineForDeletion(dynamic_cast<OutsideControlArmyGroup*>(army_group)->state_machine);
+		finite_state_machine_manager.MarkStateMachineForDeletion(dynamic_cast<OutsideControlArmyGroup*>(army_group)->GetStateMachine());
 }
 
 void Mediator::DefendThirdBaseZerg()
@@ -1651,12 +1654,12 @@ void Mediator::SetDoorGuard()
 	army_manager.AddArmyGroup(new DoorGuardArmyGroup(this, agent->locations->natural_door_closed, agent->locations->natural_door_open));
 }
 
-void Mediator::CreateAttack(std::vector<UNIT_TYPEID> unit_types, uint16_t desired_units, uint16_t max_units, uint16_t required_units, uint16_t min_reinforce_group_size)
+void Mediator::CreateAttack(std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units, int required_units, int min_reinforce_group_size)
 {
 	army_manager.AddArmyGroup(new AttackArmyGroup(this, GetDirectAttackLine(), unit_types, desired_units, max_units, required_units, min_reinforce_group_size));
 }
 
-void Mediator::CreateSimpleAttack(std::vector<UNIT_TYPEID> unit_types, uint16_t desired_units, uint16_t max_units)
+void Mediator::CreateSimpleAttack(std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)
 {
 	army_manager.AddArmyGroup(new SimpleAttackArmyGroup(this, GetAltAttackPath(), unit_types, desired_units, max_units));
 }
@@ -1665,8 +1668,8 @@ void Mediator::StartCannonRushDefense()
 {
 	army_manager.AddArmyGroup(new CannonRushDefenseArmyGroup(this));
 	SetBalanceIncome(true);
-	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckBaseForCannons, new ActionArgData(0)));
-	action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckNaturalForCannons, new ActionArgData(0)));
+	action_manager.AddAction(new ActionData(&ActionManager::ActionCheckBaseForCannons, new ActionArgData(0)));
+	action_manager.AddAction(new ActionData(&ActionManager::ActionCheckNaturalForCannons, new ActionArgData(0)));
 }
 
 void Mediator::ScoutBases()
@@ -1682,12 +1685,12 @@ void Mediator::DefendMainRamp(Point2D forcefield_pos)
 void Mediator::AddToDefense(int base, int amount)
 {
 	Point2D base_location = agent->locations->nexi_locations[base];
-	for (auto& army_group : army_manager.army_groups)
+	for (auto& army_group : army_manager.GetArmyGroups())
 	{
-		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->base_pos == base_location)
+		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->GetBasePos() == base_location)
 		{
-			army_group->desired_units += amount;
-			army_group->max_units += amount;
+			army_group->AddDesiredUnits(amount);
+			army_group->AddMaxUnits(amount);
 		}
 	}
 	army_manager.BalanceUnits();
@@ -1695,12 +1698,12 @@ void Mediator::AddToDefense(int base, int amount)
 
 void Mediator::AddToDefense(Point2D base_location, int amount)
 {
-	for (auto& army_group : army_manager.army_groups)
+	for (auto& army_group : army_manager.GetArmyGroups())
 	{
-		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->base_pos == base_location)
+		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->GetBasePos() == base_location)
 		{
-			army_group->desired_units += amount;
-			army_group->max_units += amount;
+			army_group->AddDesiredUnits(amount);
+			army_group->AddMaxUnits(amount);
 		}
 	}
 	army_manager.BalanceUnits();
@@ -1732,7 +1735,7 @@ float Mediator::JudgeFight(Units friendly_units, Units enemy_units, float enemy_
 	return defense_manager.JudgeFight(friendly_units, enemy_units, enemy_battery_energy, friendly_battery_energy, sim_city);
 }
 
-std::vector<OngoingAttack> Mediator::GetOngoingAttacks()
+std::vector<OngoingAttack> Mediator::GetOngoingAttacks() const
 {
 	return defense_manager.ongoing_attacks;
 }
@@ -1763,9 +1766,9 @@ RemoveWorkerResult Mediator::RemoveWorker(const Unit* worker)
 	return worker_manager.RemoveWorker(worker);
 }
 
-void Mediator::PullOutOfGas()
+bool Mediator::PullOutOfGas()
 {
-	worker_manager.PullOutOfGas();
+	return worker_manager.PullOutOfGas();
 }
 
 void Mediator::PullOutOfGas(int num)
@@ -1824,17 +1827,17 @@ void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
 
 UNIT_TYPEID Mediator::GetWarpgateProduction()
 {
-	return unit_production_manager.warpgate_production;
+	return unit_production_manager.GetWarpgateProduction();
 }
 
 UNIT_TYPEID Mediator::GetRoboProduction()
 {
-	return unit_production_manager.robo_production;
+	return unit_production_manager.GetRoboProduction();
 }
 
 UNIT_TYPEID Mediator::GetStargateProduction()
 {
-	return unit_production_manager.stargate_production;
+	return unit_production_manager.GetStargateProduction();
 }
 
 void Mediator::CancelWarpgateUnitProduction()
@@ -1956,9 +1959,9 @@ bool Mediator::TestWarpInSpot(Point2D position)
 
 ArmyGroup* Mediator::GetArmyGroupDefendingBase(Point2D pos)
 {
-	for (const auto& army_group : army_manager.army_groups)
+	for (const auto& army_group : army_manager.GetArmyGroups())
 	{
-		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->base_pos == pos)
+		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->GetBasePos() == pos)
 			return army_group;
 	}
 	return nullptr;
@@ -1975,43 +1978,43 @@ void Mediator::ScourMap()
 	SetUnitProduction(VOID_RAY);
 
 	if (!HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
-		action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
+		action_manager.AddAction(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
 
 	if (!HasActionOfType(&ActionManager::ActionContinueExpanding))
-		action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueExpanding, new ActionArgData()));
+		action_manager.AddAction(new ActionData(&ActionManager::ActionContinueExpanding, new ActionArgData()));
 }
 
-Point2D Mediator::GetStartLocation()
+Point2D Mediator::GetStartLocation() const
 {
 	return agent->Observation()->GetStartLocation();
 }
 
-Point2D Mediator::GetNaturalLocation()
+Point2D Mediator::GetNaturalLocation() const
 {
 	return agent->locations->nexi_locations[1];
 }
 
-Point2D Mediator::GetEnemyStartLocation()
+Point2D Mediator::GetEnemyStartLocation() const
 {
 	return agent->Observation()->GetGameInfo().enemy_start_locations[0];
 }
 
-Point2D Mediator::GetEnemyNaturalLocation()
+Point2D Mediator::GetEnemyNaturalLocation() const
 {
 	return agent->locations->enemy_natural;
 }
 
-PathManager Mediator::GetDirectAttackLine()
+PathManager Mediator::GetDirectAttackLine() const
 {
 	return agent->locations->attack_path_short_line;
 }
 
-std::vector<Point2D> Mediator::GetDirectAttackPath()
+std::vector<Point2D> Mediator::GetDirectAttackPath() const
 {
 	return agent->locations->attack_path_short;
 }
 
-PathManager Mediator::GetStalkerAttackLine()
+PathManager Mediator::GetStalkerAttackLine() const
 {
 	if (GetMapName() == "Abyssal Reef AIE" || GetMapName() == "Interloper AIE")
 		return agent->locations->attack_path_special_line;
@@ -2019,7 +2022,7 @@ PathManager Mediator::GetStalkerAttackLine()
 		return agent->locations->attack_path_short_line;
 }
 
-std::vector<Point2D> Mediator::GetStalkerAttackPath()
+std::vector<Point2D> Mediator::GetStalkerAttackPath() const
 {
 	if (GetMapName() == "Abyssal Reef AIE")
 		return agent->locations->attack_path_special;
@@ -2027,22 +2030,22 @@ std::vector<Point2D> Mediator::GetStalkerAttackPath()
 		return agent->locations->attack_path_short;
 }
 
-PathManager Mediator::GetIndirectAttackLine()
+PathManager Mediator::GetIndirectAttackLine() const
 {
 	return agent->locations->attack_path_line;
 }
 
-std::vector<Point2D> Mediator::GetIndirectAttackPath()
+std::vector<Point2D> Mediator::GetIndirectAttackPath() const
 {
 	return agent->locations->attack_path;
 }
 
-std::vector<Point2D> Mediator::GetAltAttackPath()
+std::vector<Point2D> Mediator::GetAltAttackPath() const
 {
 	return agent->locations->attack_path_alt;
 }
 
-std::vector<Point2D> Mediator::GetBadWarpInSpots()
+std::vector<Point2D> Mediator::GetBadWarpInSpots() const
 {
 	return agent->locations->bad_warpin_spots;
 }
@@ -2057,32 +2060,32 @@ const Unit* Mediator::GetWorkerRushDefenseGroupingMineralPatch()
 	return Utility::ClosestTo(GetUnits(Unit::Alliance::Neutral), agent->locations->worker_rush_defense_group);
 }
 
-std::vector<Point2D> Mediator::GetAllBases()
+std::vector<Point2D> Mediator::GetAllBases() const
 {
 	return agent->locations->base_locations;
 }
 
-std::vector<Point2D> Mediator::GetPossibleEnemyThirdBaseLocations()
+std::vector<Point2D> Mediator::GetPossibleEnemyThirdBaseLocations() const
 {
 	return agent->locations->possible_3rds;
 }
 
-std::vector<Point2D> Mediator::GetSelfMainScoutPath()
+std::vector<Point2D> Mediator::GetSelfMainScoutPath() const
 {
 	return agent->locations->self_main_scout_path;
 }
 
-std::vector<Point2D> Mediator::GetSelfNaturalScoutPath()
+std::vector<Point2D> Mediator::GetSelfNaturalScoutPath() const
 {
 	return agent->locations->self_natural_scout_path;
 }
 
-std::string Mediator::GetMapName()
+std::string Mediator::GetMapName() const
 {
 	return agent->Observation()->GetGameInfo().map_name;
 }
 
-Race Mediator::GetEnemyRace()
+Race Mediator::GetEnemyRace() const
 {
 	return scouting_manager.enemy_race;
 }
@@ -2231,7 +2234,7 @@ TryActionResult Mediator::TryBuildBuilding(const Unit* probe, UNIT_TYPEID buildi
 		if (resource_manager.SpendResources(building_type, position) == false)
 			return TryActionResult::cannot_afford;
 
-		SetUnitCommand(probe, Utility::GetBuildAbility(building_type), closest_geyser, 10);
+		SetUnitCommand(probe, Utility::GetBuildAbility(building_type), closest_geyser, CommandPriorty::normal);
 		return TryActionResult::success;
 	}
 	else
@@ -2255,7 +2258,7 @@ TryActionResult Mediator::TryBuildBuilding(const Unit* probe, UNIT_TYPEID buildi
 		if (resource_manager.SpendResources(building_type, position) == false)
 			return TryActionResult::cannot_afford;
 
-		SetUnitCommand(probe, Utility::GetBuildAbility(building_type), position, 10);
+		SetUnitCommand(probe, Utility::GetBuildAbility(building_type), position, CommandPriorty::normal);
 		return TryActionResult::success;
 	}
 }
@@ -2274,7 +2277,7 @@ TryActionResult Mediator::TryTrainUnit(const Unit* producer, UNIT_TYPEID unit_ty
 	if (resource_manager.SpendResources(unit_type, producer) == false)
 		return TryActionResult::cannot_afford;
 
-	SetUnitCommand(producer, Utility::GetTrainAbility(unit_type), 10);
+	SetUnitCommand(producer, Utility::GetTrainAbility(unit_type), CommandPriorty::normal);
 	return TryActionResult::success;
 }
 
@@ -2304,7 +2307,7 @@ TryActionResult Mediator::TryWarpIn(const Unit* warpgate, UNIT_TYPEID unit_type,
 	if (resource_manager.SpendResources(unit_type, position) == false)
 		return TryActionResult::cannot_afford;
 
-	SetUnitCommand(warpgate, Utility::GetWarpAbility(unit_type), position, 10);
+	SetUnitCommand(warpgate, Utility::GetWarpAbility(unit_type), position, CommandPriorty::normal);
 	return TryActionResult::success;
 }
 
@@ -2316,39 +2319,54 @@ TryActionResult Mediator::TryResearchUpgrade(const Unit* upgrader, UPGRADE_ID up
 	if (resource_manager.SpendResources(upgrade_id, upgrader) == false)
 		return TryActionResult::cannot_afford;
 
-	SetUnitCommand(upgrader, Utility::GetUpgradeAbility(upgrade_id), 10);
+	SetUnitCommand(upgrader, Utility::GetUpgradeAbility(upgrade_id), CommandPriorty::normal);
 	return TryActionResult::success;
 }
 
 // TODO make these boolean if the command is invalid
-void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, int prio, bool queued_command)
+void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, CommandPriorty prio, bool queued_command)
 {
 	unit_command_manager.SetUnitCommand(unit, ability, prio, queued_command);
 }
 
-void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, int prio, bool queued_command)
+void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, CommandPriorty prio, bool queued_command)
 {
 	unit_command_manager.SetUnitCommand(unit, ability, point, prio, queued_command);
 }
 
-void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, int prio, bool queued_command)
+void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, CommandPriorty prio, bool queued_command)
 {
 	unit_command_manager.SetUnitCommand(unit, ability, target, prio, queued_command);
 }
 
-void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, int prio, bool queued_command)
+void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, CommandPriorty prio, bool queued_command)
 {
 	unit_command_manager.SetUnitsCommand(units, ability, prio, queued_command);
 }
 
-void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, const Point2D& point, int prio, bool queued_command)
+void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, const Point2D& point, CommandPriorty prio, bool queued_command)
 {
 	unit_command_manager.SetUnitsCommand(units, ability, point, prio, queued_command);
 }
 
-void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, const Unit* target, int prio, bool queued_command)
+void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, const Unit* target, CommandPriorty prio, bool queued_command)
 {
 	unit_command_manager.SetUnitsCommand(units, ability, target, prio, queued_command);
+}
+
+void Mediator::ForceUnitCommand(const Unit* unit, AbilityID ability, bool queued_command)
+{
+	agent->Actions()->UnitCommand(unit, ability, queued_command);
+}
+
+void Mediator::ForceUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, bool queued_command)
+{
+	agent->Actions()->UnitCommand(unit, ability, point, queued_command);
+}
+
+void Mediator::ForceUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, bool queued_command)
+{
+	agent->Actions()->UnitCommand(unit, ability, target, queued_command);
 }
 
 void Mediator::OnBuildingConstructionComplete(const Unit* building)
@@ -2360,10 +2378,6 @@ void Mediator::OnBuildingConstructionComplete(const Unit* building)
 	else if (building->unit_type == ASSIMILATOR)
 	{
 		worker_manager.AddAssimilator(building);
-		if (worker_manager.immediatelySaturateGasses)
-			worker_manager.SaturateGas(building);
-		else if (worker_manager.immediatelySemiSaturateGasses)
-			worker_manager.SemiSaturateGas(building);
 	}
 	unit_production_manager.OnBuildingConstructionComplete(building);
 }
@@ -2394,6 +2408,7 @@ void Mediator::OnUnitCreated(const Unit* unit)
 			army_manager.FindArmyGroupForUnit(unit);
 		}
 		ability_manager.OnUnitCreated(unit);
+		fire_control_manager.OnUnitCreated(unit);
 	}
 }
 
@@ -2428,11 +2443,11 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 	if (unit->unit_type == NEXUS && Utility::ToPoint2D(unit->pos) != GetNaturalLocation())
 	{
 		if (!HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
-			action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
+			action_manager.AddAction(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
 
 		army_manager.RemoveDefenseGroupAt(unit->pos);
 		defense_manager.RemoveOngoingAttackAt(unit->pos);
-		for (auto itr = action_manager.active_actions.begin(); itr != action_manager.active_actions.end();)
+		for (auto itr = action_manager.GetActiveActions().begin(); itr != action_manager.GetActiveActions().end();)
 		{
 			if (((*itr)->action == &ActionManager::ActionBuildBuilding ||
 				(*itr)->action == &ActionManager::ActionBuildBuildingWhenSafe || 
@@ -2442,7 +2457,7 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 				if ((*itr)->action_arg->unit && (*itr)->action_arg->unit->unit_type == PROBE)
 					PlaceWorker((*itr)->action_arg->unit);
 
-				itr = action_manager.active_actions.erase(itr);
+				itr = action_manager.EraseAction((*itr)); // TODO check
 			}
 			else
 			{
@@ -2469,12 +2484,82 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 		}	
 	}
 }
+
 void Mediator::OnUpgradeCompleted(UPGRADE_ID upgrade)
 {
 	upgrade_manager.OnUpgradeCompleted(upgrade);
 	ability_manager.OnUpgradeCompleted(upgrade);
 }
 
+void Mediator::DisplayDebugHUD()
+{
+#ifndef BUILD_FOR_LADDER
+	worker_manager.DisplayWorkerStatus();
+	build_order_manager.DisplayBuildOrder();
+	action_manager.DisplayActiveActions();
+	finite_state_machine_manager.DisplayActiveStateMachines();
+	unit_production_manager.DisplayBuildingStatuses();
+	army_manager.DisplayArmyGroups();
+	DisplaySupplyInfo();
+	defense_manager.DisplayOngoingAttacks();
+	/*scouting_manager.DisplayEnemyAttacks();
+	scouting_manager.DisplayEnemyPositions();
+	scouting_manager.DisplayKnownEffects();*/
+#endif
+}
+
+void Mediator::DisplaySupplyInfo()
+{
+	std::string supply_message = "";
+	supply_message += std::to_string(GetGameLoop()) + " - " + std::to_string(GetGameLoop() / FRAME_TIME) + '\n';
+	int cap = GetSupplyCap();
+	int used = GetSupplyUsed();
+	supply_message += "supply: " + std::to_string(used) + '/' + std::to_string(cap) + '\n';
+	int build_pylon_actions = 0;
+	for (const auto& action : action_manager.GetActiveActions())
+	{
+		if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == PYLON)
+		{
+			build_pylon_actions++;
+		}
+	}
+	int pending_pylons = 0;
+	for (const auto& pylon : GetUnits(IsFriendlyUnit(PYLON)))
+	{
+		if (pylon->build_progress < 1)
+			pending_pylons++;
+	}
+	if (pending_pylons > 0)
+		supply_message += "pylons pending: " + std::to_string(pending_pylons) + '\n';
+	if (build_pylon_actions > 0)
+		supply_message += "almost pending pylons: " + std::to_string(build_pylon_actions) + '\n';
+	if (pending_pylons > 0 || build_pylon_actions > 0)
+		supply_message += "new supply: " + std::to_string(used) + '/' + std::to_string(cap + 8 * pending_pylons + 8 * build_pylon_actions) + '\n';
+
+	int gates = (int)GetUnits(IsFinishedUnit(WARP_GATE)).size();
+	int other_prod = (int)GetUnits(IsFinishedUnit(ROBO)).size() + (int)GetUnits(IsFinishedUnit(STARGATE)).size();
+	if (gates > 0)
+		supply_message += "warpgates: " + std::to_string(gates) + '\n';
+	if (other_prod > 0)
+		supply_message += "other prod: " + std::to_string(other_prod) + '\n';
+	int nexi = (int)GetUnits(IsFriendlyUnit(NEXUS)).size();
+	supply_message += "nexi: " + std::to_string(nexi) + '\n';
+	supply_message += "new supply: " + std::to_string(used + 2 * gates + 3 * other_prod + nexi) + '/' + std::to_string(cap + 8 * pending_pylons + 8 * build_pylon_actions) + '\n';
+
+	UnitCost income = CalculateIncome();
+	UnitCost production_cost = CalculateCostOfProduction();
+	int mineral_income_size = ((income.mineral_cost / 10) ? 1 : 0) + ((income.mineral_cost / 100) ? 1 : 0) + ((income.mineral_cost / 1000) ? 1 : 0);
+	int gas_income_size = ((income.vespene_cost / 10) ? 1 : 0) + ((income.vespene_cost / 100) ? 1 : 0) + ((income.vespene_cost / 1000) ? 1 : 0);
+	int mineral_cost_size = ((production_cost.mineral_cost / 10) ? 1 : 0) + ((production_cost.mineral_cost / 100) ? 1 : 0) + ((production_cost.mineral_cost / 1000) ? 1 : 0);
+	int gas_cost_size = ((production_cost.vespene_cost / 10) ? 1 : 0) + ((production_cost.vespene_cost / 100) ? 1 : 0) + ((production_cost.vespene_cost / 1000) ? 1 : 0);
+
+	supply_message += "income:    " + std::string(3 - mineral_income_size, ' ') + std::to_string(income.mineral_cost) +
+		" " + std::string(3 - gas_income_size, ' ') + std::to_string(income.vespene_cost) + '\n';
+	supply_message += "prod cost: " + std::string(3 - mineral_cost_size, ' ') + std::to_string(production_cost.mineral_cost) +
+		" " + std::string(3 - gas_cost_size, ' ') + std::to_string(production_cost.vespene_cost) + '\n';
+
+	DebugText(supply_message, Point2D(.9f, .05f), Color(0, 255, 0), 20);
+}
 
 
 void Mediator::AddListenerToOnUnitDamagedEvent(int id, std::function<void(const Unit*, float, float)> func)

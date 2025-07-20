@@ -6,6 +6,19 @@
 namespace sc2
 {
 
+
+#define FRAME_TIME 22.4f
+#define MAX_WORKERS 70
+#define VERY_CLOSE_RANGE 2.0f
+#define CLOSE_RANGE 5.0f
+#define MEDIUM_RANGE 10.0f
+#define LONG_RANGE 15.0f
+#define VERY_LONG_RANGE 20.0f
+
+#define OGA_LOSING_HARD -100
+#define OGA_LOSING -50
+#define OGA_LOSING_SLIGHTLY -20
+
 #define NEXUS UNIT_TYPEID::PROTOSS_NEXUS
 #define PYLON UNIT_TYPEID::PROTOSS_PYLON
 #define GATEWAY UNIT_TYPEID::PROTOSS_GATEWAY
@@ -226,8 +239,72 @@ namespace sc2
 #define A_RESEARCH_AIR_ARMOR ABILITY_ID::RESEARCH_PROTOSSAIRARMOR
 
 
-#define RANGE_ENERGY_RECHARGE 12.55 // TODO check this
-#define FRAME_TIME 22.4f
+
+#define CD_CHARGE 7.0f
+#define CD_STALKER_BLINK 7.0f
+#define CD_SHADE 11.f
+#define CD_STORM 1.43f
+#define CD_DT_BLINK 14.0f
+#define CD_IMMORTAL_BARRIER 32.0f
+#define CD_PURIFICATION_NOVA 21.4f
+#define CD_PRISMATIC_ALIGNMENT 42.9f
+#define CD_REVELATION 10.0f
+#define CD_TIME_WARP 60.0f
+#define CD_MOTHERSHIP_RECALL 89.0f
+#define CD_MOTHERSHIP_CLOAK 50.0f
+#define CD_NEXUS_RECALL 130.0f
+#define CD_ENERGY_RECHARGE 60.0f
+
+#define DURATION_GUARDIAN_SHIELD 12.86f
+#define DURATION_FORCEFIELD 11.0f
+#define DURATION_SHADE 7.0f
+#define DURATION_STORM 2.85f
+#define DURATION_IMMORTAL_BARRIER 2.0f
+#define DURATION_PURIFICATION_NOVA 2.1f
+#define DURATION_PRISMATIC_ALIGNMENT 14.3f
+#define DURATION_REVELATION 20.0f
+#define DURATION_STASIS_WARD 170.0f
+#define DURATION_TIME_WARP 7.0f
+#define DURATION_MOTHERSHIP_CLOAK 20.0f
+
+#define RANGE_BLINK 8.0f
+#define RANGE_GUARDIAN_SHIELD 4.5f
+#define RANGE_FORCEFIELD 9.0f
+#define RANGE_FEEDBACK 10.0f
+#define RANGE_STORM 9.0f
+#define RANGE_DT_BLINK 8.0f
+#define RANGE_REVELATION 9.0f
+#define RANGE_STASIS_WARD 6.0f
+#define RANGE_TIME_WARP 9.0f
+#define RANGE_ENERGY_RECHARGE 12.55f // TODO check
+
+#define SIZE_FORCEFIELD 1.7f
+#define SIZE_STORM 1.5f
+#define SIZE_PURIFICATION_NOVA 1.5f
+#define SIZE_REVELATION 6.0f
+#define SIZE_STASIS_WARD 4.0f
+#define SIZE_TIME_WARP 3.75f
+#define SIZE_MOTHERSHIP_RECALL 5.0f
+#define SIZE_MOTHERSHIP_CLOAK 5.0f
+#define SIZE_NEXUS_RECALL 2.5f
+
+#define ENERGY_COST_FORCEFIELD 50
+#define ENERGY_COST_GUARDIAN_SHIELD 75
+#define ENERGY_COST_FEEDBACK 50
+#define ENERGY_COST_STORM 75
+#define ENERGY_COST_GRAVITON_BEAM 50
+#define ENERGY_COST_REVELATION 25
+#define ENERGY_COST_PULSAR_BEAM 25
+#define ENERGY_COST_STASIS_WARD 50
+#define ENERGY_COST_NEXUS_RECALL 50
+#define ENERGY_COST_ENERGY_RECHARGE 50
+#define ENERGY_COST_CHRONO 50
+
+#define DURATION_SPAWN_LARVA 29
+#define CD_GENERATE_LARVA 11
+#define RANGE_MEDIVAC_HEAL 4
+#define HEAL_RATE_MEDIVAC 12.6f
+
 
 const std::vector<std::vector<UNIT_TYPEID>> TERRAN_PRIO = { {SIEGE_TANK_SIEGED},
 															{SIEGE_TANK},
@@ -375,7 +452,7 @@ struct ScoutInfoTerran
 struct WarpgateStatus
 {
 	bool used;
-	int frame_ready;
+	uint32_t frame_ready;
 	WarpgateStatus() 
 	{
 		used= false;
@@ -466,6 +543,14 @@ struct GameState
 {
 	GameStateWorker game_state_worker = GameStateWorker::even;
 	bool good_worker_intel = false;
+};
+
+enum class CommandPriorty
+{
+	low,
+	normal,
+	high,
+	max
 };
 
 

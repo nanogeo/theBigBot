@@ -17,14 +17,15 @@ class ArmyGroup;
 
 class ImmortalDropWaitForImmortals : public State
 {
-public:
+private:
 	class ImmortalDropStateMachine* state_machine;
+public:
 	ImmortalDropWaitForImmortals(Mediator* mediator, ImmortalDropStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -33,14 +34,15 @@ public:
 
 class ImmortalDropInitialMove : public State
 {
-public:
+private:
 	class ImmortalDropStateMachine* state_machine;
+public:
 	ImmortalDropInitialMove(Mediator* mediator, ImmortalDropStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -49,17 +51,18 @@ public:
 
 class ImmortalDropMicroDrop : public State
 {
-public:
+private:
 	class ImmortalDropStateMachine* state_machine;
 	bool first_immortal_turn = true;
 	bool immortal1_has_attack_order = false;
 	bool immortal2_has_attack_order = false;
+public:
 	ImmortalDropMicroDrop(Mediator* mediator, ImmortalDropStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -68,11 +71,12 @@ public:
 
 class ImmortalDropMicroDropCarrying1 : public State
 {
-public:
+private:
 	class ImmortalDropStateMachine* state_machine;
-	int entry_frame;
+	uint32_t entry_frame;
+public:
 	ImmortalDropMicroDropCarrying1(Mediator* mediator, ImmortalDropStateMachine* state_machine);
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -81,11 +85,12 @@ public:
 
 class ImmortalDropMicroDropCarrying2 : public State
 {
-public:
+private:
 	class ImmortalDropStateMachine* state_machine;
 	uint32_t entry_frame;
+public:
 	ImmortalDropMicroDropCarrying2(Mediator* mediator, ImmortalDropStateMachine* state_machine);
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -94,16 +99,17 @@ public:
 
 class ImmortalDropMicroDropDropped1 : public State
 {
-public:
+private:
 	class ImmortalDropStateMachine* state_machine;
 	bool immortal1_has_attack_order = false;
 	bool immortal2_has_attack_order = false;
+public:
 	ImmortalDropMicroDropDropped1(Mediator* mediator, ImmortalDropStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -112,16 +118,17 @@ public:
 
 class ImmortalDropMicroDropDropped2 : public State
 {
-public:
+private:
 	class ImmortalDropStateMachine* state_machine;
 	bool immortal1_has_attack_order = false;
 	bool immortal2_has_attack_order = false;
+public:
 	ImmortalDropMicroDropDropped2(Mediator* mediator, ImmortalDropStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -130,14 +137,15 @@ public:
 
 class ImmortalDropWaitForShields : public State
 {
-public:
+private:
 	class ImmortalDropStateMachine* state_machine;
+public:
 	ImmortalDropWaitForShields(Mediator* mediator, ImmortalDropStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -146,14 +154,15 @@ public:
 
 class ImmortalDropLeave : public State
 {
-public:
+private:
 	class ImmortalDropStateMachine* state_machine;
+public:
 	ImmortalDropLeave(Mediator* mediator, ImmortalDropStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -166,7 +175,16 @@ public:
 
 class ImmortalDropStateMachine : public StateMachine
 {
-public:
+	friend ImmortalDropWaitForImmortals;
+	friend ImmortalDropInitialMove;
+	friend ImmortalDropMicroDrop;
+	friend ImmortalDropMicroDropCarrying1;
+	friend ImmortalDropMicroDropCarrying2;
+	friend ImmortalDropMicroDropDropped1;
+	friend ImmortalDropMicroDropDropped2;
+	friend ImmortalDropWaitForShields;
+	friend ImmortalDropLeave;
+private:
 	const Unit* immortal1;
 	const Unit* immortal2;
 	const Unit* prism;
@@ -175,6 +193,7 @@ public:
 	int path_index;
 	std::vector<UNIT_TYPEID> target_priority = { CYCLONE, THOR_AOE, SIEGE_TANK_SIEGED, SIEGE_TANK,
 		MULE, MARAUDER, MARINE, SCV, WIDOW_MINE, TECH_LAB, REACTOR };
+public:
 	ImmortalDropStateMachine(Mediator* mediator, std::string name, const Unit* immortal1, const Unit* immortal2, 
 		const Unit* prism, Point2D entry_pos, std::vector<Point2D> prism_path) : StateMachine(mediator, name)
 	{

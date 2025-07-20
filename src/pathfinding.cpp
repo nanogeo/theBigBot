@@ -10,7 +10,7 @@
 
 namespace sc2 {
 
-std::vector<Node*> Graph::ReconstructPath(std::map<Node*, Node*> came_from, Node* end)
+std::vector<Node*> Graph::ReconstructPath(std::map<Node*, Node*> came_from, Node* end) const
 {
 	std::vector<Node*> path_r;
 	Node* current = end;
@@ -27,7 +27,7 @@ std::vector<Node*> Graph::ReconstructPath(std::map<Node*, Node*> came_from, Node
 	return path;
 }
 
-Node* Graph::FindClosestNode(Point2D pos)
+Node* Graph::FindClosestNode(Point2D pos) const
 {
 	Node* closest_node = nodes[0];
 	float dist = Distance2D(pos, closest_node->pos);
@@ -42,7 +42,7 @@ Node* Graph::FindClosestNode(Point2D pos)
 	return closest_node;
 }
 
-std::vector<Node*> Graph::FindPath(Node* start, Node* end)
+std::vector<Node*> Graph::FindPath(Node* start, Node* end) const
 {
 	std::priority_queue<QNode, std::vector<QNode>, NodeCompare> heap;
 	std::map<Node*, Node*> came_from;

@@ -89,7 +89,7 @@ enum RemoveWorkerResult
 
 class WorkerManager
 {
-public:
+private:
 	Mediator* mediator;
 	std::map<const Unit*, mineral_patch_data> mineral_patches;
 	std::map<const Unit*, mineral_patch_reversed_data> mineral_patches_reversed;
@@ -110,13 +110,22 @@ public:
 	int removed_gas_miners = 0;
 	bool balance_income = false;
 
+public:
 	WorkerManager(Mediator* mediator)
 	{
 		this->mediator = mediator;
 	}
+	void DisplayWorkerStatus();
 
-	const Unit* GetWorker();
-	const Unit* GetBuilder(Point2D);
+	void SetBuildWorkers(bool);
+	bool CheckBuildWorkers() const;
+	void SetImmediatlySaturateGasses(bool);
+	void SetImmediatlySemiSaturateGasses(bool);
+	void SetBalanceIncome(bool);
+	int GetExtraWorkersOnMinerals() const;
+
+	const Unit* GetWorker() const;
+	const Unit* GetBuilder(Point2D) const;
 	void PlaceWorker(const Unit*);
 	void PlaceWorkerInGas(const Unit*, const Unit*, int);
 	void NewPlaceWorkerInGas(const Unit*, const Unit*);
@@ -131,12 +140,13 @@ public:
 	void DistributeWorkers();
 	void BalanceWorkers();
 	void BuildWorkers();
-	void PullOutOfGas();
+	bool PullOutOfGas();
 	void PullOutOfGas(int);
-	UnitCost CalculateIncome();
+	UnitCost CalculateIncome() const;
 
 	void AddAssimilator(const Unit*);
 	void SetNewBase(const Unit*);
+	const Unit* GetNewBase() const;
 	void RemoveMineralPatch(const Unit*);
 
 	void OnUnitDestroyed(const Unit*);

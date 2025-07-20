@@ -23,6 +23,22 @@
 namespace sc2
 {
 
+
+void BuildOrderManager::DisplayBuildOrder() const
+{
+	std::string build_order_message = "";
+	for (int i = build_order_step; i < build_order_step + 5; i++)
+	{
+		if (i >= build_order.size())
+			break;
+		build_order_message += build_order[i].toString() + "\n";
+	}
+	if (run_build_order)
+		mediator->DebugText(build_order_message, Point2D(.7f, .15f), Color(0, 255, 0), 20);
+	else
+		mediator->DebugText(build_order_message, Point2D(.7f, .15f), Color(255, 0, 0), 20);
+}
+
 void BuildOrderManager::CheckBuildOrder()
 {
 	if (!run_build_order)
@@ -49,18 +65,95 @@ void BuildOrderManager::CheckBuildOrder()
 void BuildOrderManager::PauseBuildOrder()
 {
 	run_build_order = false;
-
-	if (!mediator->HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
-
-	if (!mediator->HasActionOfType(&ActionManager::ActionContinueSpendingNexusEnergy))
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData()));
+	mediator->AddUniqueAction(&ActionManager::ActionContinueBuildingPylons, new ActionArgData());
+	mediator->AddUniqueAction(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData());
 }
 
 void BuildOrderManager::UnpauseBuildOrder()
 {
 	run_build_order = true;
 }
+
+bool BuildOrderManager::GetBuildOrderStatus() const
+{
+	return run_build_order;
+}
+
+void BuildOrderManager::SetBuildOrder(BuildOrder build)
+{
+	current_build_order = build;
+	switch (build)
+	{
+	case BuildOrder::blank:
+		SetBlank();
+		break;
+	case BuildOrder::testing:
+		SetTesting();
+		break;
+	case BuildOrder::oracle_gatewayman_pvz:
+		SetOracleGatewaymanPvZ();
+		break;
+	case BuildOrder::four_gate_blink:
+		Set4GateBlink();
+		break;
+	case BuildOrder::three_gate_robo:
+		SetThreeGateRobo();
+		break;
+	case BuildOrder::blink_proxy_robo_pressure:
+		SetBlinkProxyRoboPressureBuild();
+		break;
+	case BuildOrder::chargelot_allin:
+		SetChargelotAllin();
+		break;
+	case BuildOrder::chargelot_allin_old:
+		SetChargelotAllinOld();
+		break;
+	case BuildOrder::four_gate_adept_pressure:
+		Set4GateAdept();
+		break;
+	case BuildOrder::fastest_dts:
+		SetFastestDTsPvT();
+		break;
+	case BuildOrder::proxy_double_robo:
+		SetProxyDoubleRobo();
+		break;
+	case BuildOrder::cannon_rush_terran:
+		SetCannonRushTerran();
+		break;
+	case BuildOrder::pvp_openner:
+		SetPvPOpenner();
+		break;
+	case BuildOrder::one_gate_expand_with_ramp:
+		Set1GateExpandWithRamp();
+		break;
+	default:
+		//std::cout << "Error invalid build order in SetBuildOrder" << std::endl;
+		break;
+	}
+}
+
+void BuildOrderManager::SetWorkerRushDefense()
+{
+	if (mediator->GetUnits(Unit::Alliance::Self, IsUnit(GATEWAY)).size() > 0)
+		build_order_step = 1;
+	else
+		build_order_step = 0;
+
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CancelImmediatelySemiSaturateGasses,Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CancelImmediatelySaturateGasses,	Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::PullOutOfGas,						Result(0)),
+					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CutWorkers,							Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(GATEWAY),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(GATEWAY),			&BuildOrderManager::OptionalChronoBuilding,				Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({ GATEWAY, GATEWAY })),
+					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::ZealotSimpleAttack,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
+	};
+}
+
+
 
 bool BuildOrderManager::TimePassed(Condition data)
 {
@@ -195,7 +288,7 @@ bool BuildOrderManager::BuildBuildingMulti(BuildOrderResultArgData data)
 		return false;
 	}
 	mediator->RemoveWorker(builder);
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuildingMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
+	mediator->AddAction(&ActionManager::ActionBuildBuildingMulti, new ActionArgData(builder, data.unitIds, pos, 0));
 	return true;
 }
 
@@ -209,7 +302,7 @@ bool BuildOrderManager::BuildProxyMulti(BuildOrderResultArgData data)
 		return false;
 	}
 	mediator->RemoveWorker(builder);
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildProxyMulti, new ActionArgData(builder, data.unitIds, pos, 0)));
+	mediator->AddAction(&ActionManager::ActionBuildProxyMulti, new ActionArgData(builder, data.unitIds, pos, 0));
 	return true;
 }
 
@@ -294,7 +387,7 @@ bool BuildOrderManager::ChronoBuilding(BuildOrderResultArgData data)
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
 				{
-					mediator->SetUnitCommand(nexus, A_CHRONO, building, 0);
+					mediator->SetUnitCommand(nexus, A_CHRONO, building, CommandPriorty::low);
 					return true;
 				}
 			}
@@ -313,7 +406,7 @@ bool BuildOrderManager::OptionalChronoBuilding(BuildOrderResultArgData data)
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
 				{
-					mediator->SetUnitCommand(nexus, A_CHRONO, building, 0);
+					mediator->SetUnitCommand(nexus, A_CHRONO, building, CommandPriorty::low);
 					return true;
 				}
 			}
@@ -388,7 +481,7 @@ bool BuildOrderManager::ChronoTillFinished(BuildOrderResultArgData data)
 	{
 		if (building->orders.size() > 0)
 		{
-			mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionChronoTillFinished, new ActionArgData(building, data.unitId)));
+			mediator->AddAction(&ActionManager::ActionChronoTillFinished, new ActionArgData(building, data.unitId));
 			return true;
 		}
 	}
@@ -411,36 +504,31 @@ bool BuildOrderManager::BuildProxy(BuildOrderResultArgData data)
 
 bool BuildOrderManager::ContinueBuildingPylons(BuildOrderResultArgData data)
 {
-	if (!mediator->HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
+	mediator->AddUniqueAction(&ActionManager::ActionContinueBuildingPylons, new ActionArgData());
 	return true;
 }
 
 bool BuildOrderManager::ContinueMakingWorkers(BuildOrderResultArgData data)
 {
-	if (!mediator->HasActionOfType(&ActionManager::ActionContinueMakingWorkers))
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData(data.amount)));
+	mediator->AddUniqueAction(&ActionManager::ActionContinueMakingWorkers, new ActionArgData(data.amount));
 	return true;
 }
 
 bool BuildOrderManager::ContinueUpgrades(BuildOrderResultArgData data)
 {
-	if (!mediator->HasActionOfType(&ActionManager::ActionContinueUpgrades))
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueUpgrades, new ActionArgData()));
+	mediator->AddUniqueAction(&ActionManager::ActionContinueUpgrades, new ActionArgData());
 	return true;
 }
 
 bool BuildOrderManager::ContinueSpendingNexusEnergy(BuildOrderResultArgData data)
 {
-	if (!mediator->HasActionOfType(&ActionManager::ActionContinueSpendingNexusEnergy))
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData()));
+	mediator->AddUniqueAction(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData());
 	return true;
 }
 
 bool BuildOrderManager::ContinueExpanding(BuildOrderResultArgData data)
 {
-	if (!mediator->HasActionOfType(&ActionManager::ActionContinueExpanding))
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionContinueExpanding, new ActionArgData()));
+	mediator->AddUniqueAction(&ActionManager::ActionContinueExpanding, new ActionArgData());
 	return true;
 }
 
@@ -551,7 +639,7 @@ bool BuildOrderManager::SafeRallyPoint(BuildOrderResultArgData data)
 	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		Point2D pos = Utility::PointBetween(building->pos, mediator->GetStartLocation(), 2);
-		mediator->SetUnitCommand(building, A_SMART, pos, 0);
+		mediator->SetUnitCommand(building, A_SMART, pos, CommandPriorty::low);
 	}
 	return true;
 }
@@ -562,7 +650,7 @@ bool BuildOrderManager::SafeRallyPointFromRamp(BuildOrderResultArgData data)
 	{
 		float dist = Distance2D(mediator->GetLocations().main_ramp_forcefield_top, building->pos);
 		Point2D pos = Utility::PointBetween(mediator->GetLocations().main_ramp_forcefield_top, building->pos, dist + 2);
-		mediator->SetUnitCommand(building, A_SMART, pos, 0);
+		mediator->SetUnitCommand(building, A_SMART, pos, CommandPriorty::low);
 	}
 	return true;
 }
@@ -572,7 +660,7 @@ bool BuildOrderManager::SetRallyPointToRamp(BuildOrderResultArgData data)
 	for (const auto& building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		Point2D pos = Utility::PointBetween(building->pos, mediator->GetLocations().main_ramp_forcefield_top, 2);
-		mediator->SetUnitCommand(building, A_SMART, pos, 0);
+		mediator->SetUnitCommand(building, A_SMART, pos, CommandPriorty::low);
 	}
 	return true;
 }
@@ -796,7 +884,7 @@ bool BuildOrderManager::BuildNaturalDefensiveBuilding(BuildOrderResultArgData da
 		return false;
 	}
 	mediator->RemoveWorker(builder);
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
+	mediator->AddAction(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos));
 	return true;
 }
 
@@ -810,7 +898,7 @@ bool BuildOrderManager::BuildMainDefensiveBuilding(BuildOrderResultArgData data)
 		return false;
 	}
 	mediator->RemoveWorker(builder);
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos)));
+	mediator->AddAction(&ActionManager::ActionBuildBuilding, new ActionArgData(builder, data.unitId, pos));
 	return true;
 }
 
@@ -869,7 +957,7 @@ bool BuildOrderManager::CheckTankCount(BuildOrderResultArgData data)
 		std::cerr << "Charge transition. build order step now " << std::to_string(build_order_step) << std::endl;
 		return false;
 	}
-	if (mediator->GetGameLoop() / FRAME_TIME > 310)
+	if (mediator->GetCurrentTime() > 310) // TODO move to transition manager
 	{
 		return true;
 	}
@@ -879,6 +967,9 @@ bool BuildOrderManager::CheckTankCount(BuildOrderResultArgData data)
 bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 {
 	// get missing scvs
+	build_order_step = 0;
+	SetChargeAllInInterruptTerran();
+	return false;
 	int missing_scvs = 19;
 	for (const auto& unit : mediator->GetEnemySavedPositions())
 	{
@@ -894,7 +985,7 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 	if (mediator->GetFirstBarrackTiming() == 0 || Utility::DistanceToClosest(mediator->GetUnits(IsUnit(BARRACKS)), mediator->GetEnemyStartLocation()) > 25)
 	{
 		// proxy rax
-		switch (mediator->scouting_manager.enemy_unit_counts[REFINERY])
+		switch (mediator->GetEnemyUnitCount(REFINERY))
 		{
 		case 0:
 			// proxy marine
@@ -956,7 +1047,7 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 	}
 	else if (mediator->GetFirstBarrackTiming() > 50)
 	{
-		switch (mediator->scouting_manager.enemy_unit_counts[REFINERY])
+		switch (mediator->GetEnemyUnitCount(REFINERY))
 		{
 		case 0:
 			// gasless
@@ -964,7 +1055,7 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 			{
 				// hidden major proxy rax
 				build_order_step = 0;
-				SetMajorProxyRaxResponse();
+				SetMinorProxyRaxResponse();
 				mediator->SendChat("Tag:scout_hidden_major_proxy_rax_marine", ChatChannel::Team);
 				return false;
 			}
@@ -979,8 +1070,6 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 			else
 			{
 				// gasless expand with scout
-				if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
-					mediator->CancelUnit(ZEALOT);
 				mediator->SendChat("Tag:scout_gasless_1_rax_expand", ChatChannel::Team);
 			}
 			break;
@@ -989,106 +1078,27 @@ bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 			if (missing_scvs > 1)
 			{
 				// hidden proxy reaper expand
-				build_order_step = 0;
-				SetMajorProxyRaxResponse();
-				mediator->SendChat("Tag:scout_hidden_proxy_reaper", ChatChannel::Team);
-				return false;
-			}
-			else if (mediator->GetEnemyName() == "ANIbot")
-			{
-				build_order_step = 0;
-				SetMajorProxyRaxResponse();
-				mediator->SendChat("Tag:scout_assumed_proxy_marauder", ChatChannel::Team);
-				return false;
-			}
-			else
-			{
-				// 1 rax expand with/out scout
-				if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
-					mediator->CancelUnit(ZEALOT);
-				mediator->SendChat("Tag:scout_1_rax_expand", ChatChannel::Team);
-			}
-			break;
-		case 2:
-			// double gas
-			if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
-				mediator->CancelUnit(ZEALOT);
-			mediator->SendChat("Tag:scout_double_gas", ChatChannel::Team);
-			break;
-		}
-	}
-	else if (mediator->GetEnemyName() == "Mulebot")
-	{
-		switch (mediator->scouting_manager.enemy_unit_counts[REFINERY])
-		{
-		case 0:
-			// gasless
-			if (missing_scvs >= 2)
-			{
-				// hidden major proxy rax
-				build_order_step = 0;
-				SetMajorProxyRaxResponse();
-				mediator->SendChat("Tag:scout_hidden_major_proxy_rax_marine", ChatChannel::Team);
-				return false;
-			}
-			else if (missing_scvs == 1)
-			{
-				// hidden proxy rax
 				build_order_step = 0;
 				SetMinorProxyRaxResponse();
-				mediator->SendChat("Tag:scout_hidden_minor_proxy_rax_marine", ChatChannel::Team);
-				return false;
-			}
-			else
-			{
-				// gasless expand with scout
-				if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
-					mediator->CancelUnit(ZEALOT);
-				mediator->SendChat("Tag:scout_gasless_1_rax_expand", ChatChannel::Team);
-			}
-			break;
-		case 1:
-			// 1 rax expand
-			if (missing_scvs > 1)
-			{
-				// hidden proxy reaper expand
-				build_order_step = 0;
-				SetMajorProxyRaxResponse();
 				mediator->SendChat("Tag:scout_hidden_proxy_reaper", ChatChannel::Team);
 				return false;
 			}
 			else
 			{
 				// 1 rax expand with/out scout
-				if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
-					mediator->CancelUnit(ZEALOT);
 				mediator->SendChat("Tag:scout_1_rax_expand", ChatChannel::Team);
 			}
 			break;
 		case 2:
 			// double gas
-			if (missing_scvs > 1)
-			{
-				// hidden proxy reaper expand
-				build_order_step = 0;
-				SetMajorProxyRaxResponse();
-				mediator->SendChat("Tag:scout_hidden_proxy_reaper", ChatChannel::Team);
-				return false;
-			}
-			else
-			{
-				if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
-					mediator->CancelUnit(ZEALOT);
-				mediator->SendChat("Tag:scout_double_gas", ChatChannel::Team);
-			}
+			mediator->SendChat("Tag:scout_double_gas", ChatChannel::Team);
+			// TODO add stargate transition
 			break;
 		}
 	}
-	build_order_step = 0;
-	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > 15)
+	if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(BUNKER)), mediator->GetNaturalLocation()) > LONG_RANGE)
 		mediator->CancelUnit(ZEALOT);
-	SetChargeAllInInterruptTerran();
-	return false;
+	return true;
 }
 
 bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
@@ -1099,7 +1109,7 @@ bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 		Set2GateProxyRobo();
 		return false;
 	}
-	if (mediator->scouting_manager.enemy_unit_counts[FORGE] > 0)
+	if (mediator->GetEnemyUnitCount(FORGE) > 0)
 	{
 		// cannon rush
 		mediator->SendChat("Tag:scout_cannon_rush", ChatChannel::Team);
@@ -1115,7 +1125,51 @@ bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 		SetProxyGateResponse();
 		return false;
 	}
-	switch (mediator->scouting_manager.enemy_unit_counts[GATEWAY])
+	switch (mediator->GetEnemyUnitCount(GATEWAY))
+	{
+	case 1:
+		// 1 gate expand
+		mediator->SendChat("Tag:scout_1_gate_expand", ChatChannel::Team);
+		Set2GateProxyRobo();
+		break;
+	case 2:
+		// 2 gate
+		mediator->SendChat("Tag:scout_2_gate", ChatChannel::Team);
+		Set2GateProxyRobo();
+		break;
+	default:
+		// anything else
+		mediator->SendChat("Tag:unknown_opener", ChatChannel::Team);
+		Set2GateProxyRobo();
+		break;
+	}
+	return false;
+}
+
+bool BuildOrderManager::CheckProtossOpening2(BuildOrderResultArgData data)
+{
+	if (mediator->GetEnemyRace() != Race::Protoss)
+	{
+		Set2GateProxyRobo();
+		return false;
+	}
+	if (mediator->GetEnemyUnitCount(FORGE) > 0)
+	{
+		// cannon rush
+		mediator->SendChat("Tag:scout_cannon_rush", ChatChannel::Team);
+		mediator->StartCannonRushDefense();
+		build_order_step = 0;
+		SetCannonRushResponse();
+		return false;
+	}
+	if (mediator->GetFirstGateTiming() == 0 || Utility::DistanceToClosest(mediator->GetUnits(IsUnit(GATEWAY)), mediator->GetEnemyStartLocation()) > 25)
+	{
+		// proxy
+		mediator->SendChat("Tag:scout_proxy_gate", ChatChannel::Team);
+		SetProxyGateResponse();
+		return false;
+	}
+	switch (mediator->GetEnemyUnitCount(GATEWAY))
 	{
 	case 1:
 		// 1 gate expand
@@ -1138,11 +1192,11 @@ bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 
 bool BuildOrderManager::DoubleCheckProxyGate(BuildOrderResultArgData data)
 {
-	if (mediator->scouting_manager.enemy_unit_counts[FORGE] > 0)
+	if (mediator->GetEnemyUnitCount(FORGE) > 0)
 	{
 		// cannon rush
 		mediator->SendChat("Tag:scout_cannon_rush", ChatChannel::Team);
-		mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckBaseForCannons, new ActionArgData(0)));
+		mediator->AddUniqueAction(&ActionManager::ActionCheckBaseForCannons, new ActionArgData(0));
 		build_order_step = 3;
 		SetReturnTo2GateProxyRobo();
 		RemoveScoutToProxy(BuildOrderResultArgData(ROBO, 0));
@@ -1155,7 +1209,7 @@ bool BuildOrderManager::DoubleCheckProxyGate(BuildOrderResultArgData data)
 		// proxy
 		return true;
 	}
-	switch (mediator->scouting_manager.enemy_unit_counts[GATEWAY])
+	switch (mediator->GetEnemyUnitCount(GATEWAY))
 	{
 	case 0:
 		if (mediator->GetNaturalTiming() != 0)
@@ -1234,7 +1288,7 @@ bool BuildOrderManager::SackUnit(BuildOrderResultArgData data)
 	{
 		if (data.unitId == PROBE)
 			mediator->RemoveWorker(furthest_from_base);
-		mediator->SetUnitCommand(furthest_from_base, A_MOVE, mediator->GetEnemyStartLocation(), 10);
+		mediator->SetUnitCommand(furthest_from_base, A_MOVE, mediator->GetEnemyStartLocation(), CommandPriorty::max);
 	}
 	return true;
 }
@@ -1250,7 +1304,7 @@ bool BuildOrderManager::CancelBuilding(BuildOrderResultArgData data)
 	for (const auto& building : mediator->GetUnits(Unit::Alliance::Self, IsUnit(data.unitId)))
 	{
 		if (building->build_progress < 1)
-			mediator->SetUnitCommand(building, A_CANCEL_BUILDING, 0);
+			mediator->SetUnitCommand(building, A_CANCEL_BUILDING, CommandPriorty::low);
 	}
 	return true;
 }
@@ -1270,7 +1324,7 @@ bool BuildOrderManager::CheckForBunkerRush(BuildOrderResultArgData data)
 		return false;
 	}
 	mediator->RemoveWorker(worker);
-	mediator->action_manager.active_actions.push_back(new ActionData(&ActionManager::ActionCheckForBunkerRush, new ActionArgData(worker)));
+	mediator->AddUniqueAction(&ActionManager::ActionCheckForBunkerRush, new ActionArgData(worker));
 	return true;
 }
 
@@ -1291,7 +1345,7 @@ bool BuildOrderManager::EnergyRechargeOracle(BuildOrderResultArgData data)
 					{
 						if (strcmp(AbilityTypeToName(ability.ability_id), "UNKNOWN") == 0)
 						{
-							mediator->SetUnitCommand(nexus, ability.ability_id, oracle, 0);
+							mediator->SetUnitCommand(nexus, ability.ability_id, oracle, CommandPriorty::low);
 							return true;
 						}
 					}
@@ -1320,7 +1374,7 @@ bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 	////mediator->agent->Debug()->DebugGiveAllUpgrades();
 	//mediator->agent->Debug()->DebugShowMap();
 	//mediator->agent->Debug()->DebugEnemyControl();
-	mediator->agent->Debug()->DebugCreateUnit(PROBE, mediator->GetStartLocation(), 1, 40);
+	/*mediator->agent->Debug()->DebugCreateUnit(PROBE, mediator->GetStartLocation(), 1, 40);
 	mediator->agent->Debug()->DebugCreateUnit(PYLON, Point2D(25, 77), 1, 1);
 	mediator->agent->Debug()->DebugCreateUnit(PYLON, Point2D(27, 77), 1, 1);
 	mediator->agent->Debug()->DebugCreateUnit(PYLON, Point2D(29, 77), 1, 1);
@@ -1351,7 +1405,7 @@ bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 	mediator->agent->Debug()->DebugCreateUnit(ASSIMILATOR, Point2D(39.5, 27.5), 1, 1);
 	mediator->agent->Debug()->DebugCreateUnit(NEXUS, Point2D(56.5, 65.5), 1, 1);
 	mediator->agent->Debug()->DebugCreateUnit(ASSIMILATOR, Point2D(54.5, 72.5), 1, 1);
-	mediator->agent->Debug()->DebugCreateUnit(ASSIMILATOR, Point2D(54.5, 58.5), 1, 1);
+	mediator->agent->Debug()->DebugCreateUnit(ASSIMILATOR, Point2D(54.5, 58.5), 1, 1);*/
 	return true;
 }
 
@@ -1369,58 +1423,6 @@ bool BuildOrderManager::RemoveProbe(BuildOrderResultArgData data)
 }
 
 
-void BuildOrderManager::SetBuildOrder(BuildOrder build)
-{
-	current_build_order = build;
-	switch (build)
-	{
-	case BuildOrder::blank:
-		SetBlank();
-		break;
-	case BuildOrder::testing:
-		SetTesting();
-		break;
-	case BuildOrder::oracle_gatewayman_pvz:
-		SetOracleGatewaymanPvZ();
-		break;
-	case BuildOrder::four_gate_blink:
-		Set4GateBlink();
-		break;
-	case BuildOrder::three_gate_robo:
-		SetThreeGateRobo();
-		break;
-	case BuildOrder::blink_proxy_robo_pressure:
-		SetBlinkProxyRoboPressureBuild();
-		break;
-	case BuildOrder::chargelot_allin:
-		SetChargelotAllin();
-		break;
-	case BuildOrder::chargelot_allin_old:
-		SetChargelotAllinOld();
-		break;
-	case BuildOrder::four_gate_adept_pressure:
-		Set4GateAdept();
-		break;
-	case BuildOrder::fastest_dts:
-		SetFastestDTsPvT();
-		break;
-	case BuildOrder::proxy_double_robo:
-		SetProxyDoubleRobo();
-		break;
-	case BuildOrder::cannon_rush_terran:
-		SetCannonRushTerran();
-		break;
-	case BuildOrder::pvp_openner:
-		SetPvPOpenner();
-		break;
-	case BuildOrder::one_gate_expand_with_ramp:
-		Set1GateExpandWithRamp();
-		break;
-	default:
-		//std::cout << "Error invalid build order in SetBuildOrder" << std::endl;
-		break;
-	}
-}
 
 void BuildOrderManager::SetBlank()
 {
@@ -1619,22 +1621,6 @@ void BuildOrderManager::SetMajorProxyRaxResponse()
 	};
 }
 
-void BuildOrderManager::SetWorkerRushDefense()
-{
-	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CancelImmediatelySemiSaturateGasses,Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CancelImmediatelySaturateGasses,	Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::PullOutOfGas,						Result(0)),
-					Data(&BuildOrderManager::TimePassed,			Condition(17.0f),			&BuildOrderManager::CutWorkers,							Result()),
-					Data(&BuildOrderManager::HasBuilding,			Condition(GATEWAY),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(GATEWAY),			&BuildOrderManager::OptionalChronoBuilding,				Result(GATEWAY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({ GATEWAY, GATEWAY })),
-					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::ZealotSimpleAttack,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(120.0f),			&BuildOrderManager::ContinueBuildingPylons,				Result()),
-	};
-}
-
 
 void BuildOrderManager::SetProxyGateResponse()
 {
@@ -1697,7 +1683,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 
 					Data(&BuildOrderManager::TimePassed,			Condition(95.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(102.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,			Condition(123.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)),
+					Data(&BuildOrderManager::TimePassed,			Condition(123.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)), // 10
 					Data(&BuildOrderManager::TimePassed,			Condition(124.0f),			&BuildOrderManager::ChronoBuilding,						Result(NEXUS)),
 					Data(&BuildOrderManager::HasBuildingStarted,	Condition(STARGATE),		&BuildOrderManager::TrainUnit,							Result(ADEPT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(130.0f),			&BuildOrderManager::ResearchWarpgate,					Result()),
@@ -1707,7 +1693,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::SetUnitProduction,					Result(ORACLE)),
 					Data(&BuildOrderManager::TimePassed,			Condition(173.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(186.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(190.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(190.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)), // 20
 
 					Data(&BuildOrderManager::TimePassed,			Condition(203.0f),			&BuildOrderManager::DefendThirdBase,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(205.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, PYLON})),
@@ -2010,7 +1996,7 @@ void BuildOrderManager::SetCannonRushTerran()
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::BuildBuilding,						Result(FLEET_BEACON)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(FLEET_BEACON),	&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
-
+		
 	};
 }
 

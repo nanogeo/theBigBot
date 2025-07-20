@@ -59,12 +59,12 @@ void ResourceManager::UpdateResources()
 	}
 }
 
-UnitCost ResourceManager::GetAvailableResources()
+UnitCost ResourceManager::GetAvailableResources() const
 {
 	return current_resources;
 }
 
-bool ResourceManager::CanAfford(UNIT_TYPEID unit_type)
+bool ResourceManager::CanAfford(UNIT_TYPEID unit_type) const
 {
 	UnitCost cost = Utility::GetCost(unit_type);
 	if (current_resources.mineral_cost >= cost.mineral_cost &&
@@ -75,7 +75,7 @@ bool ResourceManager::CanAfford(UNIT_TYPEID unit_type)
 	return false;
 }
 
-bool ResourceManager::CanAfford(UNIT_TYPEID unit_type, uint16_t amount)
+bool ResourceManager::CanAfford(UNIT_TYPEID unit_type, int amount) const
 {
 	UnitCost cost = Utility::GetCost(unit_type) * amount;
 	if (current_resources.mineral_cost >= cost.mineral_cost &&
@@ -86,7 +86,7 @@ bool ResourceManager::CanAfford(UNIT_TYPEID unit_type, uint16_t amount)
 	return false;
 }
 
-bool ResourceManager::CanAfford(UPGRADE_ID upgrade)
+bool ResourceManager::CanAfford(UPGRADE_ID upgrade) const
 {
 	UnitCost cost = Utility::GetCost(upgrade);
 	if (current_resources.mineral_cost >= cost.mineral_cost &&
@@ -97,7 +97,7 @@ bool ResourceManager::CanAfford(UPGRADE_ID upgrade)
 	return false;
 }
 
-uint16_t ResourceManager::MaxCanAfford(UNIT_TYPEID unit)
+int ResourceManager::MaxCanAfford(UNIT_TYPEID unit) const
 {
 	int i = 1;
 	while (true)

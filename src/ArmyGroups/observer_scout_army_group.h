@@ -14,16 +14,17 @@ struct ArmyTemplate;
 
 class ObserverScoutArmyGroup : public ArmyGroup
 {
-public:
+protected:
 	Point2D main_pos;
 	Point2D natural_pos;
 	Point2D current_target;
 
+public:
 	ObserverScoutArmyGroup(Mediator*);
 	ObserverScoutArmyGroup(Mediator*, ArmyTemplate<ObserverScoutArmyGroup>*);
 
 	void Run() override;
-	std::string ToString() override
+	std::string ToString() const override
 	{
 		return "Observer scout army group";
 	}

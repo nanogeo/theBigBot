@@ -13,37 +13,39 @@ struct TransitionTemplate;
 
 class TransitionManager
 {
-public:
+private:
 	Mediator* mediator;
 	std::vector<TransitionTemplate> possible_transitions;
 	std::vector<TransitionTemplate> active_transitions;
 
+public:
 	TransitionManager(Mediator*);
 
 	void CheckTransitions();
 
 	void AddTransitionsForOracleGatewaymanPvZ();
 	void AddTransitionsFor4GateBlinkPvT();
-
-	bool WorkerRushTransitionCondition();
-	bool WorkerRushTransitionRemoveCondition();
+	// TODO can these be private
+	bool WorkerRushTransitionCondition() const;
+	bool WorkerRushTransitionRemoveCondition() const;
 	void WorkerRushTransitionEnterAction();
 
-	bool ScourTransitionCondition();
-	bool ScourTransitionRemoveCondition();
+	bool ScourTransitionCondition() const;
+	bool ScourTransitionRemoveCondition() const;
 	void ScourTransitionEnterAction();
 
-	bool FixEarlySupplyBlockCondition();
-	bool FixEarlySupplyBlockRemoveCondition();
+	bool FixEarlySupplyBlockCondition() const;
+	bool FixEarlySupplyBlockRemoveCondition() const;
 	void FixEarlySupplyBlockEnterAction();
+
 };
 
 struct TransitionTemplate
 {
-	bool(sc2::TransitionManager::* condition)();
-	bool(sc2::TransitionManager::* remove_condition)();
+	bool(sc2::TransitionManager::* condition)() const;
+	bool(sc2::TransitionManager::* remove_condition)() const;
 	void(sc2::TransitionManager::* enter_action)();
-	TransitionTemplate(bool(sc2::TransitionManager::* condition)(), bool(sc2::TransitionManager::* remove_condition)(), 
+	TransitionTemplate(bool(sc2::TransitionManager::* condition)() const, bool(sc2::TransitionManager::* remove_condition)() const,
 		void(sc2::TransitionManager::* enter_action)())
 	{
 		this->condition = condition;

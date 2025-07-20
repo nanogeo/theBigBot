@@ -21,27 +21,28 @@ struct EnemyBase
 
 class GameStateManagerZerg : public GameStateManager
 {
-public:
+private:
 	ScoutingManager* scouting_manager;
 	Mediator* mediator;
 
-	uint16_t known_workers;
-	uint16_t assumed_workers;
+	int known_workers;
+	int assumed_workers;
 	std::vector<EnemyBase> known_bases;
 	std::vector<EnemyBase> assumed_bases;
-	uint16_t known_max_supply;
-	uint16_t assumed_max_supply;
+	int known_max_supply;
+	int assumed_max_supply;
 
 	bool odd_zergling = false;
 
+	void UpdateWorkerCount();
+	void UseLarva();
 
+public:
 	GameStateManagerZerg(ScoutingManager*, Mediator*);
 
 	GameState GetCurrentGameState() override;
-	void UpdateWorkerCount();
 	void AddNewUnit(const Unit*) override;
-	void UseLarva();
-	std::string GameStateToString() override;
+	std::string GameStateToString() const override;
 };
 
 } 

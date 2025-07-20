@@ -11,7 +11,7 @@ namespace sc2 {
 
 
 	OutsideControlArmyGroup::OutsideControlArmyGroup(Mediator* mediator, StateMachine* state_machine, std::vector<UNIT_TYPEID> unit_types,
-		uint16_t desired_units, uint16_t max_units) : ArmyGroup(mediator)
+		int desired_units, int max_units) : ArmyGroup(mediator)
 	{
 		this->unit_types = unit_types;
 
@@ -39,6 +39,16 @@ namespace sc2 {
 			}
 		}
 		// should state machine be run here instead of from state machine manager?
+	}
+
+	void OutsideControlArmyGroup::SetStateMachine(StateMachine* fsm)
+	{
+		state_machine = fsm;
+	}
+
+	StateMachine* OutsideControlArmyGroup::GetStateMachine() const
+	{
+		return state_machine;
 	}
 
 	void OutsideControlArmyGroup::AddNewUnit(const Unit* unit)

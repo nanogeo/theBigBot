@@ -11,47 +11,48 @@ class ChargelotAllInStateMachine;
 class ArmyGroup;
 
 
-#pragma region Chargelot Allin
-
-
-class ChargeAllInMovingToWarpinSpot : public State {
-public:
+class ChargeAllInMovingToWarpinSpot : public State 
+{
+private:
     ChargelotAllInStateMachine* state_machine;
+public:
     ChargeAllInMovingToWarpinSpot(Mediator* mediator, ChargelotAllInStateMachine* state_machine)
     {
         this->mediator = mediator;
         this->state_machine = state_machine;
     }
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     void TickState() override;
     virtual void EnterState() override;
     virtual void ExitState() override;
     virtual State* TestTransitions() override;
 };
 
-class ChargeAllInWarpingIn : public State {
-public:
+class ChargeAllInWarpingIn : public State 
+{
+private:
     ChargelotAllInStateMachine* state_machine;
     float time_arrived;
     bool done_warp_in = false;
+public:
     ChargeAllInWarpingIn(Mediator* mediator, ChargelotAllInStateMachine* state_machine, float time_arrived)
     {
         this->mediator = mediator;
         this->state_machine = state_machine;
         this->time_arrived = time_arrived;
     }
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     void TickState() override;
     virtual void EnterState() override;
     virtual void ExitState() override;
     virtual State* TestTransitions() override;
 };
 
-#pragma endregion
-
 class ChargelotAllInStateMachine : public StateMachine
 {
-public:
+    friend ChargeAllInMovingToWarpinSpot;
+    friend ChargeAllInWarpingIn;
+private:
     Units zealots;
     const Unit* prism = nullptr;
     float last_warp_in_time;
@@ -59,6 +60,7 @@ public:
     uint16_t prism_spots_index;
     Point2D next_warp_in_location = Point2D(0, 0);
     bool first_warp_in_done = false;
+public:
     ChargelotAllInStateMachine(Mediator* mediator, std::string name, std::vector<Point2D> prism_locations,
         float last_warp_in_time) : StateMachine(mediator, name)
     {

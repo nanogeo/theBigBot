@@ -17,17 +17,17 @@ struct ArmyTemplate;
 
 class SimpleAttackArmyGroup : public ArmyGroup
 {
-public:
-
+protected:
 	std::vector<Point2D> attack_path;
 	int current_attack_index = 0;
 
-	SimpleAttackArmyGroup(Mediator*, std::vector<Point2D>, std::vector<UNIT_TYPEID>, uint16_t, uint16_t);
+public:
+	SimpleAttackArmyGroup(Mediator*, std::vector<Point2D>, std::vector<UNIT_TYPEID>, int, int);
 	SimpleAttackArmyGroup(Mediator*, ArmyTemplate<SimpleAttackArmyGroup>*);
 
 	void SetUp() override;
 	void Run() override;
-	std::string ToString() override
+	std::string ToString() const override
 	{
 		return "Simple attack army group";
 	}

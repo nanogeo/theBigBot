@@ -10,9 +10,6 @@ class Mediator;
 class BlinkStalkerAttackTerran;
 class ArmyGroup;
 
-#pragma region BlinkStalkerAttackTerran
-
-
 enum BlinkAtackLocation
 {
 	main,
@@ -24,30 +21,15 @@ enum BlinkAtackLocation
 
 class BlinkStalkerAttackTerranMoveAcross : public State
 {
-public:
+private:
 	class BlinkStalkerAttackTerran* state_machine;
+public:
 	BlinkStalkerAttackTerranMoveAcross(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
-	void TickState() override;
-	virtual void EnterState() override;
-	virtual void ExitState() override;
-	virtual State* TestTransitions() override;
-};
-
-class BlinkStalkerAttackTerranWarpIn : public State
-{
-public:
-	class BlinkStalkerAttackTerran* state_machine;
-	BlinkStalkerAttackTerranWarpIn(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
-	{
-		this->mediator = mediator;
-		this->state_machine = state_machine;
-	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -56,14 +38,15 @@ public:
 
 class BlinkStalkerAttackTerranConsolidate : public State
 {
-public:
+private:
 	class BlinkStalkerAttackTerran* state_machine;
+public:
 	BlinkStalkerAttackTerranConsolidate(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -72,15 +55,16 @@ public:
 
 class BlinkStalkerAttackTerranAttack : public State
 {
-public:
+private:
 	class BlinkStalkerAttackTerran* state_machine;
 	const Unit* target = nullptr;
+public:
 	BlinkStalkerAttackTerranAttack(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -89,17 +73,18 @@ public:
 
 class BlinkStalkerAttackTerranSnipeUnit : public State
 {
-public:
+private:
 	class BlinkStalkerAttackTerran* state_machine;
 	const Unit* target;
 	float enter_time = 0;
+public:
 	BlinkStalkerAttackTerranSnipeUnit(Mediator* mediator, BlinkStalkerAttackTerran* state_machine, const Unit* target)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 		this->target = target;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -108,15 +93,16 @@ public:
 
 class BlinkStalkerAttackTerranBlinkUp : public State
 {
-public:
+private:
 	class BlinkStalkerAttackTerran* state_machine;
 	Units stalkers_to_blink;
+public:
 	BlinkStalkerAttackTerranBlinkUp(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -125,15 +111,16 @@ public:
 
 class BlinkStalkerAttackTerranLeaveHighground : public State
 {
-public:
+private:
 	class BlinkStalkerAttackTerran* state_machine;
 	Units stalkers_to_blink;
+public:
 	BlinkStalkerAttackTerranLeaveHighground(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -142,12 +129,16 @@ public:
 };
 
 
-#pragma endregion
-
 
 class BlinkStalkerAttackTerran : public StateMachine
 {
-public:
+	friend BlinkStalkerAttackTerranMoveAcross;
+	friend BlinkStalkerAttackTerranConsolidate;
+	friend BlinkStalkerAttackTerranAttack;
+	friend BlinkStalkerAttackTerranSnipeUnit;
+	friend BlinkStalkerAttackTerranBlinkUp;
+	friend BlinkStalkerAttackTerranLeaveHighground;
+private:
 	BlinkFSMArmyGroup* attached_army_group;
 	const Unit* prism = nullptr;
 	Units attacking_stalkers;
@@ -161,7 +152,7 @@ public:
 	Point2D blink_down_pos;
 	bool warping_in = false;
 
-
+public:
 	BlinkStalkerAttackTerran(Mediator* mediator, std::string name, Point2D consolidation_pos,
 		Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos);
 

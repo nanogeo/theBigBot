@@ -57,9 +57,9 @@ public:
         }
     }
 
-    std::vector<Node*> ReconstructPath(std::map<Node*, Node*>, Node*);
-    Node* FindClosestNode(Point2D);
-    std::vector<Node*> FindPath(Node*, Node*);
+    std::vector<Node*> ReconstructPath(std::map<Node*, Node*>, Node*) const;
+    Node* FindClosestNode(Point2D) const;
+    std::vector<Node*> FindPath(Node*, Node*) const;
     Node* FindExit(Node*);
     std::vector<Node*> FindExitPath(Node*);
 };

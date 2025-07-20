@@ -1,7 +1,20 @@
 
 #include "finite_state_machine_manager.h"
+#include "mediator.h"
 
-namespace sc2 {
+namespace sc2 
+{
+
+
+void FiniteStateMachineManager::DisplayActiveStateMachines() const
+{
+    std::string actions_message = "Active StateMachines:\n";
+    for (int i = 0; i < active_state_machines.size(); i++)
+    {
+        actions_message += active_state_machines[i]->toString() + "\n";
+    }
+    mediator->DebugText(actions_message, Point2D(.3f, 0), Color(0, 255, 0), 20);
+}
 
  void FiniteStateMachineManager::RunStateMachines()
 {
@@ -19,6 +32,11 @@ namespace sc2 {
         }
     }
 }
+
+ const std::vector<StateMachine*>& FiniteStateMachineManager::GetActiveStateMachines() const
+ {
+     return active_state_machines;
+ }
 
  void FiniteStateMachineManager::AddStateMachine(StateMachine* state_machine)
  {

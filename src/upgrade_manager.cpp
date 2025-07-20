@@ -6,7 +6,7 @@
 namespace sc2 {
 
 
-int UpgradeManager::GetUpgradeLevel(UpgradeType upgrade_type)
+int UpgradeManager::GetUpgradeLevel(UpgradeType upgrade_type) const
 {
 	switch (upgrade_type)
 	{
@@ -97,7 +97,7 @@ void UpgradeManager::OnUpgradeCompleted(UPGRADE_ID upgrade)
 	}
 }
 
-bool UpgradeManager::CheckUpgrade(UPGRADE_ID upgrade_id)
+bool UpgradeManager::CheckUpgrade(UPGRADE_ID upgrade_id) const
 {
 	switch (upgrade_id)
 	{

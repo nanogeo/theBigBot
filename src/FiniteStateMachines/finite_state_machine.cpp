@@ -26,12 +26,20 @@ State* State::TestTransitions()
 	return nullptr;
 }
 
-std::string State::toString()
+std::string State::toString() const
 {
 	return "State";
 }
 
+void StateMachine::SetAttachedArmyGroup(ArmyGroup* army_group)
+{
+	attached_army_group = army_group;
+}
 
+ArmyGroup* StateMachine::GetAttachedArmyGroup() const
+{
+	return attached_army_group;
+}
 
 
 }

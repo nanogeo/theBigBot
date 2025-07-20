@@ -11,7 +11,7 @@ class Mediator;
 struct OngoingAttack
 {
 	Point2D location;
-	float status;
+	float status; // TODO change to enum
 	std::vector<const Unit*> pulled_workers;
 	OngoingAttack(Point2D location, float status, std::vector<const Unit*> pulled_workers)
 	{
@@ -39,11 +39,11 @@ public:
 	{
 		this->mediator = mediator;
 	}
-
+	void DisplayOngoingAttacks() const;
 
 	void CheckForAttacks();
 	void UpdateOngoingAttacks();
-	float JudgeFight(Units, Units, float, float, bool);
+	float JudgeFight(Units, Units, float, float, bool) const;
 
 	void UseBatteries();
 	void RemoveOngoingAttackAt(Point2D);

@@ -14,17 +14,18 @@ class TheBigBot;
 
 class WorkerRushDefenseGroupUp : public State
 {
-public:
+private:
 	Units new_workers;
 	Point2D group_pos;
 	float enter_time = 0;;
-	class WorkerRushDefenseStateMachine* state_machine;
+	WorkerRushDefenseStateMachine* state_machine;
+public:
 	WorkerRushDefenseGroupUp(Mediator* mediator, WorkerRushDefenseStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -33,14 +34,15 @@ public:
 
 class WorkerRushDefenseInitialMove : public State
 {
+private:
+	WorkerRushDefenseStateMachine* state_machine;
 public:
-	class WorkerRushDefenseStateMachine* state_machine;
 	WorkerRushDefenseInitialMove(Mediator* mediator, WorkerRushDefenseStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -49,14 +51,15 @@ public:
 
 class WorkerRushDefenseDefend : public State
 {
+private:
+	WorkerRushDefenseStateMachine* state_machine;
 public:
-	class WorkerRushDefenseStateMachine* state_machine;
 	WorkerRushDefenseDefend(Mediator* mediator, WorkerRushDefenseStateMachine* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
 	}
-	virtual std::string toString() override;
+	virtual std::string toString() const override;
 	void TickState() override;
 	virtual void EnterState() override;
 	virtual void ExitState() override;
@@ -66,10 +69,14 @@ public:
 
 class WorkerRushDefenseStateMachine : public StateMachine
 {
-public:
+	friend WorkerRushDefenseGroupUp;
+	friend WorkerRushDefenseInitialMove;
+	friend WorkerRushDefenseDefend;
+private:
 	Units workers;
 	const Unit* grouping_mineral_patch;
 	const Unit* attacking_mineral_patch;
+public:
 	WorkerRushDefenseStateMachine(Mediator*, std::string);
 };
 

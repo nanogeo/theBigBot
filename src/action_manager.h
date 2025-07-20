@@ -72,17 +72,22 @@ struct ActionData;
 
 class ActionManager
 {
-public:
+private:
 	Mediator* mediator;
 	std::vector<ActionData*> active_actions;
 
+public:
 	ActionManager(Mediator* mediator)
 	{
 		this->mediator = mediator;
 	}
+	void DisplayActiveActions() const;
 
+	const std::vector<ActionData*>& GetActiveActions() const;
 	void ProcessActions();
 	void AddAction(ActionData*);
+	std::vector<ActionData*>::iterator EraseAction(ActionData*);
+
 
 	bool ActionBuildBuilding(ActionArgData*);
 	bool ActionBuildBuildingWhenSafe(ActionArgData*);
@@ -194,7 +199,15 @@ struct ActionData
 		}
 		else if (action == &ActionManager::ActionPullOutOfGas)
 		{
-			str += "pull out of gas";
+			str += "Pull out of gas";
+		}
+		else if (action == &ActionManager::ActionRemoveScoutToProxy)
+		{
+			str += "Remove scout to proxy";
+		}
+		else if (action == &ActionManager::ActionDTHarassTerran)
+		{
+			str += "Send dt harass";
 		}
 		else if (action == &ActionManager::ActionUseProxyDoubleRobo)
 		{
@@ -212,6 +225,10 @@ struct ActionData
 				str += "immortals ";
 			}
 			str += "from proxy robos";
+		}
+		else if (action == &ActionManager::ActionAllIn)
+		{
+			str += "All in";
 		}
 		else if (action == &ActionManager::ActionScourMap)
 		{

@@ -17,18 +17,19 @@ class BlinkStalkerAttackTerran;
 // TODO multiple inheritance from OutsideControlArmyGroup
 class BlinkFSMArmyGroup : public AttackArmyGroup
 {
-public:
+protected:
 	BlinkStalkerAttackTerran* state_machine;
 
 	std::vector<PathManager> main_attack_path;
 	PathManager natural_attack_path;
 	std::vector<PathManager> third_attack_path;
 
-	BlinkFSMArmyGroup(Mediator*, BlinkStalkerAttackTerran*, uint16_t, uint16_t, uint16_t, uint16_t);
+public:
+	BlinkFSMArmyGroup(Mediator*, BlinkStalkerAttackTerran*, int, int, int, int);
 
 	void SetUp() override;
 	void Run() override;
-	std::string ToString() override
+	std::string ToString() const override
 	{
 		return "Blink FSM army group";
 	}
@@ -38,6 +39,12 @@ public:
 	bool MobilizeNewUnits(Units);
 	void GroupUpNewUnits();
 
+	Point2D GetConcaveOrigin() const;
+	void ResetConcaveOrigin();
+	void SetAttackPath(PathManager);
+	const PathManager& GetAttackPath() const;
+	void SetUseStandby(bool);
+	void SetStandbyPos(Point2D);
 };
 
 }

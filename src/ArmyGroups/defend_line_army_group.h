@@ -15,17 +15,18 @@ class Mediator;
 
 class DefendLineArmyGroup : public ArmyGroup
 {
-public:
+protected:
 	Units oracles;
 
 	Point2D start;
 	Point2D end;
 	float leash_range = 15;
 
-	DefendLineArmyGroup(Mediator*, Point2D, Point2D, std::vector<UNIT_TYPEID>, uint16_t, uint16_t);
+public:
+	DefendLineArmyGroup(Mediator*, Point2D, Point2D, std::vector<UNIT_TYPEID>, int, int);
 
 	void Run() override;
-	std::string ToString() override
+	std::string ToString() const override
 	{
 		return "Defend line army group";
 	}

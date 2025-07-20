@@ -12,13 +12,14 @@ class ArmyGroup;
 
 class State
 {
+protected:
+    Mediator* mediator = nullptr;
 public:
     ~State()
     {
         ExitState();
     }
-    Mediator* mediator = nullptr;
-    virtual std::string toString();
+    virtual std::string toString() const;
     virtual void TickState();
     virtual void EnterState();
     virtual void ExitState();
@@ -28,11 +29,12 @@ public:
 
 class StateMachine
 {
-public:
+protected:
     Mediator* mediator = nullptr;
     State* current_state = nullptr;
-    std::string name;
     ArmyGroup* attached_army_group = nullptr;
+public:
+    std::string name;
     StateMachine(Mediator* mediator, std::string name)
     {
         this->mediator = mediator;
@@ -74,14 +76,16 @@ public:
         return current_state;
     }
 
-    std::string toString()
+    std::string toString() const
     {
         return name + " - " + current_state->toString();
     }
 
+    void SetAttachedArmyGroup(ArmyGroup*);
+    ArmyGroup* GetAttachedArmyGroup() const;
+
     virtual bool AddUnit(const Unit*) { return false; }
     virtual void RemoveUnit(const Unit*) {};
-
 };
 
 

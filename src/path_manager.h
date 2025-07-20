@@ -25,9 +25,9 @@ namespace sc2
 		virtual Point2D EvaluateAt(float) const = 0;
 		Point2D GetStartPoint() const { return EvaluateAt(start); };
 		Point2D GetEndPoint() const { return EvaluateAt(end); };
-		virtual Point2D FindClosestPoint(Point2D) = 0;
-		virtual std::vector<Point2D> FindCircleIntersection(Point2D, float) = 0;
-		virtual Point2D GetPointFrom(Point2D, float, bool, float&) = 0;
+		virtual Point2D FindClosestPoint(Point2D) const = 0;
+		virtual std::vector<Point2D> FindCircleIntersection(Point2D, float) const = 0;
+		virtual Point2D GetPointFrom(Point2D, float, bool, float&) const = 0;
 		std::vector<Point2D> GetPoints() const
 		{
 			std::vector<Point2D> points;
@@ -42,6 +42,7 @@ namespace sc2
 class LineSegmentLinearX : public LineSegment
 {
 	// ax+b {min<=x<=max}
+private:
 	float a, b;
 public:
 	LineSegmentLinearX(float a, float b, float min, float max)
@@ -55,14 +56,15 @@ public:
 		pos_direction = min < max;
 	}
 	Point2D EvaluateAt(float x) const override { return Point2D(x, a * x + b); };
-	Point2D FindClosestPoint(Point2D) override;
-	std::vector<Point2D> FindCircleIntersection(Point2D, float) override;
-	Point2D GetPointFrom(Point2D, float, bool, float&) override;
+	Point2D FindClosestPoint(Point2D) const override;
+	std::vector<Point2D> FindCircleIntersection(Point2D, float) const override;
+	Point2D GetPointFrom(Point2D, float, bool, float&) const override;
 };
 
 class LineSegmentLinearY : public LineSegment
 {
 	// ay+b {min<=x<=max}
+private:
 	float a, b;
 public:
 	LineSegmentLinearY(float a, float b, float min, float max)
@@ -76,14 +78,15 @@ public:
 		pos_direction = min < max;
 	}
 	Point2D EvaluateAt(float y) const override { return Point2D(a * y + b, y); };
-	Point2D FindClosestPoint(Point2D) override;
-	std::vector<Point2D> FindCircleIntersection(Point2D, float) override;
-	Point2D GetPointFrom(Point2D, float, bool, float&) override;
+	Point2D FindClosestPoint(Point2D) const override;
+	std::vector<Point2D> FindCircleIntersection(Point2D, float) const override;
+	Point2D GetPointFrom(Point2D, float, bool, float&) const override;
 };
 
 class LineSegmentCurveX : public LineSegment
 {
 	// ax^2+bx+c {min<=x<=max}
+private:
 	float a, b, c;
 public:
 	LineSegmentCurveX(float a, float b, float c, float min, float max)
@@ -98,14 +101,15 @@ public:
 		pos_direction = min < max;
 	}
 	Point2D EvaluateAt(float x) const override { return Point2D(x, a * pow(x, 2) + b * x + c); };
-	Point2D FindClosestPoint(Point2D) override;
-	std::vector<Point2D> FindCircleIntersection(Point2D, float) override;
-	Point2D GetPointFrom(Point2D, float, bool, float&) override;
+	Point2D FindClosestPoint(Point2D) const override;
+	std::vector<Point2D> FindCircleIntersection(Point2D, float) const override;
+	Point2D GetPointFrom(Point2D, float, bool, float&) const override;
 };
 
 class LineSegmentCurveY : public LineSegment
 {
 	// ay^2+by+c {min<=x<=max}
+private:
 	float a, b, c;
 public:
 	LineSegmentCurveY(float a, float b, float c, float min, float max)
@@ -120,16 +124,17 @@ public:
 		pos_direction = min < max;
 	}
 	Point2D EvaluateAt(float y) const override { return Point2D(a * pow(y, 2) + b * y + c, y); };
-	Point2D FindClosestPoint(Point2D) override;
-	std::vector<Point2D> FindCircleIntersection(Point2D, float) override;
-	Point2D GetPointFrom(Point2D, float, bool, float&) override;
+	Point2D FindClosestPoint(Point2D) const override;
+	std::vector<Point2D> FindCircleIntersection(Point2D, float) const override;
+	Point2D GetPointFrom(Point2D, float, bool, float&) const override;
 };
 
 // TODO change name cause this isnt a manager
 class PathManager
 {
-public:
+private:
 	std::vector<LineSegment*> segments;
+public:
 	PathManager() {};
 	PathManager(std::vector<LineSegment*> segments)
 	{
@@ -166,17 +171,17 @@ public:
 			segments.push_back(curve);
 		}
 	}
-	Point2D FindClosestPoint(Point2D);
-	int FindClosestSegmentIndex(Point2D);
-	Point2D GetPointFrom(Point2D, float, bool);
-	std::vector<Point2D> FindCircleIntersection(Point2D, float);
-	std::vector<Point2D> GetPoints();
-	Point2D GetStartPoint();
-	Point2D GetEndPoint();
-	Point2D GetFurthestForward(std::vector<Point2D>);
-	Point2D GetFurthestBack(std::vector<Point2D>);
+	Point2D FindClosestPoint(Point2D) const;
+	int FindClosestSegmentIndex(Point2D) const;
+	Point2D GetPointFrom(Point2D, float, bool) const;
+	std::vector<Point2D> FindCircleIntersection(Point2D, float) const;
+	std::vector<Point2D> GetPoints() const;
+	Point2D GetStartPoint() const;
+	Point2D GetEndPoint() const;
+	Point2D GetFurthestForward(std::vector<Point2D>) const;
+	Point2D GetFurthestBack(std::vector<Point2D>) const;
 
-	LineSegment* FitLineSegment(Point2D, Point2D, Point2D, Point2D);
+	LineSegment* FitLineSegment(Point2D, Point2D, Point2D, Point2D) const;
 };
 
 #pragma warning(pop)
