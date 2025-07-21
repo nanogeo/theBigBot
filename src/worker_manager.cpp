@@ -247,8 +247,18 @@ const Unit* WorkerManager::GetBuilder(Point2D position) const
 	{
 		if (IsCarryingMinerals(*worker.first))
 			continue;
-		if (!mineral_patches.at(mineral_patches_reversed.at(worker.first).mineral).is_close) // TODO check for null
+		if (mineral_patches.count(worker.second.mineral) == 0)
+		{
+			mediator->LogMinorError();
+			if (worker.second.mineral == nullptr)
+				std::cerr << "Error worker assigned to null mineral patch in GetBuilder" << std::endl;
+			else
+				std::cerr << "Error mineral field at " << worker.second.mineral->pos.x << ", " << worker.second.mineral->pos.y << " not found in mineral_patches" << std::endl;
+		}
+		else if (mineral_patches.at(worker.second.mineral).is_close == false)
+		{
 			far_only_mineral_patches_reversed_keys.push_back(worker.first);
+		}
 		mineral_patches_reversed_keys.push_back(worker.first);
 	}
 	const Unit* closest = nullptr;

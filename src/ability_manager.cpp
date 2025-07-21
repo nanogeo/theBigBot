@@ -14,11 +14,27 @@ void AbilityManager::UpdatedAbilityInfo()
 
 bool AbilityManager::IsOracleBeamOn(const Unit* unit) const
 {
+	if (unit == nullptr || unit->unit_type != ORACLE)
+		return false;
+	if (oracle_beam_status.count(unit) == 0)
+	{
+		mediator->LogMinorError();
+		std::cerr << "Error oracle not found in oracle_beam_status" << std::endl;
+		return false;
+	}
 	return oracle_beam_status.at(unit);
 }
 
 bool AbilityManager::IsOracleCasting(const Unit* unit) const
 {
+	if (unit == nullptr || unit->unit_type != ORACLE)
+		return false;
+	if (oracle_casting.count(unit) == 0)
+	{
+		mediator->LogMinorError();
+		std::cerr << "Error oracle not found in oracle_casting" << std::endl;
+		return false;
+	}
 	return oracle_casting.at(unit);
 }
 
@@ -80,6 +96,14 @@ void AbilityManager::SetOracleOrder(const Unit* unit, ABILITY_ID ability)
 
 bool AbilityManager::IsStalkerBlinkOffCooldown(const Unit* unit) const
 {
+	if (unit == nullptr || unit->unit_type != STALKER)
+		return false;
+	if (stalker_blink_off_cooldown.count(unit) == 0)
+	{
+		mediator->LogMinorError();
+		std::cerr << "Error stalker not found in stalker_blink_off_cooldown" << std::endl;
+		return false;
+	}
 	return stalker_blink_off_cooldown.at(unit);
 }
 

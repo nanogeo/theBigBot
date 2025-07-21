@@ -342,6 +342,18 @@ void FireControlManager::UpdateEnemyUnitHealth()
 
 bool FireControlManager::GetAttackStatus(const Unit* unit) const
 {
+	if (unit == nullptr)
+	{
+		mediator->LogMinorError();
+		std::cerr << "Error nullptr sent to GetAttackStatus" << std::endl;
+		return false;
+	}
+	if (attack_status.count(unit) == 0)
+	{
+		mediator->LogMinorError();
+		std::cerr << "Error unit not found in attack_status" << std::endl;
+		return false;
+	}
 	return attack_status.at(unit);
 }
 
