@@ -481,7 +481,7 @@ const Unit* Mediator::GetMostRecentBuilding(UNIT_TYPEID type)
 	return possible_buildings[0];
 }
 
-float Mediator::GetLineDangerLevel(PathManager path)
+float Mediator::GetLineDangerLevel(PiecewisePath path)
 {
 	float danger = 0;
 	for (const auto& unit : scouting_manager.enemy_unit_saved_position)
@@ -2004,7 +2004,7 @@ Point2D Mediator::GetEnemyNaturalLocation() const
 	return agent->locations->enemy_natural;
 }
 
-PathManager Mediator::GetDirectAttackLine() const
+PiecewisePath Mediator::GetDirectAttackLine() const
 {
 	return agent->locations->attack_path_short_line;
 }
@@ -2014,7 +2014,7 @@ std::vector<Point2D> Mediator::GetDirectAttackPath() const
 	return agent->locations->attack_path_short;
 }
 
-PathManager Mediator::GetStalkerAttackLine() const
+PiecewisePath Mediator::GetStalkerAttackLine() const
 {
 	if (GetMapName() == "Abyssal Reef AIE" || GetMapName() == "Interloper AIE")
 		return agent->locations->attack_path_special_line;
@@ -2030,7 +2030,7 @@ std::vector<Point2D> Mediator::GetStalkerAttackPath() const
 		return agent->locations->attack_path_short;
 }
 
-PathManager Mediator::GetIndirectAttackLine() const
+PiecewisePath Mediator::GetIndirectAttackLine() const
 {
 	return agent->locations->attack_path_line;
 }

@@ -130,17 +130,17 @@ public:
 };
 
 // TODO change name cause this isnt a manager
-class PathManager
+class PiecewisePath
 {
 private:
 	std::vector<LineSegment*> segments;
 public:
-	PathManager() {};
-	PathManager(std::vector<LineSegment*> segments)
+	PiecewisePath() {};
+	PiecewisePath(std::vector<LineSegment*> segments)
 	{
 		this->segments = segments;
 	}
-	PathManager(std::vector<Point2D> points)
+	PiecewisePath(std::vector<Point2D> points)
 	{
 		for (long unsigned int i = 0; i < points.size() - 1; i += 2)
 		{

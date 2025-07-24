@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "theBigBot.h"
-#include "path_manager.h"
+#include "piecewise_path.h"
 
 
 constexpr double PI = 3.14159265358979323;
@@ -450,7 +450,7 @@ Point2D LineSegmentCurveY::GetPointFrom(Point2D point, float dist, bool forward,
 }
 
 
-Point2D PathManager::FindClosestPoint(Point2D point) const
+Point2D PiecewisePath::FindClosestPoint(Point2D point) const
 {
 	Point2D closest;
 	double distance_to_closest = INFINITY;
@@ -468,7 +468,7 @@ Point2D PathManager::FindClosestPoint(Point2D point) const
 	return closest;
 }
 
-int PathManager::FindClosestSegmentIndex(Point2D point) const
+int PiecewisePath::FindClosestSegmentIndex(Point2D point) const
 {
 	int closest = 0;
 	double distance_to_closest = INFINITY;
@@ -486,7 +486,7 @@ int PathManager::FindClosestSegmentIndex(Point2D point) const
 	return closest;
 }
 
-std::vector<Point2D> PathManager::FindCircleIntersection(Point2D center, float radius) const
+std::vector<Point2D> PiecewisePath::FindCircleIntersection(Point2D center, float radius) const
 {
 	std::vector<Point2D> intersections;
 	for (const auto &segment : segments)
@@ -498,7 +498,7 @@ std::vector<Point2D> PathManager::FindCircleIntersection(Point2D center, float r
 	return intersections;
 }
 
-Point2D PathManager::GetPointFrom(Point2D point, float dist, bool forward) const
+Point2D PiecewisePath::GetPointFrom(Point2D point, float dist, bool forward) const
 {
 	if (dist < 0)
 	{
@@ -523,7 +523,7 @@ Point2D PathManager::GetPointFrom(Point2D point, float dist, bool forward) const
 	}
 }
 
-std::vector<Point2D> PathManager::GetPoints() const
+std::vector<Point2D> PiecewisePath::GetPoints() const
 {
 	Point2D current = segments[0]->GetStartPoint();
 
@@ -536,17 +536,17 @@ std::vector<Point2D> PathManager::GetPoints() const
 	return points;
 }
 
-Point2D PathManager::GetStartPoint() const
+Point2D PiecewisePath::GetStartPoint() const
 {
 	return segments[0]->GetStartPoint();
 }
 
-Point2D PathManager::GetEndPoint() const
+Point2D PiecewisePath::GetEndPoint() const
 {
 	return segments[segments.size() - 1]->GetEndPoint();
 }
 
-Point2D PathManager::GetFurthestForward(std::vector<Point2D> points) const
+Point2D PiecewisePath::GetFurthestForward(std::vector<Point2D> points) const
 {
 	int best_index = 0;
 	Point2D best_point = GetStartPoint();
@@ -584,7 +584,7 @@ Point2D PathManager::GetFurthestForward(std::vector<Point2D> points) const
 	return best_point;
 }
 
-Point2D PathManager::GetFurthestBack(std::vector<Point2D> points) const
+Point2D PiecewisePath::GetFurthestBack(std::vector<Point2D> points) const
 {
 	int best_index = 1000;
 	Point2D best_point = GetEndPoint();
@@ -627,7 +627,7 @@ Point2D PathManager::GetFurthestBack(std::vector<Point2D> points) const
 #pragma warning(push)
 #pragma warning(disable : 4005)
 #pragma warning(disable : 4189)
-LineSegment* PathManager::FitLineSegment(Point2D p1, Point2D p2, Point2D p3, Point2D p4) const
+LineSegment* PiecewisePath::FitLineSegment(Point2D p1, Point2D p2, Point2D p3, Point2D p4) const
 {
 
 	double curve_x_a, curve_x_b, curve_x_c, curve_x_loss;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utility.h"
-#include "path_manager.h"
+#include "piecewise_path.h"
 #include "definitions.h"
 #include "army_group.h"
 

@@ -3,7 +3,7 @@
 
 #include "utility.h"
 #include "locations.h"
-#include "path_manager.h"
+#include "piecewise_path.h"
 
 namespace sc2 {
 

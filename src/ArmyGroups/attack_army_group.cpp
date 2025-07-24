@@ -793,7 +793,7 @@ void AttackArmyGroup::MicroReadyUnits(Units units, float percent_needed, int tot
 	}
 }
 
-AttackArmyGroup::AttackArmyGroup(Mediator* mediator, PathManager attack_path, std::vector<UNIT_TYPEID> unit_types, 
+AttackArmyGroup::AttackArmyGroup(Mediator* mediator, PiecewisePath attack_path, std::vector<UNIT_TYPEID> unit_types, 
 	int desired_units, int max_units, int required_units, int min_reinforce_group_size) : ArmyGroup(mediator)
 {
 	this->unit_types = unit_types;

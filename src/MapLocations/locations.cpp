@@ -1,7 +1,7 @@
 
 #include "locations.h"
 #include "theBigBot.h"
-#include "path_manager.h"
+#include "piecewise_path.h"
 #include "definitions.h"
 
 #include <iostream>
@@ -145,7 +145,7 @@ namespace sc2 {
 						P(44, 114),
 						P(43, 124) };
 
-		/*attack_path_line = PathManager({ new LineSegmentLinearY(-1, 108.5, 34, 65.5, swap, center_point),
+		/*attack_path_line = PiecewisePath({ new LineSegmentLinearY(-1, 108.5, 34, 65.5, swap, center_point),
 										new LineSegmentCurveY(.0926, -13.056, 500.894, 65.5, 75.5, swap, center_point),
 										new LineSegmentLinearY(1, -32.5, 75.5, 81.5, swap, center_point),
 										new LineSegmentCurveY(-.071425, 12.607, -504.04, 81.5, 95, swap, center_point),
@@ -277,15 +277,15 @@ namespace sc2 {
 		blink_pressure_blink_up = P(58, 115);
 		blink_pressure_blink_down = P(56, 121);
 
-		/*blink_nat_attack_path_line = PathManager({ new LineSegmentCurveY(.0926, -13.056, 500.894, 65.5, 75.5, swap, center_point),
+		/*blink_nat_attack_path_line = PiecewisePath({ new LineSegmentCurveY(.0926, -13.056, 500.894, 65.5, 75.5, swap, center_point),
 													new LineSegmentLinearY(1, -32.5, 75.5, 81.5, swap, center_point),
 													new LineSegmentCurveY(-.071425, 12.607, -504.04, 81.5, 95, swap, center_point),
 													new LineSegmentLinearY(-1, 144, 95, 99, swap, center_point), });
 
-		blink_main_attack_path_lines = { PathManager({ new LineSegmentCurveY(-.05, 12.5, -724.45, 121, 138, swap, center_point) }),
-										PathManager({ new LineSegmentLinearY(10, -1154, 119, 121, swap, center_point) }) };*/
+		blink_main_attack_path_lines = { PiecewisePath({ new LineSegmentCurveY(-.05, 12.5, -724.45, 121, 138, swap, center_point) }),
+										PiecewisePath({ new LineSegmentLinearY(10, -1154, 119, 121, swap, center_point) }) };*/
 
-		//blink_nat_attacK_path_line = PathManager({ new LineSegmentCurveX(-.04, 4.96, -52.76, 55, 67, swap, center_point),
+		//blink_nat_attacK_path_line = PiecewisePath({ new LineSegmentCurveX(-.04, 4.96, -52.76, 55, 67, swap, center_point),
 		//										new LineSegmentCurveX(.08, -8, 297.04, 40, 55, swap, center_point) }, true, swap);
 
 		cannon_rush_terran_pylon_walloffs = {
@@ -390,14 +390,14 @@ void Locations::SetTestingLocations(Point3D start)
 						P(102, 74),
 						P(146, 30) };
 
-	attack_path_line = PathManager(attack_path_short);
+	attack_path_line = PiecewisePath(attack_path_short);
 
 	attack_path = { P(31, 142),
 					P(75, 97),
 					P(102, 74),
 					P(146, 30) };
 
-	attack_path_line = PathManager(attack_path);
+	attack_path_line = PiecewisePath(attack_path);
 
 	attack_path_alt = { P(31, 142),
 						P(75, 97),

@@ -1,7 +1,7 @@
 
 #include "locations.h"
 #include "theBigBot.h"
-#include "path_manager.h"
+#include "piecewise_path.h"
 #include "definitions.h"
 
 #include <iostream>
@@ -166,7 +166,7 @@ namespace sc2 {
 								P(31, 135.5),
 								P(22, 141.5) };
 
-		attack_path_short_line = PathManager(attack_path_short);
+		attack_path_short_line = PiecewisePath(attack_path_short);
 
 		attack_path = { P(106.5, 64.7),
 						P(107.6, 72.1),
@@ -187,7 +187,7 @@ namespace sc2 {
 						P(34, 132),
 						P(24, 143) };
 
-		attack_path_line = PathManager(attack_path);
+		attack_path_line = PiecewisePath(attack_path);
 		
 		attack_path_special = { P(117, 57),
 								P(113, 59),
@@ -210,7 +210,7 @@ namespace sc2 {
 								P(31, 135.5),
 								P(22, 141.5) };
 
-		attack_path_special_line = PathManager(attack_path_special);
+		attack_path_special_line = PiecewisePath(attack_path_special);
 
 		high_ground_index = 5;
 
@@ -334,7 +334,7 @@ namespace sc2 {
 														P(23, 111),
 														P(18, 116) };
 
-		blink_nat_attack_path_line = PathManager(blink_nat_attack_path);
+		blink_nat_attack_path_line = PiecewisePath(blink_nat_attack_path);
 
 
 		std::vector<std::vector<Point2D>> blink_main_attack_path = { { P(48, 141),
@@ -344,7 +344,7 @@ namespace sc2 {
 																	P(28, 130),
 																	P(18, 136) } };
 
-		blink_main_attack_path_lines = { PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
+		blink_main_attack_path_lines = { PiecewisePath(blink_main_attack_path[0]), PiecewisePath(blink_main_attack_path[1]) };
 
 		std::vector<std::vector<Point2D>> blink_third_attack_path = { { P(60, 120),
 																	P(55, 133) },
@@ -355,7 +355,7 @@ namespace sc2 {
 																	P(36, 82),
 																	P(24, 84) } };
 
-		blink_third_attack_path_lines = { PathManager(blink_third_attack_path[0]), PathManager(blink_third_attack_path[1]) };
+		blink_third_attack_path_lines = { PiecewisePath(blink_third_attack_path[0]), PiecewisePath(blink_third_attack_path[1]) };
 
 		std::vector<Point2D> rocks = { Point2D(75, 67),
 										Point2D(101, 111),

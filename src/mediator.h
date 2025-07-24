@@ -97,7 +97,7 @@ public:
 	bool CanTrainUnit(UNIT_TYPEID);
 	int GetUpgradeLevel(UpgradeType);
 	const Unit* GetMostRecentBuilding(UNIT_TYPEID);
-	float GetLineDangerLevel(PathManager);
+	float GetLineDangerLevel(PiecewisePath);
 	const std::vector<Point2D>& GetCorrosiveBilePositions();
 	bool IsVisible(Point2D);
 	std::vector<std::vector<UNIT_TYPEID>> GetPrio();
@@ -242,11 +242,11 @@ public:
 	Point2D GetNaturalLocation() const;
 	Point2D GetEnemyStartLocation() const;
 	Point2D GetEnemyNaturalLocation() const;
-	PathManager GetDirectAttackLine() const;
+	PiecewisePath GetDirectAttackLine() const;
 	std::vector<Point2D> GetDirectAttackPath() const;
-	PathManager GetStalkerAttackLine() const;
+	PiecewisePath GetStalkerAttackLine() const;
 	std::vector<Point2D> GetStalkerAttackPath() const;
-	PathManager GetIndirectAttackLine() const;
+	PiecewisePath GetIndirectAttackLine() const;
 	std::vector<Point2D> GetIndirectAttackPath() const;
 	std::vector<Point2D> GetAltAttackPath() const;
 	std::vector<Point2D> GetBadWarpInSpots() const;

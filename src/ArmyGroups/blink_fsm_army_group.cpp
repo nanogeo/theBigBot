@@ -92,12 +92,12 @@ namespace sc2 {
 		concave_origin = Point2D(0, 0);
 	}
 
-	void BlinkFSMArmyGroup::SetAttackPath(PathManager path)
+	void BlinkFSMArmyGroup::SetAttackPath(PiecewisePath path)
 	{
 		attack_path = path;
 	}
 
-	const PathManager& BlinkFSMArmyGroup::GetAttackPath() const
+	const PiecewisePath& BlinkFSMArmyGroup::GetAttackPath() const
 	{
 		return attack_path;
 	}

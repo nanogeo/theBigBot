@@ -1,7 +1,7 @@
 
 #include "locations.h"
 #include "theBigBot.h"
-#include "path_manager.h"
+#include "piecewise_path.h"
 #include "definitions.h"
 
 #include <iostream>
@@ -156,7 +156,7 @@ namespace sc2 {
 								P(32.5, 136),
 								P(26, 142.5) };
 
-		attack_path_short_line = PathManager(attack_path_short);
+		attack_path_short_line = PiecewisePath(attack_path_short);
 
 		attack_path = { P(106.7, 53.2),
 						P(103.4, 56.5),
@@ -181,7 +181,7 @@ namespace sc2 {
 						P(32, 136),
 						P(27, 141) };
 
-		attack_path_line = PathManager(attack_path);
+		attack_path_line = PiecewisePath(attack_path);
 
 
 		high_ground_index = 5;
@@ -275,7 +275,7 @@ namespace sc2 {
 														P(37, 111),
 														P(25, 113) };
 
-		blink_nat_attack_path_line = PathManager(blink_nat_attack_path);
+		blink_nat_attack_path_line = PiecewisePath(blink_nat_attack_path);
 
 
 		std::vector<std::vector<Point2D>> blink_main_attack_path = { { P(47, 130),
@@ -285,7 +285,7 @@ namespace sc2 {
 																	P(30, 143),
 																	P(20, 143 ) } };
 
-		blink_main_attack_path_lines = { PathManager(blink_main_attack_path[0]), PathManager(blink_main_attack_path[1]) };
+		blink_main_attack_path_lines = { PiecewisePath(blink_main_attack_path[0]), PiecewisePath(blink_main_attack_path[1]) };
 
 		std::vector<std::vector<Point2D>> blink_third_attack_path = { { P(61, 126),
 																	P(59, 140) },
@@ -300,7 +300,7 @@ namespace sc2 {
 																	P(29, 73),
 																	P(24, 76) } };
 
-		blink_third_attack_path_lines = { PathManager(blink_third_attack_path[0]), PathManager(blink_third_attack_path[1]) };
+		blink_third_attack_path_lines = { PiecewisePath(blink_third_attack_path[0]), PiecewisePath(blink_third_attack_path[1]) };
 
 
 		bad_warpin_spots = { first_pylon_location_terran, P(69, 111), P(113.5, 36), P(118, 40), proxy_pylon_locations[0] };

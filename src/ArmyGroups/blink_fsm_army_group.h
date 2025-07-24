@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utility.h"
-#include "path_manager.h"
+#include "piecewise_path.h"
 #include "definitions.h"
 #include "army_group.h"
 #include "attack_army_group.h"
@@ -20,9 +20,9 @@ class BlinkFSMArmyGroup : public AttackArmyGroup
 protected:
 	BlinkStalkerAttackTerran* state_machine;
 
-	std::vector<PathManager> main_attack_path;
-	PathManager natural_attack_path;
-	std::vector<PathManager> third_attack_path;
+	std::vector<PiecewisePath> main_attack_path;
+	PiecewisePath natural_attack_path;
+	std::vector<PiecewisePath> third_attack_path;
 
 public:
 	BlinkFSMArmyGroup(Mediator*, BlinkStalkerAttackTerran*, int, int, int, int);
@@ -41,8 +41,8 @@ public:
 
 	Point2D GetConcaveOrigin() const;
 	void ResetConcaveOrigin();
-	void SetAttackPath(PathManager);
-	const PathManager& GetAttackPath() const;
+	void SetAttackPath(PiecewisePath);
+	const PiecewisePath& GetAttackPath() const;
 	void SetUseStandby(bool);
 	void SetStandbyPos(Point2D);
 };

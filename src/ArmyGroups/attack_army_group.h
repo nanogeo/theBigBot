@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utility.h"
-#include "path_manager.h"
+#include "piecewise_path.h"
 #include "definitions.h"
 #include "army_group.h"
 
@@ -29,7 +29,7 @@ protected:
 	Units warp_prisms;
 	Units oracles;
 
-	PathManager attack_path;
+	PiecewisePath attack_path;
 	std::map<const Unit*, Point2D> unit_position_asignments;
 	float dispersion;
 	float default_range = 6.0f;
@@ -63,7 +63,7 @@ protected:
 	void MicroReadyUnits(Units, float, int);
 
 public:
-	AttackArmyGroup(Mediator*, PathManager, std::vector<UNIT_TYPEID>, int, int, int, int);
+	AttackArmyGroup(Mediator*, PiecewisePath, std::vector<UNIT_TYPEID>, int, int, int, int);
 	AttackArmyGroup(Mediator*, ArmyTemplate<AttackArmyGroup>*);
 
 	void SetUp() override;

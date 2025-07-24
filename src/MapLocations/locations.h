@@ -1,6 +1,6 @@
 #pragma once
 #include "pathfinding.h"
-#include "path_manager.h"
+#include "piecewise_path.h"
 #include "build_order_manager.h"
 
 #include <string>
@@ -113,12 +113,12 @@ public:
 	Point2D pylon_walloff;
 
 	std::vector<Point2D> attack_path_short;
-	PathManager attack_path_short_line;
+	PiecewisePath attack_path_short_line;
     std::vector<Point2D> attack_path;
-	PathManager attack_path_line;
+	PiecewisePath attack_path_line;
 	std::vector<Point2D> attack_path_alt;
 	std::vector<Point2D> attack_path_special;
-	PathManager attack_path_special_line;
+	PiecewisePath attack_path_special_line;
     int high_ground_index = 0;
 	int high_ground_index_alt = 0;
 
@@ -152,9 +152,9 @@ public:
 	Point2D blink_pressure_blink_up;
 	Point2D blink_pressure_blink_down;
 
-	std::vector<PathManager> blink_main_attack_path_lines;
-	PathManager blink_nat_attack_path_line;
-	std::vector<PathManager> blink_third_attack_path_lines;
+	std::vector<PiecewisePath> blink_main_attack_path_lines;
+	PiecewisePath blink_nat_attack_path_line;
+	std::vector<PiecewisePath> blink_third_attack_path_lines;
 	
 	std::vector<CannonRushTriplePylonWalloff> cannon_rush_terran_pylon_walloffs;
 
