@@ -366,7 +366,7 @@ void PathingManager::LoadMapData()
 	map_skeleton_filename = map_skeleton_filename.substr(0, map_skeleton_filename.find(' ')) + "_skeleton.txt";
 
 #ifdef BUILD_FOR_LADDER
-	map_skeleton_filename = "data/" + map_skeleton_filename;
+	map_skeleton_filename = "data/data/" + map_skeleton_filename;
 #else
 	map_skeleton_filename = "../../data/" + map_skeleton_filename;
 #endif
