@@ -24,7 +24,7 @@ include(FetchContent)
 option(BUILD_FOR_LADDER "Create build for the AIArena ladder" OFF)
 
 # Build with c++14 support, required by sc2api
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_BUILD_TYPE Debug)
 
