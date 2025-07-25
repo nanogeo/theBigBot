@@ -15,6 +15,7 @@
 #include "fire_control_manager.h"
 #include "transition_manager.h"
 #include "resource_manager.h"
+#include "pathing_manager.h"
 
 #include "definitions.h"
 
@@ -39,6 +40,7 @@ private:
 	FireControlManager fire_control_manager;
 	TransitionManager transition_manager;
 	ResourceManager resource_manager;
+	PathingManager pathing_manager;
 
 	bool minor_error_logged = false;
 	std::vector<Point2D> do_not_rebuild;
@@ -58,7 +60,8 @@ public:
 		ability_manager(this),
 		fire_control_manager(this),
 		transition_manager(this),
-		resource_manager(this)
+		resource_manager(this),
+		pathing_manager(this)
 	{
 		this->agent = agent;
 	}

@@ -92,6 +92,7 @@ void Mediator::SetUpManagers(bool debug)
 	}
 
 	army_manager.SetUpInitialArmies();
+	pathing_manager.LoadMapData();
 }
 
 void Mediator::RunManagers()

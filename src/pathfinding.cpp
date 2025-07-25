@@ -6,20 +6,18 @@
 #include <queue>
 
 
-
-
 namespace sc2 {
 
-std::vector<Node*> Graph::ReconstructPath(std::map<Node*, Node*> came_from, Node* end) const
+std::vector<GraphNode*> Graph::ReconstructPath(std::map<GraphNode*, GraphNode*> came_from, GraphNode* end) const
 {
-	std::vector<Node*> path_r;
-	Node* current = end;
+	std::vector<GraphNode*> path_r;
+	GraphNode* current = end;
 	while (current != nullptr)
 	{
 		path_r.push_back(current);
 		current = came_from[current];
 	}
-	std::vector<Node*> path;
+	std::vector<GraphNode*> path;
 	for (int i = (int)path_r.size() - 1; i >= 0; i--)
 	{
 		path.push_back(path_r[i]);
@@ -27,36 +25,36 @@ std::vector<Node*> Graph::ReconstructPath(std::map<Node*, Node*> came_from, Node
 	return path;
 }
 
-Node* Graph::FindClosestNode(Point2D pos) const
+GraphNode* Graph::FindClosestNode(Point2D pos) const
 {
-	Node* closest_node = nodes[0];
-	float dist = Distance2D(pos, closest_node->pos);
-	for (const auto &node : nodes)
+	GraphNode* closest_GraphNode = nodes[0];
+	float dist = Distance2D(pos, closest_GraphNode->pos);
+	for (const auto &GraphNode : nodes)
 	{
-		if (Distance2D(pos, node->pos) < dist)
+		if (Distance2D(pos, GraphNode->pos) < dist)
 		{
-			closest_node = node;
-			dist = Distance2D(pos, node->pos);
+			closest_GraphNode = GraphNode;
+			dist = Distance2D(pos, GraphNode->pos);
 		}
 	}
-	return closest_node;
+	return closest_GraphNode;
 }
 
-std::vector<Node*> Graph::FindPath(Node* start, Node* end) const
+std::vector<GraphNode*> Graph::FindPath(GraphNode* start, GraphNode* end) const
 {
-	std::priority_queue<QNode, std::vector<QNode>, NodeCompare> heap;
-	std::map<Node*, Node*> came_from;
-	std::map<Node*, float> dist_to;
-	std::vector<Node*> visited;
+	std::priority_queue<QGraphNode, std::vector<QGraphNode>, GraphNodeCompare> heap;
+	std::map<GraphNode*, GraphNode*> came_from;
+	std::map<GraphNode*, float> dist_to;
+	std::vector<GraphNode*> visited;
 	
 
-	heap.push(QNode(start, Distance2D(start->pos, end->pos)));
+	heap.push(QGraphNode(start, Distance2D(start->pos, end->pos)));
 	dist_to[start] = 0;
 	came_from[start] = nullptr;
 
 	while (!heap.empty())
 	{
-		QNode current = heap.top();
+		QGraphNode current = heap.top();
 		heap.pop();
 		if (std::find(visited.begin(), visited.end(), current.node) != visited.end())
 			continue;
@@ -64,15 +62,15 @@ std::vector<Node*> Graph::FindPath(Node* start, Node* end) const
 			return ReconstructPath(came_from, end);
 
 
-		for (const auto &node : current.node->connections)
+		for (const auto &GraphNode : current.node->connections)
 		{
-			float dist_to_node = dist_to[current.node] + Distance2D(current.node->pos, node->pos);
-			if (dist_to.count(node) == 0 || dist_to_node < dist_to[node])
+			float dist_to_GraphNode = dist_to[current.node] + Distance2D(current.node->pos, GraphNode->pos);
+			if (dist_to.count(GraphNode) == 0 || dist_to_GraphNode < dist_to[GraphNode])
 			{
-				QNode new_node = QNode(node, dist_to_node + Distance2D(node->pos, end->pos));
-				heap.push(new_node);
-				dist_to[node] = dist_to_node;
-				came_from[node] = current.node;
+				QGraphNode new_GraphNode = QGraphNode(GraphNode, dist_to_GraphNode + Distance2D(GraphNode->pos, end->pos));
+				heap.push(new_GraphNode);
+				dist_to[GraphNode] = dist_to_GraphNode;
+				came_from[GraphNode] = current.node;
 			}
 		}
 

@@ -174,6 +174,8 @@ public:
 	Point2D main_ramp_forcefield_top;
 	Point2D main_ramp_forcefield_mid;
 
+	std::vector<Point2D> map_points_temp;
+
     Locations() {}
 	// TODO take a Point2D not Point3D
     Locations(Point3D start_location, std::string map_name)

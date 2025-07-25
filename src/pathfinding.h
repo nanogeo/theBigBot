@@ -7,29 +7,26 @@
 
 namespace sc2 {
 
-struct Node
+struct GraphNode
 {
     Point2D pos;
-    std::vector<Node*> connections;
-    bool is_exit = false;
-    bool is_base = false;
-
+    std::vector<GraphNode*> connections;
 };
 
-struct QNode
+struct QGraphNode
 {
     float dist;
-    Node* node;
-    QNode(Node* node, float dist)
+	GraphNode* node;
+    QGraphNode(GraphNode* node, float dist)
     {
         this->node = node;
         this->dist = dist;
     }
 };
 
-struct NodeCompare
+struct GraphNodeCompare
 {
-    bool operator()(const QNode& node1, const QNode& node2)
+    bool operator()(const QGraphNode& node1, const QGraphNode& node2)
     {
         return node1.dist < node2.dist;
     }
@@ -38,13 +35,14 @@ struct NodeCompare
 class Graph
 {
 public:
-    std::vector<Node*> nodes;
+    std::vector<GraphNode*> nodes;
+    std::map<Point2D, GraphNode*> node_lookup;
 
     Graph(std::vector<Point2D> points, std::vector<std::vector<int>> links)
     {
         for (int i = 0; i < points.size(); i++)
         {
-            Node* node = new Node();
+			GraphNode* node = new GraphNode();
             node->pos = points[i];
             nodes.push_back(node);
         }
@@ -57,11 +55,11 @@ public:
         }
     }
 
-    std::vector<Node*> ReconstructPath(std::map<Node*, Node*>, Node*) const;
-    Node* FindClosestNode(Point2D) const;
-    std::vector<Node*> FindPath(Node*, Node*) const;
-    Node* FindExit(Node*);
-    std::vector<Node*> FindExitPath(Node*);
+    std::vector<GraphNode*> ReconstructPath(std::map<GraphNode*, GraphNode*>, GraphNode*) const;
+	GraphNode* FindClosestNode(Point2D) const;
+    std::vector<GraphNode*> FindPath(GraphNode*, GraphNode*) const;
+	GraphNode* FindExit(GraphNode*);
+    std::vector<GraphNode*> FindExitPath(GraphNode*);
 };
 
 }
