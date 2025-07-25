@@ -378,8 +378,10 @@ void PathingManager::LoadMapData()
 		return;
 	}
 	mediator->SendChat("No map data found", ChatChannel::All);
+	std::cerr << map_skeleton_filename << std::endl;
 	std::string path = ".";
-	for (const auto& entry : std::filesystem::directory_iterator(path)) {
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) 
+	{
 		std::cerr << entry.path().filename() << std::endl;
 	}
 
