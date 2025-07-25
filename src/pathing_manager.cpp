@@ -247,7 +247,10 @@ KDTree::KDTree(std::vector<Point2D> points, std::map<OrderedPoint2D, std::vector
 
 Point2D KDTree::FindClosestPoint(Point2D point) const
 {
-	return FindClosestNode(point, root_node, 0)->pos;
+	Node* node = FindClosestNode(point, root_node, 0);
+	if (node == nullptr)
+		return Point2D(0, 0);
+	return node->pos;
 }
 
 Node* KDTree::FindClosestNode(Point2D point) const
@@ -363,20 +366,30 @@ void PathingManager::LoadMapData()
 	map_skeleton_filename = map_skeleton_filename.substr(0, map_skeleton_filename.find(' ')) + "_skeleton.txt";
 
 #ifdef BUILD_FOR_LADDER
-	map_skeleton_filename = "data/" = map_skeleton_filename;
+	map_skeleton_filename = "data/" + map_skeleton_filename;
 #else
 	map_skeleton_filename = "../../data/" + map_skeleton_filename;
 #endif
 
 	if (std::filesystem::exists(std::filesystem::path(map_skeleton_filename)))
 	{
+		mediator->SendChat("Map data loaded", ChatChannel::All);
 		map_skeleton = KDTree(map_skeleton_filename);
 		return;
 	}
+	mediator->SendChat("No map data found", ChatChannel::All);
+	std::string path = ".";
+	for (const auto& entry : std::filesystem::directory_iterator(path)) {
+		std::cerr << entry.path().filename() << std::endl;
+	}
+
 
 	// map skeleton file doesnt exist so create it
 	ImageData raw_map = mediator->GetPathingGrid();
 	std::vector<Point2D> map_points = mediator->GetLocations().map_points_temp;
+	if (map_points.size() == 0)
+		return; // this is only populated when initially creating the map skeleton
+
 	std::vector<std::vector<bool>> map;
 	std::map<OrderedPoint2D, std::vector<Point2D>> connections;
 	for (int i = 0; i < raw_map.width; i++)
