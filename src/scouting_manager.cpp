@@ -14,6 +14,8 @@ void ScoutingManager::UpdateEnemyWeaponCooldowns()
 
 	for (const auto &Eunit : enemy_attacking_units)
 	{
+		if (enemy_unit_saved_position.count(Eunit) == 0)
+			continue;
 		if (enemy_weapon_cooldown.count(Eunit) == 0)
 			enemy_weapon_cooldown[Eunit] = 0;
 
@@ -379,10 +381,6 @@ const std::vector<Point2D>& ScoutingManager::GetCorrosiveBilePositions() const
 
 void ScoutingManager::UpdateInfo()
 {
-	UpdateEffectPositions();
-	UpdateEnemyWeaponCooldowns();
-	RemoveCompletedAttacks();
-
 	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
 	{
 		if (unit->display_type != Unit::DisplayType::Visible)
@@ -404,6 +402,11 @@ void ScoutingManager::UpdateInfo()
 			AddNewUnit(unit);
 		}
 	}
+
+	UpdateEffectPositions();
+	UpdateEnemyWeaponCooldowns();
+	RemoveCompletedAttacks();
+
 	if (game_state_manager != nullptr)
 	{
 		current_game_state = game_state_manager->GetCurrentGameState();
