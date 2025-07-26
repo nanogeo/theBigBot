@@ -171,6 +171,7 @@ public:
     // Debug info
     void DisplayDebugHud();
 	void DisplayAlliedAttackStatus();
+	void PrintPathablePoints();
 	void PrintNonPathablePoints();
 	void ShowLocations();
 

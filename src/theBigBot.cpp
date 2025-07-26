@@ -863,6 +863,73 @@ namespace sc2 {
 		return;
 	}
 
+	void TheBigBot::PrintPathablePoints()
+	{
+		ImageData raw_map = Observation()->GetGameInfo().pathing_grid;
+		std::vector<std::vector<bool>> map;
+		std::vector<bool> x;
+		map.push_back(x);
+		int position = 0;
+		int byte = 0;
+		int row = 0;
+		for (int i = 0; i < raw_map.data.size() * 8; i++)
+		{
+			if (((raw_map.data[byte] >> (7 - position)) & 0x1))
+			{
+				map[row].push_back(true);
+			}
+			else
+			{
+				map[row].push_back(false);
+			}
+			position++;
+			if (position == 8)
+			{
+				position = 0;
+				byte++;
+			}
+			if (i != 0 && i % raw_map.width == 0)
+			{
+				row++;
+				std::vector<bool> y;
+				map.push_back(y);
+				map[row].push_back(false);
+			}
+		}
+		map[row].push_back(false);
+
+
+		std::vector<std::vector<bool>> flipped_map;
+		for (int i = 0; i < map[0].size(); i++)
+		{
+			std::vector<bool> y;
+			flipped_map.push_back(y);
+		}
+		for (int i = 0; i < map.size(); i++)
+		{
+			for (int j = 0; j < map[i].size(); j++)
+			{
+				flipped_map[j].push_back(map[i][j]);
+			}
+		}
+
+		std::ofstream map_file;
+		map_file.open("pathable.txt");
+
+
+		for (int i = 0; i < flipped_map.size(); i++)
+		{
+			for (int j = 0; j < flipped_map[i].size(); j++)
+			{
+				if (flipped_map[i][j])
+				{
+					map_file << i << ", " << j << "\n";
+				}
+			}
+		}
+		map_file.close();
+	}
+
 	void TheBigBot::PrintNonPathablePoints()
 	{
 		ImageData raw_map = Observation()->GetGameInfo().pathing_grid;
@@ -914,7 +981,7 @@ namespace sc2 {
 		}
 
 		std::ofstream map_file;
-		map_file.open("map.txt", std::ios_base::app);
+		map_file.open("map.txt");
 
 
 		for (int i = 25; i < 160; i++)
