@@ -49,11 +49,11 @@ void signalHandler(int signal, siginfo_t* info, void* context)
         break;
     }
 
-    void* array[10];
+    void* array[15];
     size_t size;
 
     // get void*'s for all entries on the stack
-    size = backtrace(array, 10);
+    size = backtrace(array, 15);
 
     backtrace_symbols_fd(array, size, STDERR_FILENO);
 
