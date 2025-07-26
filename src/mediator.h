@@ -24,6 +24,7 @@ namespace sc2
 
 class Mediator
 {
+	friend TheBigBot;
 private:
 	TheBigBot* agent;
 	BuildOrderManager build_order_manager;
