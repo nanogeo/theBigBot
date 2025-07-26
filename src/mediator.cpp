@@ -93,6 +93,7 @@ void Mediator::SetUpManagers(bool debug)
 
 	army_manager.SetUpInitialArmies();
 	pathing_manager.LoadMapData();
+	pathing_manager.ChangeAreaControl(GetStartLocation(), LONG_RANGE, ToPoint3D(GetStartLocation()).z, NodeControl::friendly_control);
 }
 
 void Mediator::RunManagers()
@@ -2400,6 +2401,7 @@ void Mediator::OnUnitCreated(const Unit* unit)
 	else if (unit->unit_type == NEXUS)
 	{
 		army_manager.NexusStarted(unit->pos);
+		pathing_manager.ChangeAreaControl(unit->pos, MEDIUM_RANGE, NodeControl::friendly_control);
 	}
 	else
 	{

@@ -155,6 +155,7 @@ class PathingManager
 {
 	friend class TheBigBot;
 private:
+	const int max_connection_depth = 15;
 	Mediator* mediator;
 	KDTree map_skeleton;
 
@@ -163,6 +164,8 @@ private:
 	Node* FindClosestSkeletonNode(Point2D) const;
 	std::vector<Point2D> ReconstructPath(std::map<Node*, Node*>, Node*) const;
 	void ChangeAreaControl(Point2D, Node*, float, NodeControl);
+	void ChangeAreaControl(Point2D, Node*, float, float, NodeControl);
+	bool ConnectAreaControl(Node*, std::vector<Node*>, int, NodeControl);
 
 public:
 	PathingManager(Mediator* mediator)
@@ -170,14 +173,14 @@ public:
 		this->mediator = mediator;
 	}
 
-	void DisplayMapSkeleton();
+	void DisplayMapSkeleton() const;
 	void LoadMapData();
 	Point2D FindClosestSkeletonPoint(Point2D) const;
 	std::vector<Point2D> FindPath(Point2D, Point2D) const;
 	std::vector<Point2D> FindPathToFriendlyControlledArea(Point2D) const;
 	std::vector<Point2D> FindPathToEnemyControlledArea(Point2D) const;
 	void ChangeAreaControl(Point2D, float, NodeControl);
-
+	void ChangeAreaControl(Point2D, float, float, NodeControl);
 };
 
 }

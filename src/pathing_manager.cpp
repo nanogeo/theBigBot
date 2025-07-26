@@ -360,8 +360,21 @@ std::vector<Point2D> PathingManager::ReconstructPath(std::map<Node*, Node*> came
 
 void PathingManager::ChangeAreaControl(Point2D start, Node* current_node, float radius, NodeControl control)
 {
-	if (current_node == nullptr || current_node->control == control || Distance2D(start, current_node->pos) > radius)
+	if (current_node == nullptr || current_node->control == control)
 		return;
+	if (Distance2D(start, current_node->pos) > radius)
+	{
+		bool found_connection = false;
+		for (auto& node : current_node->connections)
+		{
+			if (ConnectAreaControl(node, { current_node }, 1, control))
+				found_connection = true;
+		}
+		if (found_connection)
+			current_node->control = control;
+
+		return;
+	}
 	current_node->control = control;
 	for (auto& node : current_node->connections)
 	{
@@ -369,7 +382,55 @@ void PathingManager::ChangeAreaControl(Point2D start, Node* current_node, float 
 	}
 }
 
-void PathingManager::DisplayMapSkeleton()
+void PathingManager::ChangeAreaControl(Point2D start, Node* current_node, float radius, float height, NodeControl control)
+{
+	if (current_node == nullptr || current_node->control == control)
+		return;
+	if (Distance2D(start, current_node->pos) > radius || mediator->ToPoint3D(current_node->pos).z != height)
+	{
+		bool found_connection = false;
+		for (auto& node : current_node->connections)
+		{
+			if (ConnectAreaControl(node, { current_node }, 1, control))
+				found_connection = true;
+		}
+		if (found_connection)
+			current_node->control = control;
+
+		return;
+	}
+	current_node->control = control;
+	for (auto& node : current_node->connections)
+	{
+		ChangeAreaControl(start, node, radius, height, control);
+	}
+}
+
+bool PathingManager::ConnectAreaControl(Node* current_node, std::vector<Node*> prev_nodes, int depth, NodeControl control)
+{
+	if (depth > max_connection_depth)
+		return false;
+	if (current_node->control == control)
+		return true;
+
+	bool found_connection = false;
+	prev_nodes.push_back(current_node);
+	for (auto& node : current_node->connections)
+	{
+		if (std::find(prev_nodes.begin(), prev_nodes.end(), node) != prev_nodes.end())
+			continue;
+		if (ConnectAreaControl(node, prev_nodes, depth + 1, control))
+			found_connection = true;
+	}
+	if (found_connection)
+	{
+		current_node->control = control;
+		return true;
+	}
+	return false;
+}
+
+void PathingManager::DisplayMapSkeleton() const
 {
 	map_skeleton.DisplayTree(mediator);
 }
@@ -466,6 +527,12 @@ void PathingManager::ChangeAreaControl(Point2D point, float radius, NodeControl 
 {
 	Node* starting_node = FindClosestSkeletonNode(point);
 	ChangeAreaControl(point, starting_node, radius, control);
+}
+
+void PathingManager::ChangeAreaControl(Point2D point, float radius, float height, NodeControl control)
+{
+	Node* starting_node = FindClosestSkeletonNode(point);
+	ChangeAreaControl(point, starting_node, radius, height, control);
 }
 
 }
