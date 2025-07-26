@@ -154,6 +154,7 @@ public:
 	static float GetTimeToBuild(UNIT_TYPEID);
 	static AbilityID UnitToWarpInAbility(UNIT_TYPEID);
 	static UNIT_TYPEID GetBuildStructure(UNIT_TYPEID);
+	static UNIT_TYPEID GetUpgradeStructure(UPGRADE_ID);
 	static int GetTrainingTime(UNIT_TYPEID);
 	static bool IsFacing(const Unit*, const Unit*);
 	static float GetFacingAngle(const Unit*, const Unit*);

@@ -174,6 +174,7 @@ void TransitionManager::PvZAddColossusEnterAction()
 		mediator->BuildBuilding(ROBO);
 	if (mediator->GetNumUnits(ROBO_BAY) == 0)
 		mediator->BuildBuildingWhenAble(ROBO_BAY);
+	mediator->AddRequiredUpgrade(U_THERMAL_LANCE);
 	mediator->IncreaseUnitAmountInTargetComposition(COLOSSUS, 3);
 	mediator->IncreaseUnitAmountInTargetComposition(PRISM, 1);
 }

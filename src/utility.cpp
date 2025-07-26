@@ -2717,6 +2717,50 @@ UNIT_TYPEID Utility::GetBuildStructure(UNIT_TYPEID type)
 	}
 }
 
+
+UNIT_TYPEID Utility::GetUpgradeStructure(UPGRADE_ID upgrade_id)
+{
+	switch (upgrade_id)
+	{
+	case U_AIR_WEAPONS_1:
+	case U_AIR_WEAPONS_2:
+	case U_AIR_WEAPONS_3:
+	case U_AIR_ARMOR_1:
+	case U_AIR_ARMOR_2:
+	case U_AIR_ARMOR_3:
+	case U_WARPGATE:
+		return CYBERCORE;
+	case U_BLINK:
+	case U_CHARGE:
+	case U_GLAIVES:
+		return TWILIGHT;
+	case U_DT_BLINK:
+		return DARK_SHRINE;
+	case U_STORM:
+		return TEMPLAR_ARCHIVE;
+	case U_THERMAL_LANCE:
+	case U_PRISM_SPEED:
+	case U_OBS_SPEED:
+		return ROBO_BAY;
+	case U_PHOENIX_RANGE:
+	case U_FLUX_VANES:
+	case U_TECTONIC_DESTABALIZERS:
+		return FLEET_BEACON;
+	case U_GROUND_WEAPONS_1:
+	case U_GROUND_WEAPONS_2:
+	case U_GROUND_WEAPONS_3:
+	case U_GROUND_ARMOR_1:
+	case U_GROUND_ARMOR_2:
+	case U_GROUND_ARMOR_3:
+	case U_SHIELDS_1:
+	case U_SHIELDS_2:
+	case U_SHIELDS_3:
+		return FORGE;
+	default:
+		return UNIT_TYPEID::INVALID;
+	}
+}
+
 int Utility::GetTrainingTime(UNIT_TYPEID type)
 {
 	switch (type)

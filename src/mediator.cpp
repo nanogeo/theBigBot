@@ -127,6 +127,7 @@ void Mediator::RunManagers()
 	if (agent->Observation()->GetGameLoop() % 5 == 0)
 	{
 		worker_manager.BuildWorkers();
+		upgrade_manager.Run();
 		unit_production_manager.RunUnitProduction();
 	}
 
@@ -1984,6 +1985,16 @@ bool Mediator::TestWarpInSpot(Point2D position)
 	return true;
 }
 
+void Mediator::StartUpgradeManager()
+{
+	upgrade_manager.StartUpgradeManager();
+}
+
+void Mediator::AddRequiredUpgrade(UPGRADE_ID upgrade_id)
+{
+	upgrade_manager.AddRequiredUpgrade(upgrade_id);
+}
+
 void Mediator::AddZergTransitions()
 {
 	transition_manager.AddZergTransitions();
@@ -2345,6 +2356,9 @@ TryActionResult Mediator::TryWarpIn(const Unit* warpgate, UNIT_TYPEID unit_type,
 
 TryActionResult Mediator::TryResearchUpgrade(const Unit* upgrader, UPGRADE_ID upgrade_id)
 {
+	if (upgrade_id == U_INVALID)
+		return TryActionResult::invalid_parameter;
+
 	if (upgrader->orders.size() > 0)
 		return TryActionResult::busy;
 

@@ -540,6 +540,7 @@ bool BuildOrderManager::ContinueMacro(BuildOrderResultArgData data)
 	mediator->AddUniqueAction(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData());
 	mediator->AddUniqueAction(&ActionManager::ActionContinueExpanding, new ActionArgData());
 	mediator->SetBalanceIncome(true);
+	mediator->StartUpgradeManager();
 	return true;
 }
 

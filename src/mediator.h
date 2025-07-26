@@ -243,6 +243,9 @@ public:
 	std::vector<Point2D> FindWarpInSpots(Point2D);
 	bool TestWarpInSpot(Point2D);
 
+	void StartUpgradeManager();
+	void AddRequiredUpgrade(UPGRADE_ID);
+
 	void AddZergTransitions();
 
 	ArmyGroup* GetArmyGroupDefendingBase(Point2D);
