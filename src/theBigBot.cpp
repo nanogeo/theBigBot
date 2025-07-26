@@ -45,170 +45,176 @@ namespace sc2 {
 
     void TheBigBot::OnStep()
     {
-		try
+		if (!started)
 		{
-			if (!started)
-			{
-				//PrintNonPathablePoints();
+			//PrintNonPathablePoints();
+			PrintPathablePoints();
+			mediator.SetUpManagers(debug_mode);
 
-				mediator.SetUpManagers(debug_mode);
+			Actions()->SendChat("glhf", ChatChannel::All);
 
-				Actions()->SendChat("glhf", ChatChannel::All);
+			started = true;
+		}
+		if (debug_mode)
+		{
+			if (probe == nullptr && Observation()->GetUnits(IsUnit(PROBE)).size() > 0)
+				probe = Observation()->GetUnits(IsUnit(PROBE))[0];
 
-				started = true;
-			}
-			if (debug_mode)
-			{
-				//DisplayEnemyAttacks();
+			Debug()->DebugSphereOut(ToPoint3D(probe->pos), .5, Color(255, 0, 255));
 
-				//DisplayAlliedAttackStatus();
+			Debug()->DebugSphereOut(ToPoint3D(mediator.pathing_manager.map_skeleton.FindClosestPoint(probe->pos)), 1, Color(0, 255, 255));
 
-
-				//mediator.RunManagers();
-
-				Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_protoss), .5, Color(255, 0, 255));
-
-				/*if (!started && Observation()->GetGameLoop() < 1800)
-				{
-					for (const auto& probe : Observation()->GetUnits(IsUnit(PROBE)))
-					{
-						std::cout << probe->pos.x << ", " << probe->pos.y << std::endl;
-					}
-					started = false;
-				}*/
-
-				for (auto& point : locations->pylon_locations)
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), 1, Color(255, 255, 255));
-				}
-				Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_protoss), 1, Color(255, 0, 0));
-				Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_terran), 1, Color(255, 0, 0));
-				Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_zerg), 1, Color(255, 0, 0));
-
-				for (auto& point : locations->gateway_locations)
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), 1.5, Color(255, 0, 0));
-				}
-
-				for (auto& point : locations->tech_locations)
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), 1.5, Color(0, 255, 255));
-				}
-
-				for (auto& point : locations->cyber_core_locations)
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), 1.5, Color(255, 0, 255));
-				}
-
-				/*for (auto& point : locations->attack_path_line.GetPoints())
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(0, 255, 255));
-				}*/
-
-				/*for (const auto& point : locations->attack_path)
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));
-					Debug()->DebugTextOut(std::to_string(point.x) + ", " + std::to_string(point.y), ToPoint3D(point), Color(255, 0, 0), 20);
-				}
-
-				for (const auto& point : locations->blink_nat_attack_path_line.GetPoints())
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
-				}*/
-				/*for (const auto& point : locations->blink_third_attack_path_lines[0].GetPoints())
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
-				}
-				for (const auto& point : locations->blink_third_attack_path_lines[1].GetPoints())
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
-				}
-
-				Debug()->DebugSphereOut(ToPoint3D(locations->blink_presure_consolidation), .25, Color(255, 255, 255));*/
+			mediator.pathing_manager.DisplayMapSkeleton();
 				
-				/*for (const auto &point : locations->attack_path_short)
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));
-					Debug()->DebugTextOut(std::to_string(point.x) + ", " + std::to_string(point.y), ToPoint3D(point), Color(255, 0, 0), 20);
-				}
-
-				for (const auto &point : locations->attack_path_short_line.GetPoints())
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
-				}*/
-
-				/*std::vector<Point2D> points2;
-				Point2D point = path.GetStartPoint();
-				while (Distance2D(point, path.GetEndPoint()) > 1)
-				{
-					points2.push_back(point);
-					point = path.GetPointFrom(point, 1, true);
-				}
-
-				for each (Point2D point in points2)
-				{
-					Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 0, 255));
-				}*/
-
-				Debug()->SendDebug();
-				return;
-			}
-
-
-
-			Units bla = Observation()->GetUnits(IsFriendlyUnit(ADEPT));
-			Units funits = Observation()->GetUnits(Unit::Alliance::Self);
-			Units nunits = Observation()->GetUnits(Unit::Alliance::Neutral);
-			Units eunits = Observation()->GetUnits(Unit::Alliance::Enemy);
-			frames_passed++;
-			//std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
-
-
-
-
-			/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Neutral))
-			{
-				Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
-			}*/
-
-
-			/*if (!debug_mode)
-				ShowLocations();*/
-
-			if ((float)Observation()->GetGameLoop() / FRAME_TIME > seconds_passed)
-			{
-				std::cerr << "Time: " << std::to_string(seconds_passed) << std::endl;
-				seconds_passed++;
-			}
-
-			mediator.RunManagers();
-
-
-#ifndef BUILD_FOR_LADDER
 
 			//DisplayEnemyAttacks();
 
 			//DisplayAlliedAttackStatus();
 
-			DisplayDebugHud();
+			//mediator.RunManagers();
+
+			//Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_protoss), .5, Color(255, 0, 255));
+
+			/*if (!started && Observation()->GetGameLoop() < 1800)
+			{
+				for (const auto& probe : Observation()->GetUnits(IsUnit(PROBE)))
+				{
+					std::cout << probe->pos.x << ", " << probe->pos.y << std::endl;
+				}
+				started = false;
+			}*/
+
+			/*for (const auto& carrier : Observation()->GetUnits(IsUnit(CARRIER)))
+			{
+				Actions()->UnitCommand(carrier, A_ATTACK, Observation()->GetUnits(IsUnit(NEXUS))[0]);
+			}
+			for (const auto& unit : Observation()->GetUnits(IsUnit(UNIT_TYPEID::PROTOSS_INTERCEPTOR)))
+			{
+				int i = 0;
+			}
+
+			for (auto& point : locations->pylon_locations)
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), 1, Color(255, 255, 255));
+			}
+			Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_protoss), 1, Color(255, 0, 0));
+			Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_terran), 1, Color(255, 0, 0));
+			Debug()->DebugSphereOut(ToPoint3D(locations->first_pylon_location_zerg), 1, Color(255, 0, 0));
+
+			for (auto& point : locations->gateway_locations)
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), 1.5, Color(255, 0, 0));
+			}
+
+			for (auto& point : locations->tech_locations)
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), 1.5, Color(0, 255, 255));
+			}
+
+			for (auto& point : locations->cyber_core_locations)
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), 1.5, Color(255, 0, 255));
+			}
+
+			for (auto& point : locations->attack_path_line.GetPoints())
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(0, 255, 255));
+			}
+
+			for (const auto& point : locations->attack_path)
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));
+				Debug()->DebugTextOut(std::to_string(point.x) + ", " + std::to_string(point.y), ToPoint3D(point), Color(255, 0, 0), 20);
+			}
+
+			for (const auto& point : locations->blink_nat_attack_path_line.GetPoints())
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
+			}
+			for (const auto& point : locations->blink_third_attack_path_lines[0].GetPoints())
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
+			}
+			for (const auto& point : locations->blink_third_attack_path_lines[1].GetPoints())
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
+			}
+
+			Debug()->DebugSphereOut(ToPoint3D(locations->blink_presure_consolidation), .25, Color(255, 255, 255));
+				
+			for (const auto &point : locations->attack_path_short)
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 255, 0));
+				Debug()->DebugTextOut(std::to_string(point.x) + ", " + std::to_string(point.y), ToPoint3D(point), Color(255, 0, 0), 20);
+			}
+
+			for (const auto &point : locations->attack_path_short_line.GetPoints())
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .25, Color(255, 0, 255));
+			}*/
+
+			/*std::vector<Point2D> points2;
+			Point2D point = path.GetStartPoint();
+			while (Distance2D(point, path.GetEndPoint()) > 1)
+			{
+				points2.push_back(point);
+				point = path.GetPointFrom(point, 1, true);
+			}
+
+			for each (Point2D point in points2)
+			{
+				Debug()->DebugSphereOut(ToPoint3D(point), .5, Color(255, 0, 255));
+			}*/
 
 			Debug()->SendDebug();
+			return;
+		}
+
+		mediator.pathing_manager.DisplayMapSkeleton();
+
+		Units bla = Observation()->GetUnits(IsFriendlyUnit(ADEPT));
+		Units funits = Observation()->GetUnits(Unit::Alliance::Self);
+		Units nunits = Observation()->GetUnits(Unit::Alliance::Neutral);
+		Units eunits = Observation()->GetUnits(Unit::Alliance::Enemy);
+		frames_passed++;
+		//std::cout << std::to_string(Observation()->GetGameLoop()) << '\n';
+
+
+
+
+		/*for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Neutral))
+		{
+			Debug()->DebugSphereOut(unit->pos, .5, Color(255, 0, 0));
+		}*/
+
+
+		/*if (!debug_mode)
+			ShowLocations();*/
+
+		if ((float)Observation()->GetGameLoop() / FRAME_TIME > seconds_passed)
+		{
+			std::cerr << "Time: " << std::to_string(seconds_passed) << std::endl;
+			seconds_passed++;
+		}
+
+		mediator.RunManagers();
+
+
+#ifndef BUILD_FOR_LADDER
+
+		//DisplayEnemyAttacks();
+
+		//DisplayAlliedAttackStatus();
+
+		DisplayDebugHud();
+
+		Debug()->SendDebug();
 
 #endif // !BUILD_FOR_LADDER
 
 
 
 
-		}
-		catch (const std::exception& ex) {
-			std::cerr << "OnStep Exception: " << ex.what() << std::endl;
-			throw ex;
-		}
-		catch (...)
-		{
-			std::cerr << "OnStep Other exception" << std::endl;
-			throw;
-		}
     }
 
     void TheBigBot::OnBuildingConstructionComplete(const Unit *building)
