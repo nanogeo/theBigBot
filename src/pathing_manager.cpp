@@ -145,7 +145,11 @@ Node* KDTree::CreateNodeFromFile(std::ifstream* tree_file, std::map<OrderedPoint
 {
 	std::string pos = "";
 	std::getline(*tree_file, pos);
-	if (pos == "null")
+#ifdef BUILD_FOR_LADDER
+	pos.erase(pos.length() - 1);
+#endif // BUILD_FOR_LADDER
+
+	if (std::strcmp(pos.c_str(), "null") == 0)
 		return nullptr;
 
 	float x = std::stof(pos.substr(0, pos.find(',')));
@@ -157,6 +161,9 @@ Node* KDTree::CreateNodeFromFile(std::ifstream* tree_file, std::map<OrderedPoint
 
 	std::string control = "";
 	std::getline(*tree_file, control);
+#ifdef BUILD_FOR_LADDER
+	control.erase(control.length() - 1);
+#endif // BUILD_FOR_LADDER
 	if (std::strcmp(control.c_str(), "innactive") == 0)
 		node->control = NodeControl::innactive;
 	else if (std::strcmp(control.c_str(), "neutral") == 0)
@@ -172,12 +179,18 @@ void KDTree::AddConnectionsFromFile(Node* curr_node, std::ifstream* tree_file, s
 {
 	std::string point = "";
 	std::getline(*tree_file, point);
+#ifdef BUILD_FOR_LADDER
+	point.erase(point.length() - 1);
+#endif // BUILD_FOR_LADDER
 	if (curr_node == nullptr && std::strcmp(point.c_str(), "null") == 0)
 		return;
 	if (curr_node == nullptr || std::strcmp(point.c_str(), "null") == 0)
 		throw;
 
 	std::getline(*tree_file, point);
+#ifdef BUILD_FOR_LADDER
+	point.erase(point.length() - 1);
+#endif // BUILD_FOR_LADDER
 	while (std::strcmp(point.c_str(), "end") != 0)
 	{
 		float x = std::stof(point.substr(0, point.find(',')));
@@ -188,6 +201,9 @@ void KDTree::AddConnectionsFromFile(Node* curr_node, std::ifstream* tree_file, s
 		Node* connection = node_lookup.at(pos);
 		curr_node->connections.push_back(connection);
 		std::getline(*tree_file, point);
+#ifdef BUILD_FOR_LADDER
+		point.erase(point.length() - 1);
+#endif // BUILD_FOR_LADDER
 	}
 	AddConnectionsFromFile(curr_node->left_node, tree_file, node_lookup);
 	AddConnectionsFromFile(curr_node->right_node, tree_file, node_lookup);
@@ -278,7 +294,6 @@ void KDTree::DisplayTree(Mediator* mediator) const
 	DisplayNode(root_node, mediator);
 }
 
-
 std::vector<Point2D> PathingManager::FindPath(Point2D starting_point, NodeFilter filter) const
 {
 	Node* start = FindClosestSkeletonNode(starting_point);
@@ -343,7 +358,6 @@ std::vector<Point2D> PathingManager::ReconstructPath(std::map<Node*, Node*> came
 	return path;
 }
 
-
 void PathingManager::ChangeAreaControl(Point2D start, Node* current_node, float radius, NodeControl control)
 {
 	if (current_node == nullptr || current_node->control == control || Distance2D(start, current_node->pos) > radius)
@@ -373,7 +387,7 @@ void PathingManager::LoadMapData()
 
 	if (std::filesystem::exists(std::filesystem::path(map_skeleton_filename)))
 	{
-		mediator->SendChat("Map data loaded", ChatChannel::All);
+		mediator->SendChat("Map data found", ChatChannel::All);
 		map_skeleton = KDTree(map_skeleton_filename);
 		return;
 	}
