@@ -65,6 +65,10 @@ struct ActionArgData
 	{
 		index = x;
 	}
+	ActionArgData(UNIT_TYPEID x)
+	{
+		unitId = x;
+	}
 };
 
 struct ActionData;
@@ -92,6 +96,7 @@ public:
 	bool ActionBuildBuilding(ActionArgData*);
 	bool ActionBuildBuildingWhenSafe(ActionArgData*);
 	bool ActionBuildBuildingMulti(ActionArgData*);
+	bool ActionBuildBuildingWhenAble(ActionArgData*);
 	bool ActionBuildProxyMulti(ActionArgData*);
 	bool ActionScoutZerg(ActionArgData*);
 	bool ActionContinueMakingWorkers(ActionArgData*);

@@ -172,6 +172,16 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	return false;
 }
 
+bool ActionManager::ActionBuildBuildingWhenAble(ActionArgData* data)
+{
+	if (mediator->HasTechForBuilding(data->unitId))
+	{
+		mediator->BuildBuilding(data->unitId);
+		return true;
+	}
+	return false;
+}
+
 bool ActionManager::ActionBuildProxyMulti(ActionArgData* data) // TODO add avoidance code thats in ActionRemoveScoutToProxy
 {
 	UNIT_TYPEID buildingId = data->unitIds[data->index];

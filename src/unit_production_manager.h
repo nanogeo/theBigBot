@@ -35,6 +35,7 @@ public:
 	}
 	void DisplayBuildingStatuses();
 
+	void SetAutomaticUnitProduction(bool);
 	void SetWarpgateProduction(UNIT_TYPEID);
 	void SetRoboProduction(UNIT_TYPEID);
 	void SetStargateProduction(UNIT_TYPEID);

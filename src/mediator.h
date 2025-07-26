@@ -121,6 +121,7 @@ public:
 	bool BuildBuilding(UNIT_TYPEID);
 	void BuildBuilding(UNIT_TYPEID, Point2D, const Unit*);
 	void BuildBuildingMulti(std::vector<UNIT_TYPEID>, Point2D, const Unit*);
+	void BuildBuildingWhenAble(UNIT_TYPEID);
 	//void BuildBuilding(UNIT_TYPEID);
 	//void BuildGas(const Unit*);
 	int NumFar3rdWorkers();
@@ -229,6 +230,10 @@ public:
 	void CancelWarpgateUnitProduction();
 	void CancelRoboUnitProduction();
 	void CancelStargateUnitProduction();
+	void SetAutomaticUnitProduction(bool);
+	std::map<UNIT_TYPEID, int> GetTargetUnitComp();
+	void IncreaseUnitAmountInTargetComposition(UNIT_TYPEID, int);
+	void DecreaseUnitAmountInTargetComposition(UNIT_TYPEID, int);
 	void SetWarpInAtProxy(bool);
 	UnitCost CalculateCostOfProduction();
 	int GetNumWarpgatesReady();
@@ -237,6 +242,8 @@ public:
 	bool WarpInUnitsAt(UNIT_TYPEID, int, Point2D);
 	std::vector<Point2D> FindWarpInSpots(Point2D);
 	bool TestWarpInSpot(Point2D);
+
+	void AddZergTransitions();
 
 	ArmyGroup* GetArmyGroupDefendingBase(Point2D);
 	ArmyGroup* GetDoorGuardArmyGroup();

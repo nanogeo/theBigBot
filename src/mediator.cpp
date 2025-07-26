@@ -619,6 +619,11 @@ void Mediator::BuildBuildingMulti(std::vector<UNIT_TYPEID> buildingIds, Point2D 
 	action_manager.AddAction(new ActionData(&ActionManager::ActionBuildBuildingMulti, new ActionArgData(probe, buildingIds, position, 0)));
 }
 
+void Mediator::BuildBuildingWhenAble(UNIT_TYPEID buildingId)
+{
+	action_manager.AddAction(new ActionData(&ActionManager::ActionBuildBuildingWhenAble, new ActionArgData(buildingId)));
+}
+
 int Mediator::NumFar3rdWorkers()
 {
 	return worker_manager.GetExtraWorkersOnMinerals();
@@ -1857,6 +1862,26 @@ void Mediator::CancelStargateUnitProduction()
 	unit_production_manager.SetStargateProduction(UNIT_TYPEID::INVALID);
 }
 
+void Mediator::SetAutomaticUnitProduction(bool value)
+{
+	unit_production_manager.SetAutomaticUnitProduction(value);
+}
+
+std::map<UNIT_TYPEID, int> Mediator::GetTargetUnitComp()
+{
+	return unit_production_manager.GetTargetUnitComp();
+}
+
+void Mediator::IncreaseUnitAmountInTargetComposition(UNIT_TYPEID unit_type, int amount)
+{
+	unit_production_manager.IncreaseUnitAmountInTargetComposition(unit_type, amount);
+}
+
+void Mediator::DecreaseUnitAmountInTargetComposition(UNIT_TYPEID unit_type, int amount)
+{
+	unit_production_manager.DecreaseUnitAmountInTargetComposition(unit_type, amount);
+}
+
 void Mediator::SetWarpInAtProxy(bool status)
 {
 	unit_production_manager.SetWarpInAtProxy(status);
@@ -1957,6 +1982,11 @@ bool Mediator::TestWarpInSpot(Point2D position)
 		return false;
 
 	return true;
+}
+
+void Mediator::AddZergTransitions()
+{
+	transition_manager.AddZergTransitions();
 }
 
 ArmyGroup* Mediator::GetArmyGroupDefendingBase(Point2D pos)

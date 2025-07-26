@@ -301,6 +301,10 @@ void UnitProductionManager::DisplayBuildingStatuses()
 
 }
 
+void UnitProductionManager::SetAutomaticUnitProduction(bool value)
+{
+	automatic_unit_production = value;
+}
 
 void UnitProductionManager::SetWarpgateProduction(UNIT_TYPEID unit_type)
 {

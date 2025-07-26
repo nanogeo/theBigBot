@@ -23,7 +23,7 @@ public:
 
 	void CheckTransitions();
 
-	void AddTransitionsForOracleGatewaymanPvZ();
+	void AddZergTransitions();
 	void AddTransitionsFor4GateBlinkPvT();
 	// TODO can these be private
 	bool WorkerRushTransitionCondition() const;
@@ -37,6 +37,14 @@ public:
 	bool FixEarlySupplyBlockCondition() const;
 	bool FixEarlySupplyBlockRemoveCondition() const;
 	void FixEarlySupplyBlockEnterAction();
+
+	bool NullRemoveCondition() const;
+
+	bool PvZAddColossusCondition() const;
+	void PvZAddColossusEnterAction();
+
+	bool PvZAddImmortalCondition() const;
+	void PvZAddImmortalEnterAction();
 
 };
 

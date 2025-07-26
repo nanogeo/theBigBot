@@ -46,19 +46,19 @@ void TransitionManager::CheckTransitions()
 
 }
 
-void TransitionManager::AddTransitionsForOracleGatewaymanPvZ()
+void TransitionManager::AddZergTransitions()
 {
 	// charge, colo, immortal, phoenix
 	// lots of bases and defending with queen, ling, hydra & not roaches -> charge
 	// defending with mostly ling, hydra -> colo
 	// defending with mostly roaches -> immortal
 	// harassing with muta -> phoenix
-	int num_queens = mediator->GetEnemyUnitCount(QUEEN);
-	int num_zerglings = mediator->GetEnemyUnitCount(ZERGLING);
-	int num_hydralisks = mediator->GetEnemyUnitCount(HYDRA);
-	int num_roaches = mediator->GetEnemyUnitCount(ROACH);
 
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddColossusCondition,
+		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddColossusEnterAction));
 
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddImmortalCondition,
+		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddImmortalEnterAction));
 }
 
 void TransitionManager::AddTransitionsFor4GateBlinkPvT()
@@ -154,6 +154,43 @@ bool TransitionManager::FixEarlySupplyBlockRemoveCondition() const
 void TransitionManager::FixEarlySupplyBlockEnterAction()
 {
 	mediator->AddUniqueAction(&ActionManager::ActionContinueBuildingPylons, new ActionArgData());
+}
+
+bool TransitionManager::NullRemoveCondition() const
+{
+	return false;
+}
+
+bool TransitionManager::PvZAddColossusCondition() const
+{
+	if (mediator->GetEnemyUnitCount(ZERGLING) > 30 || mediator->GetEnemyUnitCount(HYDRA) > 5)
+		return true;
+	return false;
+}
+
+void TransitionManager::PvZAddColossusEnterAction()
+{
+	if (mediator->GetNumUnits(ROBO) == 0)
+		mediator->BuildBuilding(ROBO);
+	if (mediator->GetNumUnits(ROBO_BAY) == 0)
+		mediator->BuildBuildingWhenAble(ROBO_BAY);
+	mediator->IncreaseUnitAmountInTargetComposition(COLOSSUS, 3);
+	mediator->IncreaseUnitAmountInTargetComposition(PRISM, 1);
+}
+
+bool TransitionManager::PvZAddImmortalCondition() const
+{
+	if (mediator->GetEnemyUnitCount(ROACH) > 20)
+		return true;
+	return false;
+}
+
+void TransitionManager::PvZAddImmortalEnterAction()
+{
+	if (mediator->GetNumUnits(ROBO) == 0)
+		mediator->BuildBuilding(ROBO);
+	mediator->IncreaseUnitAmountInTargetComposition(IMMORTAL, 5);
+	mediator->IncreaseUnitAmountInTargetComposition(PRISM, 1);
 }
 
 }

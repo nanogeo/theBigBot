@@ -532,6 +532,17 @@ bool BuildOrderManager::ContinueExpanding(BuildOrderResultArgData data)
 	return true;
 }
 
+bool BuildOrderManager::ContinueMacro(BuildOrderResultArgData data)
+{
+	mediator->AddUniqueAction(&ActionManager::ActionContinueBuildingPylons, new ActionArgData());
+	mediator->AddUniqueAction(&ActionManager::ActionContinueMakingWorkers, new ActionArgData());
+	mediator->AddUniqueAction(&ActionManager::ActionContinueUpgrades, new ActionArgData());
+	mediator->AddUniqueAction(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData());
+	mediator->AddUniqueAction(&ActionManager::ActionContinueExpanding, new ActionArgData());
+	mediator->SetBalanceIncome(true);
+	return true;
+}
+
 bool BuildOrderManager::TrainFromProxy(BuildOrderResultArgData data)
 {
 	return mediator->TrainFromProxyRobo();
@@ -1356,6 +1367,15 @@ bool BuildOrderManager::EnergyRechargeOracle(BuildOrderResultArgData data)
 	return false;
 }
 
+bool BuildOrderManager::AddOracleGatewaymanPvZTransitions(BuildOrderResultArgData data)
+{
+	mediator->SetAutomaticUnitProduction(true);
+	mediator->IncreaseUnitAmountInTargetComposition(ORACLE, 3);
+	mediator->IncreaseUnitAmountInTargetComposition(STALKER, 20);
+	mediator->AddZergTransitions();
+	return true;
+}
+
 bool BuildOrderManager::SpawnArmy(BuildOrderResultArgData data)
 {
 	//mediator->agent->Debug()->DebugCreateUnit(ORACLE, mediator->agent->locations->attack_path[0], 2, 1);
@@ -1711,25 +1731,10 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(270.0f),			&BuildOrderManager::CancelStargateUnitProduction,		Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(305.0f),			&BuildOrderManager::ChronoBuilding,						Result(FORGE)),
+					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::ContinueMacro,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::AddOracleGatewaymanPvZTransitions,	Result()),
 
-					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, PYLON })),
 
-					Data(&BuildOrderManager::TimePassed,			Condition(330.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),		&BuildOrderManager::ResearchCharge,						Result()),
-					Data(&BuildOrderManager::HasBuilding,			Condition(TWILIGHT),		&BuildOrderManager::ChronoTillFinished,					Result(TWILIGHT)),
-					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					//Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					//Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::ContinueUpgrades,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(370.0f),			&BuildOrderManager::BalanceIncome,						Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(420.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(420.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
-					Data(&BuildOrderManager::TimePassed,			Condition(500.0f),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
-					Data(&BuildOrderManager::TimePassed,			Condition(500.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({FLEET_BEACON, STARGATE})),
-					Data(&BuildOrderManager::HasBuilding,			Condition(FLEET_BEACON),	&BuildOrderManager::SetUnitProduction,					Result(CARRIER)),
-					Data(&BuildOrderManager::TimePassed,			Condition(600.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 	};
 }
 

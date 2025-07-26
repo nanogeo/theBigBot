@@ -154,6 +154,7 @@ private:
 	bool ContinueUpgrades(BuildOrderResultArgData);
 	bool ContinueSpendingNexusEnergy(BuildOrderResultArgData);
 	bool ContinueExpanding(BuildOrderResultArgData);
+	bool ContinueMacro(BuildOrderResultArgData);
 	bool TrainFromProxy(BuildOrderResultArgData);
 	bool ContinueChronoProxyRobo(BuildOrderResultArgData);
 	bool Contain(BuildOrderResultArgData);
@@ -210,6 +211,8 @@ private:
 	bool StopTempUnitProduction(BuildOrderResultArgData);
 	bool CheckForBunkerRush(BuildOrderResultArgData);
 	bool EnergyRechargeOracle(BuildOrderResultArgData);
+
+	bool AddOracleGatewaymanPvZTransitions(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 
@@ -478,6 +481,10 @@ struct BuildOrderData
 		{
 		str += "macro expanding";
 		}
+		else if (result == &BuildOrderManager::ContinueMacro)
+		{
+			str += "continue macro";
+		}
 		else if (result == &BuildOrderManager::TrainFromProxy)
 		{
 			str += "train units from proxy ";
@@ -698,6 +705,10 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::EnergyRechargeOracle)
 		{
 			str += "energy recharge oracle";
+		}
+		else if (result == &BuildOrderManager::AddOracleGatewaymanPvZTransitions)
+		{
+			str += "add transitions";
 		}
 
 		return str;
