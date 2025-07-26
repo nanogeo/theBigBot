@@ -435,6 +435,24 @@ bool ActionManager::ActionContinueSpendingNexusEnergy(ActionArgData* data)
 
 bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 {
+	GameState game_state = mediator->GetGameState();
+	switch (game_state.game_state_worker)
+	{
+	case GameStateWorker::slightly_more:
+	case GameStateWorker::much_more:
+		// dont expand if we have more workers
+		return false;
+	case GameStateWorker::even:
+		if (game_state.good_worker_intel || mediator->GetOngoingAttacks().size() > 0)
+			return false;
+		break;
+	case GameStateWorker::slightly_less:
+		if (mediator->GetOngoingAttacks().size() > 0)
+			return false;
+		break;
+	case GameStateWorker::much_less:
+		break;
+	}
 
 	if (mediator->NumFar3rdWorkers() > 0)
 	{
