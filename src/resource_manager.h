@@ -34,6 +34,14 @@ struct ActiveCost
 		this->upgrade = upgrade;
 		this->cost = Utility::GetCost(upgrade);
 	}
+	bool operator==(const ActiveCost& rhs) const
+	{
+		return (position == rhs.position &&
+			unit == rhs.unit &&
+			unit_type == rhs.unit_type &&
+			upgrade == rhs.upgrade &&
+			cost == rhs.cost);
+	}
 };
 
 class ResourceManager
@@ -43,6 +51,7 @@ private:
 	// oracles
 	std::vector<ActiveCost> active_costs;
 	UnitCost current_resources = UnitCost(0, 0, 0);
+	void AddCost(ActiveCost);
 
 public:
 	ResourceManager(Mediator* mediator)

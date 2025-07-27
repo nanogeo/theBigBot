@@ -6,6 +6,17 @@
 namespace sc2
 {
 
+void ResourceManager::AddCost(ActiveCost new_cost)
+{
+	for (const auto& cost : active_costs)
+	{
+		if (cost == new_cost)
+			return;
+	}
+	active_costs.push_back(new_cost);
+	current_resources -= new_cost.cost;
+}
+
 void ResourceManager::UpdateResources()
 {
 	current_resources = mediator->GetCurrentResources();
@@ -113,8 +124,7 @@ bool ResourceManager::SpendResources(UNIT_TYPEID unit_type, const Unit* unit)
 	if (CanAfford(unit_type) == false)
 		return false;
 	ActiveCost new_cost = ActiveCost(unit, unit_type);
-	current_resources -= new_cost.cost;
-	active_costs.push_back(new_cost);
+	AddCost(new_cost);
 	return true;
 }
 
@@ -123,8 +133,7 @@ bool ResourceManager::SpendResources(UNIT_TYPEID unit_type, Point2D position)
 	if (CanAfford(unit_type) == false)
 		return false;
 	ActiveCost new_cost = ActiveCost(position, unit_type);
-	current_resources -= new_cost.cost;
-	active_costs.push_back(new_cost);
+	AddCost(new_cost);
 	return true;
 }
 
@@ -133,8 +142,7 @@ bool ResourceManager::SpendResources(UPGRADE_ID upgrade, const Unit* unit)
 	if (CanAfford(upgrade) == false)
 		return false;
 	ActiveCost new_cost = ActiveCost(unit, upgrade);
-	current_resources -= new_cost.cost;
-	active_costs.push_back(new_cost);
+	AddCost(new_cost);
 	return true;
 }
 
