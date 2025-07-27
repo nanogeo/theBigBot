@@ -59,6 +59,9 @@ void TransitionManager::AddZergTransitions()
 
 	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddImmortalCondition,
 		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddImmortalEnterAction));
+
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddZealotCondition,
+		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddZealotEnterAction));
 }
 
 void TransitionManager::AddTransitionsFor4GateBlinkPvT()
@@ -159,6 +162,27 @@ void TransitionManager::FixEarlySupplyBlockEnterAction()
 bool TransitionManager::NullRemoveCondition() const
 {
 	return false;
+}
+
+bool TransitionManager::PvZAddZealotCondition() const
+{
+	std::map<UNIT_TYPEID, int> target_comp = mediator->GetTargetUnitComp();
+	int units_needed = 0;
+	int units_filled = 0;
+	for (const auto& target : target_comp)
+	{
+		units_filled += mediator->GetNumUnits(target.first);
+		units_needed += target.second;
+	}
+	return (float)(units_filled) / units_needed > .8f && mediator->GetAvailableResources().mineral_cost > 500;
+}
+
+void TransitionManager::PvZAddZealotEnterAction()
+{
+	mediator->AddRequiredUpgrade(U_CHARGE);
+	mediator->IncreaseUnitAmountInTargetComposition(ZEALOT, 15);
+	if (mediator->GetNumUnits(FORGE) + mediator->GetNumBuildActions(FORGE) < 2)
+		mediator->BuildBuilding(FORGE);
 }
 
 bool TransitionManager::PvZAddColossusCondition() const

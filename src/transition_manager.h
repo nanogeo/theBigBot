@@ -40,6 +40,9 @@ public:
 
 	bool NullRemoveCondition() const;
 
+	bool PvZAddZealotCondition() const;
+	void PvZAddZealotEnterAction();
+
 	bool PvZAddColossusCondition() const;
 	void PvZAddColossusEnterAction();
 
