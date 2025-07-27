@@ -25,7 +25,7 @@ namespace sc2 {
 		desired_units = army_template->desired_units;
 		max_units = army_template->max_units;
 
-		attack_path = mediator->GetIndirectAttackPath();
+		attack_path = mediator->GetAltAttackPath();
 	}
 
 	void SimpleAttackArmyGroup::SetUp()
