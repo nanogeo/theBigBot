@@ -3340,46 +3340,60 @@ UnitCost Utility::GetCost(UPGRADE_ID upgrade_id)
 {
 	switch (upgrade_id)
 	{
-	case UPGRADE_ID::WARPGATERESEARCH:
-		return UnitCost(50, 50, 0);
-	case UPGRADE_ID::BLINKTECH:
-		return UnitCost(150, 150, 0);
-	case UPGRADE_ID::CHARGE:
-		return UnitCost(100, 100, 0);
-	case UPGRADE_ID::ADEPTPIERCINGATTACK:
-		return UnitCost(100, 100, 0);
-	case UPGRADE_ID::DARKTEMPLARBLINKUPGRADE:
-		return UnitCost(100, 100, 0);
-	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1:
-		return UnitCost(100, 100, 0);
-	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2:
-		return UnitCost(150, 150, 0);
-	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL3:
-		return UnitCost(200, 200, 0);
-	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL1:
-		return UnitCost(100, 100, 0);
-	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL2:
-		return UnitCost(150, 150, 0);
-	case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL3:
-		return UnitCost(200, 200, 0);
-	case UPGRADE_ID::PROTOSSSHIELDSLEVEL1:
-		return UnitCost(150, 150, 0);
-	case UPGRADE_ID::PROTOSSSHIELDSLEVEL2:
-		return UnitCost(225, 225, 0);
-	case UPGRADE_ID::PROTOSSSHIELDSLEVEL3:
-		return UnitCost(300, 300, 0);
-	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL1:
-		return UnitCost(150, 150, 0);
-	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL2:
-		return UnitCost(225, 225, 0);
-	case UPGRADE_ID::PROTOSSAIRARMORSLEVEL3:
-		return UnitCost(300, 300, 0);
-	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1:
-		return UnitCost(100, 100, 0);
-	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL2:
-		return UnitCost(175, 175, 0);
-	case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL3:
-		return UnitCost(250, 250, 0);
+case U_WARPGATE:
+	return UnitCost(50, 50, 0);
+case U_BLINK:
+	return UnitCost(150, 150, 0);
+case U_CHARGE:
+	return UnitCost(100, 100, 0);
+case U_GLAIVES:
+	return UnitCost(100, 100, 0);
+case U_DT_BLINK:
+	return UnitCost(100, 100, 0);
+case U_STORM:
+	return UnitCost(200, 200, 0);
+case U_THERMAL_LANCE:
+	return UnitCost(150, 150, 0);
+case U_PRISM_SPEED:
+	return UnitCost(100, 100, 0);
+case U_OBS_SPEED:
+	return UnitCost(100, 100, 0);
+case U_PHOENIX_RANGE:
+	return UnitCost(150, 150, 0);
+case U_FLUX_VANES:
+	return UnitCost(150, 150, 0);
+case U_TECTONIC_DESTABALIZERS:
+	return UnitCost(150, 150, 0);
+case U_GROUND_WEAPONS_1:
+	return UnitCost(100, 100, 0);
+case U_GROUND_WEAPONS_2:
+	return UnitCost(150, 150, 0);
+case U_GROUND_WEAPONS_3:
+	return UnitCost(200, 200, 0);
+case U_GROUND_ARMOR_1:
+	return UnitCost(100, 100, 0);
+case U_GROUND_ARMOR_2:
+	return UnitCost(150, 150, 0);
+case U_GROUND_ARMOR_3:
+	return UnitCost(200, 200, 0);
+case U_SHIELDS_1:
+	return UnitCost(150, 150, 0);
+case U_SHIELDS_2:
+	return UnitCost(225, 225, 0);
+case U_SHIELDS_3:
+	return UnitCost(300, 300, 0);
+case U_AIR_WEAPONS_1:
+	return UnitCost(150, 150, 0);
+case U_AIR_WEAPONS_2:
+	return UnitCost(225, 225, 0);
+case U_AIR_WEAPONS_3:
+	return UnitCost(300, 300, 0);
+case U_AIR_ARMOR_1:
+	return UnitCost(100, 100, 0);
+case U_AIR_ARMOR_2:
+	return UnitCost(175, 175, 0);
+case U_AIR_ARMOR_3:
+	return UnitCost(250, 250, 0);
 	default:
 		std::cerr << "Error invalid upgrade id in GetCost " << UpgradeIDToName(upgrade_id) << std::endl;
 		return UnitCost(0, 0, 0);;
