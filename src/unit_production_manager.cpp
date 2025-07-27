@@ -9,40 +9,11 @@ namespace sc2
 	
 void UnitProductionManager::RunAutomaticUnitProduction()
 {
-	std::map<UNIT_TYPEID, int> units;
-	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Self))
-	{
-		if (units.find(unit->unit_type) != units.end())
-			units[unit->unit_type] = units[unit->unit_type] + 1;
-		else
-			units[unit->unit_type] = 1;
-	}
-
 	std::map<UNIT_TYPEID, int> needed_gateway_units;
 	std::map<UNIT_TYPEID, int> needed_robo_units;
 	std::map<UNIT_TYPEID, int> needed_stargate_units;
 
-	for (const auto& unit_type : target_unit_comp)
-	{
-		if (unit_type.second > units[unit_type.first])
-		{
-			switch (Utility::GetBuildStructure(unit_type.first))
-			{
-			case GATEWAY:
-				needed_gateway_units[unit_type.first] = unit_type.second - units[unit_type.first];
-				break;
-			case STARGATE:
-				needed_stargate_units[unit_type.first] = unit_type.second - units[unit_type.first];
-				break;
-			case ROBO:
-				needed_robo_units[unit_type.first] = unit_type.second - units[unit_type.first];
-				break;
-			default:
-				std::cerr << "Error, unknown build structure in RunAutomaticUnitProduction for unit type: " << UnitTypeToName(unit_type.first) << std::endl;
-				break;
-			}
-		}
-	}
+	GetNeededUnits(needed_gateway_units, needed_robo_units, needed_stargate_units);
 
 	for (const auto& stargate : stargates)
 	{
@@ -239,6 +210,42 @@ void UnitProductionManager::RunSpecificUnitProduction()
 	}
 }
 
+
+void UnitProductionManager::GetNeededUnits(std::map<UNIT_TYPEID, int>& needed_gateway_units, 
+	std::map<UNIT_TYPEID, int>& needed_robo_units, std::map<UNIT_TYPEID, int>& needed_stargate_units)
+{
+	std::map<UNIT_TYPEID, int> units;
+	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Self))
+	{
+		if (units.find(unit->unit_type) != units.end())
+			units[unit->unit_type] = units[unit->unit_type] + 1;
+		else
+			units[unit->unit_type] = 1;
+	}
+
+	for (const auto& unit_type : target_unit_comp)
+	{
+		if (unit_type.second > units[unit_type.first])
+		{
+			switch (Utility::GetBuildStructure(unit_type.first))
+			{
+			case GATEWAY:
+				needed_gateway_units[unit_type.first] = unit_type.second - units[unit_type.first];
+				break;
+			case STARGATE:
+				needed_stargate_units[unit_type.first] = unit_type.second - units[unit_type.first];
+				break;
+			case ROBO:
+				needed_robo_units[unit_type.first] = unit_type.second - units[unit_type.first];
+				break;
+			default:
+				std::cerr << "Error, unknown build structure in RunAutomaticUnitProduction for unit type: " << UnitTypeToName(unit_type.first) << std::endl;
+				break;
+			}
+		}
+	}
+}
+
 void UnitProductionManager::DisplayBuildingStatuses()
 {
 	std::string new_lines = "";
@@ -370,8 +377,71 @@ void UnitProductionManager::RunUnitProduction()
 		RunAutomaticUnitProduction();
 	else
 		RunSpecificUnitProduction();
+}
 
-	
+void UnitProductionManager::IncreaseProduction(UnitCost future_resources)
+{
+	if (mediator->GetNumBuildActions(FORGE) == 0 && mediator->GetNumUnits(FORGE) < 2 && warpgates.size() > 7) // temporary very arbitrary condition
+	{
+		mediator->BuildBuilding(FORGE);
+		return;
+	}
+
+	std::map<UNIT_TYPEID, int> needed_warpgate_units;
+	std::map<UNIT_TYPEID, int> needed_robo_units;
+	std::map<UNIT_TYPEID, int> needed_stargate_units;
+
+	GetNeededUnits(needed_warpgate_units, needed_robo_units, needed_stargate_units);
+
+	float missing_warpgate_time = 0;
+	for (const auto& need : needed_warpgate_units)
+	{
+		missing_warpgate_time += Utility::GetWarpCooldown(need.first) * need.second;
+	}
+	float missing_robo_time = 0;
+	for (const auto& need : needed_robo_units)
+	{
+		missing_robo_time += Utility::GetTrainingTime(need.first) * need.second;
+	}
+	float missing_stargate_time = 0;
+	for (const auto& need : needed_stargate_units)
+	{
+		missing_stargate_time += Utility::GetTrainingTime(need.first) * need.second;
+	}
+
+	/*missing_warpgate_time /= std::max((int)warpgates.size(), 1);
+	missing_robo_time /= std::max((int)robos.size(), 1);
+	missing_stargate_time /= std::max((int)stargates.size(), 1);*/
+
+	if (mediator->GetNumBuildActions(GATEWAY) + mediator->GetUnits(Unit::Alliance::Self, IsNotFinishedUnit(GATEWAY)).size() >= max_gateways_built_simultaneously)
+		missing_warpgate_time = 0;
+	if (mediator->GetNumBuildActions(ROBO) + mediator->GetUnits(Unit::Alliance::Self, IsNotFinishedUnit(ROBO)).size() >= max_robos_built_simultaneously)
+		missing_robo_time = 0;
+	if (mediator->GetNumBuildActions(STARGATE) + mediator->GetUnits(Unit::Alliance::Self, IsNotFinishedUnit(STARGATE)).size() >= max_stargates_built_simultaneously)
+		missing_stargate_time = 0;
+
+	// temporary arbitrary conditions can be tweaked
+	if (missing_warpgate_time > (warpgates.size() + mediator->GetNumBuildActions(GATEWAY)) * 30 &&
+		mediator->CanAfford(GATEWAY, 1) && 
+		warpgates.size() + mediator->GetNumBuildActions(GATEWAY) < total_target_gateway_units / 3)
+	{
+		mediator->BuildBuilding(GATEWAY);
+		return;
+	}
+	if (missing_robo_time > (robos.size() + mediator->GetNumBuildActions(ROBO)) * 30 &&
+		mediator->CanAfford(ROBO, 1) && 
+		robos.size() + mediator->GetNumBuildActions(ROBO) < total_target_robo_units / 3)
+	{
+		mediator->BuildBuilding(ROBO);
+		return;
+	}
+	if (missing_stargate_time > (stargates.size() + mediator->GetNumBuildActions(STARGATE)) * 30 &&
+		mediator->CanAfford(STARGATE, 1) && 
+		stargates.size() + mediator->GetNumBuildActions(STARGATE) < total_target_stargate_units / 3)
+	{
+		mediator->BuildBuilding(STARGATE);
+		return;
+	}
 }
 
 void UnitProductionManager::SetWarpInAtProxy(bool status)
@@ -685,6 +755,22 @@ std::map<UNIT_TYPEID, int> UnitProductionManager::GetTargetUnitComp() const
 
 void UnitProductionManager::IncreaseUnitAmountInTargetComposition(UNIT_TYPEID unit_type, int amount)
 {
+	switch (Utility::GetBuildStructure(unit_type))
+	{
+	case GATEWAY:
+		total_target_gateway_units += amount;
+		break;
+	case STARGATE:
+		total_target_robo_units += amount;
+		break;
+	case ROBO:
+		total_target_stargate_units += amount;
+		break;
+	default:
+		std::cerr << "Error, unknown build structure in IncreaseUnitAmountInTargetComposition for unit type: " << UnitTypeToName(unit_type) << std::endl;
+		break;
+	}
+
 	if (target_unit_comp.find(unit_type) != target_unit_comp.end())
 		target_unit_comp[unit_type] = target_unit_comp[unit_type] + amount;
 	else
@@ -693,6 +779,22 @@ void UnitProductionManager::IncreaseUnitAmountInTargetComposition(UNIT_TYPEID un
 
 void UnitProductionManager::DecreaseUnitAmountInTargetComposition(UNIT_TYPEID unit_type, int amount)
 {
+	switch (Utility::GetBuildStructure(unit_type))
+	{
+	case GATEWAY:
+		total_target_gateway_units -= std::min(total_target_gateway_units, amount);
+		break;
+	case STARGATE:
+		total_target_robo_units -= std::min(total_target_gateway_units, amount);
+		break;
+	case ROBO:
+		total_target_stargate_units -= std::min(total_target_gateway_units, amount);
+		break;
+	default:
+		std::cerr << "Error, unknown build structure in DecreaseUnitAmountInTargetComposition for unit type: " << UnitTypeToName(unit_type) << std::endl;
+		break;
+	}
+
 	if (target_unit_comp.find(unit_type) != target_unit_comp.end())
 	{
 		if (target_unit_comp[unit_type] > amount)

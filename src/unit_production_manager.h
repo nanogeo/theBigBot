@@ -21,12 +21,20 @@ private:
 	UNIT_TYPEID stargate_production = UNIT_TYPEID::INVALID;
 	std::map<UNIT_TYPEID, int> target_unit_comp;
 	bool automatic_unit_production = false;
+	int max_gateways_built_simultaneously = 3; // these may need tweaking
+	int max_robos_built_simultaneously = 1;
+	int max_stargates_built_simultaneously = 1;
+	int total_target_gateway_units = 0;
+	int total_target_robo_units = 0;
+	int total_target_stargate_units = 0;
 
 	std::map<const Unit*, WarpgateStatus> warpgate_status;
 	bool warp_in_at_proxy = false;
 
 	void RunAutomaticUnitProduction();
 	void RunSpecificUnitProduction();
+
+	void GetNeededUnits(std::map<UNIT_TYPEID, int>&, std::map<UNIT_TYPEID, int>&, std::map<UNIT_TYPEID, int>&);
 
 public:
 	UnitProductionManager(Mediator* mediator)
@@ -45,6 +53,7 @@ public:
 
 	void OnBuildingConstructionComplete(const Unit*); // TODO on unit destroyed
 	void RunUnitProduction();
+	void IncreaseProduction(UnitCost);
 
 	void SetWarpInAtProxy(bool);
 	std::vector<Point2D> FindWarpInSpots(Point2D) const;

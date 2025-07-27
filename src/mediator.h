@@ -242,6 +242,7 @@ public:
 	bool WarpInUnitsAt(UNIT_TYPEID, int, Point2D);
 	std::vector<Point2D> FindWarpInSpots(Point2D);
 	bool TestWarpInSpot(Point2D);
+	void IncreaseProduction(UnitCost);
 
 	void StartUpgradeManager();
 	void AddRequiredUpgrade(UPGRADE_ID);

@@ -1065,6 +1065,7 @@ void WorkerManager::BalanceWorkers()
 		else if (excess_gas && excess_minerals)
 		{
 			// build more production
+			mediator->IncreaseProduction(future_resources);
 		}
 		else if (future_resources.mineral_cost < 0 && future_resources.vespene_cost > 0)
 		{

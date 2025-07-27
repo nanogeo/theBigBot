@@ -509,6 +509,12 @@ struct UnitCost
 	{
 		return UnitCost(mineral_cost * num, vespene_cost * num, supply * num);
 	}
+	bool operator==(const UnitCost& rhs) const
+	{
+		return (mineral_cost == rhs.mineral_cost &&
+			vespene_cost == rhs.vespene_cost &&
+			supply == rhs.supply);
+	}
 };
 
 struct EnemyUnitPosition

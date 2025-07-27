@@ -1973,6 +1973,11 @@ bool Mediator::TestWarpInSpot(Point2D position)
 	return true;
 }
 
+void Mediator::IncreaseProduction(UnitCost future_resources)
+{
+	unit_production_manager.IncreaseProduction(future_resources);
+}
+
 void Mediator::StartUpgradeManager()
 {
 	upgrade_manager.StartUpgradeManager();
