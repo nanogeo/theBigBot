@@ -113,6 +113,7 @@ public:
 	void AddBuildingToDoNotRebuild(Point2D);
 
 	void SendChat(std::string, ChatChannel);
+	void TagWithTimestamp(std::string);
 	void LogMinorError();
 	void DebugSphere(Point3D, float, Color);
 	void DebugText(std::string, Point2D, Color, int);

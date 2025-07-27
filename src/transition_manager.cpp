@@ -156,6 +156,7 @@ bool TransitionManager::FixEarlySupplyBlockRemoveCondition() const
 
 void TransitionManager::FixEarlySupplyBlockEnterAction()
 {
+	mediator->TagWithTimestamp("transition_fix_supply_block");
 	mediator->AddUniqueAction(&ActionManager::ActionContinueBuildingPylons, new ActionArgData());
 }
 
@@ -179,6 +180,7 @@ bool TransitionManager::PvZAddZealotCondition() const
 
 void TransitionManager::PvZAddZealotEnterAction()
 {
+	mediator->TagWithTimestamp("transition_charge");
 	mediator->AddRequiredUpgrade(U_CHARGE);
 	mediator->IncreaseUnitAmountInTargetComposition(ZEALOT, 15);
 	if (mediator->GetNumUnits(FORGE) + mediator->GetNumBuildActions(FORGE) < 2)
@@ -194,6 +196,7 @@ bool TransitionManager::PvZAddColossusCondition() const
 
 void TransitionManager::PvZAddColossusEnterAction()
 {
+	mediator->TagWithTimestamp("transition_colossus");
 	if (mediator->GetNumUnits(ROBO) == 0)
 		mediator->BuildBuilding(ROBO);
 	if (mediator->GetNumUnits(ROBO_BAY) == 0)
@@ -212,6 +215,7 @@ bool TransitionManager::PvZAddImmortalCondition() const
 
 void TransitionManager::PvZAddImmortalEnterAction()
 {
+	mediator->TagWithTimestamp("transition_immortal");
 	if (mediator->GetNumUnits(ROBO) == 0)
 		mediator->BuildBuilding(ROBO);
 	mediator->IncreaseUnitAmountInTargetComposition(IMMORTAL, 5);

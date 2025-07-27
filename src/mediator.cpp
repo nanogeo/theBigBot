@@ -566,6 +566,15 @@ void Mediator::SendChat(std::string message, ChatChannel channel)
 	agent->Actions()->SendChat(message, channel);
 }
 
+
+void Mediator::TagWithTimestamp(std::string message)
+{
+	int time = (int)GetCurrentTime();
+	int minutes = time / 60;
+	int seconds = time % 60;
+	SendChat(message + '_' + std::to_string(minutes) + ':' + std::to_string(seconds), ChatChannel::Team);
+}
+
 void Mediator::LogMinorError()
 {
 	if (!minor_error_logged)
