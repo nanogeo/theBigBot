@@ -47,7 +47,7 @@ void ArmyManager::CreateTerranArmyTemplates()
 
 void ArmyManager::CreateZergArmyTemplates()
 {
-	std::vector<UNIT_TYPEID> stalker_oracle_types = { STALKER, ORACLE };
+	std::vector<UNIT_TYPEID> stalker_oracle_types = { STALKER, ORACLE, IMMORTAL, COLOSSUS, PRISM };
 	std::map<UNIT_TYPEID, int> stalker_oracle_req;
 	stalker_oracle_req[STALKER] = 7;
 	stalker_oracle_req[ORACLE] = 2;
