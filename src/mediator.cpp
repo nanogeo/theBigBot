@@ -763,15 +763,12 @@ void Mediator::SetWorkerRushDefenseBuidOrder()
 Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 {
 	std::vector<Point2D> possible_locations;
-	int pending_buildings = 0;
+	std::vector<Point2D> pending_buildings;
 	for (const auto& action : action_manager.GetActiveActions())
 	{
 		if (action->action == &ActionManager::ActionBuildBuilding)
 		{
-			if (action->action_arg->unitId == unit_type)
-			{
-				pending_buildings++;
-			}
+			pending_buildings.push_back(action->action_arg->position);
 		}
 	}
 
@@ -812,7 +809,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 		bool in_energy_field = (unit_type == PYLON || unit_type == ASSIMILATOR || unit_type == NEXUS);
 		for (const auto& building : agent->Observation()->GetUnits(IsBuilding()))
 		{
-			if (Distance2D(building->pos, point) < 1)
+			if (Distance2D(building->pos, point) < 1 || std::find(pending_buildings.begin(), pending_buildings.end(), point) != pending_buildings.end())
 			{
 				blocked = true;
 				break;
@@ -828,10 +825,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 				in_base = true;
 		}
 		if (in_base && !blocked && in_energy_field)
-			if (pending_buildings == 0)
-				return point;
-			else
-				pending_buildings--;
+			return point;
 	}
 	// no point found but if building is a gateway/tech building then we can try in more spots
 	if (std::find(tech_buildings.begin(), tech_buildings.end(), unit_type) != tech_buildings.end())
@@ -855,7 +849,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 		bool in_energy_field = (unit_type == PYLON || unit_type == ASSIMILATOR || unit_type == NEXUS);
 		for (const auto& building : agent->Observation()->GetUnits(IsBuilding()))
 		{
-			if (Distance2D(building->pos, point) < 1)
+			if (Distance2D(building->pos, point) < 1 || std::find(pending_buildings.begin(), pending_buildings.end(), point) != pending_buildings.end())
 			{
 				blocked = true;
 				break;
@@ -871,10 +865,7 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 				in_base = true;
 		}
 		if (in_base && !blocked && in_energy_field)
-			if (pending_buildings == 0)
-				return point;
-			else
-				pending_buildings--;
+			return point;
 
 	}
 
