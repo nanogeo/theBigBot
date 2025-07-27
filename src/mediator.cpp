@@ -836,12 +836,6 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 	else
 	{
 		std::cerr << "Error no viable point found in GetLocation for type " << UnitTypeToName(unit_type) << std::endl;
-		std::cerr << "Possible locations:" << std::endl;
-		for (const auto& location : possible_locations)
-		{
-			std::cerr << location.x << ", " << location.y << std::endl;
-		}
-		std::cerr << std::endl;
 		return Point2D(0, 0);
 	}
 
@@ -876,12 +870,6 @@ Point2D Mediator::GetLocation(UNIT_TYPEID unit_type)
 	}
 
 	std::cerr << "Error no viable point found in GetLocation for type " << UnitTypeToName(unit_type) << std::endl;
-	std::cerr << "Possible locations:" << std::endl;
-	for (const auto& location : possible_locations)
-	{
-		std::cerr << location.x << ", " << location.y << std::endl;
-	}
-	std::cerr << std::endl;
 	return Point2D(0, 0);
 }
 
