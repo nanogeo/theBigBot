@@ -149,7 +149,7 @@ bool TransitionManager::FixEarlySupplyBlockCondition() const
 
 bool TransitionManager::FixEarlySupplyBlockRemoveCondition() const
 {
-	if (!mediator->HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
+	if (mediator->HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
 		return true;
 	return false;
 }
