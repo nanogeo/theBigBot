@@ -76,7 +76,7 @@ void DefenseManager::UpdateOngoingAttacks()
 		}
 		bool sim_city = (mediator->GetEnemyRace() == Race::Zerg && mediator->GetNaturalLocation() == attack.location) ? true : false;
 		attack.status = JudgeFight(close_allies, close_enemies, 0.0f, total_energy, sim_city);
-		std::cerr << "Attack at " << attack.location.x << ", " << attack.location.y << " current value " << attack.status<< std::endl;
+		std::cerr << "Attack at " << attack.location.x << ", " << attack.location.y << " current value " << attack.status << std::endl;
 		if (attack.status < 0 && run_defense_manager)
 		{
 			scary_attack = true;
@@ -85,19 +85,19 @@ void DefenseManager::UpdateOngoingAttacks()
 
 			if (!temp_warpgate_production && mediator->GetWarpgateProduction() == UNIT_TYPEID::INVALID)
 			{
-				temp_warpgate_production = true;
 				mediator->SetUnitProduction(STALKER);
+				temp_warpgate_production = true;
 			}
 			if (!temp_robo_production && mediator->GetRoboProduction() == UNIT_TYPEID::INVALID)
 			{
-				temp_robo_production = true;
 				mediator->SetUnitProduction(IMMORTAL);
+				temp_robo_production = true;
 				
 			}
 			if (!temp_stargate_production && mediator->GetStargateProduction() == UNIT_TYPEID::INVALID)
 			{
-				temp_stargate_production = true;
 				mediator->SetUnitProduction(VOID_RAY);
+				temp_stargate_production = true;
 			}
 
 			// make a new battery
