@@ -8,6 +8,8 @@ namespace sc2 {
 ScoutBasesArmyGroup::ScoutBasesArmyGroup(Mediator* mediator) : ArmyGroup(mediator)
 {
 	this->unit_types = unit_types;
+	desired_units = 1;
+	max_units = 1;
 
 	this->base_locations = mediator->GetAllBases();
 	unit_types = { ZEALOT, ADEPT, STALKER }; // TODO maybe add flying units phoenix/oracle?
@@ -32,7 +34,7 @@ void ScoutBasesArmyGroup::Run()
 			}
 			current_target = Utility::ClosestTo(base_locations, all_units[0]->pos);
 		}
-		mediator->SetUnitsCommand(all_units, A_MOVE, current_target, CommandPriorty::low);
+		mediator->SetUnitCommand(all_units[0], A_MOVE, current_target, CommandPriorty::low);
 	}
 	else
 	{
