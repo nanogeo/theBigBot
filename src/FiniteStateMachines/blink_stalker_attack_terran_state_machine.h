@@ -10,7 +10,7 @@ class Mediator;
 class BlinkStalkerAttackTerran;
 class ArmyGroup;
 
-enum BlinkAtackLocation
+enum BlinkAttackLocation
 {
 	main,
 	natural,
@@ -42,6 +42,24 @@ private:
 	class BlinkStalkerAttackTerran* state_machine;
 public:
 	BlinkStalkerAttackTerranConsolidate(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
+	{
+		this->mediator = mediator;
+		this->state_machine = state_machine;
+	}
+	virtual std::string toString() const override;
+	void TickState() override;
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual State* TestTransitions() override;
+};
+
+class BlinkStalkerAttackTerranAttackMain : public State
+{
+private:
+	class BlinkStalkerAttackTerran* state_machine;
+	const Unit* target = nullptr;
+public:
+	BlinkStalkerAttackTerranAttackMain(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
 		this->mediator = mediator;
 		this->state_machine = state_machine;
@@ -113,7 +131,6 @@ class BlinkStalkerAttackTerranLeaveHighground : public State
 {
 private:
 	class BlinkStalkerAttackTerran* state_machine;
-	Units stalkers_to_blink;
 public:
 	BlinkStalkerAttackTerranLeaveHighground(Mediator* mediator, BlinkStalkerAttackTerran* state_machine)
 	{
@@ -135,6 +152,7 @@ class BlinkStalkerAttackTerran : public StateMachine
 	friend BlinkStalkerAttackTerranMoveAcross;
 	friend BlinkStalkerAttackTerranConsolidate;
 	friend BlinkStalkerAttackTerranAttack;
+	friend BlinkStalkerAttackTerranAttackMain;
 	friend BlinkStalkerAttackTerranSnipeUnit;
 	friend BlinkStalkerAttackTerranBlinkUp;
 	friend BlinkStalkerAttackTerranLeaveHighground;
@@ -144,7 +162,7 @@ private:
 	Units attacking_stalkers;
 	Units standby_stalkers;
 	Units moving_to_standby_stalkers;
-	BlinkAtackLocation attack_location = BlinkAtackLocation::natural;
+	BlinkAttackLocation attack_location = BlinkAttackLocation::natural;
 	Point2D consolidation_pos;
 	Point2D default_consolidation_pos;
 	Point2D prism_consolidation_pos;
@@ -152,6 +170,7 @@ private:
 	Point2D blink_down_pos;
 	bool warping_in = false;
 
+	void GroupUpStandbyStalkers();
 public:
 	BlinkStalkerAttackTerran(Mediator* mediator, std::string name, Point2D consolidation_pos,
 		Point2D prism_consolidation_pos, Point2D blink_up_pos, Point2D blink_down_pos);
@@ -162,6 +181,9 @@ public:
 	void RemoveUnit(const Unit*) override;
 	void SetConsolidationPos(Point2D);
 	void ResetConsolidationPos();
+
+	void SetAttachedArmyGroup(BlinkFSMArmyGroup*);
+
 
 	~BlinkStalkerAttackTerran();
 };

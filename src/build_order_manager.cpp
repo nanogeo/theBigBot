@@ -978,10 +978,6 @@ bool BuildOrderManager::CheckTankCount(BuildOrderResultArgData data)
 
 bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 {
-	// get missing scvs
-	build_order_step = 0;
-	SetChargeAllInInterruptTerran();
-	return false;
 	int missing_scvs = 19;
 	for (const auto& unit : mediator->GetEnemySavedPositions())
 	{

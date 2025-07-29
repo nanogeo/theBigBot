@@ -211,7 +211,7 @@ void AttackArmyGroup::FindNewConcaveOrigin()
 	concave_origin = CalculateNewConcaveOrigin(close_enemies, desired_range, limit);
 }
 
-std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>& prism_positions)
+std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>& prism_positions, int num_units, int num_prisms)
 {
 	float min_height = mediator->ToPoint3D(concave_origin).z - .5f;
 	float max_height = min_height + 1;
@@ -220,8 +220,6 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 	//float concave_degree = 30; //p
 	int max_width = 4;
 
-	int num_units = (int)basic_units.size();
-	int num_prisms = (int)warp_prisms.size();
 
 	Point2D backward_vector = ((2 * concave_origin) - concave_target) - concave_origin;
 	Point2D forward_vector = concave_origin - ((2 * concave_origin) - concave_target);
@@ -1013,7 +1011,7 @@ AttackLineResult AttackArmyGroup::AttackLine()
 	
 	// Find positions
 	std::vector<Point2D> prism_positions;
-	std::vector<Point2D> concave_positions = FindConcaveWithPrism(prism_positions);
+	std::vector<Point2D> concave_positions = FindConcaveWithPrism(prism_positions, basic_units.size(), warp_prisms.size());
 
 	// assign units to positions
 	unit_position_asignments = AssignUnitsToPositions(basic_units, concave_positions);

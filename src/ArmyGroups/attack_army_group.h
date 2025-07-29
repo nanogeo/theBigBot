@@ -54,7 +54,7 @@ protected:
 	Point2D CalculateNewConcaveOrigin(Units, float, Point2D);
 	Point2D FindLimitToAdvance(std::vector<UNIT_TYPEID>, float, bool, int);
 	void FindNewConcaveOrigin();
-	std::vector<Point2D> FindConcaveWithPrism(std::vector<Point2D>&);
+	std::vector<Point2D> FindConcaveWithPrism(std::vector<Point2D>&, int, int);
 	std::vector<std::pair<const Unit*, UnitDanger>> CalculateUnitDanger();
 	std::map<const Unit*, Point2D> AssignUnitsToPositions(Units, std::vector<Point2D>);
 	void OraclesDefendArmy();
