@@ -141,7 +141,7 @@ void TransitionManager::ScourTransitionEnterAction()
 bool TransitionManager::FixEarlySupplyBlockCondition() const
 {
 	if (mediator->GetSupplyCap() - mediator->GetSupplyUsed() <= 1 &&
-		mediator->GetCurrentTime() > 60 &&
+		mediator->GetCurrentTime() > 180 &&
 		mediator->GetNumBuildActions(PYLON) == 0)
 		return true;
 	return false;
