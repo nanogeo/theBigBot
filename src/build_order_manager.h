@@ -197,7 +197,6 @@ private:
 	bool CancelStargateUnitProduction(BuildOrderResultArgData);
 	bool SetWarpInAtProxy(BuildOrderResultArgData);
 	bool AddToNaturalDefense(BuildOrderResultArgData);
-	bool CheckTankCount(BuildOrderResultArgData);
 	bool CheckForProxyRax(BuildOrderResultArgData);
 	bool CheckProtossOpening(BuildOrderResultArgData);
 	bool CheckProtossOpening2(BuildOrderResultArgData);
@@ -213,6 +212,7 @@ private:
 	bool EnergyRechargeOracle(BuildOrderResultArgData);
 
 	bool AddOracleGatewaymanPvZTransitions(BuildOrderResultArgData);
+	bool Add4GateBlinkPvTTransitions(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 
@@ -241,7 +241,6 @@ private:
 	void Set12PoolInterrupt();
 	void SetChargeAllInInterrupt();
 	void SetChargeAllInInterruptTerran();
-	void SetChargeTransition();
 	void SetMinorProxyRaxResponse();
 	void SetMajorProxyRaxResponse();
 	void SetProxyGateResponse();
@@ -649,10 +648,6 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::AddToNaturalDefense)
 		{
 			str += "add to natural defense";
-		}
-		else if (result == &BuildOrderManager::CheckTankCount)
-		{
-			str += "check tank count";
 		}
 		else if (result == &BuildOrderManager::CheckForProxyRax)
 		{

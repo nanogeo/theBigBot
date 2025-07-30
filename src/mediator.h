@@ -191,6 +191,7 @@ public:
 	void AddStateMachine(StateMachine*);
 	void RemoveStateMachine(StateMachine*);
 	void CreateFourGateBlinkFSM();
+	void DeleteFourGateBlinkFSM();
 	void CreateAdeptHarassProtossFSM();
 	void StartOracleHarassStateMachine(OutsideControlArmyGroup*);
 	void StartChargelotAllInStateMachine();
@@ -249,6 +250,7 @@ public:
 	void AddRequiredUpgrade(UPGRADE_ID);
 
 	void AddZergTransitions();
+	void AddTerranTransitions();
 
 	ArmyGroup* GetArmyGroupDefendingBase(Point2D);
 	ArmyGroup* GetDoorGuardArmyGroup();

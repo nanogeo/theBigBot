@@ -24,7 +24,7 @@ public:
 	void CheckTransitions();
 
 	void AddZergTransitions();
-	void AddTransitionsFor4GateBlinkPvT();
+	void AddTerranTransitions();
 	// TODO can these be private
 	bool WorkerRushTransitionCondition() const;
 	bool WorkerRushTransitionRemoveCondition() const;
@@ -49,6 +49,11 @@ public:
 	bool PvZAddImmortalCondition() const;
 	void PvZAddImmortalEnterAction();
 
+	bool PvTAddZealotCondition() const;
+	void PvTAddZealotEnterAction();
+
+	bool PvTAddColossusCondition() const;
+	void PvTAddColossusEnterAction();
 };
 
 struct TransitionTemplate

@@ -960,22 +960,6 @@ bool BuildOrderManager::AddToNaturalDefense(BuildOrderResultArgData data)
 	return true;
 }
 
-bool BuildOrderManager::CheckTankCount(BuildOrderResultArgData data)
-{
-	if (mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({SIEGE_TANK, SIEGE_TANK_SIEGED})).size() > 1)
-	{
-		SetChargeTransition();
-		build_order_step = 0;
-		std::cerr << "Charge transition. build order step now " << std::to_string(build_order_step) << std::endl;
-		return false;
-	}
-	if (mediator->GetCurrentTime() > 310) // TODO move to transition manager
-	{
-		return true;
-	}
-	return false;
-}
-
 bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 {
 	int missing_scvs = 19;
@@ -1368,8 +1352,17 @@ bool BuildOrderManager::AddOracleGatewaymanPvZTransitions(BuildOrderResultArgDat
 {
 	mediator->SetAutomaticUnitProduction(true);
 	mediator->IncreaseUnitAmountInTargetComposition(ORACLE, 3);
-	mediator->IncreaseUnitAmountInTargetComposition(STALKER, 20);
+	mediator->IncreaseUnitAmountInTargetComposition(STALKER, 30);
 	mediator->AddZergTransitions();
+	return true;
+}
+
+bool BuildOrderManager::Add4GateBlinkPvTTransitions(BuildOrderResultArgData data)
+{
+	mediator->SetAutomaticUnitProduction(true);
+	mediator->IncreaseUnitAmountInTargetComposition(PRISM, 1);
+	mediator->IncreaseUnitAmountInTargetComposition(STALKER, 30);
+	mediator->AddTerranTransitions();
 	return true;
 }
 
@@ -1567,26 +1560,6 @@ void BuildOrderManager::SetChargeAllInInterruptTerran()
 					Data(&BuildOrderManager::TimePassed,			Condition(225.0f),				&BuildOrderManager::WarpInUnits,					Result(ZEALOT, 2)),
 					Data(&BuildOrderManager::TimePassed,			Condition(245.0f),				&BuildOrderManager::WarpInUnits,					Result(ZEALOT, 2)),
 					Data(&BuildOrderManager::TimePassed,			Condition(245.0f),				&BuildOrderManager::StartChargelotAllIn,			Result()),
-	};
-}
-
-void BuildOrderManager::SetChargeTransition()
-{
-	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::CancelWarpgateUnitProduction,		Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::ResearchCharge,						Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
-					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::ChronoTillFinished,					Result(TWILIGHT)),
-					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::BuildBuilding,						Result(FORGE)),
-
-					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::ContinueUpgrades,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(320.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY, GATEWAY})),
-					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
-					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(0)),
-					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ZealotDoubleprong,					Result()),
-					Data(&BuildOrderManager::HasUnits,				Condition(ZEALOT, 12),		&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
-					Data(&BuildOrderManager::HasUnits,				Condition(ZEALOT, 12),		&BuildOrderManager::SetWarpInAtProxy,					Result(1)),
 	};
 }
 
@@ -1965,18 +1938,8 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::SetWarpInAtProxy,					Result(1)),
 					//Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::ScoutBases,							Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::CheckTankCount,						Result()),
-
-					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
-					Data(&BuildOrderManager::TimePassed,			Condition(360.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({FORGE, FORGE})),
-					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueExpanding,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueUpgrades,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(400.0f),			&BuildOrderManager::ContinueSpendingNexusEnergy,		Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(410.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY, GATEWAY, GATEWAY})),
-					Data(&BuildOrderManager::TimePassed,			Condition(420.0f),			&BuildOrderManager::ResearchCharge,						Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(500.0f),			&BuildOrderManager::SetUnitProduction,					Result(ZEALOT)),
-					Data(&BuildOrderManager::TimePassed,			Condition(500.0f),			&BuildOrderManager::ZealotDoubleprong,					Result()),
-					Data(&BuildOrderManager::TimePassed,			Condition(720.0f),			&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
+					Data(&BuildOrderManager::TimePassed,			Condition(290.0f),			&BuildOrderManager::ContinueMacro,						Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(300.0f),			&BuildOrderManager::Add4GateBlinkPvTTransitions,		Result()),
 	};
 }
 

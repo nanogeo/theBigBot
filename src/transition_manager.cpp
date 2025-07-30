@@ -64,29 +64,13 @@ void TransitionManager::AddZergTransitions()
 		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddZealotEnterAction));
 }
 
-void TransitionManager::AddTransitionsFor4GateBlinkPvT()
+void TransitionManager::AddTerranTransitions()
 {
-	// charge, colo, immortal
-	
-	int num_tanks = mediator->GetEnemyUnitCount(SIEGE_TANK) + mediator->GetEnemyUnitCount(SIEGE_TANK_SIEGED);
-	int num_marines = mediator->GetEnemyUnitCount(MARINE);
-	int num_marauders = mediator->GetEnemyUnitCount(MARAUDER);
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvTAddColossusCondition,
+		&TransitionManager::NullRemoveCondition, &TransitionManager::PvTAddColossusEnterAction));
 
-	if (num_tanks > 2)
-	{
-		// defending with tanks -> charge
-		
-	}
-	else if (num_marines > 10) // TODO adjust number 
-	{
-		// lots of marines -> colo
-
-	}
-	else if (num_marauders > 10) // TODO adjust number 
-	{
-		// lots of marauders -> immortal
-
-	}
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvTAddZealotCondition,
+		&TransitionManager::NullRemoveCondition, &TransitionManager::PvTAddZealotEnterAction));
 }
 
 bool TransitionManager::WorkerRushTransitionCondition() const
@@ -222,5 +206,41 @@ void TransitionManager::PvZAddImmortalEnterAction()
 	mediator->IncreaseUnitAmountInTargetComposition(IMMORTAL, 5);
 	mediator->IncreaseUnitAmountInTargetComposition(PRISM, 1);
 }
+
+bool TransitionManager::PvTAddZealotCondition() const
+{
+	int tanks = mediator->GetEnemyUnitCount(SIEGE_TANK) + mediator->GetEnemyUnitCount(SIEGE_TANK_SIEGED);
+	if (tanks >= 3)
+		return true;
+	return false;
+}
+
+void TransitionManager::PvTAddZealotEnterAction()
+{
+	mediator->TagWithTimestamp("transition_charge");
+	mediator->AddRequiredUpgrade(U_CHARGE);
+	mediator->IncreaseUnitAmountInTargetComposition(ZEALOT, 15);
+	if (mediator->GetNumUnits(FORGE) + mediator->GetNumBuildActions(FORGE) < 2)
+		mediator->BuildBuilding(FORGE);
+}
+
+bool TransitionManager::PvTAddColossusCondition() const
+{
+	if (mediator->GetEnemyUnitCount(MARINE) > 20)
+		return true;
+	return false;
+}
+
+void TransitionManager::PvTAddColossusEnterAction()
+{
+	mediator->TagWithTimestamp("transition_colossus");
+	if (mediator->GetNumUnits(ROBO) == 0)
+		mediator->BuildBuilding(ROBO);
+	if (mediator->GetNumUnits(ROBO_BAY) == 0)
+		mediator->BuildBuildingWhenAble(ROBO_BAY);
+	mediator->AddRequiredUpgrade(U_THERMAL_LANCE);
+	mediator->IncreaseUnitAmountInTargetComposition(COLOSSUS, 3); // transition 4 gate blink army to normal attack army when a colo is added
+}
+
 
 }

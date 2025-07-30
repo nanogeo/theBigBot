@@ -1488,10 +1488,17 @@ void Mediator::CreateFourGateBlinkFSM()
 	BlinkStalkerAttackTerran* blink_fsm = new BlinkStalkerAttackTerran(this, "4 gate blink pressure", agent->locations->blink_presure_consolidation,
 		agent->locations->blink_pressure_prism_consolidation, agent->locations->blink_pressure_blink_up, agent->locations->blink_pressure_blink_down);
 	finite_state_machine_manager.AddStateMachine(blink_fsm);
-	BlinkFSMArmyGroup* blink_army = new BlinkFSMArmyGroup(this, blink_fsm, 15, 25, 7, 1);
+	BlinkFSMArmyGroup* blink_army = new BlinkFSMArmyGroup(this, blink_fsm, 25, 35, 7, 1);
 
 	army_manager.AddArmyGroup(blink_army);
 	blink_fsm->SetAttachedArmyGroup(blink_army);
+}
+
+void Mediator::DeleteFourGateBlinkFSM()
+{
+	AttackArmyGroup* army = new AttackArmyGroup(this, GetDirectAttackLine(), { STALKER, PRISM, COLOSSUS, IMMORTAL }, 25, 35, 7, 3);
+
+	army_manager.AddArmyGroup(army);
 }
 
 void Mediator::CreateAdeptHarassProtossFSM()
@@ -1994,6 +2001,11 @@ void Mediator::AddRequiredUpgrade(UPGRADE_ID upgrade_id)
 void Mediator::AddZergTransitions()
 {
 	transition_manager.AddZergTransitions();
+}
+
+void Mediator::AddTerranTransitions()
+{
+	transition_manager.AddTerranTransitions();
 }
 
 ArmyGroup* Mediator::GetArmyGroupDefendingBase(Point2D pos)

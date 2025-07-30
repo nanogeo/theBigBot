@@ -14,7 +14,6 @@ namespace sc2
 class Mediator;
 class BlinkStalkerAttackTerran;
 
-// TODO multiple inheritance from OutsideControlArmyGroup
 class BlinkFSMArmyGroup : public AttackArmyGroup
 {
 protected:
@@ -50,6 +49,8 @@ public:
 
 	AttackLineResult AttackLine(Units);
 	AttackLineResult AttackLine(Units, const Unit*);
+
+	void ConvertToRegularAttackArmyGroup();
 };
 
 }

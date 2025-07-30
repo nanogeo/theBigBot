@@ -163,7 +163,7 @@ Point2D BlinkFSMArmyGroup::CalculateNewConcaveOrigin(Units close_enemies, float 
 }
 
 BlinkFSMArmyGroup::BlinkFSMArmyGroup(Mediator* mediator, BlinkStalkerAttackTerran* state_machine, int desired_units, int max_units, int required_units, int min_reinfore_group_size) :
-	AttackArmyGroup(mediator, mediator->GetDirectAttackLine(), { STALKER, PRISM }, desired_units, max_units, required_units, min_reinfore_group_size)
+	AttackArmyGroup(mediator, mediator->GetDirectAttackLine(), { STALKER, PRISM, COLOSSUS, IMMORTAL }, desired_units, max_units, required_units, min_reinfore_group_size)
 {
 	this->state_machine = state_machine;
 	main_attack_path = mediator->GetLocations().blink_main_attack_path_lines;
@@ -185,10 +185,12 @@ void BlinkFSMArmyGroup::Run()
 
 void BlinkFSMArmyGroup::AddUnit(const Unit* unit)
 {
-	if (state_machine->AddUnit(unit))
-		AttackArmyGroup::AddUnit(unit);
-	else
-		return; // handle unit not added to state machine
+	AttackArmyGroup::AddUnit(unit);
+
+	if (state_machine->AddUnit(unit) == false)
+	{
+		ConvertToRegularAttackArmyGroup();
+	}
 }
 
 void BlinkFSMArmyGroup::RemoveUnit(const Unit* unit)
@@ -428,6 +430,13 @@ AttackLineResult BlinkFSMArmyGroup::AttackLine(Units units, const Unit* prism)
 	}
 
 	return result;
+}
+
+void BlinkFSMArmyGroup::ConvertToRegularAttackArmyGroup()
+{
+	mediator->MarkStateMachineForDeletion(state_machine);
+	mediator->MarkArmyGroupForDeletion(this);
+	mediator->DeleteFourGateBlinkFSM();
 }
 
 }

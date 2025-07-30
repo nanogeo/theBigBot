@@ -38,11 +38,17 @@ void ArmyManager::CreateTerranArmyTemplates()
 	army_templates.push_back(base_denial);
 
 
-	std::vector<UNIT_TYPEID> observer_scout_types = { STALKER };
+	std::vector<UNIT_TYPEID> observer_scout_types = { OBSERVER };
 	std::map<UNIT_TYPEID, int> observer_scout_req;
 	observer_scout_req[OBSERVER] = 1;
 	ArmyTemplate<ObserverScoutArmyGroup>* observer_scout = new ArmyTemplate<ObserverScoutArmyGroup>(observer_scout_req, 10, observer_scout_types, 1, 1);
 	army_templates.push_back(observer_scout);
+
+	std::vector<UNIT_TYPEID> zealot_run_by_types = { ZEALOT };
+	std::map<UNIT_TYPEID, int> zealot_run_by_req;
+	zealot_run_by_req[ZEALOT] = 10;
+	ArmyTemplate<SimpleAttackArmyGroup>* zealot_run_by = new ArmyTemplate<SimpleAttackArmyGroup>(zealot_run_by_req, 10, zealot_run_by_types, 10, 20);
+	army_templates.push_back(zealot_run_by);
 }
 
 void ArmyManager::CreateZergArmyTemplates()
