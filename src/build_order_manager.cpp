@@ -823,7 +823,6 @@ bool BuildOrderManager::SendAdeptHarassProtoss(BuildOrderResultArgData data)
 
 bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 {
-	mediator->InitializeGameState();
 	if (mediator->GetThirdTiming() != 0 && mediator->GetThirdTiming() < 180)
 	{
 		// 3 hatch before pool

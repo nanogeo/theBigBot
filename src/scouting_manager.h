@@ -117,7 +117,7 @@ public:
 	void OnUnitDestroyed(const Unit*);
 
 	// game state
-	void InitializeGameState();
+	void InitializeGameStateManager();
 	float GetCurrentTime() const;
 
 };

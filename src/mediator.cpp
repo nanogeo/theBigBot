@@ -1460,7 +1460,7 @@ int Mediator::GetEnemyUnitCount(UNIT_TYPEID type)
 
 void Mediator::InitializeGameState()
 {
-	scouting_manager.InitializeGameState();
+	scouting_manager.InitializeGameStateManager();
 }
 
 GameState Mediator::GetGameState() const

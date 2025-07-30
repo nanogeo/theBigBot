@@ -184,6 +184,7 @@ void ScoutingManager::SetEnemyRace(Race race)
 
 void ScoutingManager::SetEnemyRace(UNIT_TYPEID type)
 {
+	InitializeGameStateManager();
 	switch (type)
 	{
 	case NEXUS:
@@ -600,8 +601,11 @@ void ScoutingManager::OnUnitDestroyed(const Unit* unit)
 	}
 }
 
-void ScoutingManager::InitializeGameState()
+void ScoutingManager::InitializeGameStateManager()
 {
+	if (game_state_manager != nullptr)
+		return;
+
 	switch (enemy_race)
 	{
 	case Race::Zerg:
