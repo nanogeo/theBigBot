@@ -79,7 +79,7 @@ State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 	}
 
 	if (Utility::DistanceToFurthest(state_machine->moving_to_standby_stalkers, state_machine->consolidation_pos) < 4 &&
-		Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 2)
+		(state_machine->prism == nullptr || Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) < 2))
 	{
 		return new BlinkStalkerAttackTerranConsolidate(mediator, state_machine);
 	}
@@ -178,7 +178,7 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 
 	if (state_machine->standby_stalkers.size() == 0 ||
 		(float)state_machine->moving_to_standby_stalkers.size() / (float)state_machine->standby_stalkers.size() > .5 || // TODO figure out a better way
-		state_machine->prism->unit_type != PRISM || // probably doesnt need to be checked anymore
+		(state_machine->prism && state_machine->prism->unit_type != PRISM) || // probably doesnt need to be checked anymore
 		state_machine->standby_stalkers.size() < 8) // TODO totally arbitrary number of stalkers, should be based on game state/enemy supply
 		return nullptr;
 	
@@ -209,7 +209,7 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 		}
 
 		// acropolis and torches do not have a blink up spot
-		if (mediator->GetMapName() == "Acropolis AIE" || mediator->GetMapName() == "Torches AIE" || state_machine->prism->is_alive == false)
+		if (mediator->GetMapName() == "Acropolis AIE" || mediator->GetMapName() == "Torches AIE" || state_machine->prism == nullptr || state_machine->prism->is_alive == false)
 		{
 			state_machine->attack_location = BlinkAttackLocation::natural;
 			return new BlinkStalkerAttackTerranAttack(mediator, state_machine);
@@ -673,7 +673,7 @@ State* BlinkStalkerAttackTerranLeaveHighground::TestTransitions()
 	{
 		if (mediator->OnSameLevel(mediator->ToPoint3D(stalker->pos), mediator->ToPoint3D(state_machine->blink_down_pos)))
 		{
-			if (std::find_if(state_machine->prism->passengers.begin(), state_machine->prism->passengers.end(), [stalker](const PassengerUnit& unit) { return unit.tag == stalker->tag; }) == state_machine->prism->passengers.end())
+			if (state_machine->prism && std::find_if(state_machine->prism->passengers.begin(), state_machine->prism->passengers.end(), [stalker](const PassengerUnit& unit) { return unit.tag == stalker->tag; }) == state_machine->prism->passengers.end())
 				return nullptr;
 		}
 	}
