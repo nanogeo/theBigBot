@@ -30,6 +30,7 @@ public:
 
 	void SetUp() override;
 	void Run() override;
+	void ScourMap() override;
 	std::string ToString() const override
 	{
 		return "Blink FSM army group";

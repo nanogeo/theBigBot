@@ -180,7 +180,12 @@ void BlinkFSMArmyGroup::SetUp()
 
 void BlinkFSMArmyGroup::Run()
 {
+	// handled by state machine
+}
 
+void BlinkFSMArmyGroup::ScourMap()
+{
+	ConvertToRegularAttackArmyGroup();
 }
 
 void BlinkFSMArmyGroup::AddUnit(const Unit* unit)
