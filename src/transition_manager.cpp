@@ -212,7 +212,16 @@ bool TransitionManager::PvTAddZealotCondition() const
 	int tanks = mediator->GetEnemyUnitCount(SIEGE_TANK) + mediator->GetEnemyUnitCount(SIEGE_TANK_SIEGED);
 	if (tanks >= 3)
 		return true;
-	return false;
+
+	std::map<UNIT_TYPEID, int> target_comp = mediator->GetTargetUnitComp();
+	int units_needed = 0;
+	int units_filled = 0;
+	for (const auto& target : target_comp)
+	{
+		units_filled += mediator->GetNumUnits(target.first);
+		units_needed += target.second;
+	}
+	return (float)(units_filled) / units_needed > .8f && mediator->GetAvailableResources().mineral_cost > 500;
 }
 
 void TransitionManager::PvTAddZealotEnterAction()
