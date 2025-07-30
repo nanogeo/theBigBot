@@ -69,6 +69,7 @@ public:
 
 	void SetUpManagers(bool);
 	void RunManagers();
+	void PrintTempDebugInfo();
 
 	uint32_t GetGameLoop();
 	float GetCurrentTime() const;

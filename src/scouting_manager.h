@@ -107,6 +107,8 @@ public:
 	int GetEnemyUnitCount(UNIT_TYPEID) const;
 	float GetEnemyArmySupply() const;
 	const std::vector<Point2D>& GetCorrosiveBilePositions() const;
+	GameState GetGameState();
+	std::string GameStateToString();
 
 	void UpdateInfo();
 	void AddNewUnit(const Unit*);

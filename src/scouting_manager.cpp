@@ -380,6 +380,22 @@ const std::vector<Point2D>& ScoutingManager::GetCorrosiveBilePositions() const
 	return corrosive_bile_positions;
 }
 
+GameState ScoutingManager::GetGameState()
+{
+	if (game_state_manager)
+		return game_state_manager->GetCurrentGameState();
+	else
+		return GameState();
+}
+
+std::string ScoutingManager::GameStateToString()
+{
+	if (game_state_manager)
+		return game_state_manager->GameStateToString();
+	else
+		return "";
+}
+
 void ScoutingManager::UpdateInfo()
 {
 	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
@@ -407,39 +423,6 @@ void ScoutingManager::UpdateInfo()
 	UpdateEffectPositions();
 	UpdateEnemyWeaponCooldowns();
 	RemoveCompletedAttacks();
-
-	if (game_state_manager != nullptr)
-	{
-		current_game_state = game_state_manager->GetCurrentGameState();
-		if (mediator->GetGameLoop() % (int)(10 * FRAME_TIME) == 0) // display every 10 seconds
-		{
-			std::string str = game_state_manager->GameStateToString();
-			str += "Worker status: ";
-			switch (current_game_state.game_state_worker)
-			{
-			case GameStateWorker::even:
-				str += "even";
-				break;
-			case GameStateWorker::slightly_less:
-				str += "slightly less";
-				break;
-			case GameStateWorker::slightly_more:
-				str += "slightly more";
-				break;
-			case GameStateWorker::much_less:
-				str += "much less";
-				break;
-			case GameStateWorker::much_more:
-				str += "much more";
-				break;
-			}
-			if (current_game_state.good_worker_intel)
-				str += " good intel";
-			else
-				str += " low intel";
-			std::cerr << str << std::endl;
-		}
-	}
 }
 
 void ScoutingManager::AddNewUnit(const Unit* unit)

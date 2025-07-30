@@ -135,7 +135,6 @@ void Mediator::RunManagers()
 
 	build_order_manager.CheckBuildOrder();
 
-
 	finite_state_machine_manager.RunStateMachines();
 
 	army_manager.CreateNewArmyGroups();
@@ -145,6 +144,49 @@ void Mediator::RunManagers()
 
 	unit_command_manager.ParseUnitCommands();
 
+	PrintTempDebugInfo();
+}
+
+void Mediator::PrintTempDebugInfo()
+{
+	if (GetGameLoop() % (int)(10 * FRAME_TIME) == 0) // display every 10 seconds
+	{
+		// Worker game state
+		GameState current_game_state = scouting_manager.GetGameState();
+		std::string str = scouting_manager.GameStateToString();
+		str += "Worker status: ";
+		switch (current_game_state.game_state_worker)
+		{
+		case GameStateWorker::even:
+			str += "even";
+			break;
+		case GameStateWorker::slightly_less:
+			str += "slightly less";
+			break;
+		case GameStateWorker::slightly_more:
+			str += "slightly more";
+			break;
+		case GameStateWorker::much_less:
+			str += "much less";
+			break;
+		case GameStateWorker::much_more:
+			str += "much more";
+			break;
+		}
+		if (current_game_state.good_worker_intel)
+			str += " good intel";
+		else
+			str += " low intel";
+		std::cerr << str << std::endl;
+
+		// Units lost
+		std::string units_lost_string = "";
+		UnitCost losses = resource_manager.GetLossesSince(0);
+		UnitCost enemy_losses = resource_manager.GetEnemyLossesSince(0);
+		units_lost_string += "Friendly units lost: " + losses.toString() + '\n';
+		units_lost_string += "Enemy units lost:    " + enemy_losses.toString() + '\n';
+		std::cerr << units_lost_string;
+	}
 }
 
 uint32_t  Mediator::GetGameLoop()
