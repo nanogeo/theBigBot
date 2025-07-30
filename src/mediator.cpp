@@ -1908,6 +1908,9 @@ std::vector<Point2D> Mediator::FindWarpInSpots(Point2D pos)
 
 bool Mediator::TestWarpInSpot(Point2D position)
 {
+	if (IsVisible(position) == false)
+		return false;
+
 	if (IsPathable(position) == false)
 		return false;
 

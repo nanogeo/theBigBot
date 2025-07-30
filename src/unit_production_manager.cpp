@@ -471,9 +471,8 @@ std::vector<Point2D> UnitProductionManager::FindWarpInSpots(Point2D close_to) co
 			{
 
 				Point2D pos = Point2D(pylon->pos.x + i + .5f, pylon->pos.y + j + .5f);
-				if (mediator->IsPathable(pos) && Distance2D(pos, pylon->pos) <= 6 && mediator->ToPoint3D(pos).y > pylon->pos.y + .5)
+				if (mediator->IsPathable(pos) && mediator->IsVisible(pos) && Distance2D(pos, pylon->pos) <= 6 && mediator->ToPoint3D(pos).y > pylon->pos.y + .5)
 				{
-
 					bool blocked = false;
 					for (const auto& avoid_spot : mediator->GetBadWarpInSpots())
 					{
