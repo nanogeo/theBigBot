@@ -142,7 +142,8 @@ bool TransitionManager::FixEarlySupplyBlockCondition() const
 {
 	if (mediator->GetSupplyCap() - mediator->GetSupplyUsed() <= 1 &&
 		mediator->GetCurrentTime() > 180 &&
-		mediator->GetNumBuildActions(PYLON) == 0)
+		mediator->GetNumBuildActions(PYLON) == 0 &&
+		mediator->GetUnits(Unit::Alliance::Self, IsNotFinishedUnit(PYLON)).size() == 0)
 		return true;
 	return false;
 }
