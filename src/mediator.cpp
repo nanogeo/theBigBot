@@ -2078,7 +2078,9 @@ void Mediator::ScourMap()
 	{
 		BuildBuilding(STARGATE);
 	}
+	
 	SetUnitProduction(VOID_RAY);
+	IncreaseUnitAmountInTargetComposition(VOID_RAY, 5);
 
 	if (!HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
 		action_manager.AddAction(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
