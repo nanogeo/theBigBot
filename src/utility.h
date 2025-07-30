@@ -118,7 +118,7 @@ public:
 	static float DistanceToClosestOnLine(Units, LineSegmentLinearX);
 	static float DistanceToFurthest(Units, Point2D);
 	static float DistanceToFurthest(std::vector<Point2D>, Point2D);
-	static float AnyUnitWithin(Units, Point2D, float);
+	static bool AnyUnitWithin(Units, Point2D, float);
 	static Units GetUnitsWithin(Units, Point2D, float);
 	static Units GetUnitsInRange(Units, const Unit*, float);
 	static Units GetUnitsThatCanAttack(Units, const Unit*, float);

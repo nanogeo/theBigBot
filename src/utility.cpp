@@ -453,7 +453,7 @@ float Utility::DistanceToFurthest(std::vector<Point2D> points, Point2D position)
 	return Distance2D(furthest_point, position);
 }
 
-float Utility::AnyUnitWithin(Units units, Point2D position, float dist)
+bool Utility::AnyUnitWithin(Units units, Point2D position, float dist)
 {
 	for (const auto &unit : units)
 	{

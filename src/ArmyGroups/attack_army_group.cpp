@@ -1011,7 +1011,7 @@ AttackLineResult AttackArmyGroup::AttackLine()
 	
 	// Find positions
 	std::vector<Point2D> prism_positions;
-	std::vector<Point2D> concave_positions = FindConcaveWithPrism(prism_positions, basic_units.size(), warp_prisms.size());
+	std::vector<Point2D> concave_positions = FindConcaveWithPrism(prism_positions, (int)basic_units.size(), (int)warp_prisms.size());
 
 	// assign units to positions
 	unit_position_asignments = AssignUnitsToPositions(basic_units, concave_positions);

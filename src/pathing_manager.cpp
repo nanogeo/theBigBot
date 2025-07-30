@@ -39,7 +39,7 @@ Node* KDTree::CreateKDTree(std::vector<Point2D> points, int depth, std::map<Orde
 		{
 			return a.x < b.x;
 		});
-		int mid = points.size() / 2;
+		int mid = (int)points.size() / 2;
 		std::vector<Point2D> left_points;
 		std::vector<Point2D> right_points;
 		for (int i = 0; i < points.size(); i++)
@@ -65,7 +65,7 @@ Node* KDTree::CreateKDTree(std::vector<Point2D> points, int depth, std::map<Orde
 		{
 			return a.y < b.y;
 		});
-		int mid = points.size() / 2;
+		int mid = (int)points.size() / 2;
 		std::vector<Point2D> left_points;
 		std::vector<Point2D> right_points;
 		for (int i = 0; i < points.size(); i++)

@@ -515,12 +515,15 @@ struct UnitCost
 			vespene_cost == rhs.vespene_cost &&
 			supply == rhs.supply);
 	}
+#pragma warning(push)
+#pragma warning(disable : 4244)
 	void operator/=(const float num)
 	{
 		mineral_cost /= num;
 		vespene_cost /= num;
 		supply /= num;
 	}
+#pragma warning(pop)
 	std::string toString() const
 	{
 		return "minerals-" + std::to_string(mineral_cost) + ", vespene-" + std::to_string(vespene_cost) + ", supply-" + std::to_string(supply);

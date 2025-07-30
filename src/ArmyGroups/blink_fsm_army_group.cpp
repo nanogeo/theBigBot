@@ -59,7 +59,7 @@ bool BlinkFSMArmyGroup::FindNewConcaveOrigin(Units units, bool with_prism)
 	mediator->DebugSphere(mediator->ToPoint3D(limit), 1.5, Color(255, 255, 255));
 
 	// find close enemies and average distance to them
-	Units close_enemies = Utility::NClosestUnits(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, CLOSE_RANGE);
+	Units close_enemies = Utility::NClosestUnits(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, 5);
 	float avg_distance = 0;
 	for (int i = 0; i < close_enemies.size(); i++)
 	{
@@ -84,7 +84,7 @@ bool BlinkFSMArmyGroup::FindNewConcaveOrigin(Units units, bool with_prism)
 	}
 
 	// find new concave origin
-	concave_origin = CalculateNewConcaveOrigin(close_enemies, desired_range, limit, units.size(), with_prism ? 1 : 0);
+	concave_origin = CalculateNewConcaveOrigin(close_enemies, desired_range, limit, (int)units.size(), with_prism ? 1 : 0);
 
 	if (Utility::AnyUnitWithin(mediator->GetUnits(Unit::Alliance::Enemy), concave_origin, CLOSE_RANGE) == false && Distance2D(concave_origin, attack_path.GetEndPoint()) < CLOSE_RANGE)
 		return true;
@@ -287,7 +287,7 @@ AttackLineResult BlinkFSMArmyGroup::AttackLine(Units units)
 
 	// Find positions
 	std::vector<Point2D> prism_positions;
-	std::vector<Point2D> concave_positions = FindConcaveWithPrism(prism_positions, units.size(), 0);
+	std::vector<Point2D> concave_positions = FindConcaveWithPrism(prism_positions, (int)units.size(), 0);
 
 	// assign units to positions
 	unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
@@ -360,7 +360,7 @@ AttackLineResult BlinkFSMArmyGroup::AttackLine(Units units, const Unit* prism)
 
 	// Find positions
 	std::vector<Point2D> prism_positions;
-	std::vector<Point2D> concave_positions = FindConcaveWithPrism(prism_positions, units.size(), 1);
+	std::vector<Point2D> concave_positions = FindConcaveWithPrism(prism_positions, (int)units.size(), 1);
 
 	// assign units to positions
 	unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
@@ -395,16 +395,12 @@ AttackLineResult BlinkFSMArmyGroup::AttackLine(Units units, const Unit* prism)
 
 	std::vector<Tag> units_in_cargo;
 	// if prisms -> pickup units in enough danger
-	if (warp_prisms.size() > 0)
+	if (prism != nullptr)
 	{
-		for (const auto& prism : warp_prisms)
+		for (const auto& passanger : prism->passengers)
 		{
-			for (const auto& passanger : prism->passengers)
-			{
-				units_in_cargo.push_back(passanger.tag);
-			}
+			units_in_cargo.push_back(passanger.tag);
 		}
-
 	}
 
 	// move units to positions
