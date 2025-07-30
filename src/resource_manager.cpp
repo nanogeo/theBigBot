@@ -146,4 +146,46 @@ bool ResourceManager::SpendResources(UPGRADE_ID upgrade, const Unit* unit)
 	return true;
 }
 
+void ResourceManager::AddLoss(const Unit* unit)
+{
+	UnitCost cost = Utility::GetCost(unit->unit_type);
+	if (unit->build_progress < 1)
+		cost /= 4;
+	recent_losses.push_back(std::make_pair(mediator->GetCurrentTime(), cost));
+}
+
+void ResourceManager::AddEnemyLoss(const Unit* unit)
+{
+	UnitCost cost = Utility::GetCost(unit->unit_type);
+	if (unit->build_progress < 1)
+		cost /= 4;
+	recent_enemy_losses.push_back(std::make_pair(mediator->GetCurrentTime(), cost));
+}
+
+UnitCost ResourceManager::GetLossesSince(float time)
+{
+	UnitCost total;
+	for (int i = (int)recent_losses.size() - 1; i >= 0; i--)
+	{
+		if (recent_losses[i].first >= time)
+			total += recent_losses[i].second;
+		else
+			break;
+	}
+	return total;
+}
+
+UnitCost ResourceManager::GetEnemyLossesSince(float time)
+{
+	UnitCost total;
+	for (int i = (int)recent_enemy_losses.size() - 1; i >= 0; i--)
+	{
+		if (recent_enemy_losses[i].first >= time)
+			total += recent_enemy_losses[i].second;
+		else
+			break;
+	}
+	return total;
+}
+
 }

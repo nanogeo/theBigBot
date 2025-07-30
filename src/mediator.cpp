@@ -533,6 +533,16 @@ UnitCost Mediator::GetAvailableResources()
 	return resource_manager.GetAvailableResources();
 }
 
+UnitCost Mediator::GetLossesSince(float time)
+{
+	return resource_manager.GetLossesSince(time);
+}
+
+UnitCost Mediator::GetEnemyLossesSince(float time)
+{
+	return resource_manager.GetEnemyLossesSince(time);
+}
+
 void Mediator::CancelBuilding(const Unit* building)
 {
 	ForceUnitCommand(building, A_CANCEL_BUILDING);
@@ -2486,6 +2496,11 @@ void Mediator::OnUnitDamaged(const Unit* unit, float health_damage, float shield
 
 void Mediator::OnUnitDestroyed(const Unit* unit)
 {
+	if (unit->alliance == Unit::Alliance::Self)
+		resource_manager.AddLoss(unit);
+	else if (unit->alliance == Unit::Alliance::Enemy)
+		resource_manager.AddEnemyLoss(unit);
+
 	worker_manager.OnUnitDestroyed(unit);
 	ability_manager.OnUnitDestroyed(unit);
 

@@ -48,10 +48,13 @@ class ResourceManager
 {
 private:
 	Mediator* mediator;
-	// oracles
+	
 	std::vector<ActiveCost> active_costs;
 	UnitCost current_resources = UnitCost(0, 0, 0);
 	void AddCost(ActiveCost);
+
+	std::vector<std::pair<float, UnitCost>> recent_losses;
+	std::vector<std::pair<float, UnitCost>> recent_enemy_losses;
 
 public:
 	ResourceManager(Mediator* mediator)
@@ -68,6 +71,11 @@ public:
 	bool SpendResources(UNIT_TYPEID, const Unit*);
 	bool SpendResources(UNIT_TYPEID, Point2D);
 	bool SpendResources(UPGRADE_ID, const Unit*);
+
+	void AddLoss(const Unit*);
+	void AddEnemyLoss(const Unit*);
+	UnitCost GetLossesSince(float);
+	UnitCost GetEnemyLossesSince(float);
 };
 
 
