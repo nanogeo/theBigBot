@@ -176,7 +176,8 @@ State* BlinkStalkerAttackTerranConsolidate::TestTransitions()
 		return new BlinkStalkerAttackTerranAttack(mediator, state_machine);
 	}
 
-	if ((float)state_machine->moving_to_standby_stalkers.size() / (float)state_machine->standby_stalkers.size() > .5 || // TODO figure out a better way
+	if (state_machine->standby_stalkers.size() == 0 ||
+		(float)state_machine->moving_to_standby_stalkers.size() / (float)state_machine->standby_stalkers.size() > .5 || // TODO figure out a better way
 		state_machine->prism->unit_type != PRISM || // probably doesnt need to be checked anymore
 		state_machine->standby_stalkers.size() < 8) // TODO totally arbitrary number of stalkers, should be based on game state/enemy supply
 		return nullptr;
