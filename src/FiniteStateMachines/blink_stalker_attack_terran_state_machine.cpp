@@ -760,6 +760,11 @@ bool BlinkStalkerAttackTerran::AddUnit(const Unit* unit)
 
 void BlinkStalkerAttackTerran::RemoveUnit(const Unit* unit)
 {
+	if (unit == prism)
+	{
+		prism = nullptr;
+		return;
+	}
 	attacking_stalkers.erase(std::remove(attacking_stalkers.begin(), attacking_stalkers.end(), unit), attacking_stalkers.end());
 	standby_stalkers.erase(std::remove(standby_stalkers.begin(), standby_stalkers.end(), unit), standby_stalkers.end());
 	moving_to_standby_stalkers.erase(std::remove(moving_to_standby_stalkers.begin(), moving_to_standby_stalkers.end(), unit), moving_to_standby_stalkers.end());
