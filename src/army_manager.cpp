@@ -302,8 +302,11 @@ void ArmyManager::CreateNewArmyGroups()
 
 void ArmyManager::AddArmyGroup(ArmyGroup* army)
 {
+	if (army == nullptr)
+		mediator->LogCallStack();
 	army_groups.push_back(army);
 	BalanceUnits();
+	std::cerr << "Delete army group " << army->ToString() << std::endl;
 }
 
 const std::vector<ArmyGroup*>& ArmyManager::GetArmyGroups() const
@@ -462,6 +465,7 @@ void ArmyManager::DeleteArmyGroup(ArmyGroup* army)
 	unassigned_units.insert(unassigned_units.end(), army->all_units.begin(), army->all_units.end());
 	unassigned_units.insert(unassigned_units.end(), army->new_units.begin(), army->new_units.end());
 	army_groups.erase(std::remove(army_groups.begin(), army_groups.end(), army), army_groups.end());
+	std::cerr << "Delete army group " << army->ToString() << std::endl;
 	delete army;
 
 	for (const auto& unit : unassigned_units)
