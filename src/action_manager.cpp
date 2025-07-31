@@ -456,11 +456,9 @@ bool ActionManager::ActionContinueExpanding(ActionArgData* data)
 
 	if (mediator->NumFar3rdWorkers() > 0)
 	{
-		for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(NEXUS)))
-		{
-			if (nexus->build_progress < 1)
-				return false;
-		}
+		if (mediator->HasBuildingUnderConstruction(NEXUS))
+			return false;
+
 		for (const auto &action : active_actions)
 		{
 			if (action->action == &ActionManager::ActionBuildBuilding && action->action_arg->unitId == NEXUS)
