@@ -44,6 +44,7 @@ private:
 	PathingManager pathing_manager;
 
 	bool minor_error_logged = false;
+	bool error_under_investigation_logged = false;
 	std::vector<Point2D> do_not_rebuild;
 
 public:
@@ -70,6 +71,7 @@ public:
 	void SetUpManagers(bool);
 	void RunManagers();
 	void PrintTempDebugInfo();
+	void LogCallStack();
 
 	uint32_t GetGameLoop();
 	float GetCurrentTime() const;
@@ -119,6 +121,7 @@ public:
 	void SendChat(std::string, ChatChannel);
 	void TagWithTimestamp(std::string);
 	void LogMinorError();
+	void LogErrorUnderInvestigation();
 	void DebugSphere(Point3D, float, Color);
 	void DebugText(std::string, Point2D, Color, int);
 

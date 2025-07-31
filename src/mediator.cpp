@@ -32,6 +32,10 @@
 #include "simple_attack_army_group.h"
 
 
+#ifdef __linux__
+#include <execinfo.h>
+#endif
+
 
 namespace sc2
 {
@@ -187,6 +191,21 @@ void Mediator::PrintTempDebugInfo()
 		units_lost_string += "Enemy units lost:    " + enemy_losses.toString() + '\n';
 		std::cerr << units_lost_string;
 	}
+}
+
+void Mediator::LogCallStack()
+{
+	LogErrorUnderInvestigation();
+	std::cerr << "Error callstack: " << std::endl;
+#ifdef __linux__
+	void* array[15];
+	size_t size;
+
+	// get void*'s for all entries on the stack
+	size = backtrace(array, 15);
+
+	backtrace_symbols_fd(array, size, STDERR_FILENO);
+#endif
 }
 
 uint32_t  Mediator::GetGameLoop()
@@ -670,6 +689,15 @@ void Mediator::LogMinorError()
 	{
 		agent->Actions()->SendChat("Tag:minor_error_logged", ChatChannel::Team);
 		minor_error_logged = true;
+	}
+}
+
+void Mediator::LogErrorUnderInvestigation()
+{
+	if (!error_under_investigation_logged)
+	{
+		agent->Actions()->SendChat("Tag:error_under_investigation_logged", ChatChannel::Team);
+		error_under_investigation_logged = true;
 	}
 }
 
