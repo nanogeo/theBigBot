@@ -16,10 +16,9 @@ struct ArmyTemplate;
 class DenyOuterBaseArmyGroup : public ArmyGroup
 {
 protected:
-	Point2D base_pos;
+	Point2D base_pos = Point2D(0, 0);
 
 public:
-	DenyOuterBaseArmyGroup(Mediator*);
 	DenyOuterBaseArmyGroup(Mediator*, ArmyTemplate<DenyOuterBaseArmyGroup>*);
 
 	void SetUp() override;
@@ -30,7 +29,7 @@ public:
 	}
 
 	void AddNewUnit(const Unit* unit) override;
-
+	Point2D GetTargetPos() const;
 };
 
 }

@@ -114,6 +114,7 @@ public:
 	void CancelUnit(UNIT_TYPEID);
 	void RebuildBuilding(Point2D, UNIT_TYPEID);
 	void AddBuildingToDoNotRebuild(Point2D);
+	std::vector<Point2D> GetExposedEnemyBases();
 
 	void SendChat(std::string, ChatChannel);
 	void TagWithTimestamp(std::string);
@@ -256,6 +257,7 @@ public:
 	void AddTerranTransitions();
 
 	ArmyGroup* GetArmyGroupDefendingBase(Point2D);
+	ArmyGroup* GetArmyGroupDenyingBase(Point2D);
 	ArmyGroup* GetDoorGuardArmyGroup();
 	void ScourMap();
 

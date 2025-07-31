@@ -613,6 +613,43 @@ void Mediator::AddBuildingToDoNotRebuild(Point2D pos)
 	do_not_rebuild.push_back(pos);
 }
 
+std::vector<Point2D> Mediator::GetExposedEnemyBases()
+{
+	std::vector<Point2D> exposed_bases;
+	Units enemy_bases = GetUnits(Unit::Alliance::Enemy, IsUnits({ COMMAND_CENTER, ORBITAL, PLANETARY, NEXUS, HATCHERY, LAIR, HIVE }));
+	for (const auto& base : enemy_bases)
+	{
+		if (Distance2D(base->pos, GetEnemyStartLocation()) < VERY_CLOSE_RANGE ||
+			Distance2D(base->pos, GetEnemyNaturalLocation()) < VERY_CLOSE_RANGE)
+			continue;
+
+		bool at_base = false;
+		for (const auto& base_pos : GetAllBases())
+		{
+			if (Distance2D(base->pos, base_pos) < VERY_CLOSE_RANGE)
+			{
+				at_base = true;
+				break;
+			}
+		}
+		if (!at_base)
+			continue;
+
+		bool close_to_third = false;
+		for (const auto& third_pos : GetPossibleEnemyThirdBaseLocations())
+		{
+			if (Distance2D(base->pos, third_pos) < VERY_CLOSE_RANGE)
+			{
+				close_to_third = true;
+				break;
+			}
+		}
+		if (!close_to_third)
+			exposed_bases.push_back(base->pos);
+	}
+	return exposed_bases;
+}
+
 void Mediator::SendChat(std::string message, ChatChannel channel)
 {
 	agent->Actions()->SendChat(message, channel);
@@ -2065,6 +2102,16 @@ ArmyGroup* Mediator::GetArmyGroupDefendingBase(Point2D pos)
 	for (const auto& army_group : army_manager.GetArmyGroups())
 	{
 		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->GetBasePos() == pos)
+			return army_group;
+	}
+	return nullptr;
+}
+
+ArmyGroup* Mediator::GetArmyGroupDenyingBase(Point2D pos)
+{
+	for (const auto& army_group : army_manager.GetArmyGroups())
+	{
+		if (dynamic_cast<DenyOuterBaseArmyGroup*>(army_group) && dynamic_cast<DenyOuterBaseArmyGroup*>(army_group)->GetTargetPos() == pos)
 			return army_group;
 	}
 	return nullptr;
