@@ -381,7 +381,9 @@ void UnitProductionManager::RunUnitProduction()
 
 void UnitProductionManager::IncreaseProduction(UnitCost future_resources)
 {
-	if (mediator->GetNumBuildActions(FORGE) == 0 && mediator->GetNumUnits(FORGE) < 2 && warpgates.size() > 7) // temporary very arbitrary condition
+	int num_forges = mediator->GetNumBuildActions(FORGE) + mediator->GetNumUnits(FORGE);
+	if ((num_forges < 2 && (warpgates.size() > 7 || future_resources.mineral_cost > 300 && future_resources.vespene_cost > 300)) || 
+		num_forges < 1) // temporary very arbitrary condition
 	{
 		mediator->BuildBuilding(FORGE);
 		return;
@@ -442,6 +444,9 @@ void UnitProductionManager::IncreaseProduction(UnitCost future_resources)
 		mediator->BuildBuilding(STARGATE);
 		return;
 	}
+
+	// no more production is needed, maybe improve tech
+
 }
 
 void UnitProductionManager::SetWarpInAtProxy(bool status)
