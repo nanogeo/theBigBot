@@ -26,6 +26,8 @@ UnitCommandManager::UnitCommandManager(Mediator* mediator, TheBigBot* agent)
 
 void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, CommandPriorty priority, bool queued_command)
 {
+	if (unit == nullptr)
+		return;
 	UnitCommand new_command = UnitCommand(ability, priority);
 	if (queued_command)
 	{
@@ -62,6 +64,8 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Com
 
 void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Point2D point, CommandPriorty priority, bool queued_command)
 {
+	if (unit == nullptr)
+		return;
 	UnitCommand new_command = UnitCommand(ability, point, priority);
 	if (queued_command)
 	{
@@ -100,6 +104,8 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Poi
 
 void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, CommandPriorty priority, bool queued_command)
 {
+	if (unit == nullptr)
+		return;
 	UnitCommand new_command = UnitCommand(ability, target, priority);
 	if (queued_command)
 	{
