@@ -18,14 +18,7 @@ private:
 	std::vector<TransitionTemplate> possible_transitions;
 	std::vector<TransitionTemplate> active_transitions;
 
-public:
-	TransitionManager(Mediator*);
-
-	void CheckTransitions();
-
-	void AddZergTransitions();
-	void AddTerranTransitions();
-	// TODO can these be private
+private:
 	bool WorkerRushTransitionCondition() const;
 	bool WorkerRushTransitionRemoveCondition() const;
 	void WorkerRushTransitionEnterAction();
@@ -54,6 +47,15 @@ public:
 
 	bool PvTAddColossusCondition() const;
 	void PvTAddColossusEnterAction();
+
+public:
+	TransitionManager(Mediator*);
+
+	void CheckTransitions();
+
+	void AddZergTransitions();
+	void AddTerranTransitions();
+
 };
 
 struct TransitionTemplate

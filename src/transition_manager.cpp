@@ -8,71 +8,6 @@
 
 namespace sc2 {
 
-TransitionManager::TransitionManager(Mediator* mediator)
-{
-	this->mediator = mediator;
-	possible_transitions.push_back(TransitionTemplate(&TransitionManager::WorkerRushTransitionCondition,
-		&TransitionManager::WorkerRushTransitionRemoveCondition, &TransitionManager::WorkerRushTransitionEnterAction));
-
-	possible_transitions.push_back(TransitionTemplate(&TransitionManager::ScourTransitionCondition,
-		&TransitionManager::ScourTransitionRemoveCondition, &TransitionManager::ScourTransitionEnterAction));
-
-	possible_transitions.push_back(TransitionTemplate(&TransitionManager::FixEarlySupplyBlockCondition,
-		&TransitionManager::FixEarlySupplyBlockRemoveCondition, &TransitionManager::FixEarlySupplyBlockEnterAction));
-}
-
-void TransitionManager::CheckTransitions()
-{
-	for (auto itr = possible_transitions.begin(); itr != possible_transitions.end();)
-	{
-		bool(sc2::TransitionManager:: * remove_condition)() const = itr->remove_condition;
-		bool(sc2::TransitionManager:: * condition)() const = itr->condition;
-		if ((*this.*remove_condition)())
-		{
-			itr = possible_transitions.erase(itr);
-		}
-		else if ((*this.*condition)())
-		{
-			void(sc2::TransitionManager:: * enter_action)() = itr->enter_action;
-			active_transitions.push_back(*itr);
-			(*this.*enter_action)();
-			itr = possible_transitions.erase(itr);
-		}
-		else
-		{
-			itr++;
-		}
-	}
-
-}
-
-void TransitionManager::AddZergTransitions()
-{
-	// charge, colo, immortal, phoenix
-	// lots of bases and defending with queen, ling, hydra & not roaches -> charge
-	// defending with mostly ling, hydra -> colo
-	// defending with mostly roaches -> immortal
-	// harassing with muta -> phoenix
-
-	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddColossusCondition,
-		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddColossusEnterAction));
-
-	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddImmortalCondition,
-		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddImmortalEnterAction));
-
-	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddZealotCondition,
-		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddZealotEnterAction));
-}
-
-void TransitionManager::AddTerranTransitions()
-{
-	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvTAddColossusCondition,
-		&TransitionManager::NullRemoveCondition, &TransitionManager::PvTAddColossusEnterAction));
-
-	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvTAddZealotCondition,
-		&TransitionManager::NullRemoveCondition, &TransitionManager::PvTAddZealotEnterAction));
-}
-
 bool TransitionManager::WorkerRushTransitionCondition() const
 {
 	// if > 2? enemy workers are within 20? of base
@@ -249,6 +184,71 @@ void TransitionManager::PvTAddColossusEnterAction()
 		mediator->BuildBuildingWhenAble(ROBO_BAY);
 	mediator->AddRequiredUpgrade(U_THERMAL_LANCE);
 	mediator->IncreaseUnitAmountInTargetComposition(COLOSSUS, 3); // transition 4 gate blink army to normal attack army when a colo is added
+}
+
+TransitionManager::TransitionManager(Mediator* mediator)
+{
+	this->mediator = mediator;
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::WorkerRushTransitionCondition,
+		&TransitionManager::WorkerRushTransitionRemoveCondition, &TransitionManager::WorkerRushTransitionEnterAction));
+
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::ScourTransitionCondition,
+		&TransitionManager::ScourTransitionRemoveCondition, &TransitionManager::ScourTransitionEnterAction));
+
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::FixEarlySupplyBlockCondition,
+		&TransitionManager::FixEarlySupplyBlockRemoveCondition, &TransitionManager::FixEarlySupplyBlockEnterAction));
+}
+
+void TransitionManager::CheckTransitions()
+{
+	for (auto itr = possible_transitions.begin(); itr != possible_transitions.end();)
+	{
+		bool(sc2::TransitionManager:: * remove_condition)() const = itr->remove_condition;
+		bool(sc2::TransitionManager:: * condition)() const = itr->condition;
+		if ((*this.*remove_condition)())
+		{
+			itr = possible_transitions.erase(itr);
+		}
+		else if ((*this.*condition)())
+		{
+			void(sc2::TransitionManager:: * enter_action)() = itr->enter_action;
+			active_transitions.push_back(*itr);
+			(*this.*enter_action)();
+			itr = possible_transitions.erase(itr);
+		}
+		else
+		{
+			itr++;
+		}
+	}
+
+}
+
+void TransitionManager::AddZergTransitions()
+{
+	// charge, colo, immortal, phoenix
+	// lots of bases and defending with queen, ling, hydra & not roaches -> charge
+	// defending with mostly ling, hydra -> colo
+	// defending with mostly roaches -> immortal
+	// harassing with muta -> phoenix
+
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddColossusCondition,
+		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddColossusEnterAction));
+
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddImmortalCondition,
+		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddImmortalEnterAction));
+
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddZealotCondition,
+		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddZealotEnterAction));
+}
+
+void TransitionManager::AddTerranTransitions()
+{
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvTAddColossusCondition,
+		&TransitionManager::NullRemoveCondition, &TransitionManager::PvTAddColossusEnterAction));
+
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvTAddZealotCondition,
+		&TransitionManager::NullRemoveCondition, &TransitionManager::PvTAddZealotEnterAction));
 }
 
 
