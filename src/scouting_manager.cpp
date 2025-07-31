@@ -1,6 +1,7 @@
 
 #include "scouting_manager.h"
 #include "game_state_manager_zerg.h"
+#include "game_state_manager_terran.h"
 #include "mediator.h"
 #include "definitions.h"
 
@@ -180,6 +181,7 @@ void ScoutingManager::DisplayKnownEffects() const
 void ScoutingManager::SetEnemyRace(Race race)
 {
 	enemy_race = race;
+	InitializeGameStateManager();
 }
 
 void ScoutingManager::SetEnemyRace(UNIT_TYPEID type)
@@ -597,6 +599,7 @@ void ScoutingManager::InitializeGameStateManager()
 	case Race::Protoss:
 		break;
 	case Race::Terran:
+		game_state_manager = new GameStateManagerTerran(this, mediator);
 		break;
 	case Race::Random:
 		std::cerr << "Error enemy race still unknown in ScoutingManager::InitializeGameState" << std::endl;

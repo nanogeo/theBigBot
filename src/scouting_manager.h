@@ -48,6 +48,7 @@ public:
 class ScoutingManager
 {
 	friend class GameStateManagerZerg;
+	friend class GameStateManagerTerran;
 	friend Mediator;
 private:
 	Mediator* mediator;
