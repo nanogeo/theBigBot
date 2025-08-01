@@ -38,9 +38,10 @@ void TransitionManager::WorkerRushTransitionEnterAction()
 
 bool TransitionManager::ScourTransitionCondition() const
 {
+	UnitCost enemy_losses_last_minute = mediator->GetEnemyLossesSince(mediator->GetCurrentTime() - 60);
 	if ((mediator->GetCurrentTime() > 300 && Utility::DistanceToClosest(mediator->GetUnits(IsUnits({NEXUS, COMMAND_CENTER, ORBITAL, PLANETARY, HATCHERY, LAIR, HIVE})), mediator->GetEnemyStartLocation()) > 15)
-		|| (mediator->GetCurrentTime() > 600 && mediator->GetArmySupply() > 30)
-		|| mediator->GetCurrentTime() > 900)
+		|| (mediator->GetCurrentTime() > 600 && mediator->GetArmySupply() > 30 && enemy_losses_last_minute.mineral_cost + enemy_losses_last_minute.vespene_cost < 250)
+		|| mediator->GetCurrentTime() > 900 && enemy_losses_last_minute.mineral_cost + enemy_losses_last_minute.vespene_cost < 250)
 	{
 		return true;
 	}
