@@ -101,7 +101,6 @@ public:
 	bool ActionScoutZerg(ActionArgData*);
 	bool ActionContinueMakingWorkers(ActionArgData*);
 	bool ActionContinueBuildingPylons(ActionArgData*);
-	bool ActionContinueUpgrades(ActionArgData*);
 	bool ActionContinueSpendingNexusEnergy(ActionArgData*);
 	bool ActionContinueExpanding(ActionArgData*);
 	bool ActionChronoTillFinished(ActionArgData*);
@@ -174,10 +173,6 @@ struct ActionData
 		else if (action == &ActionManager::ActionContinueBuildingPylons)
 		{
 			str += "Continue building pylons";
-		}
-		else if (action == &ActionManager::ActionContinueUpgrades)
-		{
-			str += "Continue getting upgrades";
 		}
 		else if (action == &ActionManager::ActionContinueSpendingNexusEnergy)
 		{

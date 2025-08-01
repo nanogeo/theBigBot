@@ -581,5 +581,4 @@ enum class CommandPriorty
 	max
 };
 
-
 }

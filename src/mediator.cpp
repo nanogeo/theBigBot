@@ -1369,11 +1369,6 @@ void Mediator::ContinueMakingWorkers()
 	action_manager.AddAction(new ActionData(&ActionManager::ActionContinueMakingWorkers, new ActionArgData()));
 }
 
-void Mediator::ContinueUpgrades()
-{
-	action_manager.AddAction(new ActionData(&ActionManager::ActionContinueUpgrades, new ActionArgData()));
-}
-
 void Mediator::ContinueChronos()
 {
 	action_manager.AddAction(new ActionData(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData()));
@@ -2646,7 +2641,7 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 				if ((*itr)->action_arg->unit && (*itr)->action_arg->unit->unit_type == PROBE)
 					PlaceWorker((*itr)->action_arg->unit);
 
-				itr = action_manager.EraseAction((*itr)); // TODO check
+				itr = action_manager.EraseAction((*itr));
 			}
 			else
 			{

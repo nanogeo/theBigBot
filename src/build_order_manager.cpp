@@ -514,12 +514,6 @@ bool BuildOrderManager::ContinueMakingWorkers(BuildOrderResultArgData data)
 	return true;
 }
 
-bool BuildOrderManager::ContinueUpgrades(BuildOrderResultArgData data)
-{
-	mediator->AddUniqueAction(&ActionManager::ActionContinueUpgrades, new ActionArgData());
-	return true;
-}
-
 bool BuildOrderManager::ContinueSpendingNexusEnergy(BuildOrderResultArgData data)
 {
 	mediator->AddUniqueAction(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData());
@@ -536,7 +530,6 @@ bool BuildOrderManager::ContinueMacro(BuildOrderResultArgData data)
 {
 	mediator->AddUniqueAction(&ActionManager::ActionContinueBuildingPylons, new ActionArgData());
 	mediator->AddUniqueAction(&ActionManager::ActionContinueMakingWorkers, new ActionArgData());
-	mediator->AddUniqueAction(&ActionManager::ActionContinueUpgrades, new ActionArgData());
 	mediator->AddUniqueAction(&ActionManager::ActionContinueSpendingNexusEnergy, new ActionArgData());
 	mediator->AddUniqueAction(&ActionManager::ActionContinueExpanding, new ActionArgData());
 	mediator->SetBalanceIncome(true);
@@ -1457,6 +1450,7 @@ void BuildOrderManager::SetTesting()
 	};
 }
 
+#pragma region responses
 
 void BuildOrderManager::SetEarlyPoolInterrupt()
 {
@@ -1656,7 +1650,7 @@ void BuildOrderManager::SetCannonRushResponse()
 					Data(&BuildOrderManager::HasUnits,				Condition(PRISM, 1),		&BuildOrderManager::SetWarpInAtProxy,					Result(STALKER)),
 	};
 }
-
+#pragma endregion
 
 // finished
 void BuildOrderManager::SetOracleGatewaymanPvZ()

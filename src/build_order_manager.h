@@ -151,7 +151,6 @@ private:
 	bool ChronoTillFinished(BuildOrderResultArgData);
 	bool ContinueBuildingPylons(BuildOrderResultArgData);
 	bool ContinueMakingWorkers(BuildOrderResultArgData);
-	bool ContinueUpgrades(BuildOrderResultArgData);
 	bool ContinueSpendingNexusEnergy(BuildOrderResultArgData);
 	bool ContinueExpanding(BuildOrderResultArgData);
 	bool ContinueMacro(BuildOrderResultArgData);
@@ -467,10 +466,6 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::ContinueMakingWorkers)
 		{
 			str += "macro workers";
-		}
-		else if (result == &BuildOrderManager::ContinueUpgrades)
-		{
-		str += "macro upgrades";
 		}
 		else if (result == &BuildOrderManager::ContinueSpendingNexusEnergy)
 		{

@@ -62,7 +62,6 @@ namespace sc2 {
 
 		Point2D guard_move_to = Utility::PointBetween(door_closed_pos, closest_to_door->pos, (float)std::min(4.0, std::max(0.0, (dist_to_closest / 2) - 1)));
 
-		// TODO use fire control to find the best target
 		const Unit* closest_to_guard = Utility::ClosestTo(enemies, guard->pos);
 
 		if (Distance2D(closest_to_guard->pos, guard->pos) < Utility::RealRange(guard, closest_to_guard))

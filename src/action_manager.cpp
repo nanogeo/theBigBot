@@ -322,14 +322,6 @@ bool ActionManager::ActionContinueBuildingPylons(ActionArgData* data)
 	return false;
 }
 
-bool ActionManager::ActionContinueUpgrades(ActionArgData* data)
-{
-	// TODO make global upgrade tracker
-	
-
-	return false;
-}
-
 bool ActionManager::ActionContinueSpendingNexusEnergy(ActionArgData* data)
 {
 	std::map<const Unit*, float> nexi_with_energy;

@@ -77,7 +77,6 @@ State* ScoutTScoutMain::TestTransitions()
 		{
 			state_machine->index = 0;
 			state_machine->current_target = state_machine->main_scout_path[0];
-			//mediator->scouting_manager.CheckTerranScoutingInfoEarly(); // TODO check if needed
 		}
 		else
 		{

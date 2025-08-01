@@ -162,7 +162,6 @@ public:
 
 	void ContinueBuildingPylons();
 	void ContinueMakingWorkers();
-	void ContinueUpgrades();
 	void ContinueChronos();
 	void ContinueExpanding();
 	bool TrainFromProxyRobo();

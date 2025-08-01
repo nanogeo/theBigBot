@@ -129,7 +129,6 @@ public:
 	Point2D GetPointFrom(Point2D, float, bool, float&) const override;
 };
 
-// TODO change name cause this isnt a manager
 class PiecewisePath
 {
 private:
