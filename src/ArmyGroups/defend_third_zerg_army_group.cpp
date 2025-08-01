@@ -35,6 +35,9 @@ void DefendThirdZergArmyGroup::Run()
 {
 	for (const auto& unit : all_units)
 	{
+		if (mediator->GetAttackStatus(unit) == false && unit->weapon_cooldown == 0)
+			mediator->AddUnitToAttackers(unit);
+
 		if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(PROBE)), unit->pos) < 2)
 		{
 			mediator->SetUnitCommand(unit, A_STOP, CommandPriorty::low);
@@ -48,7 +51,6 @@ void DefendThirdZergArmyGroup::Run()
 			}
 		}
 	}
-	// TODO use fire control to find the best target
 }
 
 void DefendThirdZergArmyGroup::AddNewUnit(const Unit* unit)
