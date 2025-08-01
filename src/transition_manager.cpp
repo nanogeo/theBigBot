@@ -87,6 +87,10 @@ bool TransitionManager::NullRemoveCondition() const
 
 bool TransitionManager::PvZAddZealotCondition() const
 {
+	UnitCost available_resources = mediator->GetAvailableResources();
+	if (available_resources.mineral_cost > 1000 && available_resources.vespene_cost < 200)
+		return true;
+
 	std::map<UNIT_TYPEID, int> target_comp = mediator->GetTargetUnitComp();
 	int units_needed = 0;
 	int units_filled = 0;
@@ -148,6 +152,10 @@ bool TransitionManager::PvTAddZealotCondition() const
 	if (tanks >= 3)
 		return true;
 
+	UnitCost available_resources = mediator->GetAvailableResources();
+	if (available_resources.mineral_cost > 1000 && available_resources.vespene_cost < 200)
+		return true;
+
 	std::map<UNIT_TYPEID, int> target_comp = mediator->GetTargetUnitComp();
 	int units_needed = 0;
 	int units_filled = 0;
@@ -156,7 +164,7 @@ bool TransitionManager::PvTAddZealotCondition() const
 		units_filled += mediator->GetNumUnits(target.first);
 		units_needed += target.second;
 	}
-	return (float)(units_filled) / units_needed > .8f && mediator->GetAvailableResources().mineral_cost > 500;
+	return (float)(units_filled) / units_needed > .8f && available_resources.mineral_cost > 500;
 }
 
 void TransitionManager::PvTAddZealotEnterAction()
