@@ -824,8 +824,6 @@ void WorkerManager::AddNewBase()
 			return;
 		}
 	}
-	if (close_minerals.size() > 0)
-		mediator->SetUnitCommand(new_base, A_SMART, close_minerals[0], CommandPriorty::low);
 	for (const auto &mineral_field : close_minerals)
 	{
 		bool is_close = mineral_field->mineral_contents == 1800;

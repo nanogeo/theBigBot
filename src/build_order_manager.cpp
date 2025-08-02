@@ -388,7 +388,7 @@ bool BuildOrderManager::ChronoBuilding(BuildOrderResultArgData data)
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
 				{
-					mediator->SetUnitCommand(nexus, A_CHRONO, building, CommandPriorty::low);
+					mediator->SetUnitCommand(nexus, A_CHRONO, building, CommandPriorty::high);
 					return true;
 				}
 			}
