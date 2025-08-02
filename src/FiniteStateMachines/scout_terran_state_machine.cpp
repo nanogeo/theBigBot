@@ -258,7 +258,8 @@ std::string ScoutTReturnToBase::toString() const
 
 ScoutTerranStateMachine::~ScoutTerranStateMachine()
 {
-	mediator->PlaceWorker(scout);
+	if (scout != nullptr && scout->is_alive)
+		mediator->PlaceWorker(scout);
 }
 
 const Unit* ScoutTerranStateMachine::GetScout()

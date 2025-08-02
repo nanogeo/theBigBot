@@ -202,7 +202,8 @@ std::string ScoutPReturnToBase::toString() const
 
 ScoutProtossStateMachine::~ScoutProtossStateMachine()
 {
-	
+	if (scout != nullptr && scout->is_alive)
+		mediator->PlaceWorker(scout);
 }
 
 const Unit* ScoutProtossStateMachine::GetScout()
