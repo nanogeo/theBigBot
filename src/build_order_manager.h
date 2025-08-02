@@ -208,10 +208,11 @@ private:
 	bool CancelBuilding(BuildOrderResultArgData);
 	bool StopTempUnitProduction(BuildOrderResultArgData);
 	bool CheckForBunkerRush(BuildOrderResultArgData);
-	bool EnergyRechargeOracle(BuildOrderResultArgData);
+	bool EnergyRechargeUnit(BuildOrderResultArgData);
 
 	bool AddOracleGatewaymanPvZTransitions(BuildOrderResultArgData);
 	bool Add4GateBlinkPvTTransitions(BuildOrderResultArgData);
+	bool Add1GateExpandPvPTransitions(BuildOrderResultArgData);
 
 	bool SpawnArmy(BuildOrderResultArgData); // testing only // to string
 
@@ -692,9 +693,10 @@ struct BuildOrderData
 		{
 			str += "check for bunker rush";
 		}
-		else if (result == &BuildOrderManager::EnergyRechargeOracle)
+		else if (result == &BuildOrderManager::EnergyRechargeUnit)
 		{
-			str += "energy recharge oracle";
+			str += "energy recharge";
+			str += UnitTypeToName(result_arg.unitId);
 		}
 		else if (result == &BuildOrderManager::AddOracleGatewaymanPvZTransitions)
 		{
