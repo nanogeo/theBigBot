@@ -382,8 +382,9 @@ void UnitProductionManager::RunUnitProduction()
 void UnitProductionManager::IncreaseProduction(UnitCost future_resources)
 {
 	int num_forges = mediator->GetNumBuildActions(FORGE) + mediator->GetNumUnits(FORGE);
-	if ((num_forges < 2 && (warpgates.size() > 7 || future_resources.mineral_cost > 300 && future_resources.vespene_cost > 300)) || 
-		num_forges < 1) // temporary very arbitrary condition
+	if (mediator->CheckUpgrade(U_WARPGATE) &&
+		((num_forges < 2 && (warpgates.size() > 7 || future_resources.mineral_cost > 300 && future_resources.vespene_cost > 300)) || 
+		(num_forges < 1 && warpgates.size() > 3))) // temporary very arbitrary conditions
 	{
 		mediator->BuildBuilding(FORGE);
 		return;
