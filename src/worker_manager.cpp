@@ -1039,18 +1039,19 @@ void WorkerManager::BalanceWorkers()
 {
 	if (balance_income)
 	{
-		UnitCost income = mediator->CalculateIncome();
+		int time_span = 60;
+		UnitCost income = mediator->CalculateIncome(time_span);
 		UnitCost future_resources = mediator->GetCurrentResources() + income - 
-			mediator->CalculateCostOfProduction() - mediator->CalculateCostOfCurrentBuildActions();
+			mediator->CalculateCostOfProduction(time_span) - mediator->CalculateCostOfCurrentBuildActions();
 
 		bool excess_minerals = future_resources.mineral_cost > income.mineral_cost / 2;
 		bool excess_gas = future_resources.vespene_cost > income.vespene_cost / 2;
 
-		if (excess_gas && !excess_minerals && assimilators_reversed.size() > 0 && first_2_mineral_patch_spaces.size() > 0)
+		if (excess_gas && future_resources.mineral_cost < 0 && assimilators_reversed.size() > 0 && first_2_mineral_patch_spaces.size() > 0)
 		{
 			PullOutOfGas(1);
 		}
-		else if (excess_minerals && !excess_gas)
+		else if (excess_minerals && future_resources.vespene_cost < 0)
 		{
 			if (removed_gas_miners > 0)
 			{
@@ -1058,30 +1059,24 @@ void WorkerManager::BalanceWorkers()
 			}
 			else
 			{
-				if (mediator->GetNumBuildActions(ASSIMILATOR) == 0 && mediator->HasBuildingUnderConstruction(ASSIMILATOR) == false)
+				if (gas_spaces.size() > 0)
+					AddToGas();
+				else if (mediator->GetNumBuildActions(ASSIMILATOR) == 0 && mediator->HasBuildingUnderConstruction(ASSIMILATOR) == false)
 					mediator->BuildBuilding(ASSIMILATOR);
 			}
 		}
 		else if (excess_gas && excess_minerals)
 		{
+			int short_time_span = 30;
+			UnitCost short_income = mediator->CalculateIncome(short_time_span);
+			UnitCost short_future_resources = mediator->GetCurrentResources() + short_income -
+				mediator->CalculateCostOfProduction(short_time_span) - mediator->CalculateCostOfCurrentBuildActions();
+
+			bool short_excess_minerals = short_future_resources.mineral_cost > short_income.mineral_cost / 2;
+			bool short_excess_gas = short_future_resources.vespene_cost > short_income.vespene_cost / 2;
 			// build more production
-			mediator->IncreaseProduction(future_resources);
-		}
-		else if (future_resources.mineral_cost < 0 && future_resources.vespene_cost > 0)
-		{
-			PullOutOfGas(1);
-		}
-		else if (future_resources.mineral_cost > 0 && future_resources.vespene_cost < 0)
-		{
-			if (removed_gas_miners > 0)
-			{
-				removed_gas_miners--;
-			}
-			else
-			{
-				if (mediator->GetNumBuildActions(ASSIMILATOR) == 0 && mediator->HasBuildingUnderConstruction(ASSIMILATOR) == false)
-					mediator->BuildBuilding(ASSIMILATOR);
-			}
+			if (short_excess_gas&& short_excess_minerals)
+				mediator->IncreaseProduction(short_future_resources);
 		}
 	}
 
@@ -1256,10 +1251,30 @@ void WorkerManager::PullOutOfGas(int num)
 	}
 }
 
-UnitCost WorkerManager::CalculateIncome() const
+void WorkerManager::AddToGas()
 {
-	int mineral_income = 0;
-	int gas_income = 0;
+	for (const auto& gas : assimilators)
+	{
+		if (gas.second.workers[0] == nullptr || gas.second.workers[1] == nullptr)
+		{
+			SemiSaturateGas(gas.first);
+			return;
+		}
+	}
+	for (const auto& gas : assimilators)
+	{
+		if (gas.second.workers[2] == nullptr)
+		{
+			SaturateGas(gas.first);
+			return;
+		}
+	}
+}
+
+UnitCost WorkerManager::CalculateIncome(int time_span) const
+{
+	float mineral_income = 0;
+	float gas_income = 0;
 	for (const auto &patch : mineral_patches)
 	{
 		if (patch.second.is_close)
@@ -1305,7 +1320,10 @@ UnitCost WorkerManager::CalculateIncome() const
 		}
 	}
 
-	return UnitCost(mineral_income, gas_income, 0);
+	mineral_income = mineral_income / 60 * time_span;
+	gas_income = gas_income / 60 * time_span;
+
+	return UnitCost((int)mineral_income, (int)gas_income, 0);
 }
 
 void WorkerManager::AddAssimilator(const Unit* assimilator)

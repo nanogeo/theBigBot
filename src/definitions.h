@@ -512,6 +512,10 @@ struct UnitCost
 	{
 		return UnitCost(mineral_cost * num, vespene_cost * num, supply * num);
 	}
+	UnitCost operator/(const float num) const
+	{
+		return UnitCost(mineral_cost / num, vespene_cost / num, supply / num);
+	}
 	bool operator==(const UnitCost& rhs) const
 	{
 		return (mineral_cost == rhs.mineral_cost &&

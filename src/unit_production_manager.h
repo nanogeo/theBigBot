@@ -60,7 +60,7 @@ public:
 	std::vector<Point2D> FindWarpInSpotsAt(Point2D) const;
 	void UpdateWarpgateStatus();
 	int NumWarpgatesReady() const;
-	UnitCost CalculateCostOfProduction() const;
+	UnitCost CalculateCostOfProduction(int) const;
 
 	void WarpInUnit(UNIT_TYPEID, Point2D);
 	bool WarpInUnits(UNIT_TYPEID, int, Point2D);

@@ -229,7 +229,7 @@ public:
 	RemoveWorkerResult RemoveWorker(const Unit*);
 	bool PullOutOfGas();
 	void PullOutOfGas(int);
-	UnitCost CalculateIncome();
+	UnitCost CalculateIncome(int);
 
 	void SetUnitProduction(UNIT_TYPEID);
 	UNIT_TYPEID GetWarpgateProduction();
@@ -243,7 +243,7 @@ public:
 	void IncreaseUnitAmountInTargetComposition(UNIT_TYPEID, int);
 	void DecreaseUnitAmountInTargetComposition(UNIT_TYPEID, int);
 	void SetWarpInAtProxy(bool);
-	UnitCost CalculateCostOfProduction();
+	UnitCost CalculateCostOfProduction(int);
 	int GetNumWarpgatesReady();
 	void WarpInUnit(UNIT_TYPEID, Point2D);
 	bool WarpInUnits(UNIT_TYPEID, int, Point2D);

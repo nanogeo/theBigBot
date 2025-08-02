@@ -1891,9 +1891,9 @@ void Mediator::PullOutOfGas(int num)
 	worker_manager.PullOutOfGas(num);
 }
 
-UnitCost Mediator::CalculateIncome()
+UnitCost Mediator::CalculateIncome(int time_span)
 {
-	return worker_manager.CalculateIncome();
+	return worker_manager.CalculateIncome(time_span);
 }
 
 void Mediator::SetUnitProduction(UNIT_TYPEID unit_type)
@@ -1995,9 +1995,9 @@ void Mediator::SetWarpInAtProxy(bool status)
 	unit_production_manager.SetWarpInAtProxy(status);
 }
 
-UnitCost Mediator::CalculateCostOfProduction()
+UnitCost Mediator::CalculateCostOfProduction(int time_span)
 {
-	return unit_production_manager.CalculateCostOfProduction();
+	return unit_production_manager.CalculateCostOfProduction(time_span);
 }
 
 int Mediator::GetNumWarpgatesReady()
@@ -2730,8 +2730,8 @@ void Mediator::DisplaySupplyInfo()
 	supply_message += "nexi: " + std::to_string(nexi) + '\n';
 	supply_message += "new supply: " + std::to_string(used + 2 * gates + 3 * other_prod + nexi) + '/' + std::to_string(cap + 8 * pending_pylons + 8 * build_pylon_actions) + '\n';
 
-	UnitCost income = CalculateIncome();
-	UnitCost production_cost = CalculateCostOfProduction();
+	UnitCost income = CalculateIncome(60);
+	UnitCost production_cost = CalculateCostOfProduction(60);
 	int mineral_income_size = ((income.mineral_cost / 10) ? 1 : 0) + ((income.mineral_cost / 100) ? 1 : 0) + ((income.mineral_cost / 1000) ? 1 : 0);
 	int gas_income_size = ((income.vespene_cost / 10) ? 1 : 0) + ((income.vespene_cost / 100) ? 1 : 0) + ((income.vespene_cost / 1000) ? 1 : 0);
 	int mineral_cost_size = ((production_cost.mineral_cost / 10) ? 1 : 0) + ((production_cost.mineral_cost / 100) ? 1 : 0) + ((production_cost.mineral_cost / 1000) ? 1 : 0);

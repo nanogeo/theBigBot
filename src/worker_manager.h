@@ -142,7 +142,8 @@ public:
 	void BuildWorkers();
 	bool PullOutOfGas();
 	void PullOutOfGas(int);
-	UnitCost CalculateIncome() const;
+	void AddToGas();
+	UnitCost CalculateIncome(int) const;
 
 	void AddAssimilator(const Unit*);
 	void SetNewBase(const Unit*);
