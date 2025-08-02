@@ -1323,7 +1323,7 @@ bool BuildOrderManager::EnergyRechargeOracle(BuildOrderResultArgData data)
 		{
 			for (const auto& nexus : mediator->GetUnits(IsFriendlyUnit(NEXUS)))
 			{
-				if (nexus->energy >= 50 && nexus->build_progress == 1 && Distance2D(nexus->pos, oracle->pos) < RANGE_ENERGY_RECHARGE)
+				if (nexus->energy >= 50 && nexus->build_progress == 1 && Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)), unit->pos) < RANGE_ENERGY_RECHARGE)
 				{
 					for (const auto& ability : mediator->GetAbilitiesForUnit(nexus).abilities)
 					{

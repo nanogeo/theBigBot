@@ -398,7 +398,7 @@ bool ActionManager::ActionContinueSpendingNexusEnergy(ActionArgData* data)
 			{
 				for (const auto& nexus : nexi_with_energy)
 				{
-					if (Distance2D(nexus.first->pos, unit->pos) < RANGE_ENERGY_RECHARGE)
+					if (Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)), unit->pos) < RANGE_ENERGY_RECHARGE)
 					{
 						for (const auto& ability : mediator->GetAbilitiesForUnit(nexus.first).abilities)
 						{
