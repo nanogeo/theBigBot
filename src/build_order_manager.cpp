@@ -319,6 +319,7 @@ bool BuildOrderManager::CannonRushProbe1(BuildOrderResultArgData data)
 bool BuildOrderManager::CutWorkers(BuildOrderResultArgData data)
 {
 	mediator->SetBuildWorkers(false);
+	mediator->CancelAllActionsOfType(&ActionManager::ActionContinueMakingWorkers);
 	return true;
 }
 
