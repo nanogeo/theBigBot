@@ -313,6 +313,9 @@ namespace sc2
 #define RANGE_MEDIVAC_HEAL 4
 #define HEAL_RATE_MEDIVAC 12.6f
 
+#define B_LOCK_ON BUFF_ID::LOCKON
+#define CORROSIVE_BILE_DAMAGE 60
+
 
 const std::vector<std::vector<UNIT_TYPEID>> TERRAN_PRIO = { {SIEGE_TANK_SIEGED},
 															{SIEGE_TANK},

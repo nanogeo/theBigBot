@@ -545,6 +545,11 @@ int ScoutingManager::CheckTerranScoutingInfoEarly()
 int ScoutingManager::GetIncomingDamage(const Unit* unit) const
 {
 	int damage = 0;
+	for (const auto& buff : unit->buffs)
+	{
+		if (buff == B_LOCK_ON)
+			damage += 60;
+	}
 	if (enemy_attacks.count(unit) > 0)
 	{
 		for (const auto& attack : enemy_attacks.at(unit))
@@ -558,7 +563,7 @@ int ScoutingManager::GetIncomingDamage(const Unit* unit) const
 		{
 			if (Distance2D(corrosive_bile_positions[i], unit->pos) < .5 + unit->radius + .3) // TODO maybe change extra distance
 			{
-				damage += 60;
+				damage += CORROSIVE_BILE_DAMAGE;
 			}
 		}
 		else
