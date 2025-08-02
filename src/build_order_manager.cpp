@@ -1120,7 +1120,7 @@ bool BuildOrderManager::CheckProtossOpening(BuildOrderResultArgData data)
 	case 2:
 		// 2 gate
 		mediator->SendChat("Tag:scout_2_gate", ChatChannel::Team);
-		Set2GateProxyRobo();
+		Set1GateExpand();
 		break;
 	default:
 		// anything else
@@ -1366,7 +1366,7 @@ bool BuildOrderManager::Add1GateExpandPvPTransitions(BuildOrderResultArgData dat
 	mediator->IncreaseUnitAmountInTargetComposition(IMMORTAL, 5);
 	mediator->IncreaseUnitAmountInTargetComposition(STALKER, 20);
 	mediator->IncreaseUnitAmountInTargetComposition(SENTRY, 3);
-	//mediator->AddProtossTransitions();
+	mediator->AddProtossTransitions();
 	return true;
 }
 

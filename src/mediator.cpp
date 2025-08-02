@@ -63,21 +63,7 @@ void Mediator::SetUpManagers(bool debug)
 		case Race::Protoss:
 		{
 			SendChat("Tag:race_protoss", ChatChannel::Team);
-			std::string name = GetEnemyName();
-			std::cerr << "map: " << GetMapName() << std::endl;
-			std::cerr << "enemy: " << name << std::endl;
-			if (std::strcmp(GetMapName().c_str(), "Torches AIE") == 0 &&
-				(std::strcmp(name.c_str(), "negativeZero") == 0 || 
-					std::strcmp(name.c_str(), "Aeolus") == 0 || 
-					std::strcmp(name.c_str(), "norman") == 0 || 
-					std::strcmp(name.c_str(), "Deimos") == 0))
-			{
-				SetBuildOrder(BuildOrder::one_gate_expand_with_ramp);
-			}
-			else
-			{
-				SetBuildOrder(BuildOrder::pvp_openner);
-			}
+			SetBuildOrder(BuildOrder::pvp_openner);
 			break;
 		}
 		case Race::Terran:
@@ -2118,6 +2104,11 @@ void Mediator::AddZergTransitions()
 void Mediator::AddTerranTransitions()
 {
 	transition_manager.AddTerranTransitions();
+}
+
+void Mediator::AddProtossTransitions()
+{
+	transition_manager.AddProtossTransitions();
 }
 
 ArmyGroup* Mediator::GetArmyGroupDefendingBase(Point2D pos)

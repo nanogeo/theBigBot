@@ -48,6 +48,9 @@ private:
 	bool PvTAddColossusCondition() const;
 	void PvTAddColossusEnterAction();
 
+	bool PvPAddBlinkCondition() const;
+	void PvPAddBlinkEnterAction();
+
 public:
 	TransitionManager(Mediator*);
 
@@ -55,6 +58,7 @@ public:
 
 	void AddZergTransitions();
 	void AddTerranTransitions();
+	void AddProtossTransitions();
 
 };
 

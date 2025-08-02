@@ -195,6 +195,25 @@ void TransitionManager::PvTAddColossusEnterAction()
 	mediator->IncreaseUnitAmountInTargetComposition(COLOSSUS, 3); // transition 4 gate blink army to normal attack army when a colo is added
 }
 
+bool TransitionManager::PvPAddBlinkCondition() const
+{
+	if (mediator->GetEnemyUnitCount(FLEET_BEACON) > 0 || 
+		mediator->GetEnemyUnitCount(TEMPEST) > 0 || 
+		mediator->GetEnemyUnitCount(CARRIER) > 0)
+		return true;
+	return false;
+}
+
+void TransitionManager::PvPAddBlinkEnterAction()
+{
+	mediator->TagWithTimestamp("transition_blink");
+	if (mediator->GetNumUnits(TWILIGHT) == 0)
+		mediator->BuildBuilding(TWILIGHT);
+	mediator->AddRequiredUpgrade(U_BLINK);
+	mediator->IncreaseUnitAmountInTargetComposition(STALKER, 10);
+}
+
+
 TransitionManager::TransitionManager(Mediator* mediator)
 {
 	this->mediator = mediator;
@@ -258,6 +277,13 @@ void TransitionManager::AddTerranTransitions()
 
 	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvTAddZealotCondition,
 		&TransitionManager::NullRemoveCondition, &TransitionManager::PvTAddZealotEnterAction));
+}
+
+void TransitionManager::AddProtossTransitions()
+{
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvPAddBlinkCondition,
+		&TransitionManager::NullRemoveCondition, &TransitionManager::PvPAddBlinkEnterAction));
+
 }
 
 

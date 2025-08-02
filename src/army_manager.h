@@ -33,6 +33,7 @@ private:
 	void CreateZergArmyTemplates();
 
 	bool EnemyHasExposedBase();
+	bool NoLossesForOneMinute();
 	Point2D FindExposedBase() const;
 	bool OracleHarassCondition();
 public:

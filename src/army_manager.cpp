@@ -25,6 +25,15 @@ namespace sc2 {
 	
 void ArmyManager::CreateProtossArmyTemplates()
 {
+	std::vector<UNIT_TYPEID> pvp_basic_types = { STALKER, SENTRY, PRISM, IMMORTAL };
+	std::map<UNIT_TYPEID, int> pvp_basic_req;
+	pvp_basic_req[STALKER] = 10;
+	pvp_basic_req[PRISM] = 1;
+	pvp_basic_req[IMMORTAL] = 3;
+	pvp_basic_req[SENTRY] = 2;
+	bool(sc2::ArmyManager:: * condition)() = &ArmyManager::NoLossesForOneMinute;
+	ArmyTemplate<AttackArmyGroup>* basic_army = new ArmyTemplate<AttackArmyGroup>(pvp_basic_req, condition, 10, pvp_basic_types, 20, 30);
+	army_templates.push_back(basic_army);
 
 }
 
@@ -78,6 +87,11 @@ void ArmyManager::CreateZergArmyTemplates()
 bool ArmyManager::EnemyHasExposedBase()
 {
 	return FindExposedBase() != Point2D(0, 0);
+}
+
+bool ArmyManager::NoLossesForOneMinute()
+{
+	return mediator->GetLossesSince(mediator->GetCurrentTime() - 60).mineral_cost == 0;
 }
 
 Point2D ArmyManager::FindExposedBase() const

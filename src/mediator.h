@@ -257,6 +257,7 @@ public:
 
 	void AddZergTransitions();
 	void AddTerranTransitions();
+	void AddProtossTransitions();
 
 	ArmyGroup* GetArmyGroupDefendingBase(Point2D);
 	ArmyGroup* GetArmyGroupDenyingBase(Point2D);
