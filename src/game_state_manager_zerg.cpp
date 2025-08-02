@@ -65,9 +65,11 @@ GameStateManagerZerg::GameStateManagerZerg(ScoutingManager* scouting_manager, Me
 	Units enemy_bases = mediator->GetUnits(Unit::Alliance::Enemy, IsUnits(TOWNHALL_TYPES));
 	float current_time = scouting_manager->GetCurrentTime();
 	known_workers = scouting_manager->GetEnemyUnitCount(DRONE);
-	assumed_workers = scouting_manager->GetEnemyUnitCount(DRONE);
+	assumed_workers = scouting_manager->GetEnemyUnitCount(DRONE) + 12;
 	known_max_supply = (scouting_manager->GetEnemyUnitCount(OVERLORD) * 8) + ((int)enemy_bases.size() * 6);
-	assumed_max_supply = (scouting_manager->GetEnemyUnitCount(OVERLORD) * 8) + ((int)enemy_bases.size() * 6);
+	assumed_max_supply = ((scouting_manager->GetEnemyUnitCount(OVERLORD) + 1) * 8) + (((int)enemy_bases.size() + 1) * 6);
+
+	assumed_bases.push_back(EnemyBase(nullptr, current_time, current_time + 120));
 
 	for (const auto& base : enemy_bases)
 	{
@@ -111,6 +113,7 @@ void GameStateManagerZerg::AddNewUnit(const Unit* unit)
 	{
 	case DRONE:
 		known_workers++;
+		assumed_workers = std::max(assumed_workers, known_workers);
 		break;
 	case ZERGLING:
 	case ZERGLING_BURROWED:

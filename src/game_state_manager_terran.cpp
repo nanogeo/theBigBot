@@ -41,9 +41,11 @@ GameStateManagerTerran::GameStateManagerTerran(ScoutingManager* scouting_manager
 	Units enemy_bases = mediator->GetUnits(Unit::Alliance::Enemy, IsUnits(TOWNHALL_TYPES));
 	float current_time = scouting_manager->GetCurrentTime();
 	known_workers = scouting_manager->GetEnemyUnitCount(SCV);
-	assumed_workers = scouting_manager->GetEnemyUnitCount(SCV);
+	assumed_workers = scouting_manager->GetEnemyUnitCount(SCV) + 12;
 	known_max_supply = (scouting_manager->GetEnemyUnitCount(SUPPLY_DEPOT) * 8) + (scouting_manager->GetEnemyUnitCount(SUPPLY_DEPOT_LOWERED) * 8) + ((int)enemy_bases.size() * 15);
-	assumed_max_supply = (scouting_manager->GetEnemyUnitCount(SUPPLY_DEPOT) * 8) + (scouting_manager->GetEnemyUnitCount(SUPPLY_DEPOT_LOWERED) * 8) + ((int)enemy_bases.size() * 15);
+	assumed_max_supply = (scouting_manager->GetEnemyUnitCount(SUPPLY_DEPOT) * 8) + (scouting_manager->GetEnemyUnitCount(SUPPLY_DEPOT_LOWERED) * 8) + (((int)enemy_bases.size() + 1) * 15);
+
+	known_bases.push_back(EnemyBaseTerran(nullptr, current_time));
 
 	for (const auto& base : enemy_bases)
 	{
@@ -86,6 +88,7 @@ void GameStateManagerTerran::AddNewUnit(const Unit* unit)
 	{
 	case SCV:
 		known_workers++;
+		assumed_workers = std::max(assumed_workers, known_workers);
 		break;
 	case COMMAND_CENTER:
 		known_bases.push_back(EnemyBaseTerran(unit, Utility::GetTimeBuilt(unit, current_time) + Utility::GetTimeToBuild(COMMAND_CENTER) + Utility::GetTrainingTime(SCV)));
