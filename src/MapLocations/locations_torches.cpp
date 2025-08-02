@@ -61,6 +61,7 @@ namespace sc2 {
 
 		pylon_locations = { P(121, 50),
 							P(91, 80),
+							P(92, 51),
 							P(59, 51),
 							P(29, 51),
 							P(38, 73),

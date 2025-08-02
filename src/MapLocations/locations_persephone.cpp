@@ -58,6 +58,7 @@ namespace sc2 {
 
 		pylon_locations = { P(39, 38),
 							P(60, 61),
+							P(70, 32),
 							P(96, 28),
 							P(110, 64),
 							P(132, 33),
@@ -76,8 +77,7 @@ namespace sc2 {
 							P(27, 34),
 							P(37, 24),
 							P(35, 46),
-							P(61, 24),
-							P(70, 32) };
+							P(61, 24) };
 		
 		first_pylon_location_zerg = P(69, 36);
 		first_pylon_location_protoss = P(53, 43);
