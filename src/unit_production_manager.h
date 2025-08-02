@@ -34,7 +34,7 @@ private:
 	void RunAutomaticUnitProduction();
 	void RunSpecificUnitProduction();
 
-	void GetNeededUnits(std::map<UNIT_TYPEID, int>&, std::map<UNIT_TYPEID, int>&, std::map<UNIT_TYPEID, int>&);
+	void GetNeededUnits(std::map<UNIT_TYPEID, int>&, std::map<UNIT_TYPEID, int>&, std::map<UNIT_TYPEID, int>&) const;
 
 public:
 	UnitProductionManager(Mediator* mediator)

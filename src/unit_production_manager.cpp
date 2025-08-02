@@ -104,7 +104,7 @@ void UnitProductionManager::RunAutomaticUnitProduction()
 	{
 		for (const auto& gateway : gateways)
 		{
-			if (gateway->orders.size() != 0 && gateway->is_powered == false)
+			if (gateway->orders.size() != 0 || gateway->is_powered == false)
 				continue;
 			for (auto itr = needed_gateway_units.begin(); itr != needed_gateway_units.end(); itr++)
 			{
@@ -212,7 +212,7 @@ void UnitProductionManager::RunSpecificUnitProduction()
 
 
 void UnitProductionManager::GetNeededUnits(std::map<UNIT_TYPEID, int>& needed_gateway_units, 
-	std::map<UNIT_TYPEID, int>& needed_robo_units, std::map<UNIT_TYPEID, int>& needed_stargate_units)
+	std::map<UNIT_TYPEID, int>& needed_robo_units, std::map<UNIT_TYPEID, int>& needed_stargate_units) const
 {
 	std::map<UNIT_TYPEID, int> units;
 	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Self))
@@ -410,6 +410,40 @@ void UnitProductionManager::IncreaseProduction(UnitCost future_resources)
 	{
 		missing_stargate_time += Utility::GetTrainingTime(need.first) * need.second;
 	}
+
+	// do not increase production if some production is idle
+	// TODO maybe increase production for mineral heavy units if gas in the bottleneck
+	if (needed_warpgate_units.size() > 0)
+	{
+		for (const auto& gate : gateways)
+		{
+			if (gate->orders.size() == 0)
+				return;
+		}
+		for (const auto& gate : warpgate_status)
+		{
+			if (gate.second.frame_ready == 0)
+				return;
+		}
+	}
+	if (needed_robo_units.size() > 0)
+	{
+		for (const auto& robo : robos)
+		{
+			if (robo->orders.size() == 0)
+				return;
+		}
+	}
+
+	if (needed_stargate_units.size() > 0)
+	{
+		for (const auto& stargate : stargates)
+		{
+			if (stargate->orders.size() == 0)
+				return;
+		}
+	}
+
 
 	/*missing_warpgate_time /= std::max((int)warpgates.size(), 1);
 	missing_robo_time /= std::max((int)robos.size(), 1);
