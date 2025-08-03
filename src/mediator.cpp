@@ -114,7 +114,7 @@ void Mediator::RunManagers()
 			worker_manager.SplitWorkers();
 		}
 	}
-	if (agent->Observation()->GetGameLoop() % 5 == 0)
+	if (agent->Observation()->GetGameLoop() % 2 == 0)
 	{
 		worker_manager.BuildWorkers();
 		upgrade_manager.Run();
