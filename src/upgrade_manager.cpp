@@ -209,6 +209,8 @@ int UpgradeManager::GetUpgradeLevel(UpgradeType upgrade_type) const
 
 void UpgradeManager::OnUpgradeCompleted(UPGRADE_ID upgrade)
 {
+	required_upgrades.erase(std::remove(required_upgrades.begin(), required_upgrades.end(), upgrade), required_upgrades.end());
+
 	switch (upgrade)
 	{
 	case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1:
