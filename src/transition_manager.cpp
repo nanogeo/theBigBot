@@ -86,6 +86,27 @@ bool TransitionManager::NullRemoveCondition() const
 	return false;
 }
 
+
+bool TransitionManager::PvZBlinkCondition() const
+{
+	if (mediator->GetUnits(Unit::Alliance::Self, IsUnit(STALKER)).size() > 8 && mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)).size() > 2)
+		return true;
+	return false;
+}
+
+bool TransitionManager::PvZBlinkRemoveCondition() const
+{
+	return mediator->CheckUpgrade(U_BLINK);
+}
+
+void TransitionManager::PvZBlinkEnterAction()
+{
+	mediator->TagWithTimestamp("transition_blink");
+	if (mediator->GetNumUnits(TWILIGHT) == 0)
+		mediator->BuildBuilding(TWILIGHT);
+	mediator->AddRequiredUpgrade(U_BLINK);
+}
+
 bool TransitionManager::PvZAddZealotCondition() const
 {
 	UnitCost available_resources = mediator->GetAvailableResources();
@@ -106,6 +127,8 @@ bool TransitionManager::PvZAddZealotCondition() const
 void TransitionManager::PvZAddZealotEnterAction()
 {
 	mediator->TagWithTimestamp("transition_charge");
+	if (mediator->GetNumUnits(TWILIGHT) == 0)
+		mediator->BuildBuilding(TWILIGHT);
 	mediator->AddRequiredUpgrade(U_CHARGE);
 	mediator->IncreaseUnitAmountInTargetComposition(ZEALOT, 15);
 	if (mediator->GetNumUnits(FORGE) + mediator->GetNumBuildActions(FORGE) < 2)
@@ -134,6 +157,14 @@ void TransitionManager::PvZAddColossusEnterAction()
 bool TransitionManager::PvZAddImmortalCondition() const
 {
 	if (mediator->GetEnemyUnitCount(ROACH) > 20)
+		return true;
+	return false;
+}
+
+bool TransitionManager::PvZAddImmortalRemoveCondition() const
+{
+	std::map<UNIT_TYPEID, int> target_comp = mediator->GetTargetUnitComp();
+	if (target_comp.find(IMMORTAL) != target_comp.end())
 		return true;
 	return false;
 }
@@ -260,11 +291,14 @@ void TransitionManager::AddZergTransitions()
 	// defending with mostly roaches -> immortal
 	// harassing with muta -> phoenix
 
+	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZBlinkCondition,
+		&TransitionManager::PvZBlinkRemoveCondition, &TransitionManager::PvZBlinkEnterAction));
+
 	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddColossusCondition,
 		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddColossusEnterAction));
 
 	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddImmortalCondition,
-		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddImmortalEnterAction));
+		&TransitionManager::PvZAddImmortalRemoveCondition, &TransitionManager::PvZAddImmortalEnterAction));
 
 	possible_transitions.push_back(TransitionTemplate(&TransitionManager::PvZAddZealotCondition,
 		&TransitionManager::NullRemoveCondition, &TransitionManager::PvZAddZealotEnterAction));

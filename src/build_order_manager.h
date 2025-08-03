@@ -187,6 +187,7 @@ private:
 	bool SendAllInAttack(BuildOrderResultArgData);
 	bool SendAdeptHarassProtoss(BuildOrderResultArgData);
 	bool CheckForEarlyPool(BuildOrderResultArgData);
+	bool DoubleCheckEarlyPool(BuildOrderResultArgData);
 	bool BuildNaturalDefensiveBuilding(BuildOrderResultArgData);
 	bool BuildMainDefensiveBuilding(BuildOrderResultArgData);
 	bool ReturnToOracleGatewaymanPvZ(BuildOrderResultArgData);
@@ -211,6 +212,7 @@ private:
 	bool EnergyRechargeUnit(BuildOrderResultArgData);
 
 	bool AddOracleGatewaymanPvZTransitions(BuildOrderResultArgData);
+	bool AddRoboDefensePvZTransitions(BuildOrderResultArgData);
 	bool Add4GateBlinkPvTTransitions(BuildOrderResultArgData);
 	bool Add1GateExpandPvPTransitions(BuildOrderResultArgData);
 
@@ -238,6 +240,7 @@ private:
 
 
 	void SetEarlyPoolInterrupt();
+	void SetRoachRushInterrupt();
 	void Set12PoolInterrupt();
 	void SetChargeAllInInterrupt();
 	void SetChargeAllInInterruptTerran();
@@ -609,6 +612,10 @@ struct BuildOrderData
 		{
 			str += "check for early pool";
 		}
+		else if (result == &BuildOrderManager::DoubleCheckEarlyPool)
+		{
+			str += "double check for early pool";
+			}
 		else if (result == &BuildOrderManager::BuildNaturalDefensiveBuilding)
 		{
 			str += "build defensive building at natural";

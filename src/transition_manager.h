@@ -33,6 +33,10 @@ private:
 
 	bool NullRemoveCondition() const;
 
+	bool PvZBlinkCondition() const;
+	bool PvZBlinkRemoveCondition() const;
+	void PvZBlinkEnterAction();
+
 	bool PvZAddZealotCondition() const;
 	void PvZAddZealotEnterAction();
 
@@ -40,6 +44,7 @@ private:
 	void PvZAddColossusEnterAction();
 
 	bool PvZAddImmortalCondition() const;
+	bool PvZAddImmortalRemoveCondition() const;
 	void PvZAddImmortalEnterAction();
 
 	bool PvTAddZealotCondition() const;

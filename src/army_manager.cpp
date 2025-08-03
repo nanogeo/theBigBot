@@ -62,6 +62,15 @@ void ArmyManager::CreateTerranArmyTemplates()
 
 void ArmyManager::CreateZergArmyTemplates()
 {
+	std::vector<UNIT_TYPEID> pvz_basic_types = { STALKER, PRISM, IMMORTAL };
+	std::map<UNIT_TYPEID, int> pvz_basic_req;
+	pvz_basic_req[STALKER] = 10;
+	pvz_basic_req[PRISM] = 1;
+	pvz_basic_req[IMMORTAL] = 3;
+	bool(sc2::ArmyManager:: * condition)() = &ArmyManager::NoLossesForOneMinute;
+	ArmyTemplate<AttackArmyGroup>* basic_army = new ArmyTemplate<AttackArmyGroup>(pvz_basic_req, condition, 10, pvz_basic_types, 20, 30);
+	army_templates.push_back(basic_army);
+
 	std::vector<UNIT_TYPEID> stalker_oracle_types = { STALKER, ORACLE, IMMORTAL, COLOSSUS, PRISM };
 	std::map<UNIT_TYPEID, int> stalker_oracle_req;
 	stalker_oracle_req[STALKER] = 7;

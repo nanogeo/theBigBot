@@ -535,6 +535,7 @@ bool BuildOrderManager::ContinueMacro(BuildOrderResultArgData data)
 	mediator->AddUniqueAction(&ActionManager::ActionContinueExpanding, new ActionArgData());
 	mediator->SetBalanceIncome(true);
 	mediator->StartUpgradeManager();
+	mediator->AddRequiredUpgrade(U_WARPGATE);
 	return true;
 }
 
@@ -839,13 +840,21 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 	}
 	else if (mediator->GetSpawningPoolTiming() < 45)
 	{
-		if ((mediator->GetNaturalTiming() == 0 || mediator->GetNaturalTiming() > 70) && mediator->GetEnemyUnitCount(ZERGLING) > 0)
+		if (mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)).size() == 1)
+		{
+			mediator->CancelAllActionsOfType(&ActionManager::ActionBuildBuildingMulti);
+		}
+		if (mediator->GetSpawningPoolTiming() < 20 || (mediator->GetNaturalTiming() == 0 || mediator->GetNaturalTiming() > 70) || mediator->GetEnemyUnitCount(ZERGLING) > 0)
 		{
 			// 12 pool
 			Set12PoolInterrupt();
 			build_order_step = 0;
 			std::cerr << "12 pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 			mediator->SendChat("Tag:scout_12_pool", ChatChannel::Team);
+			Point2D pos = mediator->GetLocation(CYBERCORE);
+			const Unit* builder = mediator->GetBuilder(pos);
+			mediator->RemoveWorker(builder);
+			mediator->AddAction(&ActionManager::ActionBuildBuildingMulti, new ActionArgData(builder, { CYBERCORE, GATEWAY }, pos, 0));
 		}
 		else
 		{
@@ -854,6 +863,10 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 			build_order_step = 0;
 			std::cerr << "Early pool interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 			mediator->SendChat("Tag:scout_pool_first", ChatChannel::Team);
+			Point2D pos = mediator->GetLocation(CYBERCORE);
+			const Unit* builder = mediator->GetBuilder(pos);
+			mediator->RemoveWorker(builder);
+			mediator->AddAction(&ActionManager::ActionBuildBuildingMulti, new ActionArgData(builder, { CYBERCORE, NEXUS }, pos, 0));
 		}
 	}
 	else if (mediator->GetRoachWarrenTiming() != 0)
@@ -877,6 +890,21 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		return true;
 	}
 	return false;
+}
+
+bool BuildOrderManager::DoubleCheckEarlyPool(BuildOrderResultArgData data)
+{
+	if (mediator->GetRoachWarrenTiming() > 0)
+	{
+		if (mediator->GetUnits(Unit::Alliance::Self, IsUnit(NEXUS)).size() == 1)
+		{
+			mediator->CancelAllActionsOfType(&ActionManager::ActionBuildBuildingMulti);
+		}
+		build_order_step = 0;
+		SetRoachRushInterrupt();
+		return false;
+	}
+	return true;
 }
 
 bool BuildOrderManager::BuildNaturalDefensiveBuilding(BuildOrderResultArgData data)
@@ -1350,6 +1378,17 @@ bool BuildOrderManager::AddOracleGatewaymanPvZTransitions(BuildOrderResultArgDat
 	return true;
 }
 
+bool BuildOrderManager::AddRoboDefensePvZTransitions(BuildOrderResultArgData data)
+{
+	mediator->SetAutomaticUnitProduction(true);
+	mediator->IncreaseUnitAmountInTargetComposition(PRISM, 1);
+	mediator->IncreaseUnitAmountInTargetComposition(OBSERVER, 1);
+	mediator->IncreaseUnitAmountInTargetComposition(IMMORTAL, 4);
+	mediator->IncreaseUnitAmountInTargetComposition(STALKER, 30);
+	mediator->AddZergTransitions();
+	return true;
+}
+
 bool BuildOrderManager::Add4GateBlinkPvTTransitions(BuildOrderResultArgData data)
 {
 	mediator->SetAutomaticUnitProduction(true);
@@ -1466,10 +1505,12 @@ void BuildOrderManager::SetTesting()
 
 void BuildOrderManager::SetEarlyPoolInterrupt()
 {
-	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(100.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::DoubleCheckEarlyPool,				Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(100.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(110.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(112.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(ADEPT)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::SafeRallyPoint,						Result(GATEWAY)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(138.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(139.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)),
@@ -1484,19 +1525,43 @@ void BuildOrderManager::SetEarlyPoolInterrupt()
 	};
 }
 
+void BuildOrderManager::SetRoachRushInterrupt()
+{
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
+					Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::CancelBuilding,						Result(NEXUS)),
+					Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::TimePassed,			Condition(92.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
+					Data(&BuildOrderManager::TimePassed,			Condition(107.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(STALKER)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::SafeRallyPoint,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::BuildBuilding,						Result(ROBO)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(ROBO),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(ROBO),			&BuildOrderManager::SetUnitProduction,					Result(IMMORTAL)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(ROBO),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(STALKER)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(STALKER)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(STALKER)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::ChronoBuilding,						Result(ROBO)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::ContinueMacro,						Result()),
+					Data(&BuildOrderManager::HasBuilding,			Condition(ROBO),			&BuildOrderManager::AddRoboDefensePvZTransitions,		Result()),
+	};
+}
+
 void BuildOrderManager::Set12PoolInterrupt()
 {
-	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::CancelBuilding,						Result(NEXUS)),
-					Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::TrainUnit,							Result(ZEALOT)),
-					Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result()),
-					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::BuildBuilding,						Result(GATEWAY)),
+	build_order = { Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::CancelBuilding,						Result(NEXUS)),
+					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::TrainUnit,							Result(ZEALOT)),
+					Data(&BuildOrderManager::TimePassed,			Condition(60.0f),			&BuildOrderManager::ContinueMakingWorkers,				Result()),
 					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::SafeRallyPoint,						Result(GATEWAY)),
 					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::BuildBuilding,						Result(PYLON)),
-					Data(&BuildOrderManager::TimePassed,			Condition(100.0f),			&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
-					Data(&BuildOrderManager::TimePassed,			Condition(105.0f),			&BuildOrderManager::TrainUnit,							Result(ZEALOT)),
-					Data(&BuildOrderManager::TimePassed,			Condition(115.0f),			&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuildingStarted,	Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(ZEALOT)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::BuildNaturalDefensiveBuilding,		Result(BATTERY)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(ADEPT)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
+					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::TrainUnit,							Result(ADEPT)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(CYBERCORE),		&BuildOrderManager::ResearchWarpgate,					Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(125.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
 					Data(&BuildOrderManager::TimePassed,			Condition(138.0f),			&BuildOrderManager::TrainUnit,							Result(ADEPT)),
@@ -1508,7 +1573,8 @@ void BuildOrderManager::Set12PoolInterrupt()
 					Data(&BuildOrderManager::TimePassed,			Condition(160.0f),			&BuildOrderManager::BuildBuilding,						Result(STARGATE)),
 					Data(&BuildOrderManager::HasBuildingStarted,	Condition(STARGATE),		&BuildOrderManager::SetUnitProduction,					Result(STALKER)),
 					Data(&BuildOrderManager::HasBuilding,			Condition(STARGATE),		&BuildOrderManager::SetUnitProduction,					Result(ORACLE)),
-					Data(&BuildOrderManager::HasUnits,				Condition(ORACLE, 1),		&BuildOrderManager::ReturnToOracleGatewaymanPvZ,		Result()),
+					Data(&BuildOrderManager::HasUnits,				Condition(ORACLE, 1),		&BuildOrderManager::ContinueMacro,						Result()),
+					Data(&BuildOrderManager::HasUnits,				Condition(ORACLE, 1),		&BuildOrderManager::AddOracleGatewaymanPvZTransitions,	Result()),
 
 	};
 }
@@ -1674,7 +1740,7 @@ void BuildOrderManager::SetOracleGatewaymanPvZ()
 					Data(&BuildOrderManager::TimePassed,			Condition(48.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(48.0f),			&BuildOrderManager::ImmediatelySaturateGasses,			Result()),
 					Data(&BuildOrderManager::TimePassed,			Condition(68.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({NEXUS, CYBERCORE})),
-					Data(&BuildOrderManager::TimePassed,			Condition(90.0f),			&BuildOrderManager::CheckForEarlyPool,					Result()),
+					Data(&BuildOrderManager::TimePassed,			Condition(68.0f),			&BuildOrderManager::CheckForEarlyPool,					Result()),
 
 					Data(&BuildOrderManager::TimePassed,			Condition(95.0f),			&BuildOrderManager::BuildBuilding,						Result(ASSIMILATOR)),
 					Data(&BuildOrderManager::TimePassed,			Condition(102.0f),			&BuildOrderManager::BuildBuilding,						Result(PYLON)),
