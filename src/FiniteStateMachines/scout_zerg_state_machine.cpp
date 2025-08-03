@@ -52,8 +52,8 @@ void ScoutZScoutMain::TickState()
 
 void ScoutZScoutMain::EnterState()
 {
-	state_machine->index = 0;
-	state_machine->current_target = state_machine->main_scout_path[0];
+	state_machine->index = 1;
+	state_machine->current_target = state_machine->main_scout_path[1];
 }
 
 void ScoutZScoutMain::ExitState()
@@ -84,7 +84,7 @@ State* ScoutZScoutMain::TestTransitions()
 
 
 	if (mediator->GetSpawningPoolTiming() > 0 &&
-		mediator->GetCurrentTime() > mediator->GetSpawningPoolTiming() + 60)
+		(mediator->GetEnemyUnitCount(ZERGLING) > 0 || mediator->GetEnemyUnitCount(QUEEN) > 0))
 	{
 		mediator->MarkStateMachineForDeletion(state_machine);
 		return nullptr;
