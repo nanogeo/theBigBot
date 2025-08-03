@@ -142,9 +142,9 @@ namespace sc2 {
 		proxy_tech_locations = { P(137.5, 153.5),
 								P(102.5, 119.5) };
 		
-		defensive_natural_battery_locations = { P(144, 79),
-												P(146, 81),
-												P(141, 78) };
+		defensive_natural_battery_locations = { P(144, 80),
+												P(146, 82),
+												P(141, 79) };
 
 		gateway_walloff = P(164.5, 81.5);
 		pylon_walloff = P(163.25, 82);
