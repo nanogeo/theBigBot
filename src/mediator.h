@@ -283,6 +283,8 @@ public:
 	std::vector<Point2D> GetSelfMainScoutPath() const;
 	std::vector<Point2D> GetSelfNaturalScoutPath() const;
 
+	void ChangeAreaControl(Point2D, float, float, NodeControl);
+
 	std::string GetMapName() const;
 	Race GetEnemyRace() const;
 	std::string GetEnemyName();

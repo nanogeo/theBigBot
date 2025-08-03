@@ -2246,6 +2246,11 @@ std::vector<Point2D> Mediator::GetSelfNaturalScoutPath() const
 	return agent->locations->self_natural_scout_path;
 }
 
+void Mediator::ChangeAreaControl(Point2D pos, float radius, float height, NodeControl control)
+{
+	pathing_manager.ChangeAreaControl(pos, radius, height, control);
+}
+
 std::string Mediator::GetMapName() const
 {
 	return agent->Observation()->GetGameInfo().map_name;

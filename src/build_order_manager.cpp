@@ -254,6 +254,11 @@ bool BuildOrderManager::BuildFirstPylon(BuildOrderResultArgData data)
 {
 	Point2D pos = mediator->GetFirstPylonLocation();
 
+	if (mediator->GetEnemyRace() == Race::Zerg)
+	{
+		mediator->ChangeAreaControl(mediator->GetNaturalLocation(), LONG_RANGE, mediator->ToPoint3D(mediator->GetNaturalLocation()).z, NodeControl::friendly_control);
+	}
+
 	const Unit* builder = mediator->GetBuilder(pos);
 	if (builder == nullptr)
 	{
@@ -267,6 +272,8 @@ bool BuildOrderManager::BuildFirstPylon(BuildOrderResultArgData data)
 bool BuildOrderManager::BuildLowGroundFirstPylon(BuildOrderResultArgData data)
 {
 	Point2D pos = mediator->GetLocations().first_pylon_location_zerg;
+
+	mediator->ChangeAreaControl(mediator->GetNaturalLocation(), LONG_RANGE, mediator->ToPoint3D(mediator->GetNaturalLocation()).z, NodeControl::friendly_control);
 
 	const Unit* builder = mediator->GetBuilder(pos);
 	if (builder == nullptr)
