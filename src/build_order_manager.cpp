@@ -911,7 +911,11 @@ bool BuildOrderManager::DoubleCheckEarlyPool(BuildOrderResultArgData data)
 		SetRoachRushInterrupt();
 		return false;
 	}
-	return true;
+	else if (mediator->GetCurrentTime() > 100)
+	{
+		return true;
+	}
+	return false;
 }
 
 bool BuildOrderManager::BuildNaturalDefensiveBuilding(BuildOrderResultArgData data)
