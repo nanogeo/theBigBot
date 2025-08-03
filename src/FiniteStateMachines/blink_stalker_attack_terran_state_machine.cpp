@@ -255,7 +255,7 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 	// attacking_stalkers
 	for (auto itr = stalkers_to_blink.begin(); itr != stalkers_to_blink.end();)
 	{
-		if ((*itr) == nullptr) // TODO look into why this is ever the case
+		if ((*itr) == nullptr || (*itr)->is_alive == false)
 		{
 			itr = stalkers_to_blink.erase(itr);
 			continue;
