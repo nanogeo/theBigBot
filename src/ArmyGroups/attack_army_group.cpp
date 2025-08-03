@@ -927,8 +927,14 @@ void AttackArmyGroup::AddUnit(const Unit* unit)
 
 void AttackArmyGroup::RemoveUnit(const Unit* unit)
 {
-	// TODO remove units in units_on_their_way;
-
+	for (auto itr = units_on_their_way.begin(); itr != units_on_their_way.end();)
+	{
+		itr->erase(std::remove(itr->begin(), itr->end(), unit), itr->end());
+		if (itr->size() == 0)
+			itr = units_on_their_way.erase(itr);
+		else
+			itr++;
+	}
 	basic_units.erase(std::remove(basic_units.begin(), basic_units.end(), unit), basic_units.end());
 	oracles.erase(std::remove(oracles.begin(), oracles.end(), unit), oracles.end());
 	warp_prisms.erase(std::remove(warp_prisms.begin(), warp_prisms.end(), unit), warp_prisms.end());
