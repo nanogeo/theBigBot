@@ -110,7 +110,9 @@ void TransitionManager::PvZBlinkEnterAction()
 bool TransitionManager::PvZAddZealotCondition() const
 {
 	UnitCost available_resources = mediator->GetAvailableResources();
-	if (available_resources.mineral_cost > 1000 && available_resources.vespene_cost < 200)
+	if (available_resources.mineral_cost > 1000 && 
+		available_resources.vespene_cost < 200 && 
+		mediator->GetNumUnits(ASSIMILATOR) == mediator->GetNumUnits(NEXUS) * 2)
 		return true;
 
 	std::map<UNIT_TYPEID, int> target_comp = mediator->GetTargetUnitComp();

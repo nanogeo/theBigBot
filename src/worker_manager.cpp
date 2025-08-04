@@ -1065,6 +1065,11 @@ void WorkerManager::BalanceWorkers()
 		}
 		else if (excess_gas && excess_minerals)
 		{
+			if (mediator->GetNumBuildActions(ASSIMILATOR) == 0 && 
+				mediator->HasBuildingUnderConstruction(ASSIMILATOR) == false && 
+				mediator->GetNumUnits(ASSIMILATOR) < mediator->GetNumUnits(NEXUS) * 2)
+				mediator->BuildBuilding(ASSIMILATOR);
+
 			int short_time_span = 30;
 			UnitCost short_income = mediator->CalculateIncome(short_time_span);
 			UnitCost short_future_resources = mediator->GetCurrentResources() + short_income -
