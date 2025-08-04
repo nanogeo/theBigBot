@@ -35,6 +35,7 @@ protected:
 	float default_range = 6.0f;
 	std::vector<std::vector<UNIT_TYPEID>> target_priority;
 	bool limit_advance;
+	Point2D pre_prism_limit = Point2D(0, 0);
 	Point2D concave_origin;
 	Point2D concave_target;
 	float concave_degree = 30;

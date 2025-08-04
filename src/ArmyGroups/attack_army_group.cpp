@@ -138,6 +138,17 @@ Point2D AttackArmyGroup::FindLimitToAdvance(std::vector<UNIT_TYPEID> types_to_av
 {
 	// TODO ignore units behind army but intersecting with attack path
 	std::vector<Point2D> danger_points;
+	if (pre_prism_limit != Point2D(0, 0) && warp_prisms.size() == 0)
+	{
+		std::vector<Point2D> intersection_points;
+		intersection_points = attack_path.FindCircleIntersection(pre_prism_limit, 10);
+		if (intersection_points.size() != 0)
+		{
+			Point2D danger_point = attack_path.GetFurthestBack(intersection_points);
+			danger_points.push_back(danger_point);
+		}
+	}
+
 	for (const auto& unit : mediator->GetEnemySavedPositions())
 	{
 		if (std::find(types_to_avoid.begin(), types_to_avoid.end(), unit.first->unit_type) == types_to_avoid.end())
@@ -178,7 +189,10 @@ void AttackArmyGroup::FindNewConcaveOrigin()
 	Point2D limit = attack_path.GetEndPoint();
 	if (limit_advance)
 	{
-		limit = FindLimitToAdvance({ SIEGE_TANK_SIEGED }, 1, false, 1);
+		if (mediator->GetEnemyRace() == Race::Terran)
+			limit = FindLimitToAdvance({ SIEGE_TANK_SIEGED }, 1, false, 1);
+		else if (mediator->GetEnemyRace() == Race::Protoss)
+			limit = FindLimitToAdvance({}, 1, false, 0);
 	}
 	mediator->DebugSphere(mediator->ToPoint3D(limit), 1.5, Color(255, 255, 255));
 
@@ -817,7 +831,8 @@ AttackArmyGroup::AttackArmyGroup(Mediator* mediator, PiecewisePath attack_path, 
 		std::cerr << "Unknown enemy race in AttackArmyGroup" << std::endl;
 		break;
 	}
-	limit_advance = false;
+	limit_advance = true;
+	pre_prism_limit = mediator->GetLocations().adept_scout_ramptop;
 }
 
 AttackArmyGroup::AttackArmyGroup(Mediator* mediator, ArmyTemplate<AttackArmyGroup>* army_template) : ArmyGroup(mediator)
