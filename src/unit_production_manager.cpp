@@ -416,15 +416,21 @@ void UnitProductionManager::IncreaseProduction(UnitCost future_resources)
 	// TODO maybe increase production for mineral heavy units if gas in the bottleneck
 	if (needed_warpgate_units.size() > 0)
 	{
-		for (const auto& gate : gateways)
+		if (mediator->CheckUpgrade(U_WARPGATE))
 		{
-			if (gate->orders.size() == 0)
-				return;
+			for (const auto& gate : warpgate_status)
+			{
+				if (gate.second.frame_ready == 0)
+					return;
+			}
 		}
-		for (const auto& gate : warpgate_status)
+		else
 		{
-			if (gate.second.frame_ready == 0)
-				return;
+			for (const auto& gate : gateways)
+			{
+				if (gate->orders.size() == 0)
+					return;
+			}
 		}
 	}
 	if (needed_robo_units.size() > 0)
