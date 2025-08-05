@@ -1078,7 +1078,7 @@ void WorkerManager::BalanceWorkers()
 			bool short_excess_minerals = short_future_resources.mineral_cost > short_income.mineral_cost / 2;
 			bool short_excess_gas = short_future_resources.vespene_cost > short_income.vespene_cost / 2;
 			// build more production
-			if (short_excess_gas&& short_excess_minerals)
+			if (short_excess_gas && short_excess_minerals)
 				mediator->IncreaseProduction(short_future_resources);
 		}
 	}
