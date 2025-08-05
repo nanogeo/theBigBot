@@ -292,25 +292,9 @@ AttackLineResult BlinkFSMArmyGroup::AttackLine(Units units)
 	// assign units to positions
 	unit_position_asignments = AssignUnitsToPositions(units, concave_positions);
 
-	// calculate unit danger
+	// avoid danger
 	std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage = CalculateUnitDanger(units);
-
-	Units escaping_units;
-	// if blink -> blink stalkers in enough danger
-	if (mediator->CheckUpgrade(U_BLINK))
-	{
-		for (const auto& incoming : incoming_damage)
-		{
-			if (incoming.first->unit_type == STALKER && incoming.second.unit_prio <= 2 && mediator->IsStalkerBlinkOffCooldown(incoming.first))
-			{
-				if (mediator->GetAttackStatus(incoming.first))
-					mediator->CancelAttack(incoming.first);
-
-				mediator->SetUnitCommand(incoming.first, A_BLINK, standby_pos, CommandPriorty::high);
-				escaping_units.push_back(incoming.first);
-			}
-		}
-	}
+	Units escaping_units = EvadeDamage(incoming_damage);
 
 
 	// move units to positions
@@ -373,30 +357,15 @@ AttackLineResult BlinkFSMArmyGroup::AttackLine(Units units, const Unit* prism)
 		}
 	}
 
-	// calculate unit danger
+	// avoid danger
 	std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage = CalculateUnitDanger(units);
-
-	Units escaping_units;
-	// if blink -> blink stalkers in enough danger
-	if (mediator->CheckUpgrade(U_BLINK))
-	{
-		for (const auto& incoming : incoming_damage)
-		{
-			if (incoming.first->unit_type == STALKER && incoming.second.unit_prio <= 2 && mediator->IsStalkerBlinkOffCooldown(incoming.first))
-			{
-				if (mediator->GetAttackStatus(incoming.first))
-					mediator->CancelAttack(incoming.first);
-
-				mediator->SetUnitCommand(incoming.first, A_BLINK, standby_pos, CommandPriorty::high);
-				escaping_units.push_back(incoming.first);
-			}
-		}
-	}
+	Units escaping_units = EvadeDamage(incoming_damage);
 
 	std::vector<Tag> units_in_cargo;
 	// if prisms -> pickup units in enough danger
 	if (prism != nullptr)
 	{
+		mediator->ForceUnitCommand(prism, A_UNLOAD_AT, prism);
 		for (const auto& passanger : prism->passengers)
 		{
 			units_in_cargo.push_back(passanger.tag);

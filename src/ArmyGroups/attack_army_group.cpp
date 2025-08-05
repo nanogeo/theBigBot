@@ -778,6 +778,113 @@ bool AttackArmyGroup::TestSwap(Point2D pos1, Point2D target1, Point2D pos2, Poin
 	return swap_max < curr_max;
 }
 
+Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage)
+{
+	Units escaping_units;
+
+	std::sort(incoming_damage.begin(), incoming_damage.end(),
+		[](const std::pair<const Unit*, UnitDanger> a, const std::pair<const Unit*, UnitDanger> b) -> bool
+	{
+		return a.second < b.second;
+	});
+
+	bool has_blink = mediator->CheckUpgrade(U_BLINK);
+
+	std::vector<Tag> units_in_cargo;
+	std::map<const Unit*, int> cargo_available;
+	// if prisms -> pickup units in enough danger
+	if (warp_prisms.size() > 0)
+	{
+		for (const auto& prism : warp_prisms)
+		{
+			cargo_available[prism] = prism->cargo_space_max - prism->cargo_space_taken;
+			for (const auto& passanger : prism->passengers)
+			{
+				units_in_cargo.push_back(passanger.tag);
+			}
+		}
+	}
+
+	for (const auto& request : incoming_damage)
+	{
+		bool unit_found_space = false;
+		if (std::find(units_in_cargo.begin(), units_in_cargo.end(), request.first->tag) != units_in_cargo.end())
+		{
+			// unit is already inside prism
+			continue;
+		}
+
+		bool can_blink = false;
+		if (has_blink && request.first->unit_type == STALKER && mediator->IsStalkerBlinkOffCooldown(request.first))
+			can_blink = true;
+
+		const Unit* prism_in_range = nullptr;
+		for (const auto& cargo : cargo_available)
+		{
+			if (Distance2D(cargo.first->pos, request.first->pos) < RANGE_PRISM_PICKUP && 
+				cargo.second >= Utility::GetCargoSize(request.first) &&
+				(prism_in_range == nullptr || cargo.second > cargo_available[prism_in_range]))
+				prism_in_range = cargo.first;
+		}
+
+		if (prism_in_range != nullptr && can_blink == false)
+		{
+			int cargo_space = cargo_available[prism_in_range];
+			if (request.second.unit_prio >= 3 ||
+				(request.second.unit_prio == 2 && cargo_space >= 4) ||
+				(request.second.unit_prio == 1 && cargo_space >= 6))
+			{
+				escaping_units.push_back(request.first);
+				mediator->SetUnitCommand(request.first, A_SMART, prism_in_range, CommandPriorty::high);
+				if (mediator->GetAttackStatus(request.first))
+					mediator->CancelAttack(request.first);
+
+				if (cargo_available[prism_in_range] == Utility::GetCargoSize(request.first))
+					cargo_available.erase(prism_in_range);
+				else
+					cargo_available[prism_in_range] = cargo_available[prism_in_range] - Utility::GetCargoSize(request.first);
+			}
+		}
+		else if (prism_in_range == nullptr && can_blink == true)
+		{
+			if (request.second.unit_prio >= 2)
+			{
+				escaping_units.push_back(request.first);
+				mediator->SetUnitCommand(request.first, A_BLINK, standby_pos, CommandPriorty::high);
+				if (mediator->GetAttackStatus(request.first))
+					mediator->CancelAttack(request.first);
+			}
+		}
+		if (prism_in_range != nullptr && can_blink == true)
+		{
+			int cargo_space = cargo_available[prism_in_range];
+			if (request.second.unit_prio >= 4 ||
+				(request.second.unit_prio == 3 && cargo_space >= 4) ||
+				(request.second.unit_prio == 2 && cargo_space >= 6))
+			{
+				escaping_units.push_back(request.first);
+				mediator->SetUnitCommand(request.first, A_SMART, prism_in_range, CommandPriorty::high);
+				if (mediator->GetAttackStatus(request.first))
+					mediator->CancelAttack(request.first);
+
+				if (cargo_available[prism_in_range] == Utility::GetCargoSize(request.first))
+					cargo_available.erase(prism_in_range);
+				else
+					cargo_available[prism_in_range] = cargo_available[prism_in_range] - Utility::GetCargoSize(request.first);
+			}
+			else if (request.second.unit_prio >= 2)
+			{
+				escaping_units.push_back(request.first);
+				mediator->SetUnitCommand(request.first, A_BLINK, standby_pos, CommandPriorty::high);
+				if (mediator->GetAttackStatus(request.first))
+					mediator->CancelAttack(request.first);
+			}
+		}
+	}
+	return escaping_units;
+}
+
+
 void AttackArmyGroup::MicroReadyUnits(Units units, float percent_needed, int total_units)
 {
 	// if enough units can attack something
@@ -1045,45 +1152,29 @@ AttackLineResult AttackArmyGroup::AttackLine()
 		}
 	}
 
-	// calculate unit danger
+	// avoid danger
 	std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage = CalculateUnitDanger();
+	Units escaping_units = EvadeDamage(incoming_damage);
 
-	Units escaping_units;
-	// if blink -> blink stalkers in enough danger
-	if (mediator->CheckUpgrade(U_BLINK))
-	{
-		for (const auto& incoming : incoming_damage)
-		{
-			if (incoming.first->unit_type == STALKER && incoming.second.unit_prio <= 2 && mediator->IsStalkerBlinkOffCooldown(incoming.first))
-			{
-				if (mediator->GetAttackStatus(incoming.first))
-					mediator->CancelAttack(incoming.first);
-
-				mediator->SetUnitCommand(incoming.first, A_BLINK, standby_pos, CommandPriorty::high);
-				escaping_units.push_back(incoming.first);
-			}
-		}
-	}
-
-	std::vector<Tag> units_in_cargo;
-	// if prisms -> pickup units in enough danger
-	if (warp_prisms.size() > 0)
-	{
-		for (const auto& prism : warp_prisms)
-		{
-			for (const auto& passanger : prism->passengers)
-			{
-				units_in_cargo.push_back(passanger.tag);
-			}
-		}
-
-	}
 
 	// move units to positions
 	for (const auto& assignment : unit_position_asignments)
 	{
 		if (mediator->GetAttackStatus(assignment.first) == false)
 			mediator->SetUnitCommand(assignment.first, A_MOVE, assignment.second, CommandPriorty::low);
+	}
+	std::vector<Tag> units_in_cargo;
+
+	if (warp_prisms.size() > 0)
+	{
+		for (const auto& prism : warp_prisms)
+		{
+			mediator->ForceUnitCommand(prism, A_UNLOAD_AT, prism);
+			for (const auto& passanger : prism->passengers)
+			{
+				units_in_cargo.push_back(passanger.tag);
+			}
+		}
 	}
 
 	// if units that can attack > threshold -> add units to attackers

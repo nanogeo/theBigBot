@@ -60,6 +60,7 @@ protected:
 	std::map<const Unit*, Point2D> AssignUnitsToPositions(Units, std::vector<Point2D>);
 	void OraclesDefendArmy();
 	bool TestSwap(Point2D, Point2D, Point2D, Point2D) const;
+	Units EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger>>);
 
 	void MicroReadyUnits(Units, float, int);
 

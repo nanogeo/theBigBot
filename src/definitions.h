@@ -285,6 +285,7 @@ namespace sc2
 #define RANGE_STASIS_WARD 6.0f
 #define RANGE_TIME_WARP 9.0f
 #define RANGE_ENERGY_RECHARGE 12.55f // TODO check
+#define RANGE_PRISM_PICKUP  5.0f // TODO if counts radius of unit
 
 #define SIZE_FORCEFIELD 1.7f
 #define SIZE_STORM 1.5f
