@@ -116,6 +116,7 @@ public:
 	int CheckTerranScoutingInfoEarly();
 
 	int GetIncomingDamage(const Unit*) const;
+	void RemoveAllAttacksAtUnit(const Unit*);
 
 	void OnUnitDestroyed(const Unit*);
 

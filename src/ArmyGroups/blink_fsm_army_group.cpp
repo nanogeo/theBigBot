@@ -369,6 +369,7 @@ AttackLineResult BlinkFSMArmyGroup::AttackLine(Units units, const Unit* prism)
 		for (const auto& passanger : prism->passengers)
 		{
 			units_in_cargo.push_back(passanger.tag);
+			mediator->RemoveAllAttacksAtUnit(mediator->GetUnit(passanger.tag));
 		}
 	}
 

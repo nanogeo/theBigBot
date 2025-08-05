@@ -128,6 +128,7 @@ void AbilityManager::UpdateStalkerInfo()
 				stalkers_ordered_to_blink[stalker.first] = 0;
 				stalker_blink_off_cooldown[stalker.first] = false;
 				last_time_stalker_blinked[stalker.first] = mediator->GetCurrentTime();
+				mediator->RemoveAllAttacksAtUnit(stalker.first);
 			}
 		}
 		// update stalker position

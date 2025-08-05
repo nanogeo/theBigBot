@@ -192,6 +192,7 @@ public:
 	void InitializeGameState();
 	GameState GetGameState() const;
 	int GetIncomingDamage(const Unit*);
+	void RemoveAllAttacksAtUnit(const Unit*);
 
 	StateMachine* GetStateMachineByName(std::string);
 	void AddStateMachine(StateMachine*);

@@ -578,6 +578,11 @@ int ScoutingManager::GetIncomingDamage(const Unit* unit) const
 	return damage;
 }
 
+void ScoutingManager::RemoveAllAttacksAtUnit(const Unit* unit)
+{
+	enemy_attacks.erase(unit);
+}
+
 void ScoutingManager::OnUnitDestroyed(const Unit* unit)
 {
 	if (enemy_weapon_cooldown.find(unit) != enemy_weapon_cooldown.end())

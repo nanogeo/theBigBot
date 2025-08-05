@@ -1561,6 +1561,11 @@ int Mediator::GetIncomingDamage(const Unit* unit)
 	return scouting_manager.GetIncomingDamage(unit);
 }
 
+void Mediator::RemoveAllAttacksAtUnit(const Unit* unit)
+{
+	scouting_manager.RemoveAllAttacksAtUnit(unit);
+}
+
 StateMachine* Mediator::GetStateMachineByName(std::string name)
 {
 	for (auto& fsm : finite_state_machine_manager.GetActiveStateMachines())
