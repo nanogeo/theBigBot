@@ -1,4 +1,6 @@
 #pragma once
+#include "path.h"
+
 #include <vector>
 #include <map>
 
@@ -129,10 +131,11 @@ public:
 	Point2D GetPointFrom(Point2D, float, bool, float&) const override;
 };
 
-class PiecewisePath
+class PiecewisePath : public Path
 {
 private:
 	std::vector<LineSegment*> segments;
+	int FindClosestSegmentIndex(Point2D) const;
 public:
 	PiecewisePath() {};
 	PiecewisePath(std::vector<LineSegment*> segments)
@@ -170,15 +173,14 @@ public:
 			segments.push_back(curve);
 		}
 	}
-	Point2D FindClosestPoint(Point2D) const;
-	int FindClosestSegmentIndex(Point2D) const;
-	Point2D GetPointFrom(Point2D, float, bool) const;
-	std::vector<Point2D> FindCircleIntersection(Point2D, float) const;
-	std::vector<Point2D> GetPoints() const;
-	Point2D GetStartPoint() const;
-	Point2D GetEndPoint() const;
-	Point2D GetFurthestForward(std::vector<Point2D>) const;
-	Point2D GetFurthestBack(std::vector<Point2D>) const;
+	Point2D FindClosestPoint(Point2D) const override;
+	Point2D GetPointFrom(Point2D, float, bool) const override;
+	std::vector<Point2D> FindCircleIntersection(Point2D, float) const override;
+	std::vector<Point2D> GetPoints() const override;
+	Point2D GetStartPoint() const override;
+	Point2D GetEndPoint() const override;
+	Point2D GetFurthestForward(std::vector<Point2D>) const override;
+	Point2D GetFurthestBack(std::vector<Point2D>) const override;
 
 	LineSegment* FitLineSegment(Point2D, Point2D, Point2D, Point2D) const;
 };

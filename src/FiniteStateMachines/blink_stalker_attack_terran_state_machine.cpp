@@ -305,7 +305,6 @@ State* BlinkStalkerAttackTerranBlinkUp::TestTransitions()
 	}
 	if (stalkers_to_blink.size() == 0)
 	{
-		state_machine->attached_army_group->SetStandbyPos(state_machine->blink_down_pos); // probably not necessary
 		return new BlinkStalkerAttackTerranAttackMain(mediator, state_machine);
 	}
 	return nullptr;

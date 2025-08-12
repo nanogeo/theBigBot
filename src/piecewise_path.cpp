@@ -450,24 +450,6 @@ Point2D LineSegmentCurveY::GetPointFrom(Point2D point, float dist, bool forward,
 }
 
 
-Point2D PiecewisePath::FindClosestPoint(Point2D point) const
-{
-	Point2D closest;
-	double distance_to_closest = INFINITY;
-
-	for (auto &segment : segments)
-	{
-		Point2D closest_on_segment = segment->FindClosestPoint(point);
-		double dist = Distance2D(point, closest_on_segment);
-		if (dist < distance_to_closest)
-		{
-			distance_to_closest = dist;
-			closest = closest_on_segment;
-		}
-	}
-	return closest;
-}
-
 int PiecewisePath::FindClosestSegmentIndex(Point2D point) const
 {
 	int closest = 0;
@@ -481,6 +463,24 @@ int PiecewisePath::FindClosestSegmentIndex(Point2D point) const
 		{
 			distance_to_closest = dist;
 			closest = i;
+		}
+	}
+	return closest;
+}
+
+Point2D PiecewisePath::FindClosestPoint(Point2D point) const
+{
+	Point2D closest;
+	double distance_to_closest = INFINITY;
+
+	for (auto &segment : segments)
+	{
+		Point2D closest_on_segment = segment->FindClosestPoint(point);
+		double dist = Distance2D(point, closest_on_segment);
+		if (dist < distance_to_closest)
+		{
+			distance_to_closest = dist;
+			closest = closest_on_segment;
 		}
 	}
 	return closest;

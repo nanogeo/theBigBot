@@ -589,4 +589,11 @@ enum class CommandPriorty
 	max
 };
 
+enum class PathDirection
+{
+	none,
+	forward,
+	backward
+};
+
 }

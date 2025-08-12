@@ -9,18 +9,17 @@
 namespace sc2 {
 
 
-float AttackArmyGroup::CalculateDesiredRange(Units units)
+float AttackArmyGroup::CalculateDesiredRange(Units basic_units, Units enemy_units, float default_range, float unit_size)
 {
 	// TODO pass in this Units
-	Units enemies_in_range = Utility::GetUnitsWithin(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, LONG_RANGE);
 	float enemy_dps = 0;
-	for (const auto& unit : enemies_in_range)
+	for (const auto& unit : enemy_units)
 	{
 		enemy_dps += Utility::GetDPS(unit);
 	}
 
 	float friendly_dps = 0;
-	for (const auto& unit : units)
+	for (const auto& unit : basic_units)
 	{
 		friendly_dps += Utility::GetDPS(unit);
 	}
@@ -37,117 +36,46 @@ float AttackArmyGroup::CalculateDesiredRange(Units units)
 	return desired_range;
 }
 
-Point2D AttackArmyGroup::CalculateConcaveTarget()
+Point2D AttackArmyGroup::CalculateConcaveTarget(Point2D origin, Units closest_enemies, Path* path)
 {
-	//Units close_enemies = Utility::NClosestUnits(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, 5);
-	Units close_enemies = Utility::NClosestUnits(mediator->GetUnits(IsFightingUnit(Unit::Alliance::Enemy)), concave_origin, 5);
 	// TODO use some clustering algorithm to better find the grouping of close enemies to face toward
 
-	for (int i = 0; i < close_enemies.size(); i++)
+	for (int i = 0; i < closest_enemies.size(); i++)
 	{
-		if (Distance2D(concave_origin, close_enemies[i]->pos) > LONG_RANGE)
+		if (Distance2D(origin, closest_enemies[i]->pos) > LONG_RANGE)
 		{
-			close_enemies.erase(close_enemies.begin() + i);
+			closest_enemies.erase(closest_enemies.begin() + i);
 			i--;
 		}
 	}
 
-	if (close_enemies.size() > 0)
+	if (closest_enemies.size() > 0)
 	{
-		return Utility::MedianCenter(close_enemies);
+		return Utility::MedianCenter(closest_enemies);
 	}
 	else
 	{
-		return attack_path.GetPointFrom(concave_origin, 8, true); // default target is 8 units in front of army center
+		return path->GetPointFrom(origin, 8, true); // default target is 8 units in front of army center
 	}
 }
 
-Point2D AttackArmyGroup::CalculateNewConcaveOrigin(Units close_enemies, float desired_range, Point2D limit)
+Point2D AttackArmyGroup::FindLimitToAdvance(Path* path, Point2D pre_prism_limit, float dist)
 {
-	Point2D new_origin;
-
-	// too close
-	if (Distance2D(concave_origin, concave_target) < desired_range - .1f ||
-		(close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, concave_origin) < 2 + unit_size) ||
-		concave_origin == attack_path.GetFurthestForward({ concave_origin, limit }))
+	std::vector<Point2D> intersection_points;
+	intersection_points = path->FindCircleIntersection(pre_prism_limit, dist);
+	if (intersection_points.size() != 0)
 	{
-		// if were already retreating and we have the correct number of points then check if we need a new concave
-		if (!advancing && unit_position_asignments.size() == basic_units.size() + warp_prisms.size())
-		{
-			float total_dist = 0;
-			float furthest_dist = 0;
-			for (const auto& pos : unit_position_asignments)
-			{
-				// maybe ignore very far off units
-				float dist = Distance2D(pos.first->pos, pos.second);
-				total_dist += dist;
-				if (dist > furthest_dist)
-					furthest_dist = dist;
-			}
-			// ignore the furthest unit
-			total_dist -= furthest_dist;
-			if (total_dist / basic_units.size() > 1)
-			{
-				// units are far away on average so dont make new concave
-				return concave_origin;
-			}
-		}
-		// need a new concave
-		float dist_to_move_origin = std::min(1.0f, abs(desired_range - Distance2D(concave_origin, concave_target)));
-
-		if (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, concave_origin) < 2)
-			dist_to_move_origin = std::max(dist_to_move_origin, 2 + unit_size - Utility::DistanceToClosest(close_enemies, concave_origin));
-
-		new_origin = attack_path.GetPointFrom(concave_origin, dist_to_move_origin, false);
-
-		return new_origin;
-
-	}// too far away
-	else if (Distance2D(concave_origin, concave_target) > desired_range + .1 && (close_enemies.size() == 0 || Utility::DistanceToClosest(close_enemies, concave_origin) > 2 + unit_size))
-	{
-		// if were already advancing and we have the correct number of points then check if we need a new concave
-		if (advancing && unit_position_asignments.size() == basic_units.size() + warp_prisms.size())
-		{
-			float total_dist = 0;
-			for (const auto& pos : unit_position_asignments)
-			{
-				// maybe ignore very far off units
-				total_dist += Distance2D(pos.first->pos, pos.second);
-			}
-			if (total_dist / basic_units.size() > 1)
-			{
-				// units are far away on average so dont make new concave
-				return concave_origin;
-			}
-		}
-		// need a new concave
-		float dist_to_move_origin = std::min(1.0f, abs(Distance2D(concave_origin, concave_target) - desired_range));
-		new_origin = attack_path.GetPointFrom(concave_origin, dist_to_move_origin, true);
-		new_origin = attack_path.GetFurthestBack({ new_origin, limit });
-
-		return new_origin;
+		return path->GetFurthestBack(intersection_points);
 	}
-	else // perfect range
-	{
-		return concave_origin;
-	}
+	return Point2D(0, 0);
 }
 
-Point2D AttackArmyGroup::FindLimitToAdvance(std::vector<UNIT_TYPEID> types_to_avoid, float extra_range, bool air,
+Point2D AttackArmyGroup::FindLimitToAdvance(Path* path, std::vector<UNIT_TYPEID> types_to_avoid, float extra_range, bool air,
 	int num_units_to_ignore)
 {
 	// TODO ignore units behind army but intersecting with attack path
 	std::vector<Point2D> danger_points;
-	if (pre_prism_limit != Point2D(0, 0) && warp_prisms.size() == 0)
-	{
-		std::vector<Point2D> intersection_points;
-		intersection_points = attack_path.FindCircleIntersection(pre_prism_limit, 10);
-		if (intersection_points.size() != 0)
-		{
-			Point2D danger_point = attack_path.GetFurthestBack(intersection_points);
-			danger_points.push_back(danger_point);
-		}
-	}
+	
 
 	for (const auto& unit : mediator->GetEnemySavedPositions())
 	{
@@ -157,89 +85,94 @@ Point2D AttackArmyGroup::FindLimitToAdvance(std::vector<UNIT_TYPEID> types_to_av
 		std::vector<Point2D> intersection_points;
 
 		if (air && Utility::GetAirRange(unit.first) > 0)
-			intersection_points = attack_path.FindCircleIntersection(pos, Utility::GetAirRange(unit.first) + extra_range);
+			intersection_points = path->FindCircleIntersection(pos, Utility::GetAirRange(unit.first) + extra_range);
 		else if (Utility::GetGroundRange(unit.first) > 0)
-			intersection_points = attack_path.FindCircleIntersection(pos, Utility::GetGroundRange(unit.first) + extra_range);
+			intersection_points = path->FindCircleIntersection(pos, Utility::GetGroundRange(unit.first) + extra_range);
 
 		if (intersection_points.size() == 0)
 			continue;
-		Point2D danger_point = attack_path.GetFurthestBack(intersection_points);
+		Point2D danger_point = path->GetFurthestBack(intersection_points);
 		danger_points.push_back(danger_point);
 	}
 	if (danger_points.size() <= num_units_to_ignore)
-		return attack_path.GetEndPoint();
+		return path->GetEndPoint();
 
 	return danger_points[num_units_to_ignore];
 }
 
-void AttackArmyGroup::FindNewConcaveOrigin()
+PathDirection AttackArmyGroup::ShouldMoveConcaveOrigin(Point2D origin, Point2D target, Path* path, float desired_range, Units close_enemies, Point2D limit)
 {
-	// first concave origin can just be the closest points on the line
-	if (concave_origin == Point2D(0, 0))
+	// too close
+	if (Distance2D(origin, target) < desired_range - .1f ||
+		(close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, origin) < VERY_CLOSE_RANGE) ||
+		origin == path->GetFurthestForward({ origin, limit }))
 	{
-		concave_origin = attack_path.FindClosestPoint(Utility::MedianCenter(basic_units));
-	}
+		return PathDirection::backward;
 
-	float desired_range = CalculateDesiredRange(basic_units);
-
-	// find concave target
-	concave_target = CalculateConcaveTarget();
-
-	// find limit to advance
-	Point2D limit = attack_path.GetEndPoint();
-	if (limit_advance)
+	}// too far away
+	else if (Distance2D(origin, target) > desired_range + .1 && 
+		(close_enemies.size() == 0 || Utility::DistanceToClosest(close_enemies, origin) > VERY_CLOSE_RANGE))
 	{
-		if (mediator->GetEnemyRace() == Race::Terran)
-			limit = FindLimitToAdvance({ SIEGE_TANK_SIEGED }, 1, false, 1);
-		else if (mediator->GetEnemyRace() == Race::Protoss)
-			limit = FindLimitToAdvance({}, 1, false, 0);
+		return PathDirection::forward;
 	}
-	mediator->DebugSphere(mediator->ToPoint3D(limit), 1.5, Color(255, 255, 255));
-
-	// find close enemies and average distance to them
-	Units close_enemies = Utility::NClosestUnits(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), concave_origin, 5);
-	float avg_distance = 0;
-	for (int i = 0; i < close_enemies.size(); i++)
+	else // perfect range
 	{
-		if (Distance2D(concave_origin, close_enemies[i]->pos) > LONG_RANGE)
-		{
-			close_enemies.erase(close_enemies.begin() + i);
-			i--;
-		}
-		else
-		{
-			avg_distance += Distance2D(concave_origin, close_enemies[i]->pos);
-		}
+		return PathDirection::none;
 	}
-
-	if (close_enemies.size() > 0)
-	{
-		avg_distance /= close_enemies.size();
-	}
-	else
-	{
-		avg_distance = 5;
-	}
-
-	// find new concave origin
-	concave_origin = CalculateNewConcaveOrigin(close_enemies, desired_range, limit);
 }
 
-std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>& prism_positions, int num_units, int num_prisms)
+float AttackArmyGroup::GetAverageDistanceForUnitPosition(std::map<const Unit*, Point2D> position_assignments)
 {
-	float min_height = mediator->ToPoint3D(concave_origin).z - .5f;
+	// TODO maybe ignore very far off units
+	if (position_assignments.size() == 0)
+		return 0;
+
+	float total_dist = 0;
+	float furthest_dist = 0;
+	for (const auto& pos : position_assignments)
+	{
+		float dist = Distance2D(pos.first->pos, pos.second);
+		total_dist += dist;
+		if (dist > furthest_dist)
+			furthest_dist = dist;
+	}
+	// ignore the furthest unit
+	total_dist -= furthest_dist;
+
+	return total_dist / position_assignments.size();
+}
+
+Point2D AttackArmyGroup::GetNewOriginForward(Point2D origin, Point2D target, float desired_range, Path* path, Point2D limit)
+{
+	float dist_to_move_origin = std::min(1.0f, abs(Distance2D(origin, target) - desired_range));
+	Point2D new_origin = path->GetPointFrom(origin, dist_to_move_origin, true);
+	return path->GetFurthestBack({ new_origin, limit });
+}
+
+Point2D AttackArmyGroup::GetNewOriginBackward(Point2D origin, Point2D target, float desired_range, Path* path, Units close_enemies, float unit_size)
+{
+
+	float dist_to_move_origin = std::min(1.0f, abs(desired_range - Distance2D(origin, target)));
+
+	if (close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, origin) < VERY_CLOSE_RANGE)
+		dist_to_move_origin = std::max(dist_to_move_origin, VERY_CLOSE_RANGE + unit_size - Utility::DistanceToClosest(close_enemies, origin));
+
+	return path->GetPointFrom(origin, dist_to_move_origin, false);
+}
+
+std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(int num_units, int num_prisms, float min_height, float unit_spacing, float unit_size, Point2D origin, Point2D target, std::vector<Point2D>& prism_positions)
+{
 	float max_height = min_height + 1;
 	float range = 0; //r
-	float unit_radius = unit_size + dispersion; //u
-	//float concave_degree = 30; //p
+	float concave_degree = 30; //p
 	int max_width = 4;
 
 
-	Point2D backward_vector = ((2 * concave_origin) - concave_target) - concave_origin;
-	Point2D forward_vector = concave_origin - ((2 * concave_origin) - concave_target);
+	Point2D backward_vector = ((2 * origin) - target) - origin;
+	Point2D forward_vector = origin - ((2 * origin) - target);
 	forward_vector /= sqrt(forward_vector.x * forward_vector.x + forward_vector.y * forward_vector.y);
 
-	Point2D offset_circle_center = Point2D(concave_origin.x + concave_degree * forward_vector.x, concave_origin.y + concave_degree * forward_vector.y);
+	Point2D offset_circle_center = Point2D(origin.x + concave_degree * forward_vector.x, origin.y + concave_degree * forward_vector.y);
 
 	float backwards_direction = atan2(backward_vector.y, backward_vector.x);
 
@@ -255,14 +188,14 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 		// even row
 		bool left_limit = false;
 		bool right_limit = false;
-		float arclength = (2 * unit_radius) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+		float arclength = (2 * unit_spacing) / (range + concave_degree + (((row * 2) - 1) * unit_spacing));
 		for (float i = .5; i <= max_width - .5; i += 1)
 		{
 			if (!right_limit)
 			{
 				float unit_direction = backwards_direction + i * arclength;
-				Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+				Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_size)) * cos(unit_direction),
+					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * sin(unit_direction));
 				float point_height = mediator->ToPoint3D(unit_position).z;
 				if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 				{
@@ -284,8 +217,8 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 			if (!left_limit)
 			{
 				float unit_direction = backwards_direction - i * arclength;
-				Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+				Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * cos(unit_direction),
+					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * sin(unit_direction));
 				float point_height = mediator->ToPoint3D(unit_position).z;
 				if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 				{
@@ -315,8 +248,8 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 			{
 				// middle point
 				float unit_direction = backwards_direction;
-				Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+				Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * cos(unit_direction),
+					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * sin(unit_direction));
 				if (mediator->IsPathable(unit_position))
 				{
 					prism_positions.push_back(unit_position);
@@ -324,14 +257,14 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 				offset = 1;
 			}
 
-			arclength = (2 * unit_radius * ((6 / num_prisms) - .5f)) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+			arclength = (2 * unit_spacing * ((6 / num_prisms) - .5f)) / (range + concave_degree + (((row * 2) - 1) * unit_spacing));
 			for (float i = offset; i <= std::ceil((num_prisms / 2) - offset); i += 1)
 			{
 				// right position
 				{
 					float unit_direction = backwards_direction + i * arclength;
-					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * sin(unit_direction));
 
 					prism_positions.push_back(unit_position);
 				}
@@ -339,8 +272,8 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 				// left position
 				{
 					float unit_direction = backwards_direction - i * arclength;
-					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * sin(unit_direction));
 
 					prism_positions.push_back(unit_position);
 				}
@@ -352,8 +285,8 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 		row++;
 		// middle point
 		float unit_direction = backwards_direction;
-		Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-			offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+		Point2D unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * cos(unit_direction),
+			offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * sin(unit_direction));
 		float point_height = mediator->ToPoint3D(unit_position).z;
 		if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 		{
@@ -367,14 +300,14 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 
 		left_limit = false;
 		right_limit = false;
-		arclength = (2 * unit_radius) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+		arclength = (2 * unit_spacing) / (range + concave_degree + (((row * 2) - 1) * unit_spacing));
 		for (int i = 1; i <= max_width - 1; i++)
 		{
 			if (!right_limit)
 			{
 				unit_direction = backwards_direction + i * arclength;
-				unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+				unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * cos(unit_direction),
+					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * sin(unit_direction));
 				point_height = mediator->ToPoint3D(unit_position).z;
 				if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 				{
@@ -396,8 +329,8 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 			if (!left_limit)
 			{
 				unit_direction = backwards_direction - i * arclength;
-				unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+				unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * cos(unit_direction),
+					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * sin(unit_direction));
 				point_height = mediator->ToPoint3D(unit_position).z;
 				if (mediator->IsPathable(unit_position) && point_height > min_height && point_height < max_height)
 				{
@@ -427,8 +360,8 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 			{
 				// middle point
 				unit_direction = backwards_direction;
-				unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+				unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * cos(unit_direction),
+					offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * sin(unit_direction));
 				if (mediator->IsPathable(unit_position))
 				{
 					prism_positions.push_back(unit_position);
@@ -436,14 +369,14 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 				offset = 1;
 			}
 
-			arclength = (2 * unit_radius * ((6 / num_prisms) - .5f)) / (range + concave_degree + (((row * 2) - 1) * unit_radius));
+			arclength = (2 * unit_spacing * ((6 / num_prisms) - .5f)) / (range + concave_degree + (((row * 2) - 1) * unit_spacing));
 			for (float i = offset; i <= std::ceil((num_prisms / 2) - offset); i += 1)
 			{
 				// right position
 				{
 					unit_direction = backwards_direction + i * arclength;
-					unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * sin(unit_direction));
 
 					prism_positions.push_back(unit_position);
 				}
@@ -451,8 +384,8 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 				// left position
 				{
 					unit_direction = backwards_direction - i * arclength;
-					unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * cos(unit_direction),
-						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_radius)) * sin(unit_direction));
+					unit_position = Point2D(offset_circle_center.x + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * cos(unit_direction),
+						offset_circle_center.y + (range + concave_degree + (((row * 2) - 1) * unit_spacing)) * sin(unit_direction));
 
 					prism_positions.push_back(unit_position);
 				}
@@ -461,34 +394,6 @@ std::vector<Point2D> AttackArmyGroup::FindConcaveWithPrism(std::vector<Point2D>&
 		}
 	}
 	return concave_points;
-}
-
-std::vector<std::pair<const Unit*, UnitDanger>> AttackArmyGroup::CalculateUnitDanger()
-{
-	std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage;
-	for (const auto& unit : basic_units)
-	{
-		float damage = (float)mediator->GetIncomingDamage(unit);
-		//agent->Debug()->DebugTextOut(std::to_string(damage), unit->pos, Color(255, 255, 255), 16);
-		if (damage > 0)
-		{
-			float shield_damage = std::min(damage, unit->shield);
-			float health_damage = damage - shield_damage;
-			float total_damage = shield_damage + ((health_damage / unit->health) * unit->health_max * 1.5f);
-			int prio = 3;
-			if (health_damage >= unit->health)
-				prio = 1;
-			else if (total_damage > 50 || health_damage > 10)
-				prio = 2;
-			incoming_damage.push_back(std::pair<const Unit*, UnitDanger>(unit, UnitDanger(prio, total_damage)));
-		}
-	}
-	std::sort(incoming_damage.begin(), incoming_damage.end(),
-		[](const std::pair<const Unit*, UnitDanger> a, const std::pair<const Unit*, UnitDanger> b) -> bool
-		{
-			return a.second < b.second;
-		});
-	return incoming_damage;
 }
 
 std::map<const Unit*, Point2D> AttackArmyGroup::AssignUnitsToPositions(Units units, std::vector<Point2D> positions)
@@ -542,6 +447,34 @@ std::map<const Unit*, Point2D> AttackArmyGroup::AssignUnitsToPositions(Units uni
 		}
 	}
 	return unit_assignments;
+}
+
+std::vector<std::pair<const Unit*, UnitDanger>> AttackArmyGroup::CalculateUnitDanger(Units units) const
+{
+	std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage;
+	for (const auto& unit : units)
+	{
+		float damage = (float)mediator->GetIncomingDamage(unit);
+		//agent->Debug()->DebugTextOut(std::to_string(damage), unit->pos, Color(255, 255, 255), 16);
+		if (damage > 0)
+		{
+			float shield_damage = std::min(damage, unit->shield);
+			float health_damage = damage - shield_damage;
+			float total_damage = shield_damage + ((health_damage / unit->health) * unit->health_max * 1.5f);
+			int prio = 3;
+			if (health_damage >= unit->health)
+				prio = 1;
+			else if (total_damage > 50 || health_damage > 10)
+				prio = 2;
+			incoming_damage.push_back(std::pair<const Unit*, UnitDanger>(unit, UnitDanger(prio, total_damage)));
+		}
+	}
+	std::sort(incoming_damage.begin(), incoming_damage.end(),
+		[](const std::pair<const Unit*, UnitDanger> a, const std::pair<const Unit*, UnitDanger> b) -> bool
+		{
+			return a.second < b.second;
+		});
+	return incoming_damage;
 }
 
 void AttackArmyGroup::OraclesDefendArmy()
@@ -771,14 +704,14 @@ void AttackArmyGroup::OraclesDefendArmy()
 	}
 }
 
-bool AttackArmyGroup::TestSwap(Point2D pos1, Point2D target1, Point2D pos2, Point2D target2) const
+bool AttackArmyGroup::TestSwap(Point2D pos1, Point2D target1, Point2D pos2, Point2D target2)
 {
 	float curr_max = std::max(Distance2D(pos1, target1), Distance2D(pos2, target2));
 	float swap_max = std::max(Distance2D(pos1, target2), Distance2D(pos2, target1));
 	return swap_max < curr_max;
 }
 
-Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage)
+Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage, Units prisms, Point2D standby_pos)
 {
 	Units escaping_units;
 
@@ -793,9 +726,9 @@ Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger
 	std::vector<Tag> units_in_cargo;
 	std::map<const Unit*, int> cargo_available;
 	// if prisms -> pickup units in enough danger
-	if (warp_prisms.size() > 0)
+	if (prisms.size() > 0)
 	{
-		for (const auto& prism : warp_prisms)
+		for (const auto& prism : prisms)
 		{
 			cargo_available[prism] = prism->cargo_space_max - prism->cargo_space_taken;
 			for (const auto& passanger : prism->passengers)
@@ -1098,6 +1031,135 @@ void AttackArmyGroup::GroupUpNewUnits()
 	}
 }
 
+AttackLineResult AttackArmyGroup::AttackLine(Units units, Point2D& origin, float normal_range, Path* path, bool should_limit_advance,
+	Point2D prism_limit, Units prisms, float spread, std::map<const Unit*, Point2D>& position_assignments, Units oracles, bool& is_advancing, float threshold)
+{
+	if (origin == Point2D(0, 0))
+	{
+		origin = path->FindClosestPoint(Utility::MedianCenter(units));
+	}
+
+	// update unit size TODO maybe move to addunit/removeunit
+	float unit_size = Utility::GetLargestUnitSize(units);
+
+	Units enemies_in_range = Utility::GetUnitsWithin(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), origin, LONG_RANGE);
+	Units closest_enemies = Utility::NClosestUnits(enemies_in_range, origin, 5);
+
+	float desired_range = CalculateDesiredRange(units, enemies_in_range, normal_range, unit_size);
+	Point2D concave_target = CalculateConcaveTarget(origin, closest_enemies, path);
+
+	Point2D limit = path->GetEndPoint();
+	if (should_limit_advance)
+	{
+		if (mediator->GetEnemyRace() == Race::Terran)
+		{
+			limit = FindLimitToAdvance(path, { SIEGE_TANK_SIEGED }, 1, false, 1);
+		}
+		else if (mediator->GetEnemyRace() == Race::Protoss)
+		{
+			if (prism_limit != Point2D(0, 0) && prisms.size() == 0)
+			{
+				Point2D possible_limit = FindLimitToAdvance(path, prism_limit, MEDIUM_RANGE);
+				if (possible_limit != Point2D(0, 0))
+					limit = possible_limit;
+			}
+		}
+	}
+
+	// move concave origin if necessary
+	PathDirection direction = ShouldMoveConcaveOrigin(origin, concave_target, path, desired_range, closest_enemies, limit);
+
+	if (position_assignments.size() != units.size() + prisms.size() ||
+		direction == PathDirection::backward && is_advancing == true ||
+		direction == PathDirection::forward && is_advancing == false ||
+		GetAverageDistanceForUnitPosition(position_assignments) < 1)
+	{
+		if (direction == PathDirection::backward)
+		{
+			origin = GetNewOriginBackward(origin, concave_target, desired_range, path, closest_enemies, unit_size);
+			is_advancing = false;
+		}
+		else
+		{
+			origin = GetNewOriginForward(origin, concave_target, desired_range, path, limit);
+			is_advancing = true;
+		}
+	}
+
+	Point2D standby_pos = path->GetPointFrom(origin, 8, false);
+
+	// Find positions
+	std::vector<Point2D> prism_positions;
+	std::vector<Point2D> concave_positions = FindConcaveWithPrism((int)units.size(), (int)prisms.size(),
+		mediator->ToPoint3D(origin).z - .5f, unit_size + spread, unit_size, origin, concave_target, prism_positions);
+
+	// assign units to positions
+	position_assignments = AssignUnitsToPositions(units, concave_positions);
+	if (prisms.size() > 0)
+	{
+		std::map<const Unit*, Point2D> prism_position_assignments = AssignUnitsToPositions(prisms, prism_positions);
+		for (const auto& assignment : prism_position_assignments)
+		{
+			position_assignments[assignment.first] = assignment.second;
+		}
+	}
+
+	// avoid danger
+	std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage = CalculateUnitDanger(units);
+	Units escaping_units = EvadeDamage(incoming_damage, units, standby_pos);
+
+
+	// move units to positions
+	for (const auto& assignment : position_assignments)
+	{
+		if (mediator->GetAttackStatus(assignment.first) == false)
+			mediator->SetUnitCommand(assignment.first, A_MOVE, assignment.second, CommandPriorty::low);
+	}
+	std::vector<Tag> units_in_cargo;
+
+	if (prisms.size() > 0)
+	{
+		for (const auto& prism : prisms)
+		{
+			mediator->ForceUnitCommand(prism, A_UNLOAD_AT, prism);
+			for (const auto& passanger : prism->passengers)
+			{
+				units_in_cargo.push_back(passanger.tag);
+				mediator->RemoveAllAttacksAtUnit(mediator->GetUnit(passanger.tag));
+			}
+		}
+	}
+
+	// if units that can attack > threshold -> add units to attackers
+	// ignore units entering prisms, in prisms, or blinking/casting
+	Units ready_to_attack;
+	for (const auto& unit : units)
+	{
+		if (std::find(escaping_units.begin(), escaping_units.end(), unit) != escaping_units.end())
+			continue;
+		if (std::find(units_in_cargo.begin(), units_in_cargo.end(), unit->tag) != units_in_cargo.end())
+			continue;
+		if (unit->weapon_cooldown > 0 || mediator->GetAttackStatus(unit))
+			continue;
+
+		ready_to_attack.push_back(unit);
+	}
+
+	if ((float)ready_to_attack.size() / units.size() >= threshold)
+	{
+		mediator->AddUnitsToAttackers(ready_to_attack);
+	}
+
+	// micro special units
+	// oracles
+	if (oracles.size())
+		OraclesDefendArmy();
+
+	if (origin == path->GetEndPoint())
+		return AttackLineResult::reached_end_of_path;
+
+	return AttackLineResult::normal;
+}
 
 AttackLineResult AttackArmyGroup::AttackLine()
 {
@@ -1130,82 +1192,9 @@ AttackLineResult AttackArmyGroup::AttackLine()
 		// TODO add a case for standby units
 	}
 
-	// update unit size TODO maybe move to addunit/removeunit
-	unit_size = Utility::GetLargestUnitSize(basic_units);
-
-	// move concave origin if necessary
-	FindNewConcaveOrigin();
-	standby_pos = attack_path.GetPointFrom(concave_origin, 8, false);
+	return AttackLine(basic_units, concave_origin, default_range, &attack_path, limit_advance, 
+		pre_prism_limit, warp_prisms, dispersion, unit_position_asignments, oracles, advancing, attack_threshold);
 	
-	// Find positions
-	std::vector<Point2D> prism_positions;
-	std::vector<Point2D> concave_positions = FindConcaveWithPrism(prism_positions, (int)basic_units.size(), (int)warp_prisms.size());
-
-	// assign units to positions
-	unit_position_asignments = AssignUnitsToPositions(basic_units, concave_positions);
-	if (warp_prisms.size() > 0)
-	{
-		std::map<const Unit*, Point2D> prism_position_assignments = AssignUnitsToPositions(warp_prisms, prism_positions);
-		for (const auto& assignment : prism_position_assignments)
-		{
-			unit_position_asignments[assignment.first] = assignment.second;
-		}
-	}
-
-	// avoid danger
-	std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage = CalculateUnitDanger();
-	Units escaping_units = EvadeDamage(incoming_damage);
-
-
-	// move units to positions
-	for (const auto& assignment : unit_position_asignments)
-	{
-		if (mediator->GetAttackStatus(assignment.first) == false)
-			mediator->SetUnitCommand(assignment.first, A_MOVE, assignment.second, CommandPriorty::low);
-	}
-	std::vector<Tag> units_in_cargo;
-
-	if (warp_prisms.size() > 0)
-	{
-		for (const auto& prism : warp_prisms)
-		{
-			mediator->ForceUnitCommand(prism, A_UNLOAD_AT, prism);
-			for (const auto& passanger : prism->passengers)
-			{
-				units_in_cargo.push_back(passanger.tag);
-				mediator->RemoveAllAttacksAtUnit(mediator->GetUnit(passanger.tag));
-			}
-		}
-	}
-
-	// if units that can attack > threshold -> add units to attackers
-	// ignore units entering prisms, in prisms, or blinking/casting
-	Units ready_to_attack;
-	for (const auto& unit : basic_units)
-	{
-		if (std::find(escaping_units.begin(), escaping_units.end(), unit) != escaping_units.end())
-			continue;
-		if (std::find(units_in_cargo.begin(), units_in_cargo.end(), unit->tag) != units_in_cargo.end())
-			continue;
-		if (unit->weapon_cooldown > 0 || mediator->GetAttackStatus(unit))
-			continue;
-
-		ready_to_attack.push_back(unit);
-	}
-
-	if ((float)ready_to_attack.size() / basic_units.size() >= attack_threshold)
-	{
-		mediator->AddUnitsToAttackers(ready_to_attack);
-	}
-
-	// micro special units
-	// oracles
-	if (oracles.size())
-		OraclesDefendArmy();
-
-	return AttackLineResult::normal;
-		
-		
 }
 
 }

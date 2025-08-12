@@ -22,9 +22,6 @@ protected:
 	PiecewisePath natural_attack_path;
 	std::vector<PiecewisePath> third_attack_path;
 
-	std::vector<std::pair<const Unit*, UnitDanger>> CalculateUnitDanger(Units);
-	bool FindNewConcaveOrigin(Units, bool);
-	Point2D CalculateNewConcaveOrigin(Units, float, Point2D, int, int);
 public:
 	BlinkFSMArmyGroup(Mediator*, BlinkStalkerAttackTerran*, int, int, int, int);
 
@@ -46,7 +43,6 @@ public:
 	void SetAttackPath(PiecewisePath);
 	const PiecewisePath& GetAttackPath() const;
 	void SetUseStandby(bool);
-	void SetStandbyPos(Point2D);
 
 	AttackLineResult AttackLine(Units);
 	AttackLineResult AttackLine(Units, const Unit*);
