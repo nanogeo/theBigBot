@@ -276,7 +276,7 @@ namespace sc2 {
 														P(105, 134),
 														P(104, 149),
 														P(109, 155),
-														P(109, 164),
+														P(108, 164),
 														P(97, 177) };
 
 		blink_nat_attack_path_line = PiecewisePath(blink_nat_attack_path);
