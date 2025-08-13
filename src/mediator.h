@@ -285,6 +285,11 @@ public:
 	std::vector<Point2D> GetSelfNaturalScoutPath() const;
 
 	void ChangeAreaControl(Point2D, float, float, NodeControl);
+	Point2D FindClosestSkeletonPoint(Point2D);
+	std::pair<Point2D, NodeControl> FindClosestSkeletonPointWithControl(Point2D);
+	std::vector<Point2D> FindPath(Point2D, Point2D) const;
+	std::vector<Point2D> FindPathToFriendlyControlledArea(Point2D) const;
+	std::vector<Point2D> FindPathToEnemyControlledArea(Point2D) const;
 
 	std::string GetMapName() const;
 	Race GetEnemyRace() const;

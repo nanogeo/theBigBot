@@ -2255,6 +2255,31 @@ void Mediator::ChangeAreaControl(Point2D pos, float radius, float height, NodeCo
 	pathing_manager.ChangeAreaControl(pos, radius, height, control);
 }
 
+Point2D Mediator::FindClosestSkeletonPoint(Point2D pos)
+{
+	return pathing_manager.FindClosestSkeletonPoint(pos);
+}
+
+std::pair<Point2D, NodeControl> Mediator::FindClosestSkeletonPointWithControl(Point2D pos)
+{
+	return pathing_manager.FindClosestSkeletonPointWithControl(pos);
+}
+
+std::vector<Point2D> Mediator::FindPath(Point2D start, Point2D end) const
+{
+	return pathing_manager.FindPath(start, end);
+}
+
+std::vector<Point2D> Mediator::FindPathToFriendlyControlledArea(Point2D start) const
+{
+	return pathing_manager.FindPathToFriendlyControlledArea(start);
+}
+
+std::vector<Point2D> Mediator::FindPathToEnemyControlledArea(Point2D start) const
+{
+	return pathing_manager.FindPathToEnemyControlledArea(start);
+}
+
 std::string Mediator::GetMapName() const
 {
 	return agent->Observation()->GetGameInfo().map_name;

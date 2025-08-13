@@ -353,6 +353,14 @@ struct OrderedPoint2D : Point2D
 			return y < rhs.y;
 		return x < rhs.x;
 	}
+	bool operator==(const OrderedPoint2D& rhs) const
+	{
+		return (x == rhs.x && y == rhs.y);
+	}
+	bool operator==(const Point2D& rhs) const
+	{
+		return (x == rhs.x && y == rhs.y);
+	}
 };
 
 }

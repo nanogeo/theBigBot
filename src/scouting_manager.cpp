@@ -135,6 +135,111 @@ void ScoutingManager::UpdateEffectPositions()
 
 }
 
+void ScoutingManager::GroupEnemyUnits()
+{
+	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+	).count();
+	std::vector<unsigned long long> times;
+
+	std::map<OrderedPoint2D, Units> defending_groups;
+	std::map<OrderedPoint2D, Units> attacking_groups;
+	for (const auto& unit : enemy_unit_saved_position)
+	{
+		if (unit.first->is_building)
+			continue;
+
+		std::pair<Point2D, NodeControl> pos = mediator->FindClosestSkeletonPointWithControl(unit.first->pos);
+
+		if (pos.second == NodeControl::enemy_control)
+		{
+			auto itr = defending_groups.find(pos.first);
+			if (itr != defending_groups.end())
+			{
+				(*itr).second.push_back(unit.first);
+			}
+			else
+			{
+				defending_groups[OrderedPoint2D(unit.first->pos)] = { unit.first };
+			}
+		}
+		else
+		{
+			auto itr = attacking_groups.find(pos.first);
+			if (itr != attacking_groups.end())
+			{
+				(*itr).second.push_back(unit.first);
+			}
+			else
+			{
+				attacking_groups[OrderedPoint2D(pos.first)] = { unit.first };
+			}
+		}
+
+	}
+
+	unsigned long long mid = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+	).count();
+
+	for (const auto& group : attacking_groups)
+	{
+		unsigned long long one = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+		std::vector<Point2D> attacking_path = mediator->FindPathToFriendlyControlledArea(group.first);
+
+		unsigned long long two = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+		if (attacking_path.size() == 0)
+		{
+			// error no path found
+			continue;
+		}
+		// add incoming atack to path.back() with units group[1]
+		std::vector<Point2D> defensive_path = mediator->FindPath(mediator->GetStartLocation(), attacking_path.back());
+
+		unsigned long long three = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+		for (const auto& pos : attacking_path)
+		{
+			mediator->DebugSphere(mediator->ToPoint3D(pos), .7, Color(255, 0, 0));
+		}
+		for (const auto& pos : defensive_path)
+		{
+			mediator->DebugSphere(mediator->ToPoint3D(pos), .7, Color(0, 128, 255));
+		}
+
+		unsigned long long four = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+
+		times.push_back(two - one);
+		times.push_back(three - two);
+		times.push_back(four - three);
+
+	}
+
+	unsigned long long total = 0;
+	for (const auto& time : times)
+	{
+		total += time;
+	}
+	if (times.size() > 0)
+		total /= times.size();
+
+
+	unsigned long long end = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::high_resolution_clock::now().time_since_epoch()
+	).count();
+	int i;
+}
+
 
 void ScoutingManager::DisplayEnemyAttacks() const
 {
@@ -425,6 +530,7 @@ void ScoutingManager::UpdateInfo()
 	UpdateEffectPositions();
 	UpdateEnemyWeaponCooldowns();
 	RemoveCompletedAttacks();
+	GroupEnemyUnits();
 }
 
 void ScoutingManager::AddNewUnit(const Unit* unit)

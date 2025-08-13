@@ -91,6 +91,7 @@ private:
 	void UpdateEnemyWeaponCooldowns();
 	void RemoveCompletedAttacks();
 	void UpdateEffectPositions();
+	void GroupEnemyUnits();
 
 public:
 	ScoutingManager(Mediator* mediator)

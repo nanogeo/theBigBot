@@ -269,6 +269,14 @@ Point2D KDTree::FindClosestPoint(Point2D point) const
 	return node->pos;
 }
 
+std::pair<Point2D, NodeControl> KDTree::FindClosestPointWithControl(Point2D point) const
+{
+	Node* node = FindClosestNode(point, root_node, 0);
+	if (node == nullptr)
+		return std::make_pair(Point2D(0, 0), NodeControl::innactive);
+	return std::make_pair(node->pos, node->control);
+}
+
 Node* KDTree::FindClosestNode(Point2D point) const
 {
 	return FindClosestNode(point, root_node, 0);
@@ -506,6 +514,11 @@ void PathingManager::LoadMapData()
 Point2D PathingManager::FindClosestSkeletonPoint(Point2D point) const
 {
 	return map_skeleton.FindClosestPoint(point);
+}
+
+std::pair<Point2D, NodeControl> PathingManager::FindClosestSkeletonPointWithControl(Point2D point) const
+{
+	return map_skeleton.FindClosestPointWithControl(point);
 }
 
 std::vector<Point2D> PathingManager::FindPath(Point2D starting_point, Point2D ending_point) const

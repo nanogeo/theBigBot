@@ -126,7 +126,7 @@ struct NodeCompare
 {
 	bool operator()(const QNode& node1, const QNode& node2)
 	{
-		return node1.dist < node2.dist;
+		return node1.dist > node2.dist;
 	}
 };
 
@@ -146,6 +146,7 @@ public:
 	KDTree(std::string);
 	KDTree(std::vector<Point2D>, std::map<OrderedPoint2D, std::vector<Point2D>>&);
 	Point2D FindClosestPoint(Point2D) const;
+	std::pair<Point2D, NodeControl> FindClosestPointWithControl(Point2D) const;
 	Node* FindClosestNode(Point2D) const;
 	void SaveToFile(std::string);
 	void DisplayTree(Mediator*) const;
@@ -176,6 +177,7 @@ public:
 	void DisplayMapSkeleton() const;
 	void LoadMapData();
 	Point2D FindClosestSkeletonPoint(Point2D) const;
+	std::pair<Point2D, NodeControl> FindClosestSkeletonPointWithControl(Point2D) const;
 	std::vector<Point2D> FindPath(Point2D, Point2D) const;
 	std::vector<Point2D> FindPathToFriendlyControlledArea(Point2D) const;
 	std::vector<Point2D> FindPathToEnemyControlledArea(Point2D) const;
