@@ -29,6 +29,17 @@ bool NodePointFilter::operator()(const Node& node_) const {
 	return node_.pos == m_point;
 }
 
+int KDTree::GetNextNodeId()
+{
+	return next_node_id++;
+}
+
+Node* KDTree::CreateNode(Point2D pos)
+{
+	Node* node = new Node(GetNextNodeId(), pos);
+	all_nodes.push_back(node);
+	return node;
+}
 
 Node* KDTree::CreateKDTree(std::vector<Point2D> points, int depth, std::map<OrderedPoint2D, Node*>& node_lookup)
 {
@@ -49,8 +60,7 @@ Node* KDTree::CreateKDTree(std::vector<Point2D> points, int depth, std::map<Orde
 			else if (i > mid)
 				right_points.push_back(points[i]);
 		}
-		Node* new_node = new Node();
-		new_node->pos = points[mid];
+		Node* new_node = CreateNode(points[mid]);
 		node_lookup[new_node->pos] = new_node;
 		if (left_points.size() > 0)
 			new_node->left_node = CreateKDTree(left_points, depth + 1, node_lookup);
@@ -75,8 +85,7 @@ Node* KDTree::CreateKDTree(std::vector<Point2D> points, int depth, std::map<Orde
 			else if (i > mid)
 				right_points.push_back(points[i]);
 		}
-		Node* new_node = new Node();
-		new_node->pos = points[mid];
+		Node* new_node = CreateNode(points[mid]);
 		node_lookup[new_node->pos] = new_node;
 		if (left_points.size() > 0)
 			new_node->left_node = CreateKDTree(left_points, depth + 1, node_lookup);
@@ -170,8 +179,7 @@ Node* KDTree::CreateNodeFromFile(std::ifstream* tree_file, std::map<OrderedPoint
 	float y = std::stof(pos.substr(pos.find(',') + 1, pos.length() - 1));
 
 
-	Node* node = new Node();
-	node->pos = Point2D(x, y);
+	Node* node = CreateNode(Point2D(x, y));
 
 	std::string control = "";
 	std::getline(*tree_file, control);
@@ -309,43 +317,52 @@ void KDTree::DisplayTree(Mediator* mediator) const
 	DisplayNode(root_node, mediator);
 }
 
+int KDTree::GetNumNodes() const
+{
+	return next_node_id;
+}
+
+Node* KDTree::GetNodeFromUID(int uid) const
+{
+	if (uid < 0 || uid >= all_nodes.size())
+		return nullptr;
+	return all_nodes[uid];
+}
+
 std::vector<Point2D> PathingManager::FindPath(Point2D starting_point, NodeFilter filter) const
 {
 	Node* start = FindClosestSkeletonNode(starting_point);
 
 	std::priority_queue<QNode, std::vector<QNode>, NodeCompare> heap;
-	std::map<Node*, Node*> came_from;
-	std::map<Node*, float> dist_to;
-	std::vector<Node*> visited;
+	int num_nodes = map_skeleton.GetNumNodes();
+	std::vector<int> came_from(num_nodes, -1);
+	std::vector<float> dist_to(num_nodes, INFINITY);
 
-
-	heap.push(QNode(start, 0));
-	dist_to[start] = 0;
-	came_from[start] = nullptr;
+	heap.emplace(start, 0);
+	dist_to[start->uid] = 0;
 
 	while (!heap.empty())
 	{
 		QNode current = heap.top();
+		float current_dist = current.dist;
+		Node* current_node = current.node;
 		heap.pop();
-		if (std::find(visited.begin(), visited.end(), current.node) != visited.end())
+		if (current_dist > dist_to[current_node->uid])
 			continue;
-		if (filter(*current.node))
-			return ReconstructPath(came_from, current.node);
+		if (filter(*current_node))
+			return ReconstructPathIndexed(came_from, current_node);
 
-
-		for (const auto& node : current.node->connections)
+		for (const auto& node : current_node->connections)
 		{
-			float dist_to_node = dist_to[current.node] + Distance2D(current.node->pos, node->pos);
-			if (dist_to.count(node) == 0 || dist_to_node < dist_to[node])
+			float dist_to_node = dist_to[current_node->uid] + DistanceSquared2D(current_node->pos, node->pos);
+
+			if (dist_to_node < dist_to[node->uid])
 			{
-				QNode new_node = QNode(node, dist_to_node);
-				heap.push(new_node);
-				dist_to[node] = dist_to_node;
-				came_from[node] = current.node;
+				heap.emplace(node, dist_to_node);
+				dist_to[node->uid] = dist_to_node;
+				came_from[node->uid] = current_node->uid;
 			}
 		}
-
-		visited.push_back(current.node);
 	}
 	// Error no path found
 	return {};
@@ -356,21 +373,19 @@ Node* PathingManager::FindClosestSkeletonNode(Point2D point) const
 	return map_skeleton.FindClosestNode(point);
 }
 
-std::vector<Point2D> PathingManager::ReconstructPath(std::map<Node*, Node*> came_from, Node* end) const
+std::vector<Point2D> PathingManager::ReconstructPathIndexed(std::vector<int> came_from, Node* end) const
 {
-	std::vector<Point2D> path_r;
-	Node* current = end;
-	while (current != nullptr)
+	std::vector<Point2D> path;
+	int current = end->uid;
+	while (current != -1)
 	{
-		path_r.push_back(current->pos);
+		path.push_back(map_skeleton.GetNodeFromUID(current)->pos);
 		current = came_from[current];
 	}
-	std::vector<Point2D> path;
-	for (int i = (int)path_r.size() - 1; i >= 0; i--)
-	{
-		path.push_back(path_r[i]);
-	}
+
+	std::reverse(path.begin(), path.end());
 	return path;
+
 }
 
 void PathingManager::ChangeAreaControl(Point2D start, Node* current_node, float radius, NodeControl control)

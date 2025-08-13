@@ -21,11 +21,17 @@ enum class NodeControl
 
 struct Node
 {
+	int uid = -1;
 	Point2D pos = Point2D(0, 0);
 	NodeControl control = NodeControl::neutral;
 	Node* left_node = nullptr;
 	Node* right_node = nullptr;
 	std::vector<Node*> connections;
+	Node::Node(int id, Point2D point)
+	{
+		uid = id;
+		pos = point;
+	}
 	std::string ConnectionsString()
 	{
 		std::string str = "";
@@ -134,6 +140,10 @@ class KDTree
 {
 private:
 	Node* root_node = nullptr;
+	int next_node_id = 0;
+	std::vector<Node*> all_nodes;
+	int GetNextNodeId();
+	Node* CreateNode(Point2D);
 	Node* CreateKDTree(std::vector<Point2D>, int, std::map<OrderedPoint2D, Node*>&);
 	void AddConnections(std::map<OrderedPoint2D, Node*>&, std::map<OrderedPoint2D, std::vector<Point2D>>&);
 	void AddNoise(Node*);
@@ -151,6 +161,8 @@ public:
 	Node* FindClosestNode(Point2D) const;
 	void SaveToFile(std::string);
 	void DisplayTree(Mediator*) const;
+	int GetNumNodes() const;
+	Node* GetNodeFromUID(int) const;
 };
 
 class PathingManager
@@ -164,7 +176,7 @@ private:
 	std::map<Node*, std::vector<Node*>> BFS(Node*); // do i need this? is it faster?
 	std::vector<Point2D> FindPath(Point2D, NodeFilter) const;
 	Node* FindClosestSkeletonNode(Point2D) const;
-	std::vector<Point2D> ReconstructPath(std::map<Node*, Node*>, Node*) const;
+	std::vector<Point2D> ReconstructPathIndexed(std::vector<int>, Node*) const;
 	void ChangeAreaControl(Point2D, Node*, float, NodeControl);
 	void ChangeAreaControl(Point2D, Node*, float, float, NodeControl);
 	bool ConnectAreaControl(Node*, std::vector<Node*>, int, NodeControl);
