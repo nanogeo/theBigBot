@@ -547,6 +547,11 @@ void ScoutingManager::AddNewUnit(const Unit* unit)
 	else
 		enemy_unit_counts[unit->unit_type] = 1;
 
+	if (unit->is_building)
+	{
+		mediator->ChangeAreaControl(unit->pos, MEDIUM_RANGE, mediator->ToPoint3D(unit->pos).z, NodeControl::enemy_control);
+	}
+
 	switch (unit->unit_type.ToType())
 	{
 	case REFINERY:
