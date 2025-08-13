@@ -136,6 +136,7 @@ private:
 	Node* root_node = nullptr;
 	Node* CreateKDTree(std::vector<Point2D>, int, std::map<OrderedPoint2D, Node*>&);
 	void AddConnections(std::map<OrderedPoint2D, Node*>&, std::map<OrderedPoint2D, std::vector<Point2D>>&);
+	void AddNoise(Node*);
 	Node* FindClosestNode(Point2D, Node*, int) const;
 	Node* CreateNodeFromFile(std::ifstream*, std::map<OrderedPoint2D, Node*>&);
 	void AddConnectionsFromFile(Node*, std::ifstream*, std::map<OrderedPoint2D, Node*>&);

@@ -104,6 +104,20 @@ void KDTree::AddConnections(std::map<OrderedPoint2D, Node*>& node_lookup, std::m
 	}
 }
 
+// add noise to avoid point2s falling on vertical/horizontal lines
+void KDTree::AddNoise(Node* node)
+{
+	if (node == nullptr)
+		return;
+	
+	float x_r = (float)(rand() - (RAND_MAX / 2)) / (RAND_MAX * 10);
+	float y_r = (float)(rand() - (RAND_MAX / 2)) / (RAND_MAX * 10);
+	node->pos += Point2D(x_r, y_r);
+
+	AddNoise(node->left_node);
+	AddNoise(node->right_node);
+}
+
 Node* KDTree::FindClosestNode(Point2D point, Node* current_node, int depth) const
 {
 	if (current_node == nullptr)
@@ -242,6 +256,7 @@ KDTree::KDTree(std::string file_name)
 
 	root_node = CreateNodeFromFile(&tree_file, node_lookup);
 	AddConnectionsFromFile(root_node, &tree_file, node_lookup);
+	AddNoise(root_node);
 
 	tree_file.close();
 }
@@ -249,16 +264,8 @@ KDTree::KDTree(std::string file_name)
 KDTree::KDTree(std::vector<Point2D> points, std::map<OrderedPoint2D, std::vector<Point2D>>& all_connections)
 {
 	std::map<OrderedPoint2D, Node*> node_lookup;
-	// add noise to avoid point2s falling on vertical/horizontal lines
-	/*for (auto& point : points)
-	{
-		float x_r = (float)(rand() % 100000 - 50000) / 1000000;
-		float y_r = (float)(rand() % 100000 - 50000) / 1000000;
-		point += Point2D(x_r, y_r);
-	}*/
 	root_node = CreateKDTree(points, 0, node_lookup);
 	AddConnections(node_lookup, all_connections);
-
 }
 
 Point2D KDTree::FindClosestPoint(Point2D point) const
