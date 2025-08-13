@@ -175,8 +175,33 @@ void ScoutingManager::GroupEnemyUnits()
 				attacking_groups[OrderedPoint2D(pos.first)] = { unit.first };
 			}
 		}
-
 	}
+
+	for (auto& curr = attacking_groups.begin(); curr != attacking_groups.end(); curr++)
+	{
+		bool connection_found = false;
+		std::vector<Point2D> points = { (*curr).first };
+		do
+		{
+			connection_found = false;
+			for (auto& itr = std::next(curr); itr != attacking_groups.end();)
+			{
+				if (Utility::DistanceToClosest(points, (*itr).first) < CLOSE_RANGE)
+				{
+					(*curr).second.insert((*curr).second.end(), (*itr).second.begin(), (*itr).second.end());
+					points.push_back((*itr).first);
+					itr = attacking_groups.erase(itr);
+					connection_found = true;
+				}
+				else
+				{
+					itr++;
+				}
+			}
+
+		} while (connection_found);
+	}
+
 
 	unsigned long long mid = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::high_resolution_clock::now().time_since_epoch()
