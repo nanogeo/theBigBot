@@ -137,11 +137,6 @@ void ScoutingManager::UpdateEffectPositions()
 
 void ScoutingManager::GroupEnemyUnits()
 {
-	unsigned long long start_time = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-	).count();
-	std::vector<unsigned long long> times;
-
 	std::map<OrderedPoint2D, Units> defending_groups;
 	std::map<OrderedPoint2D, Units> attacking_groups;
 	for (const auto& unit : enemy_unit_saved_position)
@@ -202,22 +197,9 @@ void ScoutingManager::GroupEnemyUnits()
 		} while (connection_found);
 	}
 
-
-	unsigned long long mid = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-	).count();
-
 	for (const auto& group : attacking_groups)
 	{
-		unsigned long long one = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-
 		std::vector<Point2D> attacking_path = mediator->FindPathToFriendlyControlledArea(group.first);
-
-		unsigned long long two = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
 
 		if (attacking_path.size() == 0)
 		{
@@ -227,10 +209,6 @@ void ScoutingManager::GroupEnemyUnits()
 		// add incoming atack to path.back() with units group[1]
 		std::vector<Point2D> defensive_path = mediator->FindPath(mediator->GetStartLocation(), attacking_path.back());
 
-		unsigned long long three = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-
 		for (const auto& pos : attacking_path)
 		{
 			mediator->DebugSphere(mediator->ToPoint3D(pos), .7, Color(255, 0, 0));
@@ -239,30 +217,7 @@ void ScoutingManager::GroupEnemyUnits()
 		{
 			mediator->DebugSphere(mediator->ToPoint3D(pos), .7, Color(0, 128, 255));
 		}
-
-		unsigned long long four = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-
-		times.push_back(two - one);
-		times.push_back(three - two);
-		times.push_back(four - three);
-
 	}
-
-	unsigned long long total = 0;
-	for (const auto& time : times)
-	{
-		total += time;
-	}
-	if (times.size() > 0)
-		total /= times.size();
-
-
-	unsigned long long end = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::high_resolution_clock::now().time_since_epoch()
-	).count();
-	int i;
 }
 
 
