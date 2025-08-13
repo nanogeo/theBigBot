@@ -529,7 +529,7 @@ void ScoutingManager::AddNewUnit(const Unit* unit)
 
 	if (unit->is_building)
 	{
-		mediator->ChangeAreaControl(unit->pos, MEDIUM_RANGE, mediator->ToPoint3D(unit->pos).z, NodeControl::enemy_control);
+		mediator->ChangeAreaControl(unit->pos, LONG_RANGE, mediator->ToPoint3D(unit->pos).z, NodeControl::enemy_control);
 	}
 
 	switch (unit->unit_type.ToType())

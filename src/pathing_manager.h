@@ -169,7 +169,7 @@ class PathingManager
 {
 	friend class TheBigBot;
 private:
-	const int max_connection_depth = 15;
+	const int max_connection_depth = 25;
 	Mediator* mediator;
 	KDTree map_skeleton;
 
