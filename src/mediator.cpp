@@ -14,7 +14,6 @@
 #include "scout_protoss_state_machine.h"
 #include "stalker_base_defense_terran_state_machine.h"
 #include "worker_rush_defense_state_machine.h"
-#include "chargelot_allin_state_machine.h"
 #include "pvp_ramp_wall_off_state_machine.h"
 
 #include "army_group.h"
