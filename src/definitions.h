@@ -596,4 +596,30 @@ enum class PathDirection
 	backward
 };
 
+struct EnemyAttack
+{
+	const Unit* unit;
+	uint32_t impact_frame;
+	EnemyAttack(const Unit* unit, int impact_frame)
+	{
+		this->unit = unit;
+		this->impact_frame = impact_frame;
+	}
+};
+
+struct LiberatorZone
+{
+	Point2D pos;
+	bool current;
+	LiberatorZone(Point2D pos)
+	{
+		this->pos = pos;
+		current = true;
+	}
+	bool operator==(const LiberatorZone& b)
+	{
+		return pos == b.pos;
+	}
+};
+
 }
