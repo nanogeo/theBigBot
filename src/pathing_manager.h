@@ -172,6 +172,7 @@ private:
 	const int max_connection_depth = 25;
 	Mediator* mediator;
 	KDTree map_skeleton;
+	Point2D central_base_pos;
 
 	std::map<Node*, std::vector<Node*>> BFS(Node*); // do i need this? is it faster?
 	std::vector<Point2D> FindPath(Point2D, NodeFilter) const;
@@ -180,6 +181,7 @@ private:
 	void ChangeAreaControl(Point2D, Node*, float, NodeControl);
 	void ChangeAreaControl(Point2D, Node*, float, float, NodeControl);
 	bool ConnectAreaControl(Node*, std::vector<Node*>, int, NodeControl);
+	void UpdateCentralBasePos();
 
 public:
 	PathingManager(Mediator* mediator)
@@ -196,6 +198,7 @@ public:
 	std::vector<Point2D> FindPathToEnemyControlledArea(Point2D) const;
 	void ChangeAreaControl(Point2D, float, NodeControl);
 	void ChangeAreaControl(Point2D, float, float, NodeControl);
+	Point2D GetCentralBasePos() const;
 };
 
 }

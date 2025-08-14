@@ -55,6 +55,7 @@ private:
 	Race enemy_race = Race::Random;
 	std::map<const Unit*, EnemyUnitPosition> enemy_unit_saved_position;
 	std::map<UNIT_TYPEID, int> enemy_unit_counts;
+	std::vector<EnemyArmyGroup> incoming_enemy_army_groups;
 
 	std::map<const Unit*, float> enemy_weapon_cooldown;
 	std::map<const Unit*, std::vector<EnemyAttack>> enemy_attacks;
@@ -108,6 +109,7 @@ public:
 
 	int GetEnemyUnitCount(UNIT_TYPEID) const;
 	float GetEnemyArmySupply() const;
+	const std::vector<EnemyArmyGroup>& GetIncomingEnemyArmyGroups() const;
 	const std::vector<Point2D>& GetCorrosiveBilePositions() const;
 	GameState GetGameState();
 	std::string GameStateToString();

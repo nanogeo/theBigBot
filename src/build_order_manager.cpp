@@ -986,12 +986,6 @@ bool BuildOrderManager::SetWarpInAtProxy(BuildOrderResultArgData data)
 	return true;
 }
 
-bool BuildOrderManager::AddToNaturalDefense(BuildOrderResultArgData data)
-{
-	mediator->AddToDefense(1, data.amount);
-	return true;
-}
-
 bool BuildOrderManager::CheckForProxyRax(BuildOrderResultArgData data)
 {
 	int missing_scvs = 19;
@@ -1297,10 +1291,6 @@ bool BuildOrderManager::DefendMainRamp(BuildOrderResultArgData data)
 	else
 		mediator->DefendMainRamp(mediator->GetLocations().main_ramp_forcefield_top);
 
-	mediator->MarkArmyGroupForDeletion(mediator->GetArmyGroupDefendingBase(mediator->GetStartLocation()));
-	ArmyGroup* natural_army_group = mediator->GetArmyGroupDefendingBase(mediator->GetNaturalLocation());
-	if (natural_army_group)
-		mediator->MarkArmyGroupForDeletion(natural_army_group);
 	return true;
 }
 
@@ -1658,7 +1648,6 @@ void BuildOrderManager::SetMinorProxyRaxResponse()
 					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(148.0f),			&BuildOrderManager::BuildBuilding,						Result(TWILIGHT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::TrainUnit,							Result(STALKER)),
-					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::AddToNaturalDefense,				Result(1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::BuildBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(183.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
 					Data(&BuildOrderManager::TimePassed,			Condition(203.0f),			&BuildOrderManager::ResearchBlink,						Result()),
@@ -1990,7 +1979,6 @@ void BuildOrderManager::Set4GateBlink()
 					Data(&BuildOrderManager::TimePassed,			Condition(135.0f),			&BuildOrderManager::ChronoBuilding,						Result(GATEWAY)),
 					Data(&BuildOrderManager::TimePassed,			Condition(148.0f),			&BuildOrderManager::BuildBuilding,						Result(TWILIGHT)),
 					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::TrainUnit,							Result(STALKER)),
-					Data(&BuildOrderManager::TimePassed,			Condition(155.0f),			&BuildOrderManager::AddToNaturalDefense,				Result(1)),
 					Data(&BuildOrderManager::TimePassed,			Condition(175.0f),			&BuildOrderManager::BuildBuilding,						Result(ROBO)),
 					Data(&BuildOrderManager::TimePassed,			Condition(183.0f),			&BuildOrderManager::BuildBuildingMulti,					Result({GATEWAY, GATEWAY})),
 					Data(&BuildOrderManager::TimePassed,			Condition(203.0f),			&BuildOrderManager::ResearchBlink,						Result()),

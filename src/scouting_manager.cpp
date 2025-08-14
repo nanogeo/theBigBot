@@ -137,8 +137,10 @@ void ScoutingManager::UpdateEffectPositions()
 
 void ScoutingManager::GroupEnemyUnits()
 {
+	incoming_enemy_army_groups.clear();
 	std::map<OrderedPoint2D, Units> defending_groups;
 	std::map<OrderedPoint2D, Units> attacking_groups;
+	// TODO deal with flying units separately
 	for (const auto& unit : enemy_unit_saved_position)
 	{
 		if (unit.first->is_building)
@@ -206,17 +208,7 @@ void ScoutingManager::GroupEnemyUnits()
 			// error no path found
 			continue;
 		}
-		// add incoming atack to path.back() with units group[1]
-		std::vector<Point2D> defensive_path = mediator->FindPath(mediator->GetStartLocation(), attacking_path.back());
-
-		for (const auto& pos : attacking_path)
-		{
-			mediator->DebugSphere(mediator->ToPoint3D(pos), .7, Color(255, 0, 0));
-		}
-		for (const auto& pos : defensive_path)
-		{
-			mediator->DebugSphere(mediator->ToPoint3D(pos), .7, Color(0, 128, 255));
-		}
+		incoming_enemy_army_groups.push_back({ group.second, group.first, attacking_path.back(), attacking_path });
 	}
 }
 
@@ -460,6 +452,11 @@ float ScoutingManager::GetEnemyArmySupply() const
 			total_supply += Utility::GetCost(unit.first->unit_type).supply;
 	}
 	return total_supply;
+}
+
+const std::vector<EnemyArmyGroup>& ScoutingManager::GetIncomingEnemyArmyGroups() const
+{
+	return incoming_enemy_army_groups;
 }
 
 const std::vector<Point2D>& ScoutingManager::GetCorrosiveBilePositions() const

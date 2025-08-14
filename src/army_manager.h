@@ -6,6 +6,7 @@
 #include "simple_attack_army_group.h"
 #include "outside_control_army_group.h"
 #include "attack_army_group.h"
+#include "defense_army_group.h"
 
 
 namespace sc2
@@ -21,7 +22,7 @@ class ArmyManager
 {
 private:
 	Mediator* mediator;
-	ArmyGroup* unassigned_group = nullptr;
+	DefenseArmyGroup* unassigned_group = nullptr;
 	std::vector<ArmyGroup*> army_groups;
 	std::vector<ArmyGroup*> army_groups_to_delete;
 	bool scouring_map = false;
@@ -55,10 +56,8 @@ public:
 
 	void ScourMap();
 
-	void NexusStarted(Point2D);
 	template<typename T>
 	void RemoveArmyGroupOfType();
-	void RemoveDefenseGroupAt(Point2D);
 	void DeleteArmyGroup(ArmyGroup*);
 	void MarkArmyGroupForDeletion(ArmyGroup*);
 };

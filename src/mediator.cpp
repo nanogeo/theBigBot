@@ -19,8 +19,6 @@
 #include "army_group.h"
 #include "attack_army_group.h"
 #include "cannon_rush_defense_army_group.h"
-#include "defend_base_army_group.h"
-#include "defend_line_army_group.h"
 #include "defend_main_ramp_army_group.h"
 #include "defend_third_zerg_army_group.h"
 #include "deny_outer_base_army_group.h"
@@ -1751,7 +1749,6 @@ void Mediator::MarkArmyGroupForDeletion(ArmyGroup* army_group)
 void Mediator::DefendThirdBaseZerg()
 {
 	army_manager.AddArmyGroup(new DefendThirdZergArmyGroup(this, agent->locations->third_base_pylon_gap, {ADEPT}));
-	army_manager.AddArmyGroup(new DefendLineArmyGroup(this, GetLocation(NEXUS, 2), GetNaturalLocation(), { ORACLE, VOID_RAY, CARRIER, TEMPEST }, 0, 5));
 }
 
 void Mediator::SetDoorGuard()
@@ -1786,34 +1783,6 @@ void Mediator::DefendMainRamp(Point2D forcefield_pos)
 {
 	army_manager.AddArmyGroup(new DefendMainRampArmyGroup(this, agent->locations->main_ramp_forcefield_top, forcefield_pos));
 }
-
-void Mediator::AddToDefense(int base, int amount)
-{
-	Point2D base_location = agent->locations->nexi_locations[base];
-	for (auto& army_group : army_manager.GetArmyGroups())
-	{
-		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->GetBasePos() == base_location)
-		{
-			army_group->AddDesiredUnits(amount);
-			army_group->AddMaxUnits(amount);
-		}
-	}
-	army_manager.BalanceUnits();
-}
-
-void Mediator::AddToDefense(Point2D base_location, int amount)
-{
-	for (auto& army_group : army_manager.GetArmyGroups())
-	{
-		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->GetBasePos() == base_location)
-		{
-			army_group->AddDesiredUnits(amount);
-			army_group->AddMaxUnits(amount);
-		}
-	}
-	army_manager.BalanceUnits();
-}
-
 void Mediator::BuildDefensiveBuilding(UNIT_TYPEID type, Point2D location)
 {
 	Point2D pos = Point2D(0, 0);
@@ -2115,16 +2084,6 @@ void Mediator::AddProtossTransitions()
 	transition_manager.AddProtossTransitions();
 }
 
-ArmyGroup* Mediator::GetArmyGroupDefendingBase(Point2D pos)
-{
-	for (const auto& army_group : army_manager.GetArmyGroups())
-	{
-		if (dynamic_cast<DefendBaseArmyGroup*>(army_group) && dynamic_cast<DefendBaseArmyGroup*>(army_group)->GetBasePos() == pos)
-			return army_group;
-	}
-	return nullptr;
-}
-
 ArmyGroup* Mediator::GetArmyGroupDenyingBase(Point2D pos)
 {
 	for (const auto& army_group : army_manager.GetArmyGroups())
@@ -2280,6 +2239,11 @@ std::vector<Point2D> Mediator::FindPathToEnemyControlledArea(Point2D start) cons
 	return pathing_manager.FindPathToEnemyControlledArea(start);
 }
 
+Point2D Mediator::GetCentralBasePos() const
+{
+	return pathing_manager.GetCentralBasePos();
+}
+
 std::string Mediator::GetMapName() const
 {
 	return agent->Observation()->GetGameInfo().map_name;
@@ -2338,6 +2302,11 @@ Point2D Mediator::GetUnitPosition(const Unit* unit)
 const std::map<const Unit*, EnemyUnitPosition> Mediator::GetEnemySavedPositions()
 {
 	return scouting_manager.enemy_unit_saved_position;
+}
+
+const std::vector<EnemyArmyGroup>& Mediator::GetIncomingEnemyArmyGroups() const
+{
+	return scouting_manager.GetIncomingEnemyArmyGroups();
 }
 
 bool Mediator::IsStalkerBlinkOffCooldown(const Unit* unit)
@@ -2601,7 +2570,6 @@ void Mediator::OnUnitCreated(const Unit* unit)
 	}
 	else if (unit->unit_type == NEXUS)
 	{
-		army_manager.NexusStarted(unit->pos);
 		pathing_manager.ChangeAreaControl(unit->pos, MEDIUM_RANGE, NodeControl::friendly_control);
 	}
 	else
@@ -2654,7 +2622,6 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 		if (!HasActionOfType(&ActionManager::ActionContinueBuildingPylons))
 			action_manager.AddAction(new ActionData(&ActionManager::ActionContinueBuildingPylons, new ActionArgData()));
 
-		army_manager.RemoveDefenseGroupAt(unit->pos);
 		defense_manager.RemoveOngoingAttackAt(unit->pos);
 		for (auto itr = action_manager.GetActiveActions().begin(); itr != action_manager.GetActiveActions().end();)
 		{

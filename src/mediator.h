@@ -260,7 +260,6 @@ public:
 	void AddTerranTransitions();
 	void AddProtossTransitions();
 
-	ArmyGroup* GetArmyGroupDefendingBase(Point2D);
 	ArmyGroup* GetArmyGroupDenyingBase(Point2D);
 	ArmyGroup* GetDoorGuardArmyGroup();
 	void ScourMap();
@@ -290,6 +289,7 @@ public:
 	std::vector<Point2D> FindPath(Point2D, Point2D) const;
 	std::vector<Point2D> FindPathToFriendlyControlledArea(Point2D) const;
 	std::vector<Point2D> FindPathToEnemyControlledArea(Point2D) const;
+	Point2D GetCentralBasePos() const;
 
 	std::string GetMapName() const;
 	Race GetEnemyRace() const;
@@ -303,6 +303,7 @@ public:
 	AvailableAbilities GetAbilitiesForUnit(const Unit*);
 	Point2D GetUnitPosition(const Unit*);
 	const std::map<const Unit*, EnemyUnitPosition> GetEnemySavedPositions();
+	const std::vector<EnemyArmyGroup>& GetIncomingEnemyArmyGroups() const;
 
 	bool IsStalkerBlinkOffCooldown(const Unit*);
 	void SetStalkerOrder(const Unit*);

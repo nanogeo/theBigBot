@@ -39,18 +39,6 @@ void DefenseManager::CheckForAttacks()
 		if (close_enemies.size() == 0 && itr != ongoing_attacks.end())
 		{
 			std::cerr << "Attack ended at " << base->pos.x << ", " << base->pos.y <<  " at " << mediator->GetCurrentTime() << std::endl;
-			ArmyGroup* army_group = mediator->GetArmyGroupDefendingBase(itr->location);
-			if (army_group)
-			{
-				for (const auto& worker : itr->pulled_workers)
-				{
-					army_group->RemoveUnit(worker);
-					if (worker->is_alive)
-						mediator->PlaceWorker(worker);
-				}
-				// reset desired defenses
-				mediator->AddToDefense(itr->location, -1 * army_group->GetDesiredUnits());
-			}
 			ongoing_attacks.erase(itr);
 		}
 		else if (close_enemies.size() > 0 && itr == ongoing_attacks.end())
@@ -133,17 +121,6 @@ void DefenseManager::UpdateOngoingAttacks()
 
 
 			// increase desired defenders
-			ArmyGroup* defense_group = mediator->GetArmyGroupDefendingBase(attack.location);
-			if (defense_group && close_allies.size() >= defense_group->GetDesiredUnits())
-			{
-				if (attack.status < OGA_LOSING_HARD)
-					mediator->AddToDefense(attack.location, 5);
-				else if (attack.status < OGA_LOSING)
-					mediator->AddToDefense(attack.location, 4);
-				else if (attack.status < 0)
-					mediator->AddToDefense(attack.location, 2);
-			}
-
 			// make defensive building(s)
 		}
 	}
@@ -431,18 +408,6 @@ void DefenseManager::RemoveOngoingAttackAt(Point2D location)
 	{
 		if (ongoing_attacks[i].location == location)
 		{
-			ArmyGroup* army_group = mediator->GetArmyGroupDefendingBase(location);
-			if (army_group)
-			{
-				for (const auto& worker : ongoing_attacks[i].pulled_workers)
-				{
-					army_group->RemoveUnit(worker);
-					if (worker->is_alive)
-						mediator->PlaceWorker(worker);
-				}
-				// reset desired defenses
-				mediator->AddToDefense(location, -1 * army_group->GetDesiredUnits());
-			}
 			ongoing_attacks.erase(ongoing_attacks.begin() + i);
 			i--;
 		}

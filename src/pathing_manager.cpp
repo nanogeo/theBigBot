@@ -460,9 +460,52 @@ bool PathingManager::ConnectAreaControl(Node* current_node, std::vector<Node*> p
 	return false;
 }
 
+void PathingManager::UpdateCentralBasePos()
+{
+	Node* starting_node = FindClosestSkeletonNode(mediator->GetStartLocation());
+	std::vector<Point2D> end_points = { starting_node->pos };
+	std::vector<Point2D> friendly_controled_nodes;
+	std::vector<Node*> nodes_to_test = { starting_node };
+	while (nodes_to_test.size() > 0)
+	{
+		Node* curr_node = nodes_to_test.back();
+		nodes_to_test.pop_back();
+		if (std::find(friendly_controled_nodes.begin(), friendly_controled_nodes.end(), curr_node->pos) != friendly_controled_nodes.end())
+			continue;
+		if (curr_node->control != NodeControl::friendly_control)
+			continue;
+
+		friendly_controled_nodes.push_back(curr_node->pos);
+
+		for (const auto connection : curr_node->connections)
+		{
+			if (connection->control == NodeControl::neutral && std::find(end_points.begin(), end_points.end(), curr_node->pos) == end_points.end())
+			{
+				end_points.push_back(curr_node->pos); // intentionally double to weight end points higher that the starting point
+				end_points.push_back(curr_node->pos);
+			}
+			else if (connection->control == NodeControl::friendly_control)
+				nodes_to_test.push_back(connection);
+		}
+	}
+
+	Point2D center_ends = Utility::Center(end_points);
+	Node* center_point_ends_node = FindClosestSkeletonNode(center_ends);
+	Point2D center_point_ends = center_point_ends_node->pos;
+	if (center_point_ends_node->control != NodeControl::friendly_control)
+	{
+		std::vector<Point2D> path = FindPathToFriendlyControlledArea(center_point_ends_node->pos);
+		if (path.size() > 0)
+			center_point_ends = path.back();
+	}
+
+	central_base_pos = center_point_ends;
+}
+
 void PathingManager::DisplayMapSkeleton() const
 {
 	map_skeleton.DisplayTree(mediator);
+	mediator->DebugSphere(mediator->ToPoint3D(central_base_pos), 3, Color(255, 255, 0));
 }
 
 void PathingManager::LoadMapData()
@@ -562,12 +605,21 @@ void PathingManager::ChangeAreaControl(Point2D point, float radius, NodeControl 
 {
 	Node* starting_node = FindClosestSkeletonNode(point);
 	ChangeAreaControl(point, starting_node, radius, control);
+	if (control == NodeControl::friendly_control)
+		UpdateCentralBasePos();
 }
 
 void PathingManager::ChangeAreaControl(Point2D point, float radius, float height, NodeControl control)
 {
 	Node* starting_node = FindClosestSkeletonNode(point);
 	ChangeAreaControl(point, starting_node, radius, height, control);
+	if (control == NodeControl::friendly_control)
+		UpdateCentralBasePos();
+}
+
+Point2D PathingManager::GetCentralBasePos() const
+{
+	return central_base_pos;
 }
 
 }

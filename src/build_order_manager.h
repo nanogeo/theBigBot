@@ -196,7 +196,6 @@ private:
 	bool CancelWarpgateUnitProduction(BuildOrderResultArgData);
 	bool CancelStargateUnitProduction(BuildOrderResultArgData);
 	bool SetWarpInAtProxy(BuildOrderResultArgData);
-	bool AddToNaturalDefense(BuildOrderResultArgData);
 	bool CheckForProxyRax(BuildOrderResultArgData);
 	bool CheckProtossOpening(BuildOrderResultArgData);
 	bool CheckProtossOpening2(BuildOrderResultArgData);
@@ -647,10 +646,6 @@ struct BuildOrderData
 		else if (result == &BuildOrderManager::SetWarpInAtProxy)
 		{
 			str += "set warp in a t proxy";
-		}
-		else if (result == &BuildOrderManager::AddToNaturalDefense)
-		{
-			str += "add to natural defense";
 		}
 		else if (result == &BuildOrderManager::CheckForProxyRax)
 		{

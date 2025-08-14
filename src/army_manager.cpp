@@ -3,8 +3,6 @@
 
 #include "attack_army_group.h"
 #include "cannon_rush_defense_army_group.h"
-#include "defend_base_army_group.h"
-#include "defend_line_army_group.h"
 #include "defend_main_ramp_army_group.h"
 #include "defend_third_zerg_army_group.h"
 #include "deny_outer_base_army_group.h"
@@ -213,9 +211,7 @@ void ArmyManager::DisplayArmyGroups() const
 
 void ArmyManager::SetUpInitialArmies()
 {
-	unassigned_group = new ArmyGroup(mediator, { ALL_ARMY_UNITS });
-
-	AddArmyGroup(new DefendBaseArmyGroup(mediator, mediator->GetStartLocation(), { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS, VOID_RAY }, 0, 3));
+	unassigned_group = new DefenseArmyGroup(mediator);
 
 	switch (mediator->GetEnemyRace())
 	{
@@ -341,6 +337,8 @@ void ArmyManager::RunArmyGroups()
 {
 	if (scouring_map)
 		unassigned_group->ScourMap();
+	else
+		unassigned_group->Run();
 
 	for (int i = 0; i < army_groups.size(); i++)
 	{
@@ -449,31 +447,12 @@ void ArmyManager::ScourMap()
 	scouring_map = true;
 }
 
-void ArmyManager::NexusStarted(Point2D pos) // TODO move to mediator
-{
-	if (mediator->GetArmyGroupDefendingBase(pos) == nullptr)
-		AddArmyGroup(new DefendBaseArmyGroup(mediator, pos, { ZEALOT, ADEPT, STALKER, SENTRY, IMMORTAL, COLOSSUS, VOID_RAY }, 0, 10));
-}
-
 template<typename T>
 void ArmyManager::RemoveArmyGroupOfType()
 {
 	for (int i = 0; i < army_groups.size(); i++)
 	{
 		if (dynamic_cast<T*>(army_groups[i]))
-		{
-			DeleteArmyGroup(army_groups[i]);
-			i--;
-		}
-	}
-	BalanceUnits();
-}
-
-void ArmyManager::RemoveDefenseGroupAt(Point2D pos)
-{
-	for (int i = 0; i < army_groups.size(); i++)
-	{
-		if (dynamic_cast<DefendBaseArmyGroup*>(army_groups[i]) && dynamic_cast<DefendBaseArmyGroup*>(army_groups[i])->GetBasePos() == pos)
 		{
 			DeleteArmyGroup(army_groups[i]);
 			i--;
