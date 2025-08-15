@@ -70,7 +70,12 @@ State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 
 	// attacking_stalkers
 	// prism
-	AttackLineResult result = state_machine->attached_army_group->AttackLine(state_machine->attacking_stalkers, state_machine->prism);
+	AttackLineResult result = AttackLineResult::normal;
+	if (state_machine->prism == nullptr || state_machine->prism->is_alive == false)
+		result = state_machine->attached_army_group->AttackLine(state_machine->attacking_stalkers);
+	else
+		result = state_machine->attached_army_group->AttackLine(state_machine->attacking_stalkers, state_machine->prism);
+
 	if (result != AttackLineResult::normal ||
 		state_machine->attached_army_group->GetAttackPath().GetFurthestForward({state_machine->attached_army_group->GetConcaveOrigin(),
 			state_machine->attached_army_group->GetAttackPath().FindClosestPoint(state_machine->consolidation_pos)}) == state_machine->attached_army_group->GetConcaveOrigin())
