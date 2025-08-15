@@ -622,4 +622,33 @@ struct LiberatorZone
 	}
 };
 
+struct EnemyArmyGroup
+{
+	Units units;
+	Point2D current_pos;
+	Point2D attack_pos;
+	std::vector<Point2D> attack_path;
+	EnemyArmyGroup(Units units, Point2D current_pos, Point2D attack_pos, std::vector<Point2D> attack_path)
+	{
+		this->units = units;
+		this->current_pos = current_pos;
+		this->attack_pos = attack_pos;
+		this->attack_path = attack_path;
+	}
+};
+
+struct DefensiveGroup
+{
+	Point2D defensive_pos;
+	Units friendly_units;
+	Units enemy_units;
+	float status = 0;
+	DefensiveGroup(Point2D defensive_pos, Units friendly_units, Units enemy_units)
+	{
+		this->defensive_pos = defensive_pos;
+		this->friendly_units = friendly_units;
+		this->enemy_units = enemy_units;
+	}
+};
+
 }

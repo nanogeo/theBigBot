@@ -15,6 +15,11 @@ class DefenseArmyGroup : public ArmyGroup
 protected:
 	Point2D central_pos;
 	int air_harassers = 0;
+	Units unassigned_units;
+	std::vector<DefensiveGroup> defensive_groups;
+
+	void AllocateUnitsToDefensiveGroups(std::vector<EnemyArmyGroup>);
+
 public:
 	DefenseArmyGroup(Mediator*);
 

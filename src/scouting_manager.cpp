@@ -177,15 +177,16 @@ void ScoutingManager::GroupEnemyUnits()
 	for (auto& curr = attacking_groups.begin(); curr != attacking_groups.end(); curr++)
 	{
 		bool connection_found = false;
-		std::vector<Point2D> points = { (*curr).first };
+		std::vector<Point2D> points = { curr->first };
 		do
 		{
 			connection_found = false;
-			for (auto& itr = std::next(curr); itr != attacking_groups.end();)
+			for (auto itr = std::next(curr); itr != attacking_groups.end();)
 			{
-				if (Utility::DistanceToClosest(points, (*itr).first) < CLOSE_RANGE)
+				if (Utility::DistanceToClosest(points, itr->first) < CLOSE_RANGE || 
+					Distance2D(Utility::MedianCenter(curr->second), Utility::MedianCenter(itr->second)) < CLOSE_RANGE)
 				{
-					(*curr).second.insert((*curr).second.end(), (*itr).second.begin(), (*itr).second.end());
+					curr->second.insert(curr->second.end(), itr->second.begin(), itr->second.end());
 					points.push_back((*itr).first);
 					itr = attacking_groups.erase(itr);
 					connection_found = true;
@@ -208,7 +209,7 @@ void ScoutingManager::GroupEnemyUnits()
 			// error no path found
 			continue;
 		}
-		incoming_enemy_army_groups.push_back({ group.second, group.first, attacking_path.back(), attacking_path });
+		incoming_enemy_army_groups.push_back(EnemyArmyGroup(group.second, group.first, attacking_path.back(), attacking_path));
 	}
 }
 
