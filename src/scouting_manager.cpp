@@ -174,7 +174,7 @@ void ScoutingManager::GroupEnemyUnits()
 		}
 	}
 
-	for (auto& curr = attacking_groups.begin(); curr != attacking_groups.end(); curr++)
+	for (auto curr = attacking_groups.begin(); curr != attacking_groups.end(); curr++)
 	{
 		bool connection_found = false;
 		std::vector<Point2D> points = { curr->first };

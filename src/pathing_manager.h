@@ -27,7 +27,7 @@ struct Node
 	Node* left_node = nullptr;
 	Node* right_node = nullptr;
 	std::vector<Node*> connections;
-	Node::Node(int id, Point2D point)
+	Node(int id, Point2D point)
 	{
 		uid = id;
 		pos = point;
