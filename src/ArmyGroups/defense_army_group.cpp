@@ -34,7 +34,7 @@ void DefenseArmyGroup::AllocateUnitsToDefensiveGroups(std::vector<EnemyArmyGroup
 		if (group == defensive_groups.end())
 		{
 			// attack at location not being defended
-			defensive_groups.push_back(DefensiveGroup(itr->attack_pos, {}, itr->units));
+			defensive_groups.push_back(DefensiveGroup(itr->attack_pos, {}, itr->units, new PointPath(mediator->FindPath(mediator->GetStartLocation(), itr->attack_pos))));
 		}
 		else
 		{
@@ -54,7 +54,7 @@ void DefenseArmyGroup::AllocateUnitsToDefensiveGroups(std::vector<EnemyArmyGroup
 		itr->status = mediator->JudgeFight(itr->friendly_units, itr->enemy_units, 0, 0, false);
 		while (unassigned_units.size() > 0 && itr->status < 0)
 		{
-			itr->friendly_units.push_back(unassigned_units.back());
+			itr->AddNewUnit(unassigned_units.back());
 			unassigned_units.pop_back();
 			itr->status = mediator->JudgeFight(itr->friendly_units, itr->enemy_units, 0, 0, false);
 		}
@@ -72,7 +72,7 @@ void DefenseArmyGroup::AllocateUnitsToDefensiveGroups(std::vector<EnemyArmyGroup
 	{
 		if (unassigned_units.size() > 0)
 		{
-			worst_status->friendly_units.push_back(unassigned_units.back());
+			worst_status->AddNewUnit(unassigned_units.back());
 			unassigned_units.pop_back();
 			worst_status->status = mediator->JudgeFight(worst_status->friendly_units, worst_status->enemy_units, 0, 0, false);
 			for (auto itr = defensive_groups.begin(); itr != defensive_groups.end(); itr++)
@@ -95,16 +95,16 @@ void DefenseArmyGroup::AllocateUnitsToDefensiveGroups(std::vector<EnemyArmyGroup
 		if (best_status != nullptr)
 		{
 			const Unit* extra_unit = best_status->friendly_units.back();
-			best_status->friendly_units.pop_back();
+			best_status->RemoveUnit(extra_unit);
 			float new_status = mediator->JudgeFight(best_status->friendly_units, best_status->enemy_units, 0, 0, false);
 			if (new_status < 0)
 			{
-				best_status->friendly_units.push_back(extra_unit);
+				best_status->AddNewUnit(extra_unit);
 				break;
 			}
 			else
 			{
-				worst_status->friendly_units.push_back(extra_unit);
+				worst_status->AddNewUnit(extra_unit);
 				worst_status->status = mediator->JudgeFight(worst_status->friendly_units, worst_status->enemy_units, 0, 0, false);
 				for (auto itr = defensive_groups.begin(); itr != defensive_groups.end(); itr++)
 				{
@@ -120,7 +120,7 @@ void DefenseArmyGroup::AllocateUnitsToDefensiveGroups(std::vector<EnemyArmyGroup
 	}
 }
 
-DefenseArmyGroup::DefenseArmyGroup(Mediator* mediator) : ArmyGroup(mediator)
+DefenseArmyGroup::DefenseArmyGroup(Mediator* mediator) : AttackArmyGroup(mediator)
 {
 	unit_types = ALL_ARMY_UNITS;
 	central_pos = mediator->GetCentralBasePos();
@@ -143,16 +143,33 @@ void DefenseArmyGroup::Run()
 	// group units to defend ongoing attacks
 	// group units to defend incoming attacks
 	AllocateUnitsToDefensiveGroups(incoming_army_groups);
-	for (const auto& group : defensive_groups)
+	for (auto& group : defensive_groups)
 	{
-		for (const auto& unit : group.friendly_units)
+		for (int i = 0; i < group.new_units.size(); i++)
 		{
-			if (mediator->GetAttackStatus(unit))
+			if (group.origin == Point2D(0, 0))
+			{
+				group.origin = group.path->FindClosestPoint(group.new_units[i]->pos);
+				group.AddUnit(group.new_units[i]);
+				i--;
 				continue;
-			if (unit->weapon_cooldown == 0)
-				mediator->AddUnitToAttackers(unit);
+			}
+			if (Distance2D(group.new_units[i]->pos, group.origin) < MEDIUM_RANGE)
+			{
+				group.AddUnit(group.new_units[i]);
+				i--;
+				continue;
+			}
+
+			if (mediator->GetAttackStatus(group.new_units[i]))
+				continue;
+			if (group.new_units[i]->weapon_cooldown == 0)
+				mediator->AddUnitToAttackers(group.new_units[i]);
+
+			mediator->SetUnitCommand(group.new_units[i], A_MOVE, group.origin, CommandPriorty::low);
 		}
-		mediator->SetUnitsCommand(group.friendly_units, A_MOVE, group.defensive_pos, CommandPriorty::low);
+		if (group.basic_units.size() > 0)
+			AttackLine(group);
 	}
 	
 	// position units to defend against air harassers
@@ -186,16 +203,18 @@ void DefenseArmyGroup::RemoveUnit(const Unit* unit)
 	unassigned_units.erase(std::remove(unassigned_units.begin(), unassigned_units.end(), unit), unassigned_units.end());
 	for (auto& group : defensive_groups)
 	{
-		for (auto itr = group.friendly_units.begin(); itr != group.friendly_units.end(); itr++)
+		if (std::find(group.friendly_units.begin(), group.friendly_units.end(), unit) != group.friendly_units.end())
 		{
-			if ((*itr) == unit)
-			{
-				group.friendly_units.erase(itr);
-				break;
-			}
+			group.RemoveUnit(unit);
+			break;
 		}
 	}
 	ArmyGroup::RemoveUnit(unit);
+}
+
+AttackLineResult DefenseArmyGroup::AttackLine(DefensiveGroup& group)
+{
+	return AttackArmyGroup::AttackLine(group.basic_units, group.origin, group.normal_range, group.path, false, Point2D(0, 0), group.prisms, 0, group.unit_position_assignments, group.oracles, group.advancing, .25f);
 }
 
 }

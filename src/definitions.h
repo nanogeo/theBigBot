@@ -637,18 +637,4 @@ struct EnemyArmyGroup
 	}
 };
 
-struct DefensiveGroup
-{
-	Point2D defensive_pos;
-	Units friendly_units;
-	Units enemy_units;
-	float status = 0;
-	DefensiveGroup(Point2D defensive_pos, Units friendly_units, Units enemy_units)
-	{
-		this->defensive_pos = defensive_pos;
-		this->friendly_units = friendly_units;
-		this->enemy_units = enemy_units;
-	}
-};
-
 }
