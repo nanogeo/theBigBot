@@ -458,15 +458,7 @@ std::vector<std::pair<const Unit*, UnitDanger>> AttackArmyGroup::CalculateUnitDa
 		//agent->Debug()->DebugTextOut(std::to_string(damage), unit->pos, Color(255, 255, 255), 16);
 		if (damage > 0)
 		{
-			float shield_damage = std::min(damage, unit->shield);
-			float health_damage = damage - shield_damage;
-			float total_damage = shield_damage + ((health_damage / unit->health) * unit->health_max * 1.5f);
-			int prio = 3;
-			if (health_damage >= unit->health)
-				prio = 1;
-			else if (total_damage > 50 || health_damage > 10)
-				prio = 2;
-			incoming_damage.push_back(std::pair<const Unit*, UnitDanger>(unit, UnitDanger(prio, total_damage)));
+			incoming_damage.push_back(std::pair<const Unit*, UnitDanger>(unit, UnitDanger(unit, damage)));
 		}
 	}
 	std::sort(incoming_damage.begin(), incoming_damage.end(),
@@ -491,7 +483,7 @@ Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger
 	std::sort(incoming_damage.begin(), incoming_damage.end(),
 		[](const std::pair<const Unit*, UnitDanger> a, const std::pair<const Unit*, UnitDanger> b) -> bool
 	{
-		return a.second < b.second;
+		return a.second > b.second;
 	});
 
 	bool has_blink = mediator->CheckUpgrade(U_BLINK);
@@ -536,9 +528,9 @@ Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger
 		if (prism_in_range != nullptr && can_blink == false)
 		{
 			int cargo_space = cargo_available[prism_in_range];
-			if (request.second.unit_prio >= 3 ||
-				(request.second.unit_prio == 2 && cargo_space >= 4) ||
-				(request.second.unit_prio == 1 && cargo_space >= 6))
+			if (request.second.damage_value >= 40 || // TODO figure out less arbitrary numbers
+				(request.second.damage_value == 20 && cargo_space >= 4) ||
+				(request.second.damage_value == 10 && cargo_space >= 6))
 			{
 				escaping_units.push_back(request.first);
 				mediator->SetUnitCommand(request.first, A_SMART, prism_in_range, CommandPriorty::high);
@@ -553,7 +545,7 @@ Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger
 		}
 		else if (prism_in_range == nullptr && can_blink == true)
 		{
-			if (request.second.unit_prio >= 2)
+			if (request.second.damage_value >= 20)
 			{
 				escaping_units.push_back(request.first);
 				mediator->SetUnitCommand(request.first, A_BLINK, standby_pos, CommandPriorty::high);
@@ -561,12 +553,12 @@ Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger
 					mediator->CancelAttack(request.first);
 			}
 		}
-		if (prism_in_range != nullptr && can_blink == true)
+		else if (prism_in_range != nullptr && can_blink == true)
 		{
 			int cargo_space = cargo_available[prism_in_range];
-			if (request.second.unit_prio >= 4 ||
-				(request.second.unit_prio == 3 && cargo_space >= 4) ||
-				(request.second.unit_prio == 2 && cargo_space >= 6))
+			if (request.second.damage_value >= 40 ||
+				(request.second.damage_value == 30 && cargo_space >= 4) ||
+				(request.second.damage_value == 20 && cargo_space >= 6))
 			{
 				escaping_units.push_back(request.first);
 				mediator->SetUnitCommand(request.first, A_SMART, prism_in_range, CommandPriorty::high);
@@ -578,7 +570,7 @@ Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger
 				else
 					cargo_available[prism_in_range] = cargo_available[prism_in_range] - Utility::GetCargoSize(request.first);
 			}
-			else if (request.second.unit_prio >= 2)
+			else if (request.second.damage_value >= 20)
 			{
 				escaping_units.push_back(request.first);
 				mediator->SetUnitCommand(request.first, A_BLINK, standby_pos, CommandPriorty::high);
@@ -665,7 +657,7 @@ AttackLineResult AttackArmyGroup::AttackLine(Units units, Point2D& origin, float
 
 	// avoid danger
 	std::vector<std::pair<const Unit*, UnitDanger>> incoming_damage = CalculateUnitDanger(units);
-	Units escaping_units = EvadeDamage(incoming_damage, units, standby_pos);
+	Units escaping_units = EvadeDamage(incoming_damage, prisms, standby_pos);
 
 
 	// move units to positions

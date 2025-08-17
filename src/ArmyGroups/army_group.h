@@ -15,29 +15,38 @@ class Mediator;
 
 struct UnitDanger
 {
-	// 1: lethal damage, 2: damage value* > 40, 3: damage > 0
-	// TODO make enum
-	int unit_prio = 4;
 	float damage_value = 0;
+	float health_damage = 0;
+	float shield_damage = 0;
 	UnitDanger() {}
-	UnitDanger(int unit_prio, float damage_value)
+	UnitDanger(const Unit* unit, float damage)
 	{
-		this->unit_prio = unit_prio;
-		this->damage_value = damage_value;
+		if (unit->shield < damage)
+		{
+			shield_damage = unit->shield;
+			health_damage = damage - unit->shield;
+		}
+		else
+		{
+			shield_damage = damage;
+		}
+
+		if (health_damage >= unit->health)
+		{
+			damage_value == INFINITY;
+		}
+		else
+		{
+			damage_value = health_damage * 2 + shield_damage; // could adjust relative value of health/shield damage base on unit hp
+		}
 	}
-	// is this higher prio than rhs
 	bool operator<(const UnitDanger& rhs) const
 	{
-		if (unit_prio == rhs.unit_prio)
-			return damage_value > rhs.damage_value;
-		return unit_prio < rhs.unit_prio;
+		return damage_value < rhs.damage_value;
 	}
-	// is this lower prio than rhs
 	bool operator>(const UnitDanger& rhs) const
 	{
-		if (unit_prio == rhs.unit_prio)
-			return damage_value < rhs.damage_value;
-		return unit_prio > rhs.unit_prio;
+		return damage_value > rhs.damage_value;
 	}
 };
 
