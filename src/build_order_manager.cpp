@@ -851,7 +851,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		{
 			mediator->CancelAllActionsOfType(&ActionManager::ActionBuildBuildingMulti);
 		}
-		if (mediator->GetSpawningPoolTiming() < 20  || mediator->GetEnemyUnitCount(ZERGLING) > 0)
+		if (mediator->GetSpawningPoolTiming() < 25  || mediator->GetEnemyUnitCount(ZERGLING) > 0)
 		{
 			// 12 pool
 			Set12PoolInterrupt();
