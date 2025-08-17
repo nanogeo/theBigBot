@@ -40,6 +40,8 @@ protected:
 	static bool TestSwap(Point2D, Point2D, Point2D, Point2D);
 	Units EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger>>, Units, Point2D);
 
+	void OraclesDefendArmy(Units, Path*, Units);
+
 public:
 	AttackArmyGroup(Mediator* mediator) : ArmyGroup(mediator) {};
 

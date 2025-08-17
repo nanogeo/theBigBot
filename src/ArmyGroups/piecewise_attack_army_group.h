@@ -39,8 +39,6 @@ protected:
 	float attack_threshold = .25f;
 	int required_units;
 
-	void OraclesDefendArmy();
-
 public:
 	PiecewiseAttackArmyGroup(Mediator*, PiecewisePath, std::vector<UNIT_TYPEID>, int, int, int, int);
 	PiecewiseAttackArmyGroup(Mediator*, ArmyTemplate<PiecewiseAttackArmyGroup>*);
