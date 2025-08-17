@@ -11,7 +11,7 @@ namespace sc2 {
 
 
 BlinkFSMArmyGroup::BlinkFSMArmyGroup(Mediator* mediator, BlinkStalkerAttackTerran* state_machine, int desired_units, int max_units, int required_units, int min_reinfore_group_size) :
-	AttackArmyGroup(mediator, mediator->GetDirectAttackLine(), { STALKER, PRISM, COLOSSUS, IMMORTAL }, desired_units, max_units, required_units, min_reinfore_group_size)
+	PiecewiseAttackArmyGroup(mediator, mediator->GetDirectAttackLine(), { STALKER, PRISM, COLOSSUS, IMMORTAL }, desired_units, max_units, required_units, min_reinfore_group_size)
 {
 	this->state_machine = state_machine;
 	main_attack_path = mediator->GetLocations().blink_main_attack_path_lines;
@@ -38,7 +38,7 @@ void BlinkFSMArmyGroup::ScourMap()
 
 void BlinkFSMArmyGroup::AddUnit(const Unit* unit)
 {
-	AttackArmyGroup::AddUnit(unit);
+	PiecewiseAttackArmyGroup::AddUnit(unit);
 
 	if (state_machine->AddUnit(unit) == false)
 	{
@@ -49,7 +49,7 @@ void BlinkFSMArmyGroup::AddUnit(const Unit* unit)
 void BlinkFSMArmyGroup::RemoveUnit(const Unit* unit)
 {
 	state_machine->RemoveUnit(unit);
-	AttackArmyGroup::RemoveUnit(unit);
+	PiecewiseAttackArmyGroup::RemoveUnit(unit);
 }
 
 // returns true when group is close enough to add into main army

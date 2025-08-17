@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "attack_army_group.h"
+#include "piecewise_attack_army_group.h"
 #include "cannon_rush_defense_army_group.h"
 #include "defend_main_ramp_army_group.h"
 #include "defend_third_zerg_army_group.h"
@@ -30,7 +31,7 @@ void ArmyManager::CreateProtossArmyTemplates()
 	pvp_basic_req[IMMORTAL] = 3;
 	pvp_basic_req[SENTRY] = 2;
 	bool(sc2::ArmyManager:: * condition)() = &ArmyManager::NoLossesForOneMinute;
-	ArmyTemplate<AttackArmyGroup>* basic_army = new ArmyTemplate<AttackArmyGroup>(pvp_basic_req, condition, 10, pvp_basic_types, 20, 30);
+	ArmyTemplate<PiecewiseAttackArmyGroup>* basic_army = new ArmyTemplate<PiecewiseAttackArmyGroup>(pvp_basic_req, condition, 10, pvp_basic_types, 20, 30);
 	army_templates.push_back(basic_army);
 
 }
@@ -66,14 +67,14 @@ void ArmyManager::CreateZergArmyTemplates()
 	pvz_basic_req[PRISM] = 1;
 	pvz_basic_req[IMMORTAL] = 3;
 	bool(sc2::ArmyManager:: * condition)() = &ArmyManager::NoLossesForOneMinute;
-	ArmyTemplate<AttackArmyGroup>* basic_army = new ArmyTemplate<AttackArmyGroup>(pvz_basic_req, condition, 10, pvz_basic_types, 20, 30);
+	ArmyTemplate<PiecewiseAttackArmyGroup>* basic_army = new ArmyTemplate<PiecewiseAttackArmyGroup>(pvz_basic_req, condition, 10, pvz_basic_types, 20, 30);
 	army_templates.push_back(basic_army);
 
 	std::vector<UNIT_TYPEID> stalker_oracle_types = { STALKER, ORACLE, IMMORTAL, COLOSSUS, PRISM };
 	std::map<UNIT_TYPEID, int> stalker_oracle_req;
 	stalker_oracle_req[STALKER] = 7;
 	stalker_oracle_req[ORACLE] = 2;
-	ArmyTemplate<AttackArmyGroup>* stalker_oracle = new ArmyTemplate<AttackArmyGroup>(stalker_oracle_req, 10, stalker_oracle_types, 25, 35);
+	ArmyTemplate<PiecewiseAttackArmyGroup>* stalker_oracle = new ArmyTemplate<PiecewiseAttackArmyGroup>(stalker_oracle_req, 10, stalker_oracle_types, 25, 35);
 	army_templates.push_back(stalker_oracle);
 
 	std::vector<UNIT_TYPEID> zealot_run_by_types = { ZEALOT };

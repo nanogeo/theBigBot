@@ -1596,7 +1596,7 @@ void Mediator::CreateFourGateBlinkFSM()
 
 void Mediator::DeleteFourGateBlinkFSM()
 {
-	AttackArmyGroup* army = new AttackArmyGroup(this, GetDirectAttackLine(), { STALKER, PRISM, COLOSSUS, IMMORTAL }, 25, 35, 7, 3);
+	PiecewiseAttackArmyGroup* army = new PiecewiseAttackArmyGroup(this, GetDirectAttackLine(), { STALKER, PRISM, COLOSSUS, IMMORTAL }, 25, 35, 7, 3);
 
 	army_manager.AddArmyGroup(army);
 }
@@ -1758,7 +1758,7 @@ void Mediator::SetDoorGuard()
 
 void Mediator::CreateAttack(std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units, int required_units, int min_reinforce_group_size)
 {
-	army_manager.AddArmyGroup(new AttackArmyGroup(this, GetDirectAttackLine(), unit_types, desired_units, max_units, required_units, min_reinforce_group_size));
+	army_manager.AddArmyGroup(new PiecewiseAttackArmyGroup(this, GetDirectAttackLine(), unit_types, desired_units, max_units, required_units, min_reinforce_group_size));
 }
 
 void Mediator::CreateSimpleAttack(std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)

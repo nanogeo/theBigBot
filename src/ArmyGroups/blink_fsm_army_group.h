@@ -4,7 +4,7 @@
 #include "piecewise_path.h"
 #include "definitions.h"
 #include "army_group.h"
-#include "attack_army_group.h"
+#include "piecewise_attack_army_group.h"
 
 
 
@@ -14,7 +14,7 @@ namespace sc2
 class Mediator;
 class BlinkStalkerAttackTerran;
 
-class BlinkFSMArmyGroup : public AttackArmyGroup
+class BlinkFSMArmyGroup : public PiecewiseAttackArmyGroup
 {
 protected:
 	BlinkStalkerAttackTerran* state_machine;
