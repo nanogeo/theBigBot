@@ -29,7 +29,15 @@ Point2D PointPath::GetPointFrom(Point2D point, float dist, bool forward) const
 		for (int i = points.size() - 1; i >= 0; i--)
 		{
 			if (Distance2D(point, points[i]) < dist)
+			{
+				if (points[i] == point && i < points.size() - 1)
+				{
+					float dist_to_next = Distance2D(points[i], points[i + 1]);
+					if (dist / dist_to_next > .5)
+						return points[i + 1];
+				}
 				return points[i];
+			}
 		}
 	}
 	else
@@ -37,7 +45,15 @@ Point2D PointPath::GetPointFrom(Point2D point, float dist, bool forward) const
 		for (int i = 0; i < points.size(); i++)
 		{
 			if (Distance2D(point, points[i]) < dist)
+			{
+				if (points[i] == point && i > 0)
+				{
+					float dist_to_next = Distance2D(points[i], points[i - 1]);
+					if (dist / dist_to_next > .5)
+						return points[i - 1];
+				}
 				return points[i];
+			}
 		}
 	}
 }
