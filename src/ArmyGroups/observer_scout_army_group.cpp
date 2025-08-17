@@ -34,7 +34,7 @@ void ObserverScoutArmyGroup::Run()
 	if (obs == Point2D(0, 0))
 		return;
 
-	double s = -1 * (main_pos.x - main_pos.x) / (main_pos.y - natural_pos.y);
+	double s = -1 * (main_pos.x - natural_pos.x) / (main_pos.y - natural_pos.y);
 	double main_direction = s * (natural_pos.x - main_pos.x) - natural_pos.y + main_pos.y;
 	double natural_direction = s * (main_pos.x - natural_pos.x) - main_pos.y + natural_pos.y;
 
