@@ -68,7 +68,7 @@ void DefenseArmyGroup::AllocateUnitsToDefensiveGroups(std::vector<EnemyArmyGroup
 			worst_status = &(*itr);
 		}
 	}
-	while (worst_status->status < 0)
+	while (worst_status->status < 0 || unassigned_units.size() > 0)
 	{
 		if (unassigned_units.size() > 0)
 		{
@@ -214,6 +214,7 @@ void DefenseArmyGroup::RemoveUnit(const Unit* unit)
 
 AttackLineResult DefenseArmyGroup::AttackLine(DefensiveGroup& group)
 {
+	OraclesDefendArmy(group.oracles, group.path, group.basic_units);
 	return AttackArmyGroup::AttackLine(group.basic_units, group.origin, group.normal_range, group.path, false, Point2D(0, 0), group.prisms, 0, group.unit_position_assignments, group.oracles, group.advancing, .25f);
 }
 
