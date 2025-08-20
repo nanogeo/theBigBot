@@ -141,6 +141,34 @@ void AbilityManager::SetStalkerOrder(const Unit* unit)
 	stalkers_ordered_to_blink[unit] = mediator->GetGameLoop();
 }
 
+bool AbilityManager::IsAdeptShadeOffCooldown(const Unit* adept) const
+{
+	if (last_time_adept_shaded.count(adept) == 0)
+	{
+		mediator->LogMinorError();
+		std::cerr << "Error shade not found in last_time_adept_shaded in IsAdeptShadeOffCooldown" << std::endl;
+		return false;
+	}
+	return last_time_adept_shaded.at(adept) == 0;
+}
+
+void AbilityManager::SetAdeptShaded(const Unit* adept, const Unit* shade)
+{
+	adept_shade_info[adept] = std::make_pair(shade, mediator->GetGameLoop() + DURATION_SHADE_IN_FRAMES);
+	last_time_adept_shaded[adept] = mediator->GetCurrentTime();
+}
+
+std::pair<const Unit*, uint32_t> AbilityManager::GetAdeptShadeInfo(const Unit* adept) const
+{
+	if (adept_shade_info.count(adept) == 0)
+	{
+		mediator->LogMinorError();
+		std::cerr << "Error shade not found in adept_shade_info in GetAdeptShadeInfo" << std::endl;
+		return std::make_pair(nullptr, 0);
+	}
+	return adept_shade_info.at(adept);
+}
+
 bool AbilityManager::NexusRecallOffCooldown() const
 {
 	return mediator->GetCurrentTime() > last_time_nexus_recalled + CD_NEXUS_RECALL;
@@ -180,6 +208,20 @@ void AbilityManager::OnUnitCreated(const Unit* unit)
 			stalker_blink_off_cooldown[unit] = false;
 		last_time_stalker_blinked[unit] = 0;
 		break;
+	case ADEPT:
+		last_time_adept_shaded[unit] = 0;
+		break;
+	case ADEPT_SHADE:
+		// call this here or somewhere else?
+		const Unit* adept = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Self, IsUnit(ADEPT)), unit->pos);
+		if (adept == nullptr)
+		{
+			mediator->LogMinorError();
+			std::cerr << "Error adept shade created without any allied adepts in existance in AbilityManager::OnUnitCreated" << std::endl;
+			break;
+		}
+		SetAdeptShaded(adept, unit);
+		break;
 	}
 }
 
@@ -200,6 +242,28 @@ void AbilityManager::OnUnitDestroyed(const Unit* unit)
 		stalkers_ordered_to_blink.erase(unit);
 		stalker_blink_off_cooldown.erase(unit);
 		last_time_stalker_blinked.erase(unit);
+		break;
+	case ADEPT:
+		last_time_adept_shaded.erase(unit);
+		adept_shade_info.erase(unit);
+		break;
+	case ADEPT_SHADE:
+		const Unit* adept = nullptr;
+		for (const auto info : adept_shade_info)
+		{
+			if (info.second.first == unit)
+			{
+				adept = info.first;
+				break;
+			}
+		}
+		if (adept == nullptr)
+		{
+			mediator->LogMinorError();
+			std::cerr << "Error no adept found that owns shade in AbilityManager::OnUnitDestroyed" << std::endl;
+			break;
+		}
+		adept_shade_info.erase(adept);
 		break;
 	}
 }

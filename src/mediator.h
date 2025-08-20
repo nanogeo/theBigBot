@@ -310,6 +310,8 @@ public:
 	bool IsOracleBeamActive(const Unit*);
 	void SetOracleOrder(const Unit*, ABILITY_ID);
 	bool IsOracleCasting(const Unit*);
+	bool IsAdeptShadeOffCooldown(const Unit*);
+	std::pair<const Unit*, int> GetAdeptShadeInfo(const Unit*);
 	bool IsEnergyRechargeOffCooldown();
 	void SetEnergyRechargeCooldown();
 	bool IsNexusRecallOffCooldown();

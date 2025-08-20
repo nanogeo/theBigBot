@@ -29,6 +29,11 @@ private:
 	std::map<const Unit*, uint32_t> stalkers_ordered_to_blink;
 	std::map<const Unit*, bool> stalker_blink_off_cooldown;
 	std::map<const Unit*, float> last_time_stalker_blinked;
+
+	// adept
+	std::map<const Unit*, std::pair<const Unit*, uint32_t>> adept_shade_info; // adept -> <shade, frame shade expires>
+	std::map<const Unit*, float> last_time_adept_shaded;
+
 	// add sentry, high templar, dark temlplar, phoenix, mothership, nexus
 	float last_time_nexus_recalled = 0;
 	float last_time_nexus_energy_recharged = 0;
@@ -51,6 +56,10 @@ public:
 
 	bool IsStalkerBlinkOffCooldown(const Unit*) const;
 	void SetStalkerOrder(const Unit*);
+
+	bool IsAdeptShadeOffCooldown(const Unit*) const;
+	void SetAdeptShaded(const Unit*, const Unit*);
+	std::pair<const Unit*, uint32_t> GetAdeptShadeInfo(const Unit*) const;
 
 	bool NexusRecallOffCooldown() const;
 	bool NexusEnergyRechargeOffCooldown() const;

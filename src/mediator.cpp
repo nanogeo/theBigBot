@@ -2334,6 +2334,16 @@ bool Mediator::IsOracleCasting(const Unit* unit)
 	return ability_manager.IsOracleCasting(unit);
 }
 
+bool Mediator::IsAdeptShadeOffCooldown(const Unit* unit)
+{
+	return ability_manager.IsAdeptShadeOffCooldown(unit);
+}
+
+std::pair<const Unit*, int> Mediator::GetAdeptShadeInfo(const Unit* unit)
+{
+	return ability_manager.GetAdeptShadeInfo(unit);
+}
+
 bool Mediator::IsEnergyRechargeOffCooldown()
 {
 	return ability_manager.NexusEnergyRechargeOffCooldown();
@@ -2579,7 +2589,8 @@ void Mediator::OnUnitCreated(const Unit* unit)
 		{
 			army_manager.FindArmyGroupForUnit(unit);
 		}
-		ability_manager.OnUnitCreated(unit);
+		if (unit->alliance == Unit::Alliance::Self)
+			ability_manager.OnUnitCreated(unit);
 		fire_control_manager.OnUnitCreated(unit);
 	}
 }
@@ -2609,7 +2620,9 @@ void Mediator::OnUnitDestroyed(const Unit* unit)
 		resource_manager.AddEnemyLoss(unit);
 
 	worker_manager.OnUnitDestroyed(unit);
-	ability_manager.OnUnitDestroyed(unit);
+
+	if (unit->alliance == Unit::Alliance::Self)
+		ability_manager.OnUnitDestroyed(unit);
 
 	if (std::find(ALL_ARMY_UNITS.begin(), ALL_ARMY_UNITS.end(), unit->unit_type) != ALL_ARMY_UNITS.end())
 	{
