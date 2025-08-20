@@ -1703,6 +1703,7 @@ void Mediator::CreateAdeptBaseDefenseTerranFSM()
 
 	OutsideControlArmyGroup* adept_harass_army = new OutsideControlArmyGroup(this, adept_defense_fsm, { ADEPT }, 1, 1);
 	adept_defense_fsm->SetAttachedArmyGroup(adept_harass_army);
+	army_manager.AddArmyGroup(adept_harass_army);
 }
 
 void Mediator::CreateWorkerRushDefenseFSM()
