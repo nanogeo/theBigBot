@@ -85,7 +85,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 		{
 			if (unit->unit_type == PROBE)
 				continue;
-			mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(pos, unit->pos, MEDIUM_RANGE), CommandPriorty::high);
+			mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(pos, unit->pos, MEDIUM_RANGE), CommandPriority::high);
 		}
 		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
@@ -94,7 +94,7 @@ bool ActionManager::ActionBuildBuilding(ActionArgData* data)
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		mediator->SetUnitCommand(builder, A_MOVE, pos, CommandPriorty::low);
+		mediator->SetUnitCommand(builder, A_MOVE, pos, CommandPriority::low);
 	}
 	return false;
 }
@@ -158,7 +158,7 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 		{
 			if (unit == builder)
 				continue;
-			mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(pos, unit->pos, MEDIUM_RANGE), CommandPriorty::high);
+			mediator->SetUnitCommand(unit, A_MOVE, Utility::PointBetween(pos, unit->pos, MEDIUM_RANGE), CommandPriority::high);
 		}
 		if (mediator->TryBuildBuilding(builder, buildingId, pos) != TryActionResult::success) // TODO handle non success cases
 		{
@@ -167,7 +167,7 @@ bool ActionManager::ActionBuildBuildingMulti(ActionArgData* data)
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		mediator->SetUnitCommand(builder, A_MOVE, pos, CommandPriorty::low);
+		mediator->SetUnitCommand(builder, A_MOVE, pos, CommandPriority::low);
 	}
 	return false;
 }
@@ -225,7 +225,7 @@ bool ActionManager::ActionBuildProxyMulti(ActionArgData* data) // TODO add avoid
 	}
 	else if (Distance2D(builder->pos, pos) > Utility::BuildingSize(buildingId))
 	{
-		mediator->SetUnitCommand(builder, A_MOVE, pos, CommandPriorty::low);
+		mediator->SetUnitCommand(builder, A_MOVE, pos, CommandPriority::low);
 	}
 	return false;
 }
@@ -381,7 +381,7 @@ bool ActionManager::ActionContinueSpendingNexusEnergy(ActionArgData* data)
 		{
 			nexus.second--;
 			total--;
-			mediator->SetUnitCommand(nexus.first, A_CHRONO, need_chrono[0], CommandPriorty::low);
+			mediator->SetUnitCommand(nexus.first, A_CHRONO, need_chrono[0], CommandPriority::low);
 			need_chrono.erase(need_chrono.begin());
 		}
 	}
@@ -404,7 +404,7 @@ bool ActionManager::ActionContinueSpendingNexusEnergy(ActionArgData* data)
 						{
 							if (strcmp(AbilityTypeToName(ability.ability_id), "UNKNOWN") == 0)
 							{
-								mediator->SetUnitCommand(nexus.first, ability.ability_id, unit, CommandPriorty::low);
+								mediator->SetUnitCommand(nexus.first, ability.ability_id, unit, CommandPriority::low);
 								recharge_used = true;
 								break;
 							}
@@ -500,7 +500,7 @@ bool ActionManager::ActionChronoTillFinished(ActionArgData* data)
 	{
 		if (nexus->energy >= ENERGY_COST_CHRONO && nexus->build_progress == 1)
 		{
-			mediator->SetUnitCommand(nexus, A_CHRONO, building, CommandPriorty::low);
+			mediator->SetUnitCommand(nexus, A_CHRONO, building, CommandPriority::low);
 			return false;
 		}
 		/*for (const auto &ability : mediator->Query()->GetAbilitiesForUnit(nexus).abilities)
@@ -577,13 +577,13 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 	
 	if (Distance2D(scout->pos, data->position) > 1 && !pylon_placed)
 	{
-		mediator->SetUnitCommand(scout, A_MOVE, data->position, CommandPriorty::low);
+		mediator->SetUnitCommand(scout, A_MOVE, data->position, CommandPriority::low);
 	}
 	else if (Distance2D(scout->pos, data->position) < 5 && !pylon_placed)
 	{
 		if (mediator->GetGameLoop() / FRAME_TIME >= data->index)
 		{
-			mediator->SetUnitCommand(scout, ABILITY_ID::BUILD_PYLON, data->position, CommandPriorty::low);
+			mediator->SetUnitCommand(scout, ABILITY_ID::BUILD_PYLON, data->position, CommandPriority::low);
 		}
 		else if (Utility::DistanceToClosest(mediator->GetUnits(IsNonbuilding(Unit::Alliance::Enemy)), scout->pos) < VERY_CLOSE_RANGE)
 		{
@@ -599,7 +599,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 				}
 				else
 				{
-					mediator->SetUnitCommand(scout, A_SMART, base_minerals, CommandPriorty::normal);
+					mediator->SetUnitCommand(scout, A_SMART, base_minerals, CommandPriority::normal);
 				}
 			}
 			else
@@ -612,7 +612,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 					angle += 15;
 				}
 				mediator->DebugSphere(mediator->ToPoint3D(run_away_pos), .5, Color(0, 0, 255));
-				mediator->SetUnitCommand(scout, A_MOVE, run_away_pos, CommandPriorty::normal);
+				mediator->SetUnitCommand(scout, A_MOVE, run_away_pos, CommandPriority::normal);
 			}
 		}
 	}
@@ -644,7 +644,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 				}
 				else
 				{
-					mediator->SetUnitCommand(scout, A_SMART, base_minerals, CommandPriorty::normal);
+					mediator->SetUnitCommand(scout, A_SMART, base_minerals, CommandPriority::normal);
 				}
 			}
 			else
@@ -657,7 +657,7 @@ bool ActionManager::ActionRemoveScoutToProxy(ActionArgData* data)
 					angle += 15;
 				}
 				mediator->DebugSphere(mediator->ToPoint3D(run_away_pos), .5, Color(0, 0, 255));
-				mediator->SetUnitCommand(scout, A_MOVE, run_away_pos, CommandPriorty::normal);
+				mediator->SetUnitCommand(scout, A_MOVE, run_away_pos, CommandPriority::normal);
 			}
 		}
 	}
@@ -721,7 +721,7 @@ bool ActionManager::ActionUseProxyDoubleRobo(ActionArgData* data)
 			for (const auto &nexus : mediator->GetUnits(IsFriendlyUnit(NEXUS)))
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
-					mediator->SetUnitCommand(nexus, A_CHRONO, robo, CommandPriorty::low);
+					mediator->SetUnitCommand(nexus, A_CHRONO, robo, CommandPriority::low);
 				/*for (const auto &ability : mediator->Query()->GetAbilitiesForUnit(nexus).abilities)
 				{
 					if (ability.ability_id == A_CHRONO)
@@ -806,7 +806,7 @@ bool ActionManager::ActionScourMap(ActionArgData* data)
 				y = std::rand() % raw_map.height;
 				pos = Point2D((float)x, (float)y);
 			}
-			mediator->SetUnitCommand(unit, A_ATTACK, pos, CommandPriorty::low);
+			mediator->SetUnitCommand(unit, A_ATTACK, pos, CommandPriority::low);
 		}
 	}
 	return false;
@@ -835,7 +835,7 @@ bool ActionManager::ActionCheckBaseForCannons(ActionArgData* data)
 	if (Distance2D(data->unit->pos, pos) < 2)
 		data->index++;
 	else
-		mediator->SetUnitCommand(data->unit, A_MOVE, pos, CommandPriorty::low);
+		mediator->SetUnitCommand(data->unit, A_MOVE, pos, CommandPriority::low);
 
 	return false;
 }
@@ -862,14 +862,15 @@ bool ActionManager::ActionCheckNaturalForCannons(ActionArgData* data)
 	if (Distance2D(data->unit->pos, pos) < 2)
 		data->index++;
 	else
-		mediator->SetUnitCommand(data->unit, A_MOVE, pos, CommandPriorty::low);
+		mediator->SetUnitCommand(data->unit, A_MOVE, pos, CommandPriority::low);
 
 	return false;
 }
 
 bool ActionManager::ActionCheckForBunkerRush(ActionArgData* data)
 {
-	if (mediator->GetCurrentTime() > 120 && Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ BUNKER, SCV })), mediator->GetNaturalLocation()) > 15)
+	if ((mediator->GetCurrentTime() > 120 && Utility::DistanceToClosest(mediator->GetUnits(Unit::Alliance::Enemy, IsUnits({ BUNKER, SCV })), mediator->GetNaturalLocation()) > 15) ||
+		mediator->GetEnemyUnitCount(MARINE) > 0)
 	{
 		if (data->unit != nullptr && data->unit->is_alive)
 			mediator->PlaceWorker(data->unit);
@@ -896,20 +897,20 @@ bool ActionManager::ActionCheckForBunkerRush(ActionArgData* data)
 	if (target)
 	{
 		if (data->unit->weapon_cooldown == 0)
-			mediator->SetUnitCommand(data->unit, A_ATTACK, target, CommandPriorty::low);
+			mediator->SetUnitCommand(data->unit, A_ATTACK, target, CommandPriority::low);
 		else
-			mediator->SetUnitCommand(data->unit, A_MOVE, target, CommandPriorty::low);
+			mediator->SetUnitCommand(data->unit, A_MOVE, target, CommandPriority::low);
 	}
 	else
 	{
 		if (data->unit->weapon_cooldown == 0 && Utility::GetUnitsInRange(mediator->GetUnits(Unit::Alliance::Enemy), data->unit, 0).size() > 0)
 		{
-			mediator->SetUnitCommand(data->unit, A_ATTACK, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), data->unit->pos), CommandPriorty::low);
+			mediator->SetUnitCommand(data->unit, A_ATTACK, Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy), data->unit->pos), CommandPriority::low);
 		}
 		else if (data->unit->orders.size() == 0 || data->unit->orders[0].ability_id == A_ATTACK || Distance2D(data->unit->pos, mediator->GetNaturalLocation()) > LONG_RANGE)
 		{
 			Point2D pos = Utility::FurthestFrom(mediator->GetLocations().natural_front, data->unit->pos);
-			mediator->SetUnitCommand(data->unit, A_MOVE, pos, CommandPriorty::low);
+			mediator->SetUnitCommand(data->unit, A_MOVE, pos, CommandPriority::low);
 		}
 	}
 

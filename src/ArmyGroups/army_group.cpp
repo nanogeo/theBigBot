@@ -48,19 +48,19 @@ namespace sc2 {
 				if (Utility::GetGroundRange(unit) == 0 && enemy_flying_buildings.size() > 0)
 				{
 					const Unit* closest = Utility::ClosestTo(enemy_flying_buildings, unit->pos);
-					mediator->SetUnitCommand(unit, A_ATTACK, closest->pos, CommandPriorty::low);
+					mediator->SetUnitCommand(unit, A_ATTACK, closest->pos, CommandPriority::low);
 				}
 				else if (Utility::GetAirRange(unit) == 0 && enemy_ground_buildings.size() > 0)
 				{
 					const Unit* closest = Utility::ClosestTo(enemy_ground_buildings, unit->pos);
-					mediator->SetUnitCommand(unit, A_ATTACK, closest->pos, CommandPriorty::low);
+					mediator->SetUnitCommand(unit, A_ATTACK, closest->pos, CommandPriority::low);
 				}
 				else if (Utility::GetGroundRange(unit) > 0 &&
 					Utility::GetAirRange(unit) > 0 &&
 					enemy_buildings.size() > 0)
 				{
 					const Unit* closest = Utility::ClosestTo(enemy_buildings, unit->pos);
-					mediator->SetUnitCommand(unit, A_ATTACK, closest->pos, CommandPriorty::low);
+					mediator->SetUnitCommand(unit, A_ATTACK, closest->pos, CommandPriority::low);
 				}
 				else
 				{
@@ -74,7 +74,7 @@ namespace sc2 {
 						y = std::rand() % raw_map.height;
 						pos = Point2D((float)x, (float)y);
 					}
-					mediator->SetUnitCommand(unit, A_ATTACK, pos, CommandPriorty::low);
+					mediator->SetUnitCommand(unit, A_ATTACK, pos, CommandPriority::low);
 				}
 			}
 		}
@@ -108,7 +108,7 @@ namespace sc2 {
 		if (unit == nullptr)
 			return; // TODO log error and callstack
 
-		mediator->SetUnitCommand(unit, A_STOP, CommandPriorty::normal);
+		mediator->SetUnitCommand(unit, A_STOP, CommandPriority::normal);
 
 		all_units.erase(std::remove(all_units.begin(), all_units.end(), unit), all_units.end());
 		new_units.erase(std::remove(new_units.begin(), new_units.end(), unit), new_units.end());

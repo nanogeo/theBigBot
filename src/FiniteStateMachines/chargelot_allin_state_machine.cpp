@@ -21,7 +21,7 @@ void ChargeAllInMovingToWarpinSpot::TickState()
 		return;
 	// move prism to spot
 	if (Distance2D(state_machine->prism->pos, state_machine->next_warp_in_location) > 1)
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->next_warp_in_location, CommandPriorty::normal);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->next_warp_in_location, CommandPriority::normal);
 	return;
 }
 
@@ -38,7 +38,7 @@ void ChargeAllInMovingToWarpinSpot::ExitState()
 	if (state_machine->prism_spots_index >= state_machine->prism_spots.size())
 		state_machine->prism_spots_index = 0;
 
-	mediator->SetUnitCommand(state_machine->prism, A_PRISM_PHASING_MODE, CommandPriorty::normal);
+	mediator->SetUnitCommand(state_machine->prism, A_PRISM_PHASING_MODE, CommandPriority::normal);
 }
 
 State* ChargeAllInMovingToWarpinSpot::TestTransitions()
@@ -73,7 +73,7 @@ void ChargeAllInWarpingIn::TickState()
 
 	if (state_machine->prism->unit_type != PRISM_SIEGED)
 	{
-		mediator->SetUnitCommand(state_machine->prism, A_PRISM_PHASING_MODE, CommandPriorty::high);
+		mediator->SetUnitCommand(state_machine->prism, A_PRISM_PHASING_MODE, CommandPriority::high);
 		return;
 	}
 	Units gates = mediator->GetUnits(IsFinishedUnit(WARP_GATE));
@@ -92,12 +92,12 @@ void ChargeAllInWarpingIn::TickState()
 void ChargeAllInWarpingIn::EnterState()
 {
 	if (state_machine->prism->unit_type != PRISM_SIEGED)
-		mediator->SetUnitCommand(state_machine->prism, A_PRISM_PHASING_MODE, CommandPriorty::normal);
+		mediator->SetUnitCommand(state_machine->prism, A_PRISM_PHASING_MODE, CommandPriority::normal);
 }
 
 void ChargeAllInWarpingIn::ExitState()
 {
-	mediator->SetUnitCommand(state_machine->prism, A_PRISM_TRANSPORT_MODE, CommandPriorty::normal);
+	mediator->SetUnitCommand(state_machine->prism, A_PRISM_TRANSPORT_MODE, CommandPriority::normal);
 	if (!state_machine->first_warp_in_done)
 		state_machine->first_warp_in_done = true;
 }
@@ -135,14 +135,14 @@ void ChargelotAllInStateMachine::RunStateMachine()
 					IsUnits({ HATCHERY, LAIR, HIVE, COMMAND_CENTER, PLANETARY, ORBITAL, NEXUS })), zealot->pos);
 				if (closest_base != nullptr)
 				{
-					mediator->SetUnitCommand(zealot, A_ATTACK, closest_base->pos, CommandPriorty::normal);
+					mediator->SetUnitCommand(zealot, A_ATTACK, closest_base->pos, CommandPriority::normal);
 				}
 				else
 				{
 					const Unit* closest_building = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsGroundBuilding()), zealot->pos);
 					if (closest_building != nullptr)
 					{
-						mediator->SetUnitCommand(zealot, A_ATTACK, closest_building->pos, CommandPriorty::normal);
+						mediator->SetUnitCommand(zealot, A_ATTACK, closest_building->pos, CommandPriority::normal);
 					}
 					else if (attached_army_group != nullptr)
 					{
@@ -160,7 +160,7 @@ void ChargelotAllInStateMachine::RunStateMachine()
 			for (const auto& zealot : zealots)
 			{
 				if (zealot->orders.size() == 0)
-					mediator->SetUnitCommand(zealot, A_ATTACK, next_warp_in_location, CommandPriorty::normal);
+					mediator->SetUnitCommand(zealot, A_ATTACK, next_warp_in_location, CommandPriority::normal);
 			}
 		}
 	}

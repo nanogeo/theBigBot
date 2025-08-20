@@ -63,7 +63,7 @@ State* BlinkStalkerAttackTerranMoveAcross::TestTransitions()
 			if (mediator->GetAttackStatus(stalker) == false)
 			{
 				mediator->AddUnitToAttackers(stalker);
-				mediator->SetUnitCommand(stalker, A_MOVE, Utility::MedianCenter(state_machine->attacking_stalkers), CommandPriorty::low);
+				mediator->SetUnitCommand(stalker, A_MOVE, Utility::MedianCenter(state_machine->attacking_stalkers), CommandPriority::low);
 			}
 		}
 	}
@@ -104,7 +104,7 @@ std::string BlinkStalkerAttackTerranMoveAcross::toString() const
 void BlinkStalkerAttackTerranConsolidate::TickState()
 {
 	if(state_machine->prism && Distance2D(state_machine->prism->pos, state_machine->prism_consolidation_pos) > 3)
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->prism_consolidation_pos, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->prism_consolidation_pos, CommandPriority::low);
 
 	// standby_stalkers
 	// moving_to_standby_stalkers
@@ -254,7 +254,7 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 	if (state_machine->prism != nullptr)
 	{
 		mediator->ForceUnitCommand(state_machine->prism, A_UNLOAD_AT, state_machine->prism);
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->blink_down_pos, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->blink_down_pos, CommandPriority::low);
 	}
 	
 	// attacking_stalkers
@@ -272,11 +272,11 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 		}
 		if (Distance2D((*itr)->pos, state_machine->blink_up_pos) < 2)
 		{
-			mediator->SetUnitCommand((*itr), A_BLINK, state_machine->blink_down_pos, CommandPriorty::high);
+			mediator->SetUnitCommand((*itr), A_BLINK, state_machine->blink_down_pos, CommandPriority::high);
 		}
 		else
 		{
-			mediator->SetUnitCommand((*itr), A_MOVE, state_machine->blink_up_pos, CommandPriorty::low);
+			mediator->SetUnitCommand((*itr), A_MOVE, state_machine->blink_up_pos, CommandPriority::low);
 		}
 		itr++;
 	}
@@ -289,9 +289,9 @@ void BlinkStalkerAttackTerranBlinkUp::TickState()
 void BlinkStalkerAttackTerranBlinkUp::EnterState()
 {
 	if (state_machine->prism != nullptr)
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->blink_down_pos, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->blink_down_pos, CommandPriority::low);
 
-	mediator->SetUnitsCommand(state_machine->attacking_stalkers, A_MOVE, state_machine->blink_up_pos, CommandPriorty::low);
+	mediator->SetUnitsCommand(state_machine->attacking_stalkers, A_MOVE, state_machine->blink_up_pos, CommandPriority::low);
 	stalkers_to_blink = state_machine->attacking_stalkers;
 }
 
@@ -330,7 +330,7 @@ void BlinkStalkerAttackTerranAttackMain::TickState()
 	if (state_machine->prism != nullptr)
 	{
 		mediator->ForceUnitCommand(state_machine->prism, A_UNLOAD_AT, state_machine->prism);
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->blink_up_pos, CommandPriorty::normal);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->blink_up_pos, CommandPriority::normal);
 	}
 
 	// moving_to_standby_stalkers
@@ -341,13 +341,13 @@ void BlinkStalkerAttackTerranAttackMain::TickState()
 			if (Distance2D((*itr)->pos, state_machine->blink_down_pos) < VERY_CLOSE_RANGE)
 			{
 				if (mediator->IsStalkerBlinkOffCooldown((*itr)) || state_machine->prism == nullptr)
-					mediator->SetUnitCommand((*itr), A_BLINK, state_machine->blink_up_pos, CommandPriorty::high);
+					mediator->SetUnitCommand((*itr), A_BLINK, state_machine->blink_up_pos, CommandPriority::high);
 				else
-					mediator->SetUnitCommand((*itr), A_SMART, state_machine->prism, CommandPriorty::normal);
+					mediator->SetUnitCommand((*itr), A_SMART, state_machine->prism, CommandPriority::normal);
 			}
 			else
 			{
-				mediator->SetUnitCommand((*itr), A_MOVE, state_machine->blink_down_pos, CommandPriorty::low);
+				mediator->SetUnitCommand((*itr), A_MOVE, state_machine->blink_down_pos, CommandPriority::low);
 			}
 			itr++;
 		}
@@ -360,7 +360,7 @@ void BlinkStalkerAttackTerranAttackMain::TickState()
 			}
 			else
 			{
-				mediator->SetUnitCommand((*itr), A_MOVE, state_machine->consolidation_pos, CommandPriorty::low);
+				mediator->SetUnitCommand((*itr), A_MOVE, state_machine->consolidation_pos, CommandPriority::low);
 				itr++;
 			}
 		}
@@ -371,12 +371,12 @@ void BlinkStalkerAttackTerranAttackMain::TickState()
 	{
 		if (stalker->weapon_cooldown > 0)
 		{
-			mediator->SetUnitCommand(stalker, A_MOVE, state_machine->consolidation_pos, CommandPriorty::low);
+			mediator->SetUnitCommand(stalker, A_MOVE, state_machine->consolidation_pos, CommandPriority::low);
 		}
 		else if (mediator->GetAttackStatus(stalker) == false)
 		{
 			mediator->AddUnitToAttackers(stalker);
-			mediator->SetUnitCommand(stalker, A_MOVE, state_machine->consolidation_pos, CommandPriorty::low);
+			mediator->SetUnitCommand(stalker, A_MOVE, state_machine->consolidation_pos, CommandPriority::low);
 		}
 	}
 }
@@ -571,12 +571,12 @@ void BlinkStalkerAttackTerranSnipeUnit::EnterState()
 		{
 			if (mediator->IsStalkerBlinkOffCooldown(stalker))
 			{
-				mediator->SetUnitCommand(stalker, A_BLINK, target->pos, CommandPriorty::high);
-				mediator->SetUnitCommand(stalker, A_ATTACK, target, CommandPriorty::high, true);
+				mediator->SetUnitCommand(stalker, A_BLINK, target->pos, CommandPriority::high);
+				mediator->SetUnitCommand(stalker, A_ATTACK, target, CommandPriority::high, true);
 			}
 			else
 			{
-				mediator->SetUnitCommand(stalker, A_ATTACK, target, CommandPriorty::high);
+				mediator->SetUnitCommand(stalker, A_ATTACK, target, CommandPriority::high);
 			}
 		}
 	}
@@ -619,7 +619,7 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 	if (state_machine->prism != nullptr)
 	{
 		mediator->ForceUnitCommand(state_machine->prism, A_UNLOAD_AT, state_machine->prism);
-		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->blink_up_pos, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->prism, A_MOVE, state_machine->blink_up_pos, CommandPriority::low);
 	}
 
 	// moving_to_standby_stalkers
@@ -630,13 +630,13 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 			if (Distance2D((*itr)->pos, state_machine->blink_down_pos) < VERY_CLOSE_RANGE)
 			{
 				if (mediator->IsStalkerBlinkOffCooldown((*itr)) || state_machine->prism == nullptr)
-					mediator->SetUnitCommand((*itr), A_BLINK, state_machine->blink_up_pos, CommandPriorty::high);
+					mediator->SetUnitCommand((*itr), A_BLINK, state_machine->blink_up_pos, CommandPriority::high);
 				else
-					mediator->SetUnitCommand((*itr), A_SMART, state_machine->prism, CommandPriorty::normal);
+					mediator->SetUnitCommand((*itr), A_SMART, state_machine->prism, CommandPriority::normal);
 			}
 			else
 			{
-				mediator->SetUnitCommand((*itr), A_MOVE, state_machine->blink_down_pos, CommandPriorty::low);
+				mediator->SetUnitCommand((*itr), A_MOVE, state_machine->blink_down_pos, CommandPriority::low);
 			}
 			itr++;
 		}
@@ -649,7 +649,7 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 			}
 			else
 			{
-				mediator->SetUnitCommand((*itr), A_MOVE, state_machine->consolidation_pos, CommandPriorty::low);
+				mediator->SetUnitCommand((*itr), A_MOVE, state_machine->consolidation_pos, CommandPriority::low);
 				itr++;
 			}
 		}
@@ -660,12 +660,12 @@ void BlinkStalkerAttackTerranLeaveHighground::TickState()
 	{
 		if (stalker->weapon_cooldown > 0)
 		{
-			mediator->SetUnitCommand(stalker, A_MOVE, state_machine->consolidation_pos, CommandPriorty::low);
+			mediator->SetUnitCommand(stalker, A_MOVE, state_machine->consolidation_pos, CommandPriority::low);
 		}
 		else if (mediator->GetAttackStatus(stalker) == false)
 		{
 			mediator->AddUnitToAttackers(stalker);
-			mediator->SetUnitCommand(stalker, A_MOVE, state_machine->consolidation_pos, CommandPriorty::low);
+			mediator->SetUnitCommand(stalker, A_MOVE, state_machine->consolidation_pos, CommandPriority::low);
 		}
 	}
 }
@@ -719,12 +719,12 @@ void BlinkStalkerAttackTerran::GroupUpStandbyStalkers()
 
 		if (Distance2D(stalker->pos, consolidation_pos) > 10 || stalker->weapon_cooldown > 0)
 		{
-			mediator->SetUnitCommand(stalker, A_MOVE, consolidation_pos, CommandPriorty::low);
+			mediator->SetUnitCommand(stalker, A_MOVE, consolidation_pos, CommandPriority::low);
 		}
 		else if (Distance2D(stalker->pos, consolidation_pos) > 5)
 		{
 			mediator->AddUnitToAttackers(stalker);
-			mediator->SetUnitCommand(stalker, A_MOVE, consolidation_pos, CommandPriorty::low);
+			mediator->SetUnitCommand(stalker, A_MOVE, consolidation_pos, CommandPriority::low);
 		}
 		else
 		{
@@ -738,12 +738,12 @@ void BlinkStalkerAttackTerran::GroupUpStandbyStalkers()
 	{
 		if (stalker->weapon_cooldown > 0)
 		{
-			mediator->SetUnitCommand(stalker, A_MOVE, consolidation_pos, CommandPriorty::low);
+			mediator->SetUnitCommand(stalker, A_MOVE, consolidation_pos, CommandPriority::low);
 		}
 		else if (mediator->GetAttackStatus(stalker) == false)
 		{
 			mediator->AddUnitToAttackers(stalker);
-			mediator->SetUnitCommand(stalker, A_MOVE, consolidation_pos, CommandPriorty::low);
+			mediator->SetUnitCommand(stalker, A_MOVE, consolidation_pos, CommandPriority::low);
 		}
 	}
 }

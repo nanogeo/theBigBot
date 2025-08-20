@@ -533,7 +533,7 @@ Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger
 				(request.second.damage_value == 10 && cargo_space >= 6))
 			{
 				escaping_units.push_back(request.first);
-				mediator->SetUnitCommand(request.first, A_SMART, prism_in_range, CommandPriorty::high);
+				mediator->SetUnitCommand(request.first, A_SMART, prism_in_range, CommandPriority::high);
 				if (mediator->GetAttackStatus(request.first))
 					mediator->CancelAttack(request.first);
 
@@ -548,7 +548,7 @@ Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger
 			if (request.second.damage_value >= 20)
 			{
 				escaping_units.push_back(request.first);
-				mediator->SetUnitCommand(request.first, A_BLINK, standby_pos, CommandPriorty::high);
+				mediator->SetUnitCommand(request.first, A_BLINK, standby_pos, CommandPriority::high);
 				if (mediator->GetAttackStatus(request.first))
 					mediator->CancelAttack(request.first);
 			}
@@ -561,7 +561,7 @@ Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger
 				(request.second.damage_value == 20 && cargo_space >= 6))
 			{
 				escaping_units.push_back(request.first);
-				mediator->SetUnitCommand(request.first, A_SMART, prism_in_range, CommandPriorty::high);
+				mediator->SetUnitCommand(request.first, A_SMART, prism_in_range, CommandPriority::high);
 				if (mediator->GetAttackStatus(request.first))
 					mediator->CancelAttack(request.first);
 
@@ -573,7 +573,7 @@ Units AttackArmyGroup::EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger
 			else if (request.second.damage_value >= 20)
 			{
 				escaping_units.push_back(request.first);
-				mediator->SetUnitCommand(request.first, A_BLINK, standby_pos, CommandPriorty::high);
+				mediator->SetUnitCommand(request.first, A_BLINK, standby_pos, CommandPriority::high);
 				if (mediator->GetAttackStatus(request.first))
 					mediator->CancelAttack(request.first);
 			}
@@ -640,13 +640,13 @@ void AttackArmyGroup::OraclesDefendArmy(Units oracles, Path* path, Units basic_u
 			}
 			if (highest_over_75 != nullptr)
 			{
-				mediator->SetUnitCommand(highest_over_75, A_REVELATION, unit_to_revelate->pos, CommandPriorty::low);
+				mediator->SetUnitCommand(highest_over_75, A_REVELATION, unit_to_revelate->pos, CommandPriority::low);
 				//agent->Debug()->DebugSphereOut(highest_over_75->pos, 2, Color(255, 0, 0));
 
 			}
 			else if (lowest_over_25 != nullptr)
 			{
-				mediator->SetUnitCommand(lowest_over_25, A_REVELATION, unit_to_revelate->pos, CommandPriorty::low);
+				mediator->SetUnitCommand(lowest_over_25, A_REVELATION, unit_to_revelate->pos, CommandPriority::low);
 				//agent->Debug()->DebugSphereOut(lowest_over_25->pos, 2, Color(255, 0, 0));
 			}
 		}
@@ -711,7 +711,7 @@ void AttackArmyGroup::OraclesDefendArmy(Units oracles, Path* path, Units basic_u
 				{
 					if (mediator->IsOracleBeamActive(oracle))
 					{
-						mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriorty::low);
+						mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriority::low);
 						num_oracles_active--;
 					}
 				}
@@ -732,7 +732,7 @@ void AttackArmyGroup::OraclesDefendArmy(Units oracles, Path* path, Units basic_u
 				{
 					if (mediator->IsOracleBeamActive(oracle) == false)
 					{
-						mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_ON, CommandPriorty::low);
+						mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_ON, CommandPriority::low);
 						num_oracles_active++;
 					}
 				}
@@ -752,7 +752,7 @@ void AttackArmyGroup::OraclesDefendArmy(Units oracles, Path* path, Units basic_u
 			{
 				if (mediator->IsOracleBeamActive(oracle))
 				{
-					mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriority::low);
 				}
 			}
 		}
@@ -767,7 +767,7 @@ void AttackArmyGroup::OraclesDefendArmy(Units oracles, Path* path, Units basic_u
 		}
 		if (mediator->IsOracleBeamActive(oracle) == false)
 		{
-			mediator->SetUnitCommand(oracle, A_MOVE, center, CommandPriorty::low);
+			mediator->SetUnitCommand(oracle, A_MOVE, center, CommandPriority::low);
 			continue;
 		}
 		float now = mediator->GetGameLoop() / FRAME_TIME;
@@ -783,12 +783,12 @@ void AttackArmyGroup::OraclesDefendArmy(Units oracles, Path* path, Units basic_u
 			const Unit* closest_unit = Utility::ClosestTo(enemy_lings, oracle->pos);
 			if (closest_unit == nullptr || Distance2D(closest_unit->pos, oracle->pos) > 6)
 			{
-				mediator->SetUnitCommand(oracle, A_MOVE, center, CommandPriorty::low);
+				mediator->SetUnitCommand(oracle, A_MOVE, center, CommandPriority::low);
 				continue;
 			}
 
 
-			mediator->SetUnitCommand(oracle, A_ATTACK, closest_unit, CommandPriorty::low);
+			mediator->SetUnitCommand(oracle, A_ATTACK, closest_unit, CommandPriority::low);
 			//agent->Debug()->DebugSphereOut(closest_unit->pos, .75, Color(0, 255, 255));
 
 			target[oracle] = closest_unit->tag;
@@ -798,7 +798,7 @@ void AttackArmyGroup::OraclesDefendArmy(Units oracles, Path* path, Units basic_u
 		}
 		else if (has_attacked[oracle])
 		{
-			mediator->SetUnitCommand(oracle, A_MOVE, center, CommandPriorty::low);
+			mediator->SetUnitCommand(oracle, A_MOVE, center, CommandPriority::low);
 
 			//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 		}
@@ -891,7 +891,7 @@ AttackLineResult AttackArmyGroup::AttackLine(Units units, Point2D& origin, float
 	for (const auto& assignment : position_assignments)
 	{
 		if (mediator->GetAttackStatus(assignment.first) == false)
-			mediator->SetUnitCommand(assignment.first, A_MOVE, assignment.second, CommandPriorty::low);
+			mediator->SetUnitCommand(assignment.first, A_MOVE, assignment.second, CommandPriority::low);
 	}
 	std::vector<Tag> units_in_cargo;
 

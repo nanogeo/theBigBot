@@ -51,9 +51,9 @@ void ObserverScoutArmyGroup::Run()
 	{
 		const Unit* closest_danger = Utility::ClosestUnitTo(Utility::GetUnitsThatCanAttack(enemy_units, observer, 1), observer->pos);
 		if (closest_danger == nullptr)
-			mediator->SetUnitCommand(observer, A_MOVE, current_target, CommandPriorty::low);
+			mediator->SetUnitCommand(observer, A_MOVE, current_target, CommandPriority::low);
 		else
-			mediator->SetUnitCommand(observer, A_MOVE, Utility::PointBetween(observer->pos, closest_danger->pos, -1), CommandPriorty::low);
+			mediator->SetUnitCommand(observer, A_MOVE, Utility::PointBetween(observer->pos, closest_danger->pos, -1), CommandPriority::low);
 	}
 }
 

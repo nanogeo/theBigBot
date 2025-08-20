@@ -19,7 +19,7 @@ void PvPMainRampWallOffWaitForEnemies::TickState()
 		mediator->RemoveWorker(state_machine->probe);
 	}
 	if (Distance2D(state_machine->probe->pos, state_machine->wall_off_pos) > 1)
-		mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::MOVE_MOVE, state_machine->wall_off_pos, CommandPriorty::normal);
+		mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::MOVE_MOVE, state_machine->wall_off_pos, CommandPriority::normal);
 }
 
 void PvPMainRampWallOffWaitForEnemies::EnterState()
@@ -112,7 +112,7 @@ void PvPMainRampWallOffWaitForSafety::TickState()
 		mediator->RemoveWorker(state_machine->probe);
 	}
 	if (Distance2D(state_machine->probe->pos, fallback) > 1)
-		mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::MOVE_MOVE, fallback, CommandPriorty::normal);
+		mediator->SetUnitCommand(state_machine->probe, ABILITY_ID::MOVE_MOVE, fallback, CommandPriority::normal);
 }
 
 void PvPMainRampWallOffWaitForSafety::EnterState()
@@ -124,7 +124,7 @@ void PvPMainRampWallOffWaitForSafety::ExitState()
 {
 	if (wall != nullptr && wall->is_alive)
 	{
-		mediator->SetUnitCommand(wall, ABILITY_ID::CANCEL, CommandPriorty::normal);
+		mediator->SetUnitCommand(wall, ABILITY_ID::CANCEL, CommandPriority::normal);
 		mediator->AddBuildingToDoNotRebuild(wall->pos);
 	}
 	return;

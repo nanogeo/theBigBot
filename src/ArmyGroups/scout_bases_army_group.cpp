@@ -34,7 +34,7 @@ void ScoutBasesArmyGroup::Run()
 			}
 			current_target = Utility::ClosestTo(base_locations, all_units[0]->pos);
 		}
-		mediator->SetUnitCommand(all_units[0], A_MOVE, current_target, CommandPriorty::low);
+		mediator->SetUnitCommand(all_units[0], A_MOVE, current_target, CommandPriority::low);
 	}
 	else
 	{

@@ -769,7 +769,7 @@ void WorkerManager::SplitWorkers()
 
 	for (const auto& worker : mineral_patches_reversed)
 	{
-		mediator->SetUnitCommand(worker.first, A_SMART, worker.second.mineral, CommandPriorty::low);
+		mediator->SetUnitCommand(worker.first, A_SMART, worker.second.mineral, CommandPriority::low);
 	}
 }
 
@@ -882,7 +882,7 @@ void WorkerManager::DistributeWorkers()
 			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), worker->pos);
 			if (enemy_unit != nullptr && Distance2D(worker->pos, enemy_unit->pos) <= Utility::RealRange(worker, enemy_unit))
 			{
-				mediator->SetUnitCommand(worker, A_ATTACK, enemy_unit, CommandPriorty::low);
+				mediator->SetUnitCommand(worker, A_ATTACK, enemy_unit, CommandPriority::low);
 				continue;
 			}
 		}
@@ -907,12 +907,12 @@ void WorkerManager::DistributeWorkers()
 			if (Distance2D(worker->pos, mineral_patches_reversed[worker].drop_off_point) > .5 &&
 				Distance2D(worker->pos, mineral_patches_reversed[worker].drop_off_point) < 2)
 			{
-				mediator->SetUnitCommand(worker, A_MOVE, mineral_patches_reversed[worker].drop_off_point, CommandPriorty::low);
-				mediator->SetUnitCommand(worker, A_SMART, closest_nexus, CommandPriorty::low, true);
+				mediator->SetUnitCommand(worker, A_MOVE, mineral_patches_reversed[worker].drop_off_point, CommandPriority::low);
+				mediator->SetUnitCommand(worker, A_SMART, closest_nexus, CommandPriority::low, true);
 			}
 			else if (Distance2D(worker->pos, mineral_patches_reversed[worker].drop_off_point) >= 2)
 			{
-				mediator->SetUnitCommand(worker, A_SMART, closest_nexus, CommandPriorty::low);
+				mediator->SetUnitCommand(worker, A_SMART, closest_nexus, CommandPriority::low);
 			}
 		}
 		else if (!IsCarryingMinerals(*worker) && worker->orders.size() <= 1)
@@ -925,12 +925,12 @@ void WorkerManager::DistributeWorkers()
 					Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) < 2 && 
 					Distance2D(worker->pos, mineral_patches_reversed[worker].mineral->pos) > 1.325)
 				{
-					mediator->SetUnitCommand(worker, A_MOVE, mineral_patches_reversed[worker].pick_up_point, CommandPriorty::low);
-					mediator->SetUnitCommand(worker, A_GATHER_RESOURCE, mineral_patches_reversed[worker].mineral, CommandPriorty::low, true);
+					mediator->SetUnitCommand(worker, A_MOVE, mineral_patches_reversed[worker].pick_up_point, CommandPriority::low);
+					mediator->SetUnitCommand(worker, A_GATHER_RESOURCE, mineral_patches_reversed[worker].mineral, CommandPriority::low, true);
 				}
 				else if (Distance2D(worker->pos, mineral_patches_reversed[worker].pick_up_point) >= 2)
 				{
-					mediator->SetUnitCommand(worker, A_GATHER_RESOURCE, mineral_patches_reversed[worker].mineral, CommandPriorty::low);
+					mediator->SetUnitCommand(worker, A_GATHER_RESOURCE, mineral_patches_reversed[worker].mineral, CommandPriority::low);
 				}
 			}
 			else
@@ -960,7 +960,7 @@ void WorkerManager::DistributeWorkers()
 			const Unit* enemy_unit = Utility::ClosestTo(mediator->GetUnits(Unit::Alliance::Enemy, IsNotFlyingUnit()), worker->pos);
 			if (enemy_unit != nullptr && Distance2D(worker->pos, enemy_unit->pos) <= Utility::RealRange(worker, enemy_unit))
 			{
-				mediator->SetUnitCommand(worker, A_ATTACK, enemy_unit, CommandPriorty::low);
+				mediator->SetUnitCommand(worker, A_ATTACK, enemy_unit, CommandPriority::low);
 				continue;
 			}
 		}
@@ -970,14 +970,14 @@ void WorkerManager::DistributeWorkers()
 			// 2 or 3 workers assigned to gas
 			if (worker->orders.size() == 0 || worker->orders[0].ability_id == A_ATTACK)
 			{
-				mediator->SetUnitCommand(worker, A_SMART, assimilator, CommandPriorty::low);
+				mediator->SetUnitCommand(worker, A_SMART, assimilator, CommandPriority::low);
 			}
 			else
 			{
 				UnitOrder current_order = worker->orders[0];
 				if (current_order.ability_id == A_GATHER_RESOURCE && current_order.target_unit_tag != assimilator->tag)
 				{
-					mediator->SetUnitCommand(worker, A_SMART, assimilator, CommandPriorty::low);
+					mediator->SetUnitCommand(worker, A_SMART, assimilator, CommandPriority::low);
 				}
 				else
 				{
@@ -1001,12 +1001,12 @@ void WorkerManager::DistributeWorkers()
 			if (Distance2D(worker->pos, assimilators_reversed[worker].drop_off_point) > .5 &&
 				Distance2D(worker->pos, assimilators_reversed[worker].drop_off_point) < 2)
 			{
-				mediator->SetUnitCommand(worker, A_MOVE, assimilators_reversed[worker].drop_off_point, CommandPriorty::low);
-				mediator->SetUnitCommand(worker, A_SMART, closest_nexus, CommandPriorty::low, true);
+				mediator->SetUnitCommand(worker, A_MOVE, assimilators_reversed[worker].drop_off_point, CommandPriority::low);
+				mediator->SetUnitCommand(worker, A_SMART, closest_nexus, CommandPriority::low, true);
 			}
 			else if (Distance2D(worker->pos, assimilators_reversed[worker].drop_off_point) >= 2)
 			{
-				mediator->SetUnitCommand(worker, A_SMART, closest_nexus, CommandPriorty::low);
+				mediator->SetUnitCommand(worker, A_SMART, closest_nexus, CommandPriority::low);
 			}
 		}
 		else if (!IsCarryingVespene(*worker) && worker->orders.size() <= 1)
@@ -1017,12 +1017,12 @@ void WorkerManager::DistributeWorkers()
 				if (Distance2D(worker->pos, assimilators_reversed[worker].pick_up_point) > .5 &&
 					Distance2D(worker->pos, assimilators_reversed[worker].pick_up_point) < 2)
 				{
-					mediator->SetUnitCommand(worker, A_MOVE, assimilators_reversed[worker].pick_up_point, CommandPriorty::low);
-					mediator->SetUnitCommand(worker, A_SMART, assimilators_reversed[worker].assimilator, CommandPriorty::low, true);
+					mediator->SetUnitCommand(worker, A_MOVE, assimilators_reversed[worker].pick_up_point, CommandPriority::low);
+					mediator->SetUnitCommand(worker, A_SMART, assimilators_reversed[worker].assimilator, CommandPriority::low, true);
 				}
 				else if (Distance2D(worker->pos, assimilators_reversed[worker].pick_up_point) >= 2)
 				{
-					mediator->SetUnitCommand(worker, A_SMART, assimilators_reversed[worker].assimilator, CommandPriorty::low);
+					mediator->SetUnitCommand(worker, A_SMART, assimilators_reversed[worker].assimilator, CommandPriority::low);
 				}
 			}
 			else

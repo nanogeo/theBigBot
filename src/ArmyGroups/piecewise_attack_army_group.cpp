@@ -78,7 +78,7 @@ void PiecewiseAttackArmyGroup::SetUp()
 	if (all_units.size() == 0)
 		return;
 
-	mediator->SetUnitsCommand(all_units, A_MOVE, Utility::MedianCenter(all_units), CommandPriorty::low);
+	mediator->SetUnitsCommand(all_units, A_MOVE, Utility::MedianCenter(all_units), CommandPriority::low);
 	if (Utility::GetUnitsWithin(all_units, Utility::MedianCenter(all_units), 5).size() >= required_units)
 	{
 		ready = true;
@@ -173,7 +173,7 @@ bool PiecewiseAttackArmyGroup::MobilizeNewUnits(Units units)
 		if (unit->weapon_cooldown == 0)
 			mediator->AddUnitToAttackers(unit);
 
-		mediator->SetUnitCommand(unit, A_MOVE, Utility::MedianCenter(all_units), CommandPriorty::low);
+		mediator->SetUnitCommand(unit, A_MOVE, Utility::MedianCenter(all_units), CommandPriority::low);
 		// TODO make sure units stay grouped up
 	}
 	return false;
@@ -182,7 +182,7 @@ bool PiecewiseAttackArmyGroup::MobilizeNewUnits(Units units)
 void PiecewiseAttackArmyGroup::GroupUpNewUnits()
 {
 	// TODO check for enemies in range
-	mediator->SetUnitsCommand(new_units, A_MOVE, Utility::MedianCenter(new_units), CommandPriorty::low);
+	mediator->SetUnitsCommand(new_units, A_MOVE, Utility::MedianCenter(new_units), CommandPriority::low);
 
 	Units group = Utility::GetUnitsWithin(new_units, Utility::MedianCenter(new_units), 5);
 	if (group.size() >= min_reinforce_group_size)

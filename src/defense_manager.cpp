@@ -395,7 +395,7 @@ void DefenseManager::UseBatteries()
 			{
 				return a->health + a->shield < b->health + b->shield;
 			});
-			mediator->SetUnitCommand(battery, A_SMART, close_units[0], CommandPriorty::normal);
+			mediator->SetUnitCommand(battery, A_SMART, close_units[0], CommandPriority::normal);
 			mediator->DebugSphere(close_units[0]->pos, 2, Color(255, 0, 0));
 		}
 	}

@@ -166,7 +166,7 @@ void DefenseArmyGroup::Run()
 			if (group.new_units[i]->weapon_cooldown == 0)
 				mediator->AddUnitToAttackers(group.new_units[i]);
 
-			mediator->SetUnitCommand(group.new_units[i], A_MOVE, group.origin, CommandPriorty::low);
+			mediator->SetUnitCommand(group.new_units[i], A_MOVE, group.origin, CommandPriority::low);
 		}
 		if (group.basic_units.size() > 0)
 			AttackLine(group);
@@ -182,7 +182,7 @@ void DefenseArmyGroup::Run()
 		if (unit->weapon_cooldown == 0)
 			mediator->AddUnitToAttackers(unit);
 		if (Distance2D(unit->pos, central_pos) > 10)
-			mediator->SetUnitCommand(unit, A_MOVE, central_pos, CommandPriorty::low);
+			mediator->SetUnitCommand(unit, A_MOVE, central_pos, CommandPriority::low);
 	}
 }
 

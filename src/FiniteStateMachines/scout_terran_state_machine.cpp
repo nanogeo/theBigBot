@@ -12,7 +12,7 @@ namespace sc2 {
 void ScoutTInitialMove::TickState()
 {
 	if (state_machine->scout->orders.size() == 0 || state_machine->scout->orders[0].target_pos != state_machine->current_target)
-		mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriority::low);
 }
 
 void ScoutTInitialMove::EnterState()
@@ -49,7 +49,7 @@ void ScoutTScoutMain::TickState()
 		if (state_machine->index < state_machine->main_scout_path.size())
 			state_machine->current_target = state_machine->main_scout_path[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriority::low);
 }
 
 void ScoutTScoutMain::EnterState()
@@ -103,7 +103,7 @@ void ScoutTScoutNatural::TickState()
 		if (state_machine->index < state_machine->natural_scout_path.size())
 			state_machine->current_target = state_machine->natural_scout_path[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriority::low);
 }
 
 void ScoutTScoutNatural::EnterState()
@@ -145,7 +145,7 @@ void ScoutTScoutRax::EnterState()
 	if (mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING })).size() > 0)
 	{
 		rax = mediator->GetUnits(IsUnits({ BARRACKS, BARRACKS_FLYING }))[0];
-		mediator->SetUnitCommand(state_machine->scout, A_MOVE, rax->pos, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, rax->pos, CommandPriority::low);
 	}
 	else
 	{
@@ -154,7 +154,7 @@ void ScoutTScoutRax::EnterState()
 			if (pos.first->unit_type == BARRACKS || pos.first->unit_type == BARRACKS_FLYING)
 			{
 				rax = pos.first;
-				mediator->SetUnitCommand(state_machine->scout, A_MOVE, rax->pos, CommandPriorty::low);
+				mediator->SetUnitCommand(state_machine->scout, A_MOVE, rax->pos, CommandPriority::low);
 				return;
 			}
 		}
@@ -230,7 +230,7 @@ void ScoutTReturnToBase::TickState()
 
 void ScoutTReturnToBase::EnterState()
 {
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetLocations().start_location, CommandPriorty::low);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetLocations().start_location, CommandPriority::low);
 }
 
 void ScoutTReturnToBase::ExitState()

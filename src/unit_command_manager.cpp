@@ -24,7 +24,7 @@ UnitCommandManager::UnitCommandManager(Mediator* mediator, TheBigBot* agent)
 }
 	// TODO do not queue blink or oracle beam etc or deal with it
 
-void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, CommandPriorty priority, bool queued_command)
+void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, CommandPriority priority, bool queued_command)
 {
 	if (unit == nullptr)
 		return;
@@ -62,7 +62,7 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Com
 	}
 }
 
-void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Point2D point, CommandPriorty priority, bool queued_command)
+void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Point2D point, CommandPriority priority, bool queued_command)
 {
 	if (unit == nullptr)
 		return;
@@ -102,7 +102,7 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, Poi
 	}
 }
 
-void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, CommandPriorty priority, bool queued_command)
+void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, CommandPriority priority, bool queued_command)
 {
 	if (unit == nullptr)
 		return;
@@ -140,7 +140,7 @@ void UnitCommandManager::SetUnitCommand(const Unit* unit, AbilityID ability, con
 	}
 }
 
-void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, CommandPriorty priority, bool queued_command)
+void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, CommandPriority priority, bool queued_command)
 {
 	for (const auto &unit : units)
 	{
@@ -148,7 +148,7 @@ void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, Command
 	}
 }
 
-void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, Point2D point, CommandPriorty priority, bool queued_command)
+void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, Point2D point, CommandPriority priority, bool queued_command)
 {
 	for (const auto& unit : units)
 	{
@@ -156,7 +156,7 @@ void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, Point2D
 	}
 }
 
-void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, const Unit* target, CommandPriorty priority, bool queued_command)
+void UnitCommandManager::SetUnitsCommand(Units units, AbilityID ability, const Unit* target, CommandPriority priority, bool queued_command)
 {
 	for (const auto& unit : units)
 	{

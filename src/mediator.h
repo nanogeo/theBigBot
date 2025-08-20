@@ -326,12 +326,12 @@ public:
 	TryActionResult TryTrainProbe(const Unit*);
 	TryActionResult TryWarpIn(const Unit*, UNIT_TYPEID, Point2D);
 	TryActionResult TryResearchUpgrade(const Unit*, UPGRADE_ID);
-	void SetUnitCommand(const Unit* unit, AbilityID ability, CommandPriorty prio, bool queued_command = false);
-	void SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, CommandPriorty prio, bool queued_command = false);
-	void SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, CommandPriorty prio, bool queued_command = false);
-	void SetUnitsCommand(const Units& units, AbilityID ability, CommandPriorty prio, bool queued_command = false);
-	void SetUnitsCommand(const Units& units, AbilityID ability, const Point2D& point, CommandPriorty prio, bool queued_command = false);
-	void SetUnitsCommand(const Units& units, AbilityID ability, const Unit* target, CommandPriorty prio, bool queued_command = false);
+	void SetUnitCommand(const Unit* unit, AbilityID ability, CommandPriority prio, bool queued_command = false);
+	void SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, CommandPriority prio, bool queued_command = false);
+	void SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, CommandPriority prio, bool queued_command = false);
+	void SetUnitsCommand(const Units& units, AbilityID ability, CommandPriority prio, bool queued_command = false);
+	void SetUnitsCommand(const Units& units, AbilityID ability, const Point2D& point, CommandPriority prio, bool queued_command = false);
+	void SetUnitsCommand(const Units& units, AbilityID ability, const Unit* target, CommandPriority prio, bool queued_command = false);
 	void ForceUnitCommand(const Unit* unit, AbilityID ability, bool queued_command = false);
 	void ForceUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, bool queued_command = false);
 	void ForceUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, bool queued_command = false);

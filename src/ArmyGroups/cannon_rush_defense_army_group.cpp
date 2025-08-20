@@ -40,7 +40,7 @@ namespace sc2 {
 
 		if (mediator->GetCurrentTime() > 240 && assigned_attackers.size() == 0)
 		{
-			mediator->SetUnitsCommand(all_units, A_STOP, CommandPriorty::high);
+			mediator->SetUnitsCommand(all_units, A_STOP, CommandPriority::high);
 			for (const auto& probe : all_units)
 			{
 				if (probe->unit_type == PROBE)
@@ -154,7 +154,7 @@ namespace sc2 {
 						probe = new_probe;
 					}
 				}
-				mediator->SetUnitCommand(probe, A_ATTACK, enemy.first, CommandPriorty::low);
+				mediator->SetUnitCommand(probe, A_ATTACK, enemy.first, CommandPriority::low);
 			}
 		}
 

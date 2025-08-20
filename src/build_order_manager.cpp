@@ -395,7 +395,7 @@ bool BuildOrderManager::ChronoBuilding(BuildOrderResultArgData data)
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
 				{
-					mediator->SetUnitCommand(nexus, A_CHRONO, building, CommandPriorty::high);
+					mediator->SetUnitCommand(nexus, A_CHRONO, building, CommandPriority::high);
 					return true;
 				}
 			}
@@ -414,7 +414,7 @@ bool BuildOrderManager::OptionalChronoBuilding(BuildOrderResultArgData data)
 			{
 				if (nexus->energy >= 50 && nexus->build_progress == 1)
 				{
-					mediator->SetUnitCommand(nexus, A_CHRONO, building, CommandPriorty::low);
+					mediator->SetUnitCommand(nexus, A_CHRONO, building, CommandPriority::low);
 					return true;
 				}
 			}
@@ -653,7 +653,7 @@ bool BuildOrderManager::SafeRallyPoint(BuildOrderResultArgData data)
 	for (const auto &building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		Point2D pos = Utility::PointBetween(building->pos, mediator->GetStartLocation(), 2);
-		mediator->SetUnitCommand(building, A_SMART, pos, CommandPriorty::low);
+		mediator->SetUnitCommand(building, A_SMART, pos, CommandPriority::low);
 	}
 	return true;
 }
@@ -664,7 +664,7 @@ bool BuildOrderManager::SafeRallyPointFromRamp(BuildOrderResultArgData data)
 	{
 		float dist = Distance2D(mediator->GetLocations().main_ramp_forcefield_top, building->pos);
 		Point2D pos = Utility::PointBetween(mediator->GetLocations().main_ramp_forcefield_top, building->pos, dist + 2);
-		mediator->SetUnitCommand(building, A_SMART, pos, CommandPriorty::low);
+		mediator->SetUnitCommand(building, A_SMART, pos, CommandPriority::low);
 	}
 	return true;
 }
@@ -674,7 +674,7 @@ bool BuildOrderManager::SetRallyPointToRamp(BuildOrderResultArgData data)
 	for (const auto& building : mediator->GetUnits(IsFriendlyUnit(data.unitId)))
 	{
 		Point2D pos = Utility::PointBetween(building->pos, mediator->GetLocations().main_ramp_forcefield_top, 2);
-		mediator->SetUnitCommand(building, A_SMART, pos, CommandPriorty::low);
+		mediator->SetUnitCommand(building, A_SMART, pos, CommandPriority::low);
 	}
 	return true;
 }
@@ -1302,7 +1302,7 @@ bool BuildOrderManager::SackUnit(BuildOrderResultArgData data)
 	{
 		if (data.unitId == PROBE)
 			mediator->RemoveWorker(furthest_from_base);
-		mediator->SetUnitCommand(furthest_from_base, A_MOVE, mediator->GetEnemyStartLocation(), CommandPriorty::max);
+		mediator->SetUnitCommand(furthest_from_base, A_MOVE, mediator->GetEnemyStartLocation(), CommandPriority::max);
 	}
 	return true;
 }
@@ -1318,7 +1318,7 @@ bool BuildOrderManager::CancelBuilding(BuildOrderResultArgData data)
 	for (const auto& building : mediator->GetUnits(Unit::Alliance::Self, IsUnit(data.unitId)))
 	{
 		if (building->build_progress < 1)
-			mediator->SetUnitCommand(building, A_CANCEL_BUILDING, CommandPriorty::low);
+			mediator->SetUnitCommand(building, A_CANCEL_BUILDING, CommandPriority::low);
 	}
 	return true;
 }
@@ -1359,7 +1359,7 @@ bool BuildOrderManager::EnergyRechargeUnit(BuildOrderResultArgData data)
 					{
 						if (strcmp(AbilityTypeToName(ability.ability_id), "UNKNOWN") == 0)
 						{
-							mediator->SetUnitCommand(nexus, ability.ability_id, unit, CommandPriorty::low);
+							mediator->SetUnitCommand(nexus, ability.ability_id, unit, CommandPriority::low);
 							return true;
 						}
 					}

@@ -31,7 +31,7 @@ namespace sc2 {
 	void SimpleAttackArmyGroup::SetUp()
 	{
 		// TODO check for units mid warp in
-		mediator->SetUnitsCommand(all_units, A_MOVE, Utility::MedianCenter(all_units), CommandPriorty::low);
+		mediator->SetUnitsCommand(all_units, A_MOVE, Utility::MedianCenter(all_units), CommandPriority::low);
 		if (Utility::GetUnitsWithin(all_units, Utility::MedianCenter(all_units), 10).size() >= desired_units)
 		{
 			ready = true;
@@ -47,7 +47,7 @@ namespace sc2 {
 			{
 				for (const auto& point : attack_path)
 				{
-					mediator->SetUnitCommand(unit, A_ATTACK, point, CommandPriorty::low, true);
+					mediator->SetUnitCommand(unit, A_ATTACK, point, CommandPriority::low, true);
 				}
 			}
 		}

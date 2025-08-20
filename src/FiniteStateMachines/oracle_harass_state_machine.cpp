@@ -42,18 +42,18 @@ void OracleDefendLocation::TickState()
 				if (Distance2D(oracle->pos, closest_unit->pos) > 4)
 				{
 					float dist = Distance2D(oracle->pos, closest_unit->pos);
-					mediator->SetUnitCommand(oracle, A_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), CommandPriority::low);
 				}
 				else if (weapon_ready)
 				{
-					mediator->SetUnitCommand(oracle, A_ATTACK, closest_unit, CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_ATTACK, closest_unit, CommandPriority::low);
 					state_machine->time_last_attacked[oracle] = now;
 					state_machine->has_attacked[oracle] = false;
 					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 255, 0));
 				}
 				else if (state_machine->has_attacked[oracle])
 				{
-					mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriority::low);
 					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 				}
 				else
@@ -65,16 +65,16 @@ void OracleDefendLocation::TickState()
 			{
 				if (Distance2D(oracle->pos, closest_unit->pos) < 3)
 				{
-					mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_ON, CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_ON, CommandPriority::low);
 				}
 				else
 				{
-					mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriority::low);
 				}
 			}
 			else
 			{
-				mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriorty::low);
+				mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriority::low);
 				//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
 			}
 			//agent->Debug()->DebugTextOut(std::to_string(now - state_machine->time_last_attacked[oracle]), Point2D(.7, .7), Color(0, 255, 255), 20);
@@ -88,11 +88,11 @@ void OracleDefendLocation::TickState()
 		{
 			if (mediator->IsOracleBeamActive(oracle))
 			{
-				mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriorty::low);
+				mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriority::low);
 			}
 
 			if (Distance2D(oracle->pos, denfensive_position) > 1)
-				mediator->SetUnitCommand(oracle, A_MOVE, denfensive_position, CommandPriorty::low);
+				mediator->SetUnitCommand(oracle, A_MOVE, denfensive_position, CommandPriority::low);
 		}
 	}
 
@@ -103,7 +103,7 @@ void OracleDefendLocation::EnterState()
 {
 	for (const auto &oracle : state_machine->oracles)
 	{
-		mediator->SetUnitCommand(oracle, A_MOVE, denfensive_position, CommandPriorty::low);
+		mediator->SetUnitCommand(oracle, A_MOVE, denfensive_position, CommandPriority::low);
 	}
 	std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
 		this->OnUnitDamagedListener(unit, health, shields);
@@ -121,7 +121,7 @@ void OracleDefendLocation::ExitState()
 	for (const auto &oracle : state_machine->oracles)
 	{
 		// remove event onUnitDamaged
-		mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriorty::low);
+		mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriority::low);
 	}
 	mediator->RemoveListenerToOnUnitDamagedEvent(event_id);
 	mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
@@ -232,11 +232,11 @@ void OracleDefendLine::TickState()
 				if (Distance2D(oracle->pos, closest_unit->pos) > 4)
 				{
 					float dist = Distance2D(oracle->pos, closest_unit->pos);
-					mediator->SetUnitCommand(oracle, A_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_MOVE, Utility::PointBetween(oracle->pos, closest_unit->pos, dist + 1), CommandPriority::low);
 				}
 				else if (weapon_ready)
 				{
-					mediator->SetUnitCommand(oracle, A_ATTACK, closest_unit, CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_ATTACK, closest_unit, CommandPriority::low);
 					state_machine->time_last_attacked[oracle] = now;
 					state_machine->has_attacked[oracle] = false;
 					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(255, 255, 0));
@@ -246,7 +246,7 @@ void OracleDefendLine::TickState()
 					if ((mediator->GetUnit(oracle->engaged_target_tag) == nullptr ||
 						Distance2D(oracle->pos, mediator->GetUnit(oracle->engaged_target_tag)->pos) > 3) ||
 						Distance2D(oracle->pos, closest_unit->pos) > 3)  // only move if target is getting away
-						mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriorty::low);
+						mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriority::low);
 					//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 				}
 				else
@@ -258,16 +258,16 @@ void OracleDefendLine::TickState()
 			{
 				if (Distance2D(oracle->pos, closest_unit->pos) < 2)
 				{
-					mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_ON, CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_ON, CommandPriority::low);
 				}
 				else
 				{
-					mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriority::low);
 				}
 			}
 			else
 			{
-				mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriorty::low);
+				mediator->SetUnitCommand(oracle, A_MOVE, closest_unit->pos, CommandPriority::low);
 				//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 255, 0));
 			}
 			//agent->Debug()->DebugTextOut(std::to_string(now - state_machine->time_last_attacked[oracle]), Point2D(.7, .7), Color(0, 255, 255), 20);
@@ -281,7 +281,7 @@ void OracleDefendLine::TickState()
 		{
 			if (mediator->IsOracleBeamActive(oracle))
 			{
-				mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriorty::low);
+				mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriority::low);
 				continue;
 			}
 
@@ -295,18 +295,18 @@ void OracleDefendLine::TickState()
 			}
 			else if (dist_to_start < 1)
 			{
-				mediator->SetUnitCommand(oracle, A_MOVE, line->GetEndPoint(), CommandPriorty::low);
+				mediator->SetUnitCommand(oracle, A_MOVE, line->GetEndPoint(), CommandPriority::low);
 			}
 			else if (dist_to_end < 1)
 			{
-				mediator->SetUnitCommand(oracle, A_MOVE, line->GetStartPoint(), CommandPriorty::low);
+				mediator->SetUnitCommand(oracle, A_MOVE, line->GetStartPoint(), CommandPriority::low);
 			}
 			else
 			{
 				if (dist_to_end < dist_to_start)
-					mediator->SetUnitCommand(oracle, A_MOVE, line->GetEndPoint(), CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_MOVE, line->GetEndPoint(), CommandPriority::low);
 				else
-					mediator->SetUnitCommand(oracle, A_MOVE, line->GetStartPoint(), CommandPriorty::low);
+					mediator->SetUnitCommand(oracle, A_MOVE, line->GetStartPoint(), CommandPriority::low);
 			}
 		}
 	}
@@ -318,7 +318,7 @@ void OracleDefendLine::EnterState()
 {
 	for (const auto& oracle : state_machine->oracles)
 	{
-		mediator->SetUnitCommand(oracle, A_MOVE, line->GetStartPoint(), CommandPriorty::low);
+		mediator->SetUnitCommand(oracle, A_MOVE, line->GetStartPoint(), CommandPriority::low);
 	}
 	std::function<void(const Unit*, float, float)> onUnitDamaged = [=](const Unit* unit, float health, float shields) {
 		this->OnUnitDamagedListener(unit, health, shields);
@@ -341,7 +341,7 @@ void OracleDefendLine::ExitState()
 	for (const auto& oracle : state_machine->oracles)
 	{
 		// remove event onUnitDamaged
-		mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriorty::low);
+		mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriority::low);
 	}
 	mediator->RemoveListenerToOnUnitDamagedEvent(event_id);
 	mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
@@ -438,7 +438,7 @@ void OracleHarassGroupUp::EnterState()
 	state_machine->sent_harass = true;
 	for (const auto &oracle : state_machine->oracles)
 	{
-		mediator->SetUnitCommand(oracle, A_MOVE, consolidation_pos, CommandPriorty::low);
+		mediator->SetUnitCommand(oracle, A_MOVE, consolidation_pos, CommandPriority::low);
 	}
 }
 
@@ -474,7 +474,7 @@ State* OracleHarassGroupUp::TestTransitions()
 	for (const auto& oracle : state_machine->oracles)
 	{
 		if (oracle->orders.size() == 0)
-			mediator->SetUnitCommand(oracle, A_MOVE, consolidation_pos, CommandPriorty::low);
+			mediator->SetUnitCommand(oracle, A_MOVE, consolidation_pos, CommandPriority::low);
 	}
 	for (const auto &oracle : state_machine->oracles)
 	{
@@ -494,7 +494,7 @@ void OracleHarassGroupUp::TickState()
 {
 	for (const auto &oracle : state_machine->oracles)
 	{
-		mediator->SetUnitCommand(oracle, A_MOVE, consolidation_pos, CommandPriorty::low);
+		mediator->SetUnitCommand(oracle, A_MOVE, consolidation_pos, CommandPriority::low);
 	}
 }
 
@@ -516,7 +516,7 @@ void OracleHarassMoveToEntrance::EnterState()
 {
 	for (const auto &oracle : state_machine->oracles)
 	{
-		mediator->SetUnitCommand(oracle, A_MOVE, entrance_pos, CommandPriorty::low);
+		mediator->SetUnitCommand(oracle, A_MOVE, entrance_pos, CommandPriority::low);
 	}
 }
 
@@ -539,7 +539,7 @@ void OracleHarassMoveToEntrance::TickState()
 {
 	for (const auto &oracle : state_machine->oracles)
 	{
-		mediator->SetUnitCommand(oracle, A_MOVE, entrance_pos, CommandPriorty::low);
+		mediator->SetUnitCommand(oracle, A_MOVE, entrance_pos, CommandPriority::low);
 	}
 }
 
@@ -567,7 +567,7 @@ std::string OracleHarassAttackMineralLine::toString() const
 
 void OracleHarassAttackMineralLine::EnterState()
 {
-	mediator->SetUnitsCommand(state_machine->oracles, A_ORACLE_BEAM_ON, CommandPriorty::low);
+	mediator->SetUnitsCommand(state_machine->oracles, A_ORACLE_BEAM_ON, CommandPriority::low);
 
 	std::function<void(const Unit*)> onUnitDestroyed = [=](const Unit* unit) {
 		this->OnUnitDestroyedListener(unit);
@@ -625,9 +625,9 @@ void OracleHarassAttackMineralLine::TickState()
 		if (drones.size() == 0)
 		{
 			if (Distance2D(oracle_center, exit_pos) > 4)
-				mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4), CommandPriorty::low);
+				mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4), CommandPriority::low);
 			else
-				mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, exit_pos, CommandPriorty::low);
+				mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, exit_pos, CommandPriority::low);
 			//SetUnitCommand(state_machine->oracles, A_MOVE, exit_pos);
 			//agent->Debug()->DebugSphereOut(state_machine->oracles[0]->pos, 1, Color(0, 255, 255));
 			return;
@@ -678,9 +678,9 @@ void OracleHarassAttackMineralLine::TickState()
 		if (target_drone == nullptr)
 		{
 			if (Distance2D(oracle_center, exit_pos) > 4)
-				mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4), CommandPriorty::low);
+				mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4), CommandPriority::low);
 			else
-				mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, exit_pos, CommandPriorty::low);
+				mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, exit_pos, CommandPriority::low);
 			//SetUnitCommand(state_machine->oracles, A_MOVE, exit_pos);
 			//agent->Debug()->DebugSphereOut(state_machine->oracles[0]->pos, 1, Color(0, 255, 255));
 			return;
@@ -691,7 +691,7 @@ void OracleHarassAttackMineralLine::TickState()
 		agent->Debug()->DebugSphereOut(target_drone->pos, 1, Color(0, 255, 255));*/
 
 
-		mediator->SetUnitsCommand(state_machine->oracles, A_ATTACK, target_drone, CommandPriorty::low);
+		mediator->SetUnitsCommand(state_machine->oracles, A_ATTACK, target_drone, CommandPriority::low);
 
 
 		for (const auto &oracle : state_machine->oracles)
@@ -704,9 +704,9 @@ void OracleHarassAttackMineralLine::TickState()
 	else if (state_machine->has_attacked[state_machine->oracles[0]])
 	{
 		if (Distance2D(oracle_center, exit_pos) > 4)
-			mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4), CommandPriorty::low);
+			mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, Utility::PointBetween(oracle_center, exit_pos, 4), CommandPriority::low);
 		else
-			mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, exit_pos, CommandPriorty::low);
+			mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, exit_pos, CommandPriority::low);
 		//SetUnitCommand(state_machine->oracles, A_MOVE, exit_pos);
 
 		/*for (const auto &oracle : state_machine->oracles)
@@ -725,7 +725,7 @@ void OracleHarassAttackMineralLine::TickState()
 
 void OracleHarassAttackMineralLine::ExitState()
 {
-	mediator->SetUnitsCommand(state_machine->oracles, A_ORACLE_BEAM_OFF, CommandPriorty::low);
+	mediator->SetUnitsCommand(state_machine->oracles, A_ORACLE_BEAM_OFF, CommandPriority::low);
 	mediator->RemoveListenerToOnUnitDestroyedEvent(event_id);
 }
 
@@ -767,12 +767,12 @@ std::string OracleHarassReturnToBase::toString() const
 
 void OracleHarassReturnToBase::EnterState()
 {
-	mediator->SetUnitsCommand(state_machine->oracles, A_ORACLE_BEAM_OFF, CommandPriorty::low);
+	mediator->SetUnitsCommand(state_machine->oracles, A_ORACLE_BEAM_OFF, CommandPriority::low);
 	for (int i = 0; i < exfil_path.size(); i++)
 	{
-		mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, exfil_path[i], CommandPriorty::low, i > 0);
+		mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, exfil_path[i], CommandPriority::low, i > 0);
 	}
-	mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, mediator->GetStartLocation(), CommandPriorty::low, true);
+	mediator->SetUnitsCommand(state_machine->oracles, A_MOVE, mediator->GetStartLocation(), CommandPriority::low, true);
 }
 
 State* OracleHarassReturnToBase::TestTransitions()

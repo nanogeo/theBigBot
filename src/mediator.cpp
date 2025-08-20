@@ -598,7 +598,7 @@ void Mediator::CancelUnit(UNIT_TYPEID unit_type)
 	{
 		if (building->orders.size() > 0 && building->orders[0].ability_id == Utility::GetTrainAbility(unit_type))
 		{
-			SetUnitCommand(building, A_CANCEL_PRODUCTION, CommandPriorty::low);
+			SetUnitCommand(building, A_CANCEL_PRODUCTION, CommandPriority::low);
 			return;
 		}
 	}
@@ -1688,7 +1688,7 @@ bool Mediator::RemoveScoutToProxy(UNIT_TYPEID unitId, int amount)
 		RemoveStateMachine(state_machine);
 
 		Point2D pos = GetProxyLocations(PYLON)[0];
-		SetUnitCommand(scout, A_MOVE, pos, CommandPriorty::low);
+		SetUnitCommand(scout, A_MOVE, pos, CommandPriority::low);
 		action_manager.AddAction(new ActionData(&ActionManager::ActionRemoveScoutToProxy, new ActionArgData(scout, unitId, pos, amount)));
 		return true;
 	}
@@ -2403,7 +2403,7 @@ TryActionResult Mediator::TryBuildBuilding(const Unit* probe, UNIT_TYPEID buildi
 		if (resource_manager.SpendResources(building_type, position) == false)
 			return TryActionResult::cannot_afford;
 
-		SetUnitCommand(probe, Utility::GetBuildAbility(building_type), closest_geyser, CommandPriorty::normal);
+		SetUnitCommand(probe, Utility::GetBuildAbility(building_type), closest_geyser, CommandPriority::normal);
 		return TryActionResult::success;
 	}
 	else
@@ -2427,7 +2427,7 @@ TryActionResult Mediator::TryBuildBuilding(const Unit* probe, UNIT_TYPEID buildi
 		if (resource_manager.SpendResources(building_type, position) == false)
 			return TryActionResult::cannot_afford;
 
-		SetUnitCommand(probe, Utility::GetBuildAbility(building_type), position, CommandPriorty::normal);
+		SetUnitCommand(probe, Utility::GetBuildAbility(building_type), position, CommandPriority::normal);
 		return TryActionResult::success;
 	}
 }
@@ -2446,7 +2446,7 @@ TryActionResult Mediator::TryTrainUnit(const Unit* producer, UNIT_TYPEID unit_ty
 	if (resource_manager.SpendResources(unit_type, producer) == false)
 		return TryActionResult::cannot_afford;
 
-	SetUnitCommand(producer, Utility::GetTrainAbility(unit_type), CommandPriorty::normal);
+	SetUnitCommand(producer, Utility::GetTrainAbility(unit_type), CommandPriority::normal);
 	return TryActionResult::success;
 }
 
@@ -2476,7 +2476,7 @@ TryActionResult Mediator::TryWarpIn(const Unit* warpgate, UNIT_TYPEID unit_type,
 	if (resource_manager.SpendResources(unit_type, position) == false)
 		return TryActionResult::cannot_afford;
 
-	SetUnitCommand(warpgate, Utility::GetWarpAbility(unit_type), position, CommandPriorty::normal);
+	SetUnitCommand(warpgate, Utility::GetWarpAbility(unit_type), position, CommandPriority::normal);
 	return TryActionResult::success;
 }
 
@@ -2491,37 +2491,37 @@ TryActionResult Mediator::TryResearchUpgrade(const Unit* upgrader, UPGRADE_ID up
 	if (resource_manager.SpendResources(upgrade_id, upgrader) == false)
 		return TryActionResult::cannot_afford;
 
-	SetUnitCommand(upgrader, Utility::GetUpgradeAbility(upgrade_id), CommandPriorty::normal);
+	SetUnitCommand(upgrader, Utility::GetUpgradeAbility(upgrade_id), CommandPriority::normal);
 	return TryActionResult::success;
 }
 
 // TODO make these boolean if the command is invalid
-void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, CommandPriorty prio, bool queued_command)
+void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, CommandPriority prio, bool queued_command)
 {
 	unit_command_manager.SetUnitCommand(unit, ability, prio, queued_command);
 }
 
-void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, CommandPriorty prio, bool queued_command)
+void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, CommandPriority prio, bool queued_command)
 {
 	unit_command_manager.SetUnitCommand(unit, ability, point, prio, queued_command);
 }
 
-void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, CommandPriorty prio, bool queued_command)
+void Mediator::SetUnitCommand(const Unit* unit, AbilityID ability, const Unit* target, CommandPriority prio, bool queued_command)
 {
 	unit_command_manager.SetUnitCommand(unit, ability, target, prio, queued_command);
 }
 
-void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, CommandPriorty prio, bool queued_command)
+void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, CommandPriority prio, bool queued_command)
 {
 	unit_command_manager.SetUnitsCommand(units, ability, prio, queued_command);
 }
 
-void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, const Point2D& point, CommandPriorty prio, bool queued_command)
+void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, const Point2D& point, CommandPriority prio, bool queued_command)
 {
 	unit_command_manager.SetUnitsCommand(units, ability, point, prio, queued_command);
 }
 
-void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, const Unit* target, CommandPriorty prio, bool queued_command)
+void Mediator::SetUnitsCommand(const Units& units, AbilityID ability, const Unit* target, CommandPriority prio, bool queued_command)
 {
 	unit_command_manager.SetUnitsCommand(units, ability, target, prio, queued_command);
 }

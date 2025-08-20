@@ -12,7 +12,7 @@ namespace sc2 {
 void ScoutPInitialMove::TickState()
 {
 	if (state_machine->scout->orders.size() == 0 || state_machine->scout->orders[0].target_pos != state_machine->current_target)
-		mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriority::low);
 }
 
 void ScoutPInitialMove::EnterState()
@@ -53,7 +53,7 @@ void ScoutPScoutPylon::TickState()
 	{
 		Units pylons = mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON));
 		if (pylons.size() > 0)
-			mediator->SetUnitCommand(state_machine->scout, A_MOVE, pylons[0]->pos, CommandPriorty::low);
+			mediator->SetUnitCommand(state_machine->scout, A_MOVE, pylons[0]->pos, CommandPriority::low);
 	}
 }
 
@@ -61,7 +61,7 @@ void ScoutPScoutPylon::EnterState()
 {
 	Units pylons = mediator->GetUnits(Unit::Alliance::Enemy, IsUnit(PYLON));
 	if (pylons.size() > 0)
-		mediator->SetUnitCommand(state_machine->scout, A_MOVE, pylons[0]->pos, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, pylons[0]->pos, CommandPriority::low);
 }
 
 void ScoutPScoutPylon::ExitState()
@@ -96,7 +96,7 @@ void ScoutPScoutMain::TickState()
 		if (state_machine->index < state_machine->main_scout_path.size())
 			state_machine->current_target = state_machine->main_scout_path[state_machine->index];
 	}
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriorty::low);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, state_machine->current_target, CommandPriority::low);
 }
 
 void ScoutPScoutMain::EnterState()
@@ -134,13 +134,13 @@ std::string ScoutPScoutMain::toString() const
 void ScoutPScoutNatural::TickState()
 {
 	if (state_machine->scout->orders.size() == 0 && Distance2D(state_machine->scout->pos, mediator->GetEnemyNaturalLocation()) > 6)
-		mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetEnemyNaturalLocation(), CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetEnemyNaturalLocation(), CommandPriority::low);
 
 }
 
 void ScoutPScoutNatural::EnterState()
 {
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetEnemyNaturalLocation(), CommandPriorty::low);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetEnemyNaturalLocation(), CommandPriority::low);
 }
 
 void ScoutPScoutNatural::ExitState()
@@ -174,7 +174,7 @@ void ScoutPReturnToBase::TickState()
 
 void ScoutPReturnToBase::EnterState()
 {
-	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetStartLocation(), CommandPriorty::low);
+	mediator->SetUnitCommand(state_machine->scout, A_MOVE, mediator->GetStartLocation(), CommandPriority::low);
 }
 
 void ScoutPReturnToBase::ExitState()

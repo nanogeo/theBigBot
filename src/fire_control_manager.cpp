@@ -434,7 +434,7 @@ void FireControlManager::DoAttacks()
 	{
 		ApplyAttack(attack.first, attack.second);
 		attack_status[attack.first] = true;
-		mediator->SetUnitCommand(attack.first, A_ATTACK, attack.second, CommandPriorty::normal);
+		mediator->SetUnitCommand(attack.first, A_ATTACK, attack.second, CommandPriority::normal);
 	}
 
 	units_ready_to_attack.clear();

@@ -23,13 +23,13 @@ void StalkerBaseDefenseTerranDefendFront::TickState()
 		{
 			if (forward)
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->front_of_base[1], CommandPriorty::low);
+				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->front_of_base[1], CommandPriority::low);
 				if (Distance2D(state_machine->stalker->pos, state_machine->front_of_base[1]) < 1)
 					forward = false;
 			}
 			else
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->front_of_base[0], CommandPriorty::low);
+				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->front_of_base[0], CommandPriority::low);
 				if (Distance2D(state_machine->stalker->pos, state_machine->front_of_base[0]) < 1)
 					forward = true;
 			}
@@ -42,12 +42,12 @@ void StalkerBaseDefenseTerranDefendFront::TickState()
 			// TODO move infront of units based on distance away
 			if (Distance2D(state_machine->target->pos, state_machine->stalker->pos) <= 6 && state_machine->stalker->weapon_cooldown == 0)
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, state_machine->target, CommandPriorty::low);
+				mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, state_machine->target, CommandPriority::low);
 				state_machine->attack_status = true;
 			}
 			else
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->target->pos, CommandPriorty::low);
+				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->target->pos, CommandPriority::low);
 
 			}
 		}
@@ -102,7 +102,7 @@ void StalkerBaseDefenseTerranMoveAcross::TickState()
 		}
 		if (state_machine->target == nullptr)
 		{
-			mediator->SetUnitCommand(state_machine->stalker, A_MOVE, mediator->GetLocations().adept_scout_runaway, CommandPriorty::low);
+			mediator->SetUnitCommand(state_machine->stalker, A_MOVE, mediator->GetLocations().adept_scout_runaway, CommandPriority::low);
 		}
 	}
 	else
@@ -118,12 +118,12 @@ void StalkerBaseDefenseTerranMoveAcross::TickState()
 			// TODO move infront of units based on distance away
 			if (Distance2D(state_machine->target->pos, state_machine->stalker->pos) <= 4 && state_machine->stalker->weapon_cooldown == 0)
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, state_machine->target, CommandPriorty::low);
+				mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, state_machine->target, CommandPriority::low);
 				state_machine->attack_status = true;
 			}
 			else
 			{
-				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->target->pos, CommandPriorty::low);
+				mediator->SetUnitCommand(state_machine->stalker, A_MOVE, state_machine->target->pos, CommandPriority::low);
 
 			}
 		}
@@ -192,22 +192,22 @@ void ScoutBaseDefenseTerranHarrassFront::TickState()
 	{
 		if (state_machine->stalker->shield < 5)
 			shields_regening = true;
-		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, furthest_point, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, furthest_point, CommandPriority::low);
 	}
 	else if (shields_regening)
 	{
 		if (state_machine->stalker->shield >= 75)
 			shields_regening = false;
-		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, furthest_point, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, furthest_point, CommandPriority::low);
 	}
 	else if (Distance2D(closest_unit->pos, state_machine->stalker->pos) <= 6)
 	{
-		mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, closest_unit, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->stalker, A_ATTACK, closest_unit, CommandPriority::low);
 		state_machine->attack_status = true;
 	}
 	else
 	{
-		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, closest_unit, CommandPriorty::low);
+		mediator->SetUnitCommand(state_machine->stalker, A_MOVE, closest_unit, CommandPriority::low);
 	}
 }
 

@@ -581,7 +581,7 @@ struct GameState
 	bool good_worker_intel = false;
 };
 
-enum class CommandPriorty
+enum class CommandPriority
 {
 	low,
 	normal,
