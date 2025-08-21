@@ -7,6 +7,41 @@
 
 namespace sc2 {
 
+void ScoutingManager::UpdateEnemyUnitPositions()
+{
+	Units enemy_units = mediator->GetUnits(Unit::Alliance::Enemy);
+	for (const auto& unit : enemy_units)
+	{
+		if (unit->display_type != Unit::DisplayType::Visible) // or invisible?
+			continue;
+		if (enemy_unit_saved_position.count(unit) > 0)
+		{
+			if (Distance2D(enemy_unit_saved_position[unit].pos, unit->pos) < .05)
+			{
+				enemy_unit_saved_position[unit].frames++;
+			}
+			else
+			{
+				enemy_unit_saved_position[unit].pos = unit->pos;
+				enemy_unit_saved_position[unit].frames = 0;
+			}
+		}
+		else
+		{
+			AddNewUnit(unit);
+		}
+	}
+
+	// remove units if we can see the location they were last seen and are no longer there
+	for (auto& data : enemy_unit_saved_position)
+	{
+		if (mediator->IsVisible(data.second.pos) && 
+			std::find(enemy_units.begin(), enemy_units.end(), data.first) == enemy_units.end())
+		{
+			data.second = Point2D(0, 0);
+		}
+	}
+}
 
 void ScoutingManager::UpdateEnemyWeaponCooldowns()
 {
@@ -483,28 +518,7 @@ std::string ScoutingManager::GameStateToString()
 
 void ScoutingManager::UpdateInfo()
 {
-	for (const auto& unit : mediator->GetUnits(Unit::Alliance::Enemy))
-	{
-		if (unit->display_type != Unit::DisplayType::Visible)
-			continue;
-		if (enemy_unit_saved_position.count(unit) > 0)
-		{
-			if (Distance2D(enemy_unit_saved_position[unit].pos, unit->pos) < .05)
-			{
-				enemy_unit_saved_position[unit].frames++;
-			}
-			else
-			{
-				enemy_unit_saved_position[unit].pos = unit->pos;
-				enemy_unit_saved_position[unit].frames = 0;
-			}
-		}
-		else
-		{
-			AddNewUnit(unit);
-		}
-	}
-
+	UpdateEnemyUnitPositions();
 	UpdateEffectPositions();
 	UpdateEnemyWeaponCooldowns();
 	RemoveCompletedAttacks();

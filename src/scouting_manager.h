@@ -63,6 +63,7 @@ private:
 	GameState current_game_state;
 	GameStateManager* game_state_manager = nullptr;
 
+	void UpdateEnemyUnitPositions();
 	void UpdateEnemyWeaponCooldowns();
 	void RemoveCompletedAttacks();
 	void UpdateEffectPositions();
