@@ -172,7 +172,7 @@ void DefenseArmyGroup::Run()
 		{
 			AttackLine(group);
 		}
-		else if (group.basic_units.size() > 0)
+		else if (group.friendly_units.size() > 0)
 		{
 			IndividualAttack(group);
 		}
@@ -283,6 +283,9 @@ void DefenseArmyGroup::IndividualAttack(DefensiveGroup& group)
 			break;
 		}
 	}
+
+	OraclesCastRevelation(group.oracles);
+	OraclesDefendLocation(group.oracles, enemy_units, group.defensive_pos);
 }
 
 }

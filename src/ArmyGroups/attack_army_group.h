@@ -41,6 +41,8 @@ protected:
 	Units EvadeDamage(std::vector<std::pair<const Unit*, UnitDanger>>, Units, Point2D);
 
 	void OraclesDefendArmy(Units, Path*, Units);
+	void OraclesCastRevelation(Units);
+	void OraclesDefendLocation(Units, Units, Point2D);
 
 public:
 	AttackArmyGroup(Mediator* mediator) : ArmyGroup(mediator) {};
