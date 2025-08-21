@@ -159,6 +159,8 @@ public:
 	static bool IsFacing(const Unit*, const Unit*);
 	static float GetFacingAngle(const Unit*, const Unit*);
 	static const Unit* AimingAt(const Unit*, Units);
+	static Point2D GetForwardVector(const Unit*);
+	static Point2D NormalizeVector(Point2D);
 	static float BuildingSize(UNIT_TYPEID);
 	static float GetLargestUnitSize(Units);
 	static const Unit* GetLeastFullPrism(Units);

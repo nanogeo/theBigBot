@@ -103,6 +103,7 @@ public:
 	void RemoveUnit(const Unit* unit) override;
 
 	AttackLineResult AttackLine(DefensiveGroup&);
+	void IndividualAttack(DefensiveGroup&);
 
 };
 

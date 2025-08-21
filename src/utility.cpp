@@ -2936,6 +2936,19 @@ const Unit* Utility::AimingAt(const Unit* unit, Units allied_units)
 	return target;
 }
 
+Point2D Utility::GetForwardVector(const Unit* unit)
+{
+	return Point2D(cos(unit->facing), sin(unit->facing));
+}
+
+Point2D Utility::NormalizeVector(Point2D point)
+{
+	if (point == Point2D(0, 0))
+		return point;
+	float magnitude = sqrt(point.x * point.x + point.y * point.y);
+	return point / magnitude;
+}
+
 float Utility::BuildingSize(UNIT_TYPEID buildingId)
 {
 	if (buildingId == NEXUS)

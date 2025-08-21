@@ -168,8 +168,18 @@ void DefenseArmyGroup::Run()
 
 			mediator->SetUnitCommand(group.new_units[i], A_MOVE, group.origin, CommandPriority::low);
 		}
-		if (group.basic_units.size() > 0)
+		if (group.basic_units.size() > 6) // vary this based on attacking number of units?
+		{
 			AttackLine(group);
+		}
+		else if (group.basic_units.size() > 0)
+		{
+			IndividualAttack(group);
+		}
+		else
+		{
+			// micro special units only
+		}
 	}
 	
 	// position units to defend against air harassers
@@ -195,6 +205,7 @@ void DefenseArmyGroup::AddUnit(const Unit* unit)
 {
 	// TODO treat obs and prisms differently and maybe air units
 	unassigned_units.push_back(unit);
+	mediator->SetUnitCommand(unit, A_MOVE, central_pos, CommandPriority::low);
 	ArmyGroup::AddUnit(unit);
 }
 
@@ -216,6 +227,62 @@ AttackLineResult DefenseArmyGroup::AttackLine(DefensiveGroup& group)
 {
 	OraclesDefendArmy(group.oracles, group.path, group.basic_units);
 	return AttackArmyGroup::AttackLine(group.basic_units, group.origin, group.normal_range, group.path, false, Point2D(0, 0), group.prisms, 0, group.unit_position_assignments, group.oracles, group.advancing, .25f);
+}
+
+void DefenseArmyGroup::IndividualAttack(DefensiveGroup& group)
+{
+	Units enemy_units = mediator->GetUnits(Unit::Alliance::Enemy);
+	for (const auto& unit : group.basic_units)
+	{
+		if (mediator->GetAttackStatus(unit))
+			continue;
+		if (unit->weapon_cooldown == 0)
+			mediator->AddUnitToAttackers(unit);
+
+		const Unit* closest_enemy = Utility::ClosestTo(enemy_units, unit->pos);
+		Point2D point_on_path = group.path->FindClosestPoint(unit->pos);
+
+		if (Distance2D(closest_enemy->pos, unit->pos) > VERY_LONG_RANGE)
+		{
+			mediator->SetUnitCommand(unit, A_MOVE, group.defensive_pos, CommandPriority::low);
+			continue;
+		}
+
+		if (group.status < 0 && Distance2D(closest_enemy->pos, unit->pos) < Utility::RealRange(unit, closest_enemy) + 1)
+		{
+			Point2D away_vector = unit->pos - closest_enemy->pos;
+			Point2D back_vector = group.path->GetPointFrom(point_on_path, 1, false);
+			if (back_vector == Point2D(0, 0))
+				back_vector = group.path->GetStartPoint() - unit->pos;
+			Point2D move_vector = away_vector - back_vector;
+			move_vector = Utility::NormalizeVector(move_vector);
+
+			mediator->SetUnitCommand(unit, A_MOVE, unit->pos + move_vector, CommandPriority::low);
+		}
+		else
+		{
+			float dist = Distance2D(closest_enemy->pos, unit->pos);
+			Point2D intercept_point = Utility::PointBetween(closest_enemy->pos, closest_enemy->pos + Utility::GetForwardVector(unit), dist / 2);
+			mediator->SetUnitCommand(unit, A_MOVE, intercept_point, CommandPriority::low);
+		}
+
+		switch (unit->unit_type.ToType())
+		{
+		case ADEPT:
+			if (mediator->IsAdeptShadeOffCooldown(unit))
+			{
+				mediator->ForceUnitCommand(unit, A_SHADE, closest_enemy->pos);
+			}
+			else
+			{
+				std::pair<const Unit*, int> info = mediator->GetAdeptShadeInfo(unit);
+				if (info.first == nullptr)
+					break;
+				mediator->SetUnitCommand(info.first, A_MOVE, closest_enemy->pos, CommandPriority::low);
+			}
+			break;
+		}
+	}
 }
 
 }
