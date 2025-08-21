@@ -890,7 +890,7 @@ bool BuildOrderManager::CheckForEarlyPool(BuildOrderResultArgData data)
 		std::cerr << "Chargelot all in interrupt. build order step now " << std::to_string(build_order_step) << std::endl;
 		mediator->SendChat("Tag:scout_gasless", ChatChannel::Team);
 	}
-	else if (mediator->GetSpawningPoolTiming() >= 45)
+	else if (mediator->GetSpawningPoolTiming() >= 45 && mediator->GetFirstGasTiming() != 0)
 	{
 		// hatch first
 		mediator->SendChat("Tag:scout_hatch_pool", ChatChannel::Team);
