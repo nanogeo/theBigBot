@@ -105,7 +105,7 @@ PathDirection AttackArmyGroup::ShouldMoveConcaveOrigin(Point2D origin, Point2D t
 	// too close
 	if (Distance2D(origin, target) < desired_range - .1f ||
 		(close_enemies.size() > 0 && Utility::DistanceToClosest(close_enemies, origin) < VERY_CLOSE_RANGE) ||
-		origin == path->GetFurthestForward({ origin, limit }))
+		(origin == path->GetFurthestForward({ origin, limit }) && origin != limit))
 	{
 		return PathDirection::backward;
 
