@@ -288,4 +288,16 @@ void DefenseArmyGroup::IndividualAttack(DefensiveGroup& group)
 	OraclesDefendLocation(group.oracles, enemy_units, group.defensive_pos);
 }
 
+void DefenseArmyGroup::LogDebugInfo()
+{
+	std::string str;
+	for (const auto& group : defensive_groups)
+	{
+		str += "defensive pos: " + std::to_string(group.defensive_pos.x) + ", " + std::to_string(group.defensive_pos.y) + '\n';
+		str += "f units: " + std::to_string(group.friendly_units.size()) + '\n';
+		str += "e units: " + std::to_string(group.enemy_units.size()) + '\n';
+	}
+	std::cerr << str;
+}
+
 }

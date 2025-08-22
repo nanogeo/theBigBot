@@ -105,6 +105,8 @@ public:
 	AttackLineResult AttackLine(DefensiveGroup&);
 	void IndividualAttack(DefensiveGroup&);
 
+	void LogDebugInfo();
+
 };
 
 }

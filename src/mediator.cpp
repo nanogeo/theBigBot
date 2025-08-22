@@ -173,6 +173,9 @@ void Mediator::PrintTempDebugInfo()
 		units_lost_string += "Friendly units lost: " + losses.toString() + '\n';
 		units_lost_string += "Enemy units lost:    " + enemy_losses.toString() + '\n';
 		std::cerr << units_lost_string;
+
+		// defensive army group
+		army_manager.LogDebugInfo();
 	}
 }
 

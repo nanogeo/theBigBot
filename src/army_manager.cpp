@@ -482,6 +482,11 @@ void ArmyManager::MarkArmyGroupForDeletion(ArmyGroup* army_group)
 	army_groups_to_delete.push_back(army_group);
 }
 
+void ArmyManager::LogDebugInfo()
+{
+	unassigned_group->LogDebugInfo();
+}
+
 
 
 

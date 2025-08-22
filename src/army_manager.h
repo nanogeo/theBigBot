@@ -60,6 +60,8 @@ public:
 	void RemoveArmyGroupOfType();
 	void DeleteArmyGroup(ArmyGroup*);
 	void MarkArmyGroupForDeletion(ArmyGroup*);
+
+	void LogDebugInfo();
 };
 
 struct IArmyTemplate
