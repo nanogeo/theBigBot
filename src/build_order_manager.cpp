@@ -257,6 +257,9 @@ bool BuildOrderManager::BuildFirstPylon(BuildOrderResultArgData data)
 	if (mediator->GetEnemyRace() == Race::Zerg)
 	{
 		mediator->ChangeAreaControl(mediator->GetNaturalLocation(), LONG_RANGE, mediator->ToPoint3D(mediator->GetNaturalLocation()).z, NodeControl::friendly_control);
+		const Locations& locations = mediator->GetLocations(); // TODO find a better way to find positions for pylons
+		if (Distance2D(locations.pylon_locations[2], pos) < 8)
+			const_cast<Locations&>(locations).pylon_locations.erase(locations.pylon_locations.begin() + 2);
 	}
 
 	const Unit* builder = mediator->GetBuilder(pos);
