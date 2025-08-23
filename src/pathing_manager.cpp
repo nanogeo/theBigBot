@@ -119,8 +119,8 @@ void KDTree::AddNoise(Node* node)
 	if (node == nullptr)
 		return;
 	
-	float x_r = (float)(rand() - (RAND_MAX / 2)) / (RAND_MAX * 10);
-	float y_r = (float)(rand() - (RAND_MAX / 2)) / (RAND_MAX * 10);
+	float x_r = (float)(rand() % 10000) / 100000;
+	float y_r = (float)(rand() % 10000) / 100000;
 	node->pos += Point2D(x_r, y_r);
 
 	AddNoise(node->left_node);
