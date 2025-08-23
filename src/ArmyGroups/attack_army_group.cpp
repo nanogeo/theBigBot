@@ -816,7 +816,7 @@ void AttackArmyGroup::OraclesDefendLocation(Units oracles, Units enemy_units, Po
 				{
 					if (mediator->IsOracleBeamActive(oracle) == false)
 					{
-						mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_ON, CommandPriority::high);
+						mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_ON, CommandPriority::low);
 						num_oracles_active++;
 					}
 				}
@@ -836,7 +836,7 @@ void AttackArmyGroup::OraclesDefendLocation(Units oracles, Units enemy_units, Po
 			{
 				if (mediator->IsOracleBeamActive(oracle))
 				{
-					mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriority::high);
+					mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriority::low);
 				}
 			}
 		}
@@ -882,8 +882,12 @@ void AttackArmyGroup::OraclesDefendLocation(Units oracles, Units enemy_units, Po
 		}
 		else if (has_attacked[oracle])
 		{
-			mediator->SetUnitCommand(oracle, A_MOVE, pos, CommandPriority::low);
-
+			const Unit* closest_unit = Utility::ClosestTo(close_enemy_units, oracle->pos);
+			if (closest_unit == nullptr || Distance2D(closest_unit->pos, oracle->pos) > 6)
+			{
+				mediator->SetUnitCommand(oracle, A_MOVE, pos, CommandPriority::low);
+				continue;
+			}
 			//agent->Debug()->DebugSphereOut(oracle->pos, 2, Color(0, 0, 255));
 		}
 		else
