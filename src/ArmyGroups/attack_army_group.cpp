@@ -795,7 +795,7 @@ void AttackArmyGroup::OraclesDefendLocation(Units oracles, Units enemy_units, Po
 				{
 					if (mediator->IsOracleBeamActive(oracle))
 					{
-						mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriority::high);
+						mediator->SetUnitCommand(oracle, A_ORACLE_BEAM_OFF, CommandPriority::low);
 						num_oracles_active--;
 					}
 				}

@@ -187,6 +187,8 @@ void DefenseArmyGroup::Run()
 	// move remaining units to central position
 	for (const auto& unit : unassigned_units)
 	{
+		if (unit->unit_type == ORACLE && mediator->IsOracleBeamActive(unit))
+			mediator->SetUnitCommand(unit, A_ORACLE_BEAM_OFF, CommandPriority::low);
 		if (mediator->GetAttackStatus(unit))
 			continue;
 		if (unit->weapon_cooldown == 0)
@@ -216,6 +218,8 @@ void DefenseArmyGroup::RemoveUnit(const Unit* unit)
 	{
 		if (std::find(group.friendly_units.begin(), group.friendly_units.end(), unit) != group.friendly_units.end())
 		{
+			if (unit->unit_type == ORACLE && mediator->IsOracleBeamActive(unit))
+				mediator->SetUnitCommand(unit, A_ORACLE_BEAM_OFF, CommandPriority::low);
 			group.RemoveUnit(unit);
 			break;
 		}
