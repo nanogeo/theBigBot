@@ -11,7 +11,7 @@ namespace sc2 {
 
 
 BlinkFSMArmyGroup::BlinkFSMArmyGroup(Mediator* mediator, BlinkStalkerAttackTerran* state_machine, int desired_units, int max_units, int required_units, int min_reinfore_group_size) :
-	PiecewiseAttackArmyGroup(mediator, mediator->GetDirectAttackLine(), { STALKER, PRISM, COLOSSUS, IMMORTAL }, desired_units, max_units, required_units, min_reinfore_group_size)
+	PiecewiseAttackArmyGroup(mediator, mediator->GetDirectAttackLine(), { STALKER, PRISM, COLOSSUS, IMMORTAL }, desired_units, max_units, required_units, min_reinfore_group_size, true)
 {
 	this->state_machine = state_machine;
 	main_attack_path = mediator->GetLocations().blink_main_attack_path_lines;

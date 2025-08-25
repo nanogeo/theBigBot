@@ -212,7 +212,7 @@ public:
 
 	void DefendThirdBaseZerg();
 	void SetDoorGuard();
-	void CreateAttack(std::vector<UNIT_TYPEID>, int, int, int, int);
+	void CreateAttack(std::vector<UNIT_TYPEID>, int, int, int, int, bool);
 	void CreateSimpleAttack(std::vector<UNIT_TYPEID>, int, int);
 	void StartCannonRushDefense();
 	void ScoutBases();

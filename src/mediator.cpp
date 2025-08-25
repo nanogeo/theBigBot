@@ -1599,7 +1599,7 @@ void Mediator::CreateFourGateBlinkFSM()
 
 void Mediator::DeleteFourGateBlinkFSM()
 {
-	PiecewiseAttackArmyGroup* army = new PiecewiseAttackArmyGroup(this, GetDirectAttackLine(), { STALKER, PRISM, COLOSSUS, IMMORTAL }, 25, 35, 7, 3);
+	PiecewiseAttackArmyGroup* army = new PiecewiseAttackArmyGroup(this, GetDirectAttackLine(), { STALKER, PRISM, COLOSSUS, IMMORTAL }, 25, 35, 7, 3, true);
 
 	army_manager.AddArmyGroup(army);
 }
@@ -1760,9 +1760,9 @@ void Mediator::SetDoorGuard()
 	army_manager.AddArmyGroup(new DoorGuardArmyGroup(this, agent->locations->natural_door_closed, agent->locations->natural_door_open));
 }
 
-void Mediator::CreateAttack(std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units, int required_units, int min_reinforce_group_size)
+void Mediator::CreateAttack(std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units, int required_units, int min_reinforce_group_size, bool limit_advance)
 {
-	army_manager.AddArmyGroup(new PiecewiseAttackArmyGroup(this, GetDirectAttackLine(), unit_types, desired_units, max_units, required_units, min_reinforce_group_size));
+	army_manager.AddArmyGroup(new PiecewiseAttackArmyGroup(this, GetDirectAttackLine(), unit_types, desired_units, max_units, required_units, min_reinforce_group_size, limit_advance));
 }
 
 void Mediator::CreateSimpleAttack(std::vector<UNIT_TYPEID> unit_types, int desired_units, int max_units)

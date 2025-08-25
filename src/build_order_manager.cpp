@@ -581,7 +581,7 @@ bool BuildOrderManager::Contain(BuildOrderResultArgData data)
 
 bool BuildOrderManager::StalkerOraclePressure(BuildOrderResultArgData data)
 {
-	mediator->CreateAttack({ STALKER, IMMORTAL, PRISM, COLOSSUS, ORACLE, CARRIER }, 15, 25, 6, 5);
+	mediator->CreateAttack({ STALKER, IMMORTAL, PRISM, COLOSSUS, ORACLE, CARRIER }, 15, 25, 6, 5, true);
 	return true;
 }
 
@@ -816,7 +816,7 @@ bool BuildOrderManager::CannonRushAttack(BuildOrderResultArgData data)
 
 bool BuildOrderManager::SendAllInAttack(BuildOrderResultArgData data)
 {
-	mediator->CreateAttack({ ZEALOT, ADEPT, SENTRY, STALKER, HIGH_TEMPLAR, ARCHON, IMMORTAL, PRISM, COLOSSUS, DISRUPTOR, VOID_RAY, TEMPEST, CARRIER }, 15, 30, 1, 1);
+	mediator->CreateAttack({ ZEALOT, ADEPT, SENTRY, STALKER, HIGH_TEMPLAR, ARCHON, IMMORTAL, PRISM, COLOSSUS, DISRUPTOR, VOID_RAY, TEMPEST, CARRIER }, 15, 30, 1, 1, true);
 	return true;
 }
 

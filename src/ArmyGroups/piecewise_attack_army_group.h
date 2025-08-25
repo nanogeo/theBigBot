@@ -40,7 +40,7 @@ protected:
 	int required_units;
 
 public:
-	PiecewiseAttackArmyGroup(Mediator*, PiecewisePath, std::vector<UNIT_TYPEID>, int, int, int, int);
+	PiecewiseAttackArmyGroup(Mediator*, PiecewisePath, std::vector<UNIT_TYPEID>, int, int, int, int, bool);
 	PiecewiseAttackArmyGroup(Mediator*, ArmyTemplate<PiecewiseAttackArmyGroup>*);
 
 	void SetUp() override;

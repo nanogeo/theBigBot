@@ -10,7 +10,7 @@ namespace sc2 {
 
 
 PiecewiseAttackArmyGroup::PiecewiseAttackArmyGroup(Mediator* mediator, PiecewisePath attack_path, std::vector<UNIT_TYPEID> unit_types,
-	int desired_units, int max_units, int required_units, int min_reinforce_group_size) : AttackArmyGroup(mediator)
+	int desired_units, int max_units, int required_units, int min_reinforce_group_size, bool limit_advance) : AttackArmyGroup(mediator)
 {
 	this->unit_types = unit_types;
 	this->desired_units = desired_units;
@@ -35,7 +35,7 @@ PiecewiseAttackArmyGroup::PiecewiseAttackArmyGroup(Mediator* mediator, Piecewise
 		std::cerr << "Unknown enemy race in AttackArmyGroup" << std::endl;
 		break;
 	}
-	limit_advance = true;
+	this->limit_advance = limit_advance;
 	pre_prism_limit = mediator->GetLocations().adept_scout_ramptop;
 }
 
