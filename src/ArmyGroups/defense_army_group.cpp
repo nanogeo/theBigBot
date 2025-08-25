@@ -87,7 +87,7 @@ void DefenseArmyGroup::AllocateUnitsToDefensiveGroups(std::vector<EnemyArmyGroup
 		DefensiveGroup* best_status = nullptr;
 		for (auto itr = defensive_groups.begin(); itr != defensive_groups.end(); itr++)
 		{
-			if (itr->status > 0 && (best_status == nullptr || itr->status > best_status->status))
+			if (itr->friendly_units.size() > 0 && itr->status > 0 && (best_status == nullptr || itr->status > best_status->status))
 			{
 				best_status = &(*itr);
 			}
